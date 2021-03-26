@@ -59,7 +59,7 @@ export default class Commands {
         this.message = new c.MessageCommand(bot);
         this.misc = new c.MiscCommands(bot);
         this.opt = new c.OptionsCommand(bot);
-        this.pManager = new c.PricelistManager(bot);
+        this.pManager = new c.PricelistManager(bot, pricer);
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
@@ -200,7 +200,7 @@ export default class Commands {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
             void this.pManager.getAllCommand(steamID, message);
-        } else if (command === 'getslots' && isAdmin) {
+        } else if (['getslots', 'listings'].includes(command) && isAdmin) {
             void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
             void this.pManager.autoAddCommand(steamID, message);
@@ -282,9 +282,13 @@ export default class Commands {
 
     private getSKU(steamID: SteamID, message: string): void {
         const itemName = CommandParser.removeCommand(removeLinkProtocol(message));
+        const sku = this.bot.schema.getSkuFromName(itemName);
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        this.bot.sendMessage(steamID, this.bot.schema.getSkuFromName(itemName));
+        this.bot.sendMessage(steamID, sku);
+
+        if (sku.includes('null') || sku.includes('undefined')) {
+            this.bot.sendMessage(steamID, 'Please check the name. If correct, please let IdiNium know. Thank you.');
+        }
     }
 
     private priceCommand(steamID: SteamID, message: string): void {

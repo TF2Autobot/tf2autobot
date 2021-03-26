@@ -294,6 +294,30 @@ export default class MyHandler extends Handler {
         this.refreshTimeout = setTimeout(() => {
             this.enableAutoRefreshListings();
         }, 5 * 60 * 1000);
+
+        // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
+        const failedToUpdateOldPrices = this.bot.pricelist.failedUpdateOldPrices;
+
+        if (failedToUpdateOldPrices.length > 0) {
+            const dw = this.opt.discordWebhook.sendAlert;
+            const isDwEnabled = dw.enable && dw.url !== '';
+
+            if (this.opt.sendAlert.enable && this.opt.sendAlert.failedToUpdateOldPrices) {
+                if (isDwEnabled) {
+                    sendAlert('failedToUpdateOldPrices', this.bot, '', null, null, failedToUpdateOldPrices);
+                } else {
+                    this.bot.messageAdmins(
+                        `Failed to update old prices (probably because autoprice is set to true but item does not exist` +
+                            ` on the pricer source):\n\n${failedToUpdateOldPrices.join(
+                                '\n'
+                            )}\n\nAll items above has been temporarily disabled.`,
+                        []
+                    );
+                }
+            }
+
+            this.bot.pricelist.resetFailedUpdateOldPrices = 0;
+        }
     }
 
     onShutdown(): Promise<void> {
@@ -444,10 +468,18 @@ export default class MyHandler extends Handler {
 
         this.autoRefreshListingsInterval = setInterval(
             () => {
-                if (this.alreadyExecutedRefreshlist) {
+                const opt = this.opt;
+                const createListingsEnabled = opt.miscSettings.createListings.enable;
+
+                if (this.alreadyExecutedRefreshlist || !createListingsEnabled) {
                     log.debug(
-                        '❌ Just recently executed refreshlist command, will not run automatic check for missing listings.'
+                        `❌ ${
+                            this.alreadyExecutedRefreshlist
+                                ? 'Just recently executed refreshlist command'
+                                : 'miscSettings.createListings.enable is set to false'
+                        }, will not run automatic check for missing listings.`
                     );
+
                     setTimeout(() => {
                         this.enableAutoRefreshListings();
                     }, this.executedDelayTime);
@@ -472,20 +504,20 @@ export default class MyHandler extends Handler {
                     }
 
                     const inventory = this.bot.inventoryManager;
-                    const isFilterCantAfford = this.opt.pricelist.filterCantAfford.enable;
+                    const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
 
                     this.bot.listingManager.listings.forEach(listing => {
                         let listingSKU = listing.getSKU();
                         if (listing.intent === 1) {
-                            if (this.opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                            if (opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
                                 listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
                             }
 
-                            if (this.opt.normalize.festivized.our && listingSKU.includes(';festive')) {
+                            if (opt.normalize.festivized.our && listingSKU.includes(';festive')) {
                                 listingSKU = listingSKU.replace(';festive', '');
                             }
 
-                            if (this.opt.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
+                            if (opt.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                                 listingSKU = listingSKU.replace(';strange', '');
                             }
                         } else {
@@ -1024,6 +1056,13 @@ export default class MyHandler extends Handler {
                             ? this.bot.pricelist.getPrice(sku)
                             : this.bot.pricelist.getPrice(sku, false, true);
 
+                    const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
+                        ? !(
+                              craftAll.includes(sku) ||
+                              (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
+                          )
+                        : true;
+
                     // TODO: Go through all assetids and check if the item is being sold for a specific price
 
                     if (match !== null && (sku !== '5021;6' || !exchange.contains.items)) {
@@ -1050,7 +1089,7 @@ export default class MyHandler extends Handler {
                             which === 'their'
                         ); // return a number
 
-                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff) {
+                        if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
                             if (match.enabled) {
                                 // User is offering too many
                                 hasOverstock = true;
@@ -1074,7 +1113,13 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        if (diff !== 0 && !isBuying && sku !== '5021;6' && amountCanTrade < Math.abs(diff)) {
+                        if (
+                            diff !== 0 &&
+                            !isBuying &&
+                            sku !== '5021;6' &&
+                            amountCanTrade < Math.abs(diff) &&
+                            notIncludeCraftweapons
+                        ) {
                             if (match.enabled) {
                                 // User is taking too many
                                 hasUnderstock = true;
@@ -1115,7 +1160,10 @@ export default class MyHandler extends Handler {
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
                         //
-                    } else if (match === null || (match !== null && match.intent === (buying ? 1 : 0))) {
+                    } else if (
+                        (match === null && notIncludeCraftweapons) ||
+                        (match !== null && match.intent === (buying ? 1 : 0))
+                    ) {
                         // Offer contains an item that we are not trading
                         hasInvalidItems = true;
 
@@ -1997,18 +2045,21 @@ export default class MyHandler extends Handler {
                 .splice(1, friendsToRemoveCount - 2 <= 0 ? 2 : friendsToRemoveCount);
 
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
-            friendsToRemove.forEach(element => {
+            friendsToRemove.forEach(friend => {
+                const friendSteamID = friend.steamID;
+                const getFriend = this.bot.friends.getFriend(friendSteamID);
+
                 this.bot.sendMessage(
-                    element.steamID,
+                    friendSteamID,
                     this.opt.customMessage.clearFriends
                         ? this.opt.customMessage.clearFriends.replace(
                               /%name%/g,
-                              this.bot.friends.getFriend(element.steamID).player_name
+                              getFriend ? getFriend.player_name : friendSteamID
                           )
                         : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. ' +
                               'Please feel free to add me again if you want to trade at a later time!'
                 );
-                this.bot.client.removeFriend(element.steamID);
+                this.bot.client.removeFriend(friendSteamID);
             });
         }
     }

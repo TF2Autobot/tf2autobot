@@ -67,7 +67,8 @@ export const DEFAULTS = {
             onSuccessUpdatePartialPriced: true,
             onFailedUpdatePartialPriced: true
         },
-        receivedUnusualNotInPricelist: true
+        receivedUnusualNotInPricelist: true,
+        failedToUpdateOldPrices: true
     },
 
     pricelist: {
@@ -419,6 +420,7 @@ export const DEFAULTS = {
         priceUpdate: {
             enable: true,
             showOnlyInStock: false,
+            showFailedToUpdate: true,
             url: '',
             note: ''
         },
@@ -599,6 +601,7 @@ export const DEFAULTS = {
         },
         message: {
             enable: true,
+            showOwnerName: true,
             customReply: {
                 disabled: '',
                 wrongSyntax: '',
@@ -1032,6 +1035,7 @@ interface SendAlert extends OnlyEnable {
     unableToProcessOffer?: boolean;
     partialPrice?: PartialPrice;
     receivedUnusualNotInPricelist?: boolean;
+    failedToUpdateOldPrices?: boolean;
 }
 
 interface PartialPrice {
@@ -1373,6 +1377,7 @@ interface MessagesDW extends OnlyEnable {
 
 interface PriceUpdateDW extends OnlyEnable, OnlyNote {
     showOnlyInStock?: boolean;
+    showFailedToUpdate?: boolean;
     url?: string;
 }
 
@@ -1556,6 +1561,7 @@ interface AutokeysCommand extends OnlyEnable {
 }
 
 interface Message extends OnlyEnable {
+    showOwnerName?: boolean;
     customReply?: MessageCustom;
 }
 

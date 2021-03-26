@@ -485,6 +485,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 receivedUnusualNotInPricelist: {
                     type: 'boolean'
+                },
+                failedToUpdateOldPrices: {
+                    type: 'boolean'
                 }
             },
             required: [
@@ -1255,6 +1258,9 @@ export const optionsSchema: jsonschema.Schema = {
                         showOnlyInStock: {
                             type: 'boolean'
                         },
+                        showFailedToUpdate: {
+                            type: 'boolean'
+                        },
                         url: {
                             type: 'string',
                             pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
@@ -1263,7 +1269,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         }
                     },
-                    required: ['enable', 'showOnlyInStock', 'url', 'note'],
+                    required: ['enable', 'showOnlyInStock', 'showFailedToUpdate', 'url', 'note'],
                     additionalProperties: false
                 },
                 sendAlert: {
@@ -1625,6 +1631,9 @@ export const optionsSchema: jsonschema.Schema = {
                         enable: {
                             type: 'boolean'
                         },
+                        showOwnerName: {
+                            type: 'boolean'
+                        },
                         customReply: {
                             type: 'object',
                             properties: {
@@ -1645,7 +1654,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         }
                     },
-                    required: ['enable', 'customReply'],
+                    required: ['enable', 'showOwnerName', 'customReply'],
                     additionalProperties: false
                 },
                 time: {

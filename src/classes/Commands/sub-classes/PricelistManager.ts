@@ -10,6 +10,7 @@ import { fixSKU, getItemFromParams, removeLinkProtocol, testSKU } from '../funct
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
+import Pricer, { RequestCheckResponse, RequestCheckFn } from '../../Pricer';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 
@@ -18,12 +19,15 @@ import log from '../../../lib/logger';
 export default class PricelistManagerCommands {
     private stopAutoAdd = false;
 
+    private requestCheck: RequestCheckFn;
+
     stopAutoAddCommand(): void {
         this.stopAutoAdd = true;
     }
 
-    constructor(private readonly bot: Bot) {
+    constructor(private readonly bot: Bot, private priceSource: Pricer) {
         this.bot = bot;
+        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
     }
 
     addCommand(steamID: SteamID, message: string): void {
@@ -123,10 +127,10 @@ export default class PricelistManagerCommands {
 
         if (params.group && typeof params.group !== 'string') {
             // if group parameter is defined, convert anything to string
-            params.group = (params.group as string).toString();
+            params.group = String(params.group);
         }
 
-        if (typeof params.group === undefined) {
+        if (params.group === undefined) {
             // If group parameter is not defined, set it to null.
             params['group'] = 'all';
         }
@@ -157,6 +161,23 @@ export default class PricelistManagerCommands {
                 this.bot.sendMessage(
                     steamID,
                     `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
+                );
+
+                void this.requestCheck(params.sku, 'bptf').asCallback(
+                    (err: ErrorRequest, body: RequestCheckResponse) => {
+                        if (err) {
+                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
+                            return;
+                        }
+
+                        if (!body) {
+                            log.debug(
+                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
+                            );
+                        } else {
+                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
+                        }
+                    }
                 );
             })
             .catch(err => {
@@ -199,12 +220,12 @@ export default class PricelistManagerCommands {
             params.enabled = true;
         }
 
-        if (params.max === undefined) {
-            params.max = 1;
-        }
-
         if (params.min === undefined) {
             params.min = 0;
+        }
+
+        if (params.max === undefined) {
+            params.max = 1;
         }
 
         if (params.intent === undefined) {
@@ -224,7 +245,13 @@ export default class PricelistManagerCommands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+        } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
+            params['buy'] = {
+                keys: 0,
+                metal: 0
+            };
         }
+
         if (typeof params.sell === 'object') {
             params.sell.keys = params.sell.keys || 0;
             params.sell.metal = params.sell.metal || 0;
@@ -232,6 +259,11 @@ export default class PricelistManagerCommands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+        } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
+            params['sell'] = {
+                keys: 0,
+                metal: 0
+            };
         }
 
         if (
@@ -288,10 +320,10 @@ export default class PricelistManagerCommands {
 
         if (params.group && typeof params.group !== 'string') {
             // if group parameter is defined, convert anything to string
-            params.group = (params.group as string).toString();
+            params.group = String(params.group);
         }
 
-        if (typeof params.group === undefined) {
+        if (params.group === undefined) {
             // If group parameter is not defined, set it to null.
             params['group'] = 'all';
         }
@@ -390,6 +422,23 @@ export default class PricelistManagerCommands {
                                 total - added - skipped - failed
                             } remaining`
                     );
+
+                    void this.requestCheck(params.sku, 'bptf').asCallback(
+                        (err: ErrorRequest, body: RequestCheckResponse) => {
+                            if (err) {
+                                log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
+                                return;
+                            }
+
+                            if (!body) {
+                                log.debug(
+                                    `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
+                                );
+                            } else {
+                                log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
+                            }
+                        }
+                    );
                 })
                 .catch(err => {
                     failed++;
@@ -455,15 +504,15 @@ export default class PricelistManagerCommands {
             const keyPrice = this.bot.pricelist.getKeyPrice;
             if (typeof params.buy === 'object' || typeof params.sell === 'object') {
                 if (
-                    new Currencies(params.buy).toValue(keyPrice.metal) >=
-                    new Currencies(params.sell).toValue(keyPrice.metal)
-                ) {
-                    return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
-                } else if (
                     (params.buy !== null && params.sell === undefined) ||
                     (params.buy === undefined && params.sell !== null)
                 ) {
                     return this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
+                } else if (
+                    new Currencies(params.buy).toValue(keyPrice.metal) >=
+                    new Currencies(params.sell).toValue(keyPrice.metal)
+                ) {
+                    return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
                 }
             }
             // TODO: Must have at least one other param
@@ -491,12 +540,12 @@ export default class PricelistManagerCommands {
                     entry.intent = params.intent as 0 | 1 | 2;
                 }
 
-                if (params.min === 0 || typeof params.min === 'number') {
-                    entry.min = params.min as number;
+                if (typeof params.min === 'number') {
+                    entry.min = params.min;
                 }
 
-                if (params.max === 0 || typeof params.max === 'number') {
-                    entry.max = params.max as number;
+                if (typeof params.max === 'number') {
+                    entry.max = params.max;
                 }
 
                 if (typeof params.enabled === 'boolean') {
@@ -504,22 +553,25 @@ export default class PricelistManagerCommands {
                 }
 
                 if (params.group) {
-                    entry.group = (params.group as string).toString();
+                    entry.group = String(params.group);
                 }
 
-                if (params.removenote && typeof params.removenote === 'boolean' && params.removenote === true) {
+                if (params.removenote === true) {
                     // Sending "!update all=true&removenote=true" will set both
                     // note.buy and note.sell for entire/withgroup entries to null.
-                    if (entry.note) {
-                        entry.note.buy = null;
-                        entry.note.sell = null;
-                    }
+                    entry.note.buy = null;
+                    entry.note.sell = null;
+                }
+
+                if (params.resetgroup === true) {
+                    entry.group = 'all';
                 }
 
                 if (typeof params.autoprice === 'boolean') {
                     if (params.autoprice === false) {
                         entry.time = null;
                     }
+
                     entry.autoprice = params.autoprice;
                 }
 
@@ -530,7 +582,7 @@ export default class PricelistManagerCommands {
                         entry.note.sell = params.note.sell || entry.note.sell;
                     }
 
-                    if (typeof params.buy === 'object' && params.buy !== null) {
+                    if (typeof params.buy === 'object') {
                         entry.buy.keys = params.buy.keys || 0;
                         entry.buy.metal = params.buy.metal || 0;
 
@@ -539,7 +591,7 @@ export default class PricelistManagerCommands {
                         }
                     }
 
-                    if (typeof params.sell === 'object' && params.sell !== null) {
+                    if (typeof params.sell === 'object') {
                         entry.sell.keys = params.sell.keys || 0;
                         entry.sell.metal = params.sell.metal || 0;
 
@@ -576,6 +628,10 @@ export default class PricelistManagerCommands {
                 delete params.removenote;
             }
 
+            if (params.resetgroup) {
+                delete params.resetgroup;
+            }
+
             if (params.withgroup) {
                 delete params.withgroup;
             }
@@ -609,24 +665,6 @@ export default class PricelistManagerCommands {
 
         if (params.sku !== undefined && !testSKU(params.sku as string)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
-        }
-
-        if (typeof params.buy === 'object' && params.buy !== null) {
-            params.buy.keys = params.buy.keys || 0;
-            params.buy.metal = params.buy.metal || 0;
-
-            if (params.autoprice === undefined) {
-                params.autoprice = false;
-            }
-        }
-
-        if (typeof params.sell === 'object' && params.sell !== null) {
-            params.sell.keys = params.sell.keys || 0;
-            params.sell.metal = params.sell.metal || 0;
-
-            if (params.autoprice === undefined) {
-                params.autoprice = false;
-            }
         }
 
         if (params.resetgroup) {
@@ -708,6 +746,34 @@ export default class PricelistManagerCommands {
 
         const itemEntry = this.bot.pricelist.getPrice(params.sku as string, false);
 
+        if (typeof params.buy === 'object') {
+            params.buy.keys = params.buy.keys || 0;
+            params.buy.metal = params.buy.metal || 0;
+
+            if (params.autoprice === undefined) {
+                params.autoprice = false;
+            }
+        } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
+            params['buy'] = {
+                keys: itemEntry.buy.keys,
+                metal: itemEntry.buy.metal
+            };
+        }
+
+        if (typeof params.sell === 'object') {
+            params.sell.keys = params.sell.keys || 0;
+            params.sell.metal = params.sell.metal || 0;
+
+            if (params.autoprice === undefined) {
+                params.autoprice = false;
+            }
+        } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
+            params['sell'] = {
+                keys: itemEntry.sell.keys,
+                metal: itemEntry.sell.metal
+            };
+        }
+
         if (typeof params.note === 'object') {
             params.note.buy = params.note.buy || itemEntry.note.buy;
             params.note.sell = params.note.sell || itemEntry.note.sell;
@@ -759,7 +825,7 @@ export default class PricelistManagerCommands {
 
         if (params.group && typeof params.group !== 'string') {
             // if group parameter is defined, convert anything to string
-            params.group = (params.group as string).toString();
+            params.group = String(params.group);
         }
 
         const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON(); //TODO: CONTINUE
@@ -785,6 +851,23 @@ export default class PricelistManagerCommands {
                 this.bot.sendMessage(
                     steamID,
                     `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
+                );
+
+                void this.requestCheck(params.sku, 'bptf').asCallback(
+                    (err: ErrorRequest, body: RequestCheckResponse) => {
+                        if (err) {
+                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
+                            return;
+                        }
+
+                        if (!body) {
+                            log.debug(
+                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
+                            );
+                        } else {
+                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
+                        }
+                    }
                 );
             })
             .catch((err: ErrorRequest) => {
@@ -934,7 +1017,26 @@ export default class PricelistManagerCommands {
 
         this.bot.pricelist
             .removePrice(params.sku as string, true)
-            .then(entry => this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`))
+            .then(entry => {
+                this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
+
+                void this.requestCheck(params.sku, 'bptf').asCallback(
+                    (err: ErrorRequest, body: RequestCheckResponse) => {
+                        if (err) {
+                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
+                            return;
+                        }
+
+                        if (!body) {
+                            log.debug(
+                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
+                            );
+                        } else {
+                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
+                        }
+                    }
+                );
+            })
             .catch(err =>
                 this.bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${(err as Error).message}`)
             );
@@ -1211,7 +1313,7 @@ export default class PricelistManagerCommands {
 
                 this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
 
-                await sleepasync().Promise.sleep(1 * 1000);
+                await sleepasync().Promise.sleep(1000);
             }
         }
     }

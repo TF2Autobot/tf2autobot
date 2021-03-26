@@ -229,6 +229,12 @@ declare module 'tf2-schema-2' {
 
             constructor(data: { version: string; raw: Record<string, unknown>; time: number });
 
+            getItemByItemNameWithThe(name: string): SchemaItem | null;
+
+            getSkuFromName(name: string): string;
+
+            getItemObjectFromName(name: string): Item;
+
             getItemByDefindex(defindex: number): SchemaItem | null;
 
             getItemObjectFromName(name: string): skuObject;

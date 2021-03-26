@@ -263,9 +263,13 @@ export default class ReviewCommands {
 
                 // Send message to recipient if includes some messages
                 if (reply) {
+                    const isShowOwner = this.bot.options.commands.message.showOwnerName;
+
                     this.bot.sendMessage(
                         partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                        `/quote 💬 Message from ${
+                            isShowOwner && adminDetails ? adminDetails.player_name : 'the owner'
+                        }: ${reply}`
                     );
                 }
             } catch (err) {
@@ -324,9 +328,13 @@ export default class ReviewCommands {
 
                 // Send message to recipient if includes some messages
                 if (reply) {
+                    const isShowOwner = this.bot.options.commands.message.showOwnerName;
+
                     this.bot.sendMessage(
                         partnerId,
-                        `/quote 💬 Message from ${adminDetails ? adminDetails.player_name : 'admin'}: ${reply}`
+                        `/quote 💬 Message from ${
+                            isShowOwner && adminDetails ? adminDetails.player_name : 'the owner'
+                        }: ${reply}`
                     );
                 }
             } catch (err) {

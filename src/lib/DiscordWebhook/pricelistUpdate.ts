@@ -174,6 +174,7 @@ const qualityColor: { [name: string]: string } = {
 
 export default function sendWebHookPriceUpdateV1(
     sku: string,
+    itemName: string,
     newPrice: Entry,
     time: string,
     schema: SchemaManager.Schema,
@@ -243,7 +244,7 @@ export default function sendWebHookPriceUpdateV1(
         embeds: [
             {
                 author: {
-                    name: schema.getName(SKU.fromString(sku), false),
+                    name: itemName,
                     url: `https://www.prices.tf/items/${sku}`,
                     icon_url: isCustomPricer
                         ? 'https://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/81/818fb1e235ccf685e8532a17f111f2697451b0d0_full.jpg'
