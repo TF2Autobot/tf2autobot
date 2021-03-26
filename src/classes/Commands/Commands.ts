@@ -249,7 +249,7 @@ export default class Commands {
         } else if (command === 'pricecheck' && isAdmin) {
             this.request.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
-            void this.request.pricecheckAllCommand(steamID);
+            this.request.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
             void this.request.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
