@@ -288,6 +288,8 @@ class Pricecheck {
                 );
             }
 
+            this.dequeue();
+
             if (this.isEmpty) {
                 Pricecheck.removeJob();
                 return this.bot.sendMessage(
@@ -296,7 +298,6 @@ class Pricecheck {
                 );
             }
 
-            this.dequeue();
             void this.executeCheck();
         });
     }
