@@ -259,7 +259,7 @@ class Pricecheck {
 
     private total = 0;
 
-    constructor(private readonly bot: Bot, private priceSource: Pricer, private steamID: SteamID) {
+    constructor(private readonly bot: Bot, private readonly priceSource: Pricer, private readonly steamID: SteamID) {
         this.bot = bot;
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
     }
