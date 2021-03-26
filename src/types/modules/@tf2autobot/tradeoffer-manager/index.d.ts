@@ -184,6 +184,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             reason: '🟥_INVALID_VALUE';
             our: number;
             their: number;
+            missing: number;
         }
 
         export interface DupeCheckFailed {
@@ -440,7 +441,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
 
             decline(callback?: (err: Error | null) => void): void;
 
-            counter(): void;
+            counter(): TradeOffer;
 
             /**
              * Alias of decline

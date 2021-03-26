@@ -1,10 +1,19 @@
-import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from '@tf2autobot/tradeoffer-manager';
+import TradeOfferManager, {
+    TradeOffer,
+    EconItem,
+    CustomError,
+    Meta,
+    Action,
+    InvalidValue
+} from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import Bot from './Bot';
+import Inventory from './Inventory';
+
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { sendAlert } from '../lib/DiscordWebhook/export';
@@ -328,7 +337,30 @@ export default class Trades {
         }
 
         if (action === 'counter') {
-            /* new Counter class here, maybe with offer.counter() and meta.reasons for the constructor. */
+            const counter = offer.counter();
+            let missing = 0;
+            (meta.reasons.filter(el => el.reason === '🟥_INVALID_VALUE') as InvalidValue[]).forEach(el => {
+                missing = el.missing;
+            });
+
+            const theirInventory = new Inventory(
+                offer.partner,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.effects,
+                this.bot.paints,
+                this.bot.strangeParts,
+                'their'
+            );
+
+            void theirInventory.fetch().asCallback(err => {
+                if (err) {
+                    // return reject('Failed to load inventories (Steam might be down)');
+                }
+
+                const theirItems = theirInventory.getItems;
+            });
         }
 
         if (actionFunc === undefined) {

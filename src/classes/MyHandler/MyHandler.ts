@@ -1302,7 +1302,8 @@ export default class MyHandler extends Handler {
                 wrongAboutOffer.push({
                     reason: '🟥_INVALID_VALUE',
                     our: exchange.our.value,
-                    their: exchange.their.value
+                    their: exchange.their.value,
+                    missing: exchange.our.value - exchange.their.value
                 });
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
