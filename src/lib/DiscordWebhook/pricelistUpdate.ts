@@ -311,11 +311,11 @@ class PriceUpdateQueue {
     }
 
     static process(): void {
-        if (this.first() === undefined) {
+        const sku = this.first();
+
+        if (sku === undefined) {
             return;
         }
-
-        const sku = this.first();
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
             .then(() => {
