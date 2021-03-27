@@ -1,6 +1,8 @@
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import Currencies from 'tf2-currencies-2';
+import sleepasync from 'sleep-async';
+import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';
 
 import log from '../logger';
@@ -280,11 +282,51 @@ export default function sendWebHookPriceUpdateV1(
         ]
     };
 
-    sendWebhook(opt.priceUpdate.url, priceUpdate, 'pricelist-update')
-        .then(() => {
-            log.debug(`Sent ${sku} update to Discord.`);
-        })
-        .catch(err => {
-            log.debug(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
-        });
+    PriceUpdateQueue.setURL(opt.priceUpdate.url);
+    void PriceUpdateQueue.enqueue(sku, priceUpdate);
+}
+
+class PriceUpdateQueue {
+    private static priceUpdate: UnknownDictionary<Webhook> = {};
+
+    private static url: string;
+
+    static setURL(url: string) {
+        this.url = url;
+    }
+
+    static async enqueue(sku: string, webhook: Webhook): Promise<void> {
+        this.priceUpdate[sku] = webhook;
+
+        await sleepasync().Promise.sleep(100);
+        this.process();
+    }
+
+    static dequeue(): void {
+        delete this.priceUpdate[this.first()];
+    }
+
+    static first(): string {
+        return Object.keys(this.priceUpdate)[0];
+    }
+
+    static process(): void {
+        const sku = this.first();
+
+        if (sku === undefined) {
+            return;
+        }
+
+        sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
+            .then(() => {
+                log.debug(`Sent ${sku} update to Discord.`);
+            })
+            .catch(err => {
+                log.debug(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
+            })
+            .finally(() => {
+                this.dequeue();
+                this.process();
+            });
+    }
 }
