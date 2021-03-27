@@ -74,11 +74,11 @@ class PriceUpdateFailedQueue {
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
             .then(() => {
                 log.debug(`Sent price update error for ${sku} to Discord.`);
-                this.dequeue();
-                this.process();
             })
             .catch(err => {
                 log.debug(`❌ Failed to send price update error for ${sku} to Discord: `, err);
+            })
+            .finally(() => {
                 this.dequeue();
                 this.process();
             });

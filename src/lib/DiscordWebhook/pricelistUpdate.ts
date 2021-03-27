@@ -320,11 +320,11 @@ class PriceUpdateQueue {
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
             .then(() => {
                 log.debug(`Sent ${sku} update to Discord.`);
-                this.dequeue();
-                this.process();
             })
             .catch(err => {
                 log.debug(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
+            })
+            .finally(() => {
                 this.dequeue();
                 this.process();
             });
