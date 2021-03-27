@@ -9,6 +9,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
+import { UnknownDictionary } from '../../../types/common';
 import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
 export default class RequestCommands {
@@ -134,7 +135,6 @@ export default class RequestCommands {
 
         params.sku = fixSKU(params.sku);
 
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
         void this.requestCheck(params.sku, 'bptf').asCallback((err: ErrorRequest, body: RequestCheckResponse) => {
             if (err) {
                 return this.bot.sendMessage(
@@ -148,21 +148,16 @@ export default class RequestCommands {
             if (!body) {
                 this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
             } else {
-                this.bot.sendMessage(
-                    steamID,
-                    `⌛ Price check requested for ${
-                        body.name.includes('War Paint') ||
-                        body.name.includes('Mann Co. Supply Crate Series #') ||
-                        body.name.includes('Salvaged Mann Co. Supply Crate #')
-                            ? name
-                            : body.name
-                    }, the item will be checked.`
-                );
+                this.bot.sendMessage(steamID, `⌛ Price check requested for ${body.name}, the item will be checked.`);
             }
         });
     }
 
-    async pricecheckAllCommand(steamID: SteamID): Promise<void> {
+    pricecheckAllCommand(steamID: SteamID): void {
+        if (Pricecheck.isRunning()) {
+            return this.bot.sendMessage(steamID, "❌ Pricecheck is still running. Please wait until it's completed.");
+        }
+
         const pricelist = this.bot.pricelist.getPrices;
 
         const total = pricelist.length;
@@ -181,35 +176,13 @@ export default class RequestCommands {
             } (about 2 seconds for each item).`
         );
 
-        const skus = pricelist.map(entry => entry.sku);
-        let submitted = 0;
-        let success = 0;
-        let failed = 0;
-        for (const sku of skus) {
-            await sleepasync().Promise.sleep(2 * 1000);
-            void this.requestCheck(sku, 'bptf').asCallback(err => {
-                if (err) {
-                    submitted++;
-                    failed++;
-                    log.warn(`pricecheck failed for ${sku}: ${JSON.stringify(err)}`);
-                    log.debug(
-                        `pricecheck for ${sku} failed, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                } else {
-                    submitted++;
-                    success++;
-                    log.debug(
-                        `pricecheck for ${sku} success, status: ${submitted}/${total}, ${success} success, ${failed} failed.`
-                    );
-                }
-                if (submitted === total) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `✅ Successfully completed pricecheck for all ${total} ${pluralize('item', total)}!`
-                    );
-                }
-            });
-        }
+        const skus = pricelist.filter(entry => entry.sku !== '5021;6').map(entry => entry.sku);
+
+        const pricecheck = new Pricecheck(this.bot, this.priceSource, steamID);
+        pricecheck.enqueue = skus;
+
+        Pricecheck.addJob();
+        void pricecheck.executeCheck();
     }
 
     async checkCommand(steamID: SteamID, message: string): Promise<void> {
@@ -254,6 +227,95 @@ export default class RequestCommands {
                 }`
             );
         }
+    }
+}
+
+class Pricecheck {
+    // reference: https://www.youtube.com/watch?v=bK7I79hcm08
+
+    private static pricecheck: UnknownDictionary<boolean> = {};
+
+    private requestCheck: RequestCheckFn;
+
+    private skus: string[] = [];
+
+    private submitted = 0;
+
+    private success = 0;
+
+    private failed = 0;
+
+    private total = 0;
+
+    constructor(private readonly bot: Bot, private readonly priceSource: Pricer, private readonly steamID: SteamID) {
+        this.bot = bot;
+        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
+    }
+
+    set enqueue(skus: string[]) {
+        this.skus = skus;
+        this.total = skus.length;
+    }
+
+    async executeCheck(): Promise<void> {
+        await sleepasync().Promise.sleep(2 * 1000);
+
+        void this.requestCheck(this.sku, 'bptf').asCallback(err => {
+            if (err) {
+                this.submitted++;
+                this.failed++;
+                log.warn(`pricecheck failed for ${this.sku}: ${JSON.stringify(err)}`);
+                log.debug(
+                    `pricecheck for ${this.sku} failed, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
+                );
+            } else {
+                this.submitted++;
+                this.success++;
+                log.debug(
+                    `pricecheck for ${this.sku} success, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
+                );
+            }
+
+            this.dequeue();
+
+            if (this.isEmpty) {
+                Pricecheck.removeJob();
+                return this.bot.sendMessage(
+                    this.steamID,
+                    `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
+                );
+            }
+
+            void this.executeCheck();
+        });
+    }
+
+    private dequeue(): void {
+        this.skus.shift();
+    }
+
+    private get sku(): string {
+        return this.skus[0];
+    }
+
+    private get remaining(): number {
+        return this.skus.length;
+    }
+
+    private get isEmpty(): boolean {
+        return this.skus.length === 0;
+    }
+
+    static addJob(): void {
+        this.pricecheck['1'] = true;
+    }
+
+    static isRunning(): boolean {
+        return this.pricecheck['1'] !== undefined;
+    }
+
+    private static removeJob(): void {
+        delete this.pricecheck['1'];
     }
 }
 
