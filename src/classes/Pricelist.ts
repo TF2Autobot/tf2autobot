@@ -1056,10 +1056,6 @@ export default class Pricelist extends EventEmitter {
 
                     pricesChanged = true;
 
-                    if (pricesChanged) {
-                        this.priceChanged(match.sku, match);
-                    }
-
                     if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
                         const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
                         const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
@@ -1087,6 +1083,10 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 }
+            }
+
+            if (pricesChanged) {
+                this.priceChanged(match.sku, match);
             }
         }
     }
