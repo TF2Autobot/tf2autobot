@@ -69,7 +69,7 @@ export default class MyHandler extends Handler {
     }
 
     private get groups(): string[] {
-        if (!this.groupsStore) {
+        if (this.groupsStore === undefined) {
             const groups = this.opt.groups;
 
             if (groups !== null && Array.isArray(groups)) {
@@ -90,7 +90,7 @@ export default class MyHandler extends Handler {
     private friendsToKeepStore: string[];
 
     get friendsToKeep(): string[] {
-        if (!this.friendsToKeepStore) {
+        if (this.friendsToKeepStore === undefined) {
             const friendsToKeep = this.opt.keep.concat(this.bot.getAdmins.map(steamID => steamID.getSteamID64()));
 
             if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {

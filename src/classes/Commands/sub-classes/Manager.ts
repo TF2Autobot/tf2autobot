@@ -303,8 +303,39 @@ export default class ManagerCommands {
     }
 
     async clearFriendsCommand(steamID: SteamID): Promise<void> {
-        const friendsToRemove = this.bot.friends.getFriends.filter(
-            steamid => !this.bot.handler.friendsToKeep.includes(steamid)
+        const friendsToKeep = this.bot.handler.friendsToKeep;
+
+        let friendsToRemove: string[];
+        try {
+            friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
+        } catch (err) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Error while trying to remove friends: ${(err as Error)?.message || JSON.stringify(err)}`
+            );
+        }
+
+        const total = friendsToRemove.length;
+
+        if (total <= 0) {
+            return this.bot.sendMessage(steamID, `❌ No friends to remove.`);
+        }
+
+        const totalTime = total * 2 * 1000;
+        const aSecond = 1000;
+        const aMin = 60 * 1000;
+        const anHour = 60 * 60 * 1000;
+
+        this.bot.sendMessage(
+            steamID,
+            `⌛ Removing ${total} friends...` +
+                `\n2 seconds between each person, so it will be about ${
+                    totalTime < aMin
+                        ? `${Math.round(totalTime / aSecond)} seconds`
+                        : totalTime < anHour
+                        ? `${Math.round(totalTime / aMin)} minutes`
+                        : `${Math.round(totalTime / anHour)} hours`
+                } to complete.`
         );
 
         for (const steamid of friendsToRemove) {
@@ -325,7 +356,7 @@ export default class ManagerCommands {
             await sleepasync().Promise.sleep(2 * 1000);
         }
 
-        this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${friendsToRemove.length} friends.`);
+        this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
     }
 
     stopCommand(steamID: SteamID): void {

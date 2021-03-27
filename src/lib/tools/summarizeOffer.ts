@@ -179,7 +179,13 @@ function getSummary(
 
             if (summaryAccepted || summaryInProcess) {
                 oldStock =
-                    which === 'our' ? currentStock + amount : summaryInProcess ? currentStock : currentStock - amount;
+                    which === 'our'
+                        ? summaryInProcess
+                            ? currentStock
+                            : currentStock + amount
+                        : summaryInProcess
+                        ? currentStock
+                        : currentStock - amount;
             } else {
                 oldStock = currentStock;
             }
@@ -194,9 +200,15 @@ function getSummary(
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
-                    }${summaryInProcess && which !== 'our' ? currentStock + amount : currentStock}${
-                        maxStock ? `/${maxStock.max}` : ''
-                    })`
+                    }${
+                        which === 'our'
+                            ? summaryInProcess
+                                ? currentStock - amount
+                                : currentStock
+                            : summaryInProcess
+                            ? currentStock + amount
+                            : currentStock
+                    }${maxStock ? `/${maxStock.max}` : ''})`
                 );
             } else {
                 summary.push(
@@ -204,7 +216,13 @@ function getSummary(
                         ['review-partner', 'declined'].includes(type)
                             ? ''
                             : ` (${(summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''}${
-                                  summaryInProcess && which !== 'our' ? currentStock + amount : currentStock
+                                  which === 'our'
+                                      ? summaryInProcess
+                                          ? currentStock - amount
+                                          : currentStock
+                                      : summaryInProcess
+                                      ? currentStock + amount
+                                      : currentStock
                               }${maxStock ? `/${maxStock.max}` : ''})`
                     }`
                 );

@@ -37,7 +37,7 @@ export default function sendFailedPriceUpdate(
     };
 
     PriceUpdateFailedQueue.setURL(opt.priceUpdate.url);
-    void PriceUpdateFailedQueue.enqueue(data.sku, priceUpdate);
+    PriceUpdateFailedQueue.enqueue(data.sku, priceUpdate);
 }
 
 class PriceUpdateFailedQueue {
@@ -49,26 +49,37 @@ class PriceUpdateFailedQueue {
         this.url = url;
     }
 
-    static async enqueue(sku: string, webhook: Webhook): Promise<void> {
+    private static isProcessing = false;
+
+    static enqueue(sku: string, webhook: Webhook): void {
         this.priceUpdate[sku] = webhook;
 
-        await sleepasync().Promise.sleep(100);
-        this.process();
+        void this.process();
     }
 
-    static dequeue(): void {
+    private static dequeue(): void {
         delete this.priceUpdate[this.first()];
     }
 
-    static first(): string {
+    private static first(): string {
         return Object.keys(this.priceUpdate)[0];
     }
 
-    static process(): void {
+    private static size(): number {
+        return Object.keys(this.priceUpdate).length;
+    }
+
+    private static async process(): Promise<void> {
         const sku = this.first();
 
-        if (sku === undefined) {
+        if (sku === undefined || this.isProcessing) {
             return;
+        }
+
+        this.isProcessing = true;
+
+        if (this.size() >= 5) {
+            await sleepasync().Promise.sleep(500);
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
@@ -79,8 +90,9 @@ class PriceUpdateFailedQueue {
                 log.debug(`❌ Failed to send price update error for ${sku} to Discord: `, err);
             })
             .finally(() => {
+                this.isProcessing = false;
                 this.dequeue();
-                this.process();
+                void this.process();
             });
     }
 }

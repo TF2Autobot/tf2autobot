@@ -1015,9 +1015,14 @@ export default class Pricelist extends EventEmitter {
                         match.group = 'isPartialPriced';
                         pricesChanged = true;
 
+                        const dwAlert = opt.discordWebhook.sendAlert;
+                        const isAlertEnabledDW = dwAlert.enable && dwAlert.url !== '';
+
                         const msg =
                             `${
-                                isDwEnabled ? `[${match.name}](https://www.prices.tf/items/${match.sku})` : match.name
+                                isAlertEnabledDW
+                                    ? `[${match.name}](https://www.prices.tf/items/${match.sku})`
+                                    : match.name
                             } (${match.sku}):\n▸ ` +
                             [
                                 `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
@@ -1026,7 +1031,7 @@ export default class Pricelist extends EventEmitter {
                             ].join('\n▸ ');
 
                         if (opt.sendAlert.partialPrice.onUpdate) {
-                            if (isDwEnabled) {
+                            if (isAlertEnabledDW) {
                                 sendAlert('isPartialPriced', this.bot, msg);
                             } else {
                                 this.bot.messageAdmins('Partial price update\n\n' + msg, []);
@@ -1055,38 +1060,38 @@ export default class Pricelist extends EventEmitter {
                     match.time = data.time;
 
                     pricesChanged = true;
-
-                    if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
-                        const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
-                        const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
-
-                        if (showOnlyInStock) {
-                            const tz = opt.timezone;
-                            const format = opt.customTimeFormat;
-
-                            const time = dayjs()
-                                .tz(tz ? tz : 'UTC')
-                                .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
-
-                            sendWebHookPriceUpdateV1(
-                                data.sku,
-                                data.name,
-                                match,
-                                time,
-                                this.schema,
-                                opt,
-                                currentStock,
-                                oldPrice,
-                                this.getKeyPrice.metal,
-                                this.isUseCustomPricer
-                            );
-                        }
-                    }
                 }
             }
 
             if (pricesChanged) {
                 this.priceChanged(match.sku, match);
+
+                if (isDwEnabled && this.globalKeyPrices !== undefined) {
+                    const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+                    const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
+
+                    if (showOnlyInStock) {
+                        const tz = opt.timezone;
+                        const format = opt.customTimeFormat;
+
+                        const time = dayjs()
+                            .tz(tz ? tz : 'UTC')
+                            .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+
+                        sendWebHookPriceUpdateV1(
+                            data.sku,
+                            data.name,
+                            match,
+                            time,
+                            this.schema,
+                            opt,
+                            currentStock,
+                            oldPrice,
+                            this.getKeyPrice.metal,
+                            this.isUseCustomPricer
+                        );
+                    }
+                }
             }
         }
     }
