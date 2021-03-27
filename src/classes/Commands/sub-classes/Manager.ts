@@ -307,6 +307,11 @@ export default class ManagerCommands {
         const friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
 
         const total = friendsToRemove.length;
+
+        if (total <= 0) {
+            return this.bot.sendMessage(steamID, `❌ No friends to remove.`);
+        }
+
         const totalTime = total * 2 * 1000;
         const aSecond = 1000;
         const aMin = 60 * 1000;
