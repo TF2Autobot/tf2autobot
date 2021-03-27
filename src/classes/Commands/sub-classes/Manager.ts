@@ -304,7 +304,16 @@ export default class ManagerCommands {
 
     async clearFriendsCommand(steamID: SteamID): Promise<void> {
         const friendsToKeep = this.bot.handler.friendsToKeep;
-        const friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
+
+        let friendsToRemove: string[];
+        try {
+            friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
+        } catch (err) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Error while trying to remove friends: ${(err as Error)?.message || JSON.stringify(err)}`
+            );
+        }
 
         const total = friendsToRemove.length;
 
