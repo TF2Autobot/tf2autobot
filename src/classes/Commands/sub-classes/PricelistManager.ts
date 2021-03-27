@@ -170,7 +170,7 @@ export default class PricelistManagerCommands {
                     `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
                 );
 
-                void this.requestCheck(params.sku, 'bptf').asCallback(
+                void this.requestCheck(entry.sku, 'bptf').asCallback(
                     (err: ErrorRequest, body: RequestCheckResponse) => {
                         if (err) {
                             log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
@@ -430,7 +430,7 @@ export default class PricelistManagerCommands {
                             } remaining`
                     );
 
-                    void this.requestCheck(params.sku, 'bptf').asCallback(
+                    void this.requestCheck(entry.sku, 'bptf').asCallback(
                         (err: ErrorRequest, body: RequestCheckResponse) => {
                             if (err) {
                                 log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
@@ -945,7 +945,7 @@ export default class PricelistManagerCommands {
                     `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
                 );
 
-                void this.requestCheck(params.sku, 'bptf').asCallback(
+                void this.requestCheck(entry.sku, 'bptf').asCallback(
                     (err: ErrorRequest, body: RequestCheckResponse) => {
                         if (err) {
                             log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
@@ -1203,7 +1203,7 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
 
-                void this.requestCheck(params.sku, 'bptf').asCallback(
+                void this.requestCheck(entry.sku, 'bptf').asCallback(
                     (err: ErrorRequest, body: RequestCheckResponse) => {
                         if (err) {
                             log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
