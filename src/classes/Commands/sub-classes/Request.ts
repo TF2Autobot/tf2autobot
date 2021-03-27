@@ -135,7 +135,6 @@ export default class RequestCommands {
 
         params.sku = fixSKU(params.sku);
 
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
         void this.requestCheck(params.sku, 'bptf').asCallback((err: ErrorRequest, body: RequestCheckResponse) => {
             if (err) {
                 return this.bot.sendMessage(
@@ -149,16 +148,7 @@ export default class RequestCommands {
             if (!body) {
                 this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
             } else {
-                this.bot.sendMessage(
-                    steamID,
-                    `⌛ Price check requested for ${
-                        body.name.includes('War Paint') ||
-                        body.name.includes('Mann Co. Supply Crate Series #') ||
-                        body.name.includes('Salvaged Mann Co. Supply Crate #')
-                            ? name
-                            : body.name
-                    }, the item will be checked.`
-                );
+                this.bot.sendMessage(steamID, `⌛ Price check requested for ${body.name}, the item will be checked.`);
             }
         });
     }
@@ -186,7 +176,7 @@ export default class RequestCommands {
             } (about 2 seconds for each item).`
         );
 
-        const skus = pricelist.map(entry => entry.sku);
+        const skus = pricelist.filter(entry => entry.sku !== '5021;6').map(entry => entry.sku);
 
         const pricecheck = new Pricecheck(this.bot, this.priceSource, steamID);
         pricecheck.enqueue = skus;

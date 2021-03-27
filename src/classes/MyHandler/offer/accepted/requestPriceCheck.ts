@@ -5,6 +5,10 @@ import log from '../../../../lib/logger';
 
 export default async function pricecheck(bot: Bot, skus: string[], requestCheck: RequestCheckFn): Promise<void> {
     for (const sku of skus) {
+        if (sku === '5021;6') {
+            continue;
+        }
+
         await sleepasync().Promise.sleep(2 * 1000);
 
         // Update listings (exclude weapons/pure)
