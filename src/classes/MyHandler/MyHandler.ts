@@ -318,6 +318,32 @@ export default class MyHandler extends Handler {
 
             this.bot.pricelist.resetFailedUpdateOldPrices = 0;
         }
+
+        // Send notification to admin/Discord Webhook if there's any partially priced item got reset on updateOldPrices
+        const bulkPartiallyPriced = this.bot.pricelist.autoResetPartialPriceBulk;
+
+        if (bulkPartiallyPriced.length > 0) {
+            const dw = this.opt.discordWebhook.sendAlert;
+            const isDwEnabled = dw.enable && dw.url !== '';
+
+            const msg =
+                `All partially priced items below has been reset to use the current prices ` +
+                `because no longer in stock or exceed the threshold:\n\n• ${bulkPartiallyPriced
+                    .map(sku => {
+                        const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
+
+                        return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
+                    })
+                    .join('\n• ')}`;
+
+            if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onResetAfterThreshold) {
+                if (isDwEnabled) {
+                    sendAlert('autoResetPartialPriceBulk', this.bot, msg);
+                } else {
+                    this.bot.messageAdmins(msg, []);
+                }
+            }
+        }
     }
 
     onShutdown(): Promise<void> {

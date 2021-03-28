@@ -178,6 +178,8 @@ export default class Pricelist extends EventEmitter {
 
     failedUpdateOldPrices: string[] = [];
 
+    autoResetPartialPriceBulk: string[] = [];
+
     set resetFailedUpdateOldPrices(value: number) {
         this.failedUpdateOldPrices.length = value;
     }
@@ -850,15 +852,16 @@ export default class Pricelist extends EventEmitter {
                                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                                 // and/or more than threshold, update everything
 
-                                if (currPrice.group !== 'isPartialPriced') {
-                                    // Only update if group is not "isPartialPriced"
+                                currPrice.buy = newBuy;
+                                currPrice.sell = newSell;
+                                currPrice.time = newestPrice.time;
 
-                                    currPrice.buy = newBuy;
-                                    currPrice.sell = newSell;
-                                    currPrice.time = newestPrice.time;
-
-                                    pricesChanged = true;
+                                if (currPrice.group === 'isPartialPriced') {
+                                    currPrice.group = 'all'; // reset to the default group
+                                    this.autoResetPartialPriceBulk.push(sku);
                                 }
+
+                                pricesChanged = true;
                             }
                         }
 
@@ -1051,7 +1054,8 @@ export default class Pricelist extends EventEmitter {
                 match.time = data.time;
 
                 if (match.group === 'isPartialPriced') {
-                    match.group = 'all'; // reset to default group
+                    match.group = 'all'; // reset to the default group
+                    sendAlert('autoResetPartialPrice', this.bot);
                 }
 
                 pricesChanged = true;
