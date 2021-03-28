@@ -1046,15 +1046,15 @@ export default class Pricelist extends EventEmitter {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                 // and/or more than threshold, update everything
 
-                if (match.group !== 'isPartialPriced') {
-                    // Only update if group is not "isPartialPriced"
+                match.buy = newPrices.buy;
+                match.sell = newPrices.sell;
+                match.time = data.time;
 
-                    match.buy = newPrices.buy;
-                    match.sell = newPrices.sell;
-                    match.time = data.time;
-
-                    pricesChanged = true;
+                if (match.group === 'isPartialPriced') {
+                    match.group = 'all'; // reset to default group
                 }
+
+                pricesChanged = true;
             }
 
             if (pricesChanged) {
