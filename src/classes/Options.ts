@@ -1072,7 +1072,7 @@ interface Pricelist {
 
 interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
-    activateMinimumProfit?: number;
+    activateMinimumProfit?: boolean;
     excludeSKU?: string[];
 }
 

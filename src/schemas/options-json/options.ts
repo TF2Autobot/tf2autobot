@@ -524,7 +524,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: '#/definitions/string-array'
                         }
                     },
-                    required: ['enable', 'thresholdInSeconds', 'excludeSKU'],
+                    required: ['enable', 'thresholdInSeconds', 'activateMinimumProfit', 'excludeSKU'],
                     additionalProperties: false
                 },
                 filterCantAfford: {
