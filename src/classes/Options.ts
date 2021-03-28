@@ -75,6 +75,7 @@ export const DEFAULTS = {
         partialPriceUpdate: {
             enable: false,
             thresholdInSeconds: 604800, // 7 days
+            activateMinimumProfit: false,
             excludeSKU: []
         },
         filterCantAfford: {
@@ -1071,6 +1072,7 @@ interface Pricelist {
 
 interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
+    activateMinimumProfit?: number;
     excludeSKU?: string[];
 }
 

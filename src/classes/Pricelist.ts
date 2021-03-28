@@ -800,7 +800,7 @@ export default class Pricelist extends EventEmitter {
                             const newBuy = new Currencies(newestPrice.buy);
                             const newSell = new Currencies(newestPrice.sell);
 
-                            const newBuyValue = newBuy.toValue(keyPrice);
+                            // const newBuyValue = newBuy.toValue(keyPrice);
                             const newSellValue = newSell.toValue(keyPrice);
 
                             // TODO: Use last bought prices instead of current buying prices
@@ -820,25 +820,21 @@ export default class Pricelist extends EventEmitter {
                                     // Only trigger this if difference of new selling price and current buying price is negative or zero
                                     // Or item group is "isPartialPriced".
 
-                                    if (newBuyValue < currSellingValue) {
-                                        // if new buying price is less than current selling price
-                                        // update only the buying price.
-                                        currPrice.buy = newBuy;
+                                    // https://github.com/TF2Autobot/tf2autobot/issues/506
+                                    // We will not update the buying price since that was the price the bot last bought - make it static
 
-                                        if (newSellValue > currSellingValue) {
-                                            // If new selling price is more than old, then update selling price too
-                                            currPrice.sell = newSell;
-                                        }
-
-                                        // no need to update time here
-
-                                        currPrice.group = 'isPartialPriced';
-                                        pricesChanged = true;
-                                    } else if (newSellValue > currSellingValue) {
-                                        // If new selling price is more than old, then update selling price too
+                                    if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
+                                        // if the new selling price above static buying price OR new selling price more than current selling price,
+                                        // update selling price
                                         currPrice.sell = newSell;
-
                                         pricesChanged = true;
+                                    } else {
+                                        if (opt.activateMinimumProfit) {
+                                            // else if both condition does not met, and user set activateMinimumProfit to true,
+                                            // update selling price with 0.11 ref profit from our static buying price
+                                            currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
+                                            pricesChanged = true;
+                                        }
                                     }
                                 } else {
                                     // else, just update as usual now (except if group is "isPartialPriced").
@@ -977,7 +973,7 @@ export default class Pricelist extends EventEmitter {
 
                 const keyPrice = this.getKeyPrice.metal;
 
-                const newBuyValue = newPrices.buy.toValue(keyPrice);
+                // const newBuyValue = newPrices.buy.toValue(keyPrice);
                 const newSellValue = newPrices.sell.toValue(keyPrice);
 
                 // TODO: Use last bought prices instead of current buying prices
@@ -992,23 +988,21 @@ export default class Pricelist extends EventEmitter {
 
                     let isUpdate = false;
 
-                    if (newBuyValue < currSellingValue) {
-                        // if new buying price is less than current selling price
-                        // update only the buying price.
-                        match.buy = newPrices.buy;
+                    // https://github.com/TF2Autobot/tf2autobot/issues/506
+                    // We will not update the buying price since that was the price the bot last bought - make it static
 
-                        if (newSellValue > currSellingValue) {
-                            // If new selling price is more than old, then update selling price too
-                            match.sell = newPrices.sell;
-                        }
-
-                        isUpdate = true;
-
-                        // no need to update time here
-                    } else if (newSellValue > currSellingValue) {
-                        // If new selling price is more than old, then update selling price too
+                    if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
+                        // if the new selling price above static buying price OR new selling price more than current selling price,
+                        // update selling price
                         match.sell = newPrices.sell;
                         isUpdate = true;
+                    } else {
+                        if (optPartialUpdate.activateMinimumProfit) {
+                            // else if both condition does not met, and user set activateMinimumProfit to true,
+                            // update selling price with 0.11 ref profit from our static buying price
+                            match.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
+                            isUpdate = true;
+                        }
                     }
 
                     if (isUpdate) {

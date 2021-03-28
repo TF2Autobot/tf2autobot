@@ -517,6 +517,9 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'integer',
                             minimum: 86400 // 1 day
                         },
+                        activateMinimumProfit: {
+                            type: 'boolean'
+                        },
                         excludeSKU: {
                             type: '#/definitions/string-array'
                         }
