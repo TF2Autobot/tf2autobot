@@ -11,7 +11,6 @@ import { removeLinkProtocol, testSKU, getItemFromParams, fixSKU } from '../funct
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
-import Pricer, { RequestCheckResponse, RequestCheckFn } from '../../Pricer';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 
@@ -26,30 +25,12 @@ export default class PricelistManagerCommands {
 
     private executeTimeout: NodeJS.Timeout;
 
-    private requestCheck: RequestCheckFn;
-
     stopAutoAddCommand(): void {
         this.stopAutoAdd = true;
     }
 
-    constructor(private readonly bot: Bot, private priceSource: Pricer) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
-    }
-
-    private requestPricecheck(entry: Entry): void {
-        void this.requestCheck(entry.sku, 'bptf').asCallback((err: ErrorRequest, body: RequestCheckResponse) => {
-            if (err) {
-                log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                return;
-            }
-
-            if (!body) {
-                log.debug(`❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`);
-            } else {
-                log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-            }
-        });
     }
 
     addCommand(steamID: SteamID, message: string): void {
@@ -184,8 +165,6 @@ export default class PricelistManagerCommands {
                     steamID,
                     `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
                 );
-
-                this.requestPricecheck(entry);
             })
             .catch(err => {
                 this.bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${(err as Error).message}`);
@@ -429,8 +408,6 @@ export default class PricelistManagerCommands {
                                 total - added - skipped - failed
                             } remaining`
                     );
-
-                    this.requestPricecheck(entry);
                 })
                 .catch(err => {
                     failed++;
@@ -929,8 +906,6 @@ export default class PricelistManagerCommands {
                     steamID,
                     `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
                 );
-
-                this.requestPricecheck(entry);
             })
             .catch((err: ErrorRequest) => {
                 this.bot.sendMessage(
@@ -1174,8 +1149,6 @@ export default class PricelistManagerCommands {
             .removePrice(params.sku as string, true)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
-
-                this.requestPricecheck(entry);
             })
             .catch(err =>
                 this.bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${(err as Error).message}`)
