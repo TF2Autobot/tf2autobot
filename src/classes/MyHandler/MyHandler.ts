@@ -1322,23 +1322,25 @@ export default class MyHandler extends Handler {
         let isOurItems = false;
         let isTheirItems = false;
         const exceptionSKU = opt.offerReceived.invalidValue.exceptionValue.skus;
+        const exceptionValue = this.invalidValueException;
 
-        if (exceptionSKU.length > 0) {
-            isOurItems = exceptionSKU.some(fromEnv => {
-                return Object.keys(itemsDict.our).some(ourItemSKU => {
-                    return ourItemSKU.includes(fromEnv);
+        if (exceptionSKU.length > 0 && exceptionValue > 0) {
+            const ourItems = Object.keys(itemsDict.our);
+            isOurItems = exceptionSKU.some(sku => {
+                return ourItems.some(ourItemSKU => {
+                    return ourItemSKU.includes(sku);
                 });
             });
 
-            isTheirItems = exceptionSKU.some(fromEnv => {
-                return Object.keys(itemsDict.their).some(theirItemSKU => {
-                    return theirItemSKU.includes(fromEnv);
+            const theirItems = Object.keys(itemsDict.their);
+            isTheirItems = exceptionSKU.some(sku => {
+                return theirItems.some(theirItemSKU => {
+                    return theirItemSKU.includes(sku);
                 });
             });
         }
 
         const isExcept = isOurItems || isTheirItems;
-        const exceptionValue = this.invalidValueException;
 
         let hasInvalidValue = false;
         if (exchange.our.value > exchange.their.value) {

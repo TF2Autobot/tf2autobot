@@ -679,7 +679,8 @@ export default class UserCart extends Cart {
         const assetidsToCheck: string[] = [];
 
         const getAssetidsWithFullUses = (items: DictItem[]) => {
-            return items.filter(item => item.isFullUses === true).map(item => item.id);
+            const assetids = items.filter(item => item.isFullUses === true).map(item => item.id);
+            return assetids;
         };
 
         // Add their items
