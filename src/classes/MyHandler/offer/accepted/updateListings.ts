@@ -119,7 +119,7 @@ export default function updateListings(
         const isUpdatePartialPricedItem =
             inPrice !== null &&
             inPrice.autoprice &&
-            inPrice.group === 'isPartialPriced' &&
+            inPrice.isPartialPriced &&
             bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
@@ -337,7 +337,7 @@ export default function updateListings(
                     }
                 });
         } else if (isUpdatePartialPricedItem) {
-            // If item exist in pricelist with group "isPartialPriced" and we no longer have that in stock,
+            // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
             // then update entry with the latest prices.
 
             const oldPrice = {
@@ -352,7 +352,7 @@ export default function updateListings(
                 min: inPrice.min,
                 max: inPrice.max,
                 intent: inPrice.intent,
-                group: 'all'
+                group: inPrice.group
             } as EntryData;
 
             bot.pricelist
