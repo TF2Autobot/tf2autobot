@@ -505,7 +505,8 @@ function getPainted(
             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
 
             if (paintsInOptions.includes(name.toLowerCase())) {
-                return +paints[name].replace('p', '');
+                const paintDecimal = +paints[name].replace('p', '');
+                return paintDecimal;
             }
         }
     }

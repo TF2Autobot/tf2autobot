@@ -104,7 +104,7 @@ export default class BotManager {
                         void this.connectToPM2().asCallback(callback);
                     },
                     (callback): void => {
-                        log.info('Starting Socket Manager...');
+                        log.info('Initializing Socket Manager...');
                         void this.socketManager.init().asCallback(callback);
                     },
                     (callback): void => {
@@ -136,6 +136,9 @@ export default class BotManager {
                         // Shutdown is requested, stop the bot
                         return this.stop(null, false, false);
                     }
+
+                    log.info('Connecting to socket server...');
+                    this.socketManager.connect();
 
                     return resolve();
                 }
