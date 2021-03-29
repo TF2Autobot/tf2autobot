@@ -30,6 +30,7 @@ export interface EntryData {
     promoted?: 0 | 1;
     group?: string | null;
     note?: { buy: string | null; sell: string | null };
+    isPartialPriced?: boolean;
     time?: number | null;
 }
 
@@ -57,6 +58,8 @@ export class Entry {
     group: string | null;
 
     note: { buy: string | null; sell: string | null };
+
+    isPartialPriced: boolean;
 
     time: number | null;
 
@@ -91,7 +94,14 @@ export class Entry {
         }
 
         if (entry.group) {
-            this.group = entry.group;
+            if (entry.group === 'isPartialPriced') {
+                // temporary v3.7.x -> v3.8.0
+                this.group = 'all';
+                entry.isPartialPriced = true;
+                this.isPartialPriced = true;
+            } else {
+                this.group = entry.group;
+            }
         } else {
             this.group = 'all';
         }
@@ -105,6 +115,12 @@ export class Entry {
             }
         } else {
             this.note = { buy: null, sell: null };
+        }
+
+        if (entry.isPartialPriced) {
+            this.isPartialPriced = entry.isPartialPriced;
+        } else {
+            this.isPartialPriced = false;
         }
     }
 
@@ -134,6 +150,7 @@ export class Entry {
             promoted: this.promoted,
             group: this.group,
             note: this.note,
+            isPartialPriced: this.isPartialPriced,
             time: this.time
         };
     }
@@ -310,8 +327,8 @@ export default class Pricelist extends EventEmitter {
     private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
         const keyPrices = this.getKeyPrices;
 
-        if (entry.autoprice && entry.group !== 'isPartialPriced') {
-            // skip this part if autoprice is true and group is "isPartialPriced"
+        if (entry.autoprice && !entry.isPartialPriced) {
+            // skip this part if autoprice is false and/or isPartialPriced is true
             try {
                 const price = await this.priceSource.getPrice(entry.sku, 'bptf');
 
@@ -818,9 +835,9 @@ export default class Pricelist extends EventEmitter {
 
                                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
-                                if (isNegativeDiff || currPrice.group === 'isPartialPriced') {
+                                if (isNegativeDiff || currPrice.isPartialPriced) {
                                     // Only trigger this if difference of new selling price and current buying price is negative or zero
-                                    // Or item group is "isPartialPriced".
+                                    // Or isPartialPriced.
 
                                     // https://github.com/TF2Autobot/tf2autobot/issues/506
                                     // We will not update the buying price since that was the price the bot last bought - make it static
@@ -839,8 +856,8 @@ export default class Pricelist extends EventEmitter {
                                         }
                                     }
                                 } else {
-                                    // else, just update as usual now (except if group is "isPartialPriced").
-                                    if (currPrice.group !== 'isPartialPriced') {
+                                    // else, just update as usual now (except if isPartialPriced is true).
+                                    if (!currPrice.isPartialPriced) {
                                         currPrice.buy = newBuy;
                                         currPrice.sell = newSell;
                                         currPrice.time = newestPrice.time;
@@ -856,8 +873,8 @@ export default class Pricelist extends EventEmitter {
                                 currPrice.sell = newSell;
                                 currPrice.time = newestPrice.time;
 
-                                if (currPrice.group === 'isPartialPriced') {
-                                    currPrice.group = 'all'; // reset to the default group
+                                if (currPrice.isPartialPriced) {
+                                    currPrice.isPartialPriced = false; // reset to default
                                     this.autoResetPartialPriceBulk.push(sku);
                                 }
 
@@ -985,9 +1002,9 @@ export default class Pricelist extends EventEmitter {
 
                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
-                if (isNegativeDiff || match.group === 'isPartialPriced') {
+                if (isNegativeDiff || match.isPartialPriced) {
                     // Only trigger this if difference of new selling price and current buying price is negative or zero
-                    // Or item group is "isPartialPriced".
+                    // Or isPartialPriced.
 
                     let isUpdate = false;
 
@@ -1009,7 +1026,7 @@ export default class Pricelist extends EventEmitter {
                     }
 
                     if (isUpdate) {
-                        match.group = 'isPartialPriced';
+                        match.isPartialPriced = true;
                         pricesChanged = true;
 
                         const dwAlert = opt.discordWebhook.sendAlert;
@@ -1036,8 +1053,8 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 } else {
-                    // else, just update as usual now (except if group is "isPartialPriced").
-                    if (match.group !== 'isPartialPriced') {
+                    // else, just update as usual now (except if isPartialPriced is true).
+                    if (!match.isPartialPriced) {
                         match.buy = newPrices.buy;
                         match.sell = newPrices.sell;
                         match.time = data.time;
@@ -1053,8 +1070,8 @@ export default class Pricelist extends EventEmitter {
                 match.sell = newPrices.sell;
                 match.time = data.time;
 
-                if (match.group === 'isPartialPriced') {
-                    match.group = 'all'; // reset to the default group
+                if (match.isPartialPriced) {
+                    match.isPartialPriced = false; // reset to default
                     sendAlert('autoResetPartialPrice', this.bot);
                 }
 
