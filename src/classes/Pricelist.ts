@@ -782,6 +782,7 @@ export default class Pricelist extends EventEmitter {
             const oldCount = old.length;
             const opt = this.options.pricelist.partialPriceUpdate;
             const excludedSKU = ['5021;6'].concat(opt.excludeSKU);
+
             const keyPrice = this.getKeyPrice.metal;
 
             for (let i = 0; i < oldCount; i++) {
@@ -792,6 +793,9 @@ export default class Pricelist extends EventEmitter {
 
                 const sku = currPrice.sku;
                 const isInStock = inventory.getAmount(sku, true) > 0;
+                const isApplyOnMaxMoreThanOne = opt.applyOnMaxMoreThanOne || !(currPrice.max > 1);
+                const isNotExcluded = !excludedSKU.includes(sku);
+
                 const item = SKU.fromString(sku);
 
                 // Go through pricestf/custom pricer prices
@@ -830,11 +834,17 @@ export default class Pricelist extends EventEmitter {
                             const currSellingValue = currPrice.sell.toValue(keyPrice);
 
                             const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
-                            const isNotExcluded = !excludedSKU.includes(sku);
 
-                            if (opt.enable && isInStock && isNotExceedThreshold && isNotExcluded) {
+                            if (
+                                opt.enable &&
+                                isInStock &&
+                                isNotExceedThreshold &&
+                                isNotExcluded &&
+                                isApplyOnMaxMoreThanOne
+                            ) {
                                 // if optPartialUpdate.enable is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
+                                // and max is not more than 1 (if user set applyOnMaxMoreThanOne to false - default)
 
                                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
@@ -983,16 +993,19 @@ export default class Pricelist extends EventEmitter {
             const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
             const isNotExceedThreshold = data.time - match.time < optPartialUpdate.thresholdInSeconds;
             const isNotExcluded = !['5021;6'].concat(optPartialUpdate.excludeSKU).includes(match.sku);
+            const isApplyOnMaxMoreThanOne = optPartialUpdate.applyOnMaxMoreThanOne || !(match.max > 1);
 
             if (
                 optPartialUpdate.enable &&
                 isInStock &&
                 isNotExceedThreshold &&
                 this.globalKeyPrices !== undefined &&
-                isNotExcluded
+                isNotExcluded &&
+                isApplyOnMaxMoreThanOne
             ) {
                 // if optPartialUpdate.enable is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
+                // and max is not more than 1 (if user set applyOnMaxMoreThanOne to false - default)
 
                 const keyPrice = this.getKeyPrice.metal;
 

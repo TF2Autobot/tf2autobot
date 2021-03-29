@@ -530,9 +530,18 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         excludeSKU: {
                             type: '#/definitions/string-array'
+                        },
+                        applyOnMaxMoreThanOne: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['enable', 'thresholdInSeconds', 'activateMinimumProfit', 'excludeSKU'],
+                    required: [
+                        'enable',
+                        'thresholdInSeconds',
+                        'activateMinimumProfit',
+                        'excludeSKU',
+                        'applyOnMaxMoreThanOne'
+                    ],
                     additionalProperties: false
                 },
                 filterCantAfford: {
