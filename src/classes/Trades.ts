@@ -141,7 +141,8 @@ export default class Trades {
     }
 
     isInTrade(assetid: string): boolean {
-        return this.itemsInTrade.some(v => assetid === v);
+        const haveInTrade = this.itemsInTrade.some(v => assetid === v);
+        return haveInTrade;
     }
 
     getActiveOffer(steamID: SteamID): string | null {

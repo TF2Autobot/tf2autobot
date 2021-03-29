@@ -11,7 +11,6 @@ import { removeLinkProtocol, testSKU, getItemFromParams, fixSKU } from '../funct
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
-import Pricer, { RequestCheckResponse, RequestCheckFn } from '../../Pricer';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 
@@ -26,30 +25,12 @@ export default class PricelistManagerCommands {
 
     private executeTimeout: NodeJS.Timeout;
 
-    private requestCheck: RequestCheckFn;
-
     stopAutoAddCommand(): void {
         this.stopAutoAdd = true;
     }
 
-    constructor(private readonly bot: Bot, private priceSource: Pricer) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
-    }
-
-    private requestPricecheck(entry: Entry): void {
-        void this.requestCheck(entry.sku, 'bptf').asCallback((err: ErrorRequest, body: RequestCheckResponse) => {
-            if (err) {
-                log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                return;
-            }
-
-            if (!body) {
-                log.debug(`❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`);
-            } else {
-                log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-            }
-        });
     }
 
     addCommand(steamID: SteamID, message: string): void {
@@ -184,8 +165,6 @@ export default class PricelistManagerCommands {
                     steamID,
                     `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
                 );
-
-                this.requestPricecheck(entry);
             })
             .catch(err => {
                 this.bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${(err as Error).message}`);
@@ -194,8 +173,7 @@ export default class PricelistManagerCommands {
 
     private generateAddedReply(isPremium: boolean, entry: Entry): string {
         const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku);
-
-        return (
+        const reply =
             `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
             `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
             `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
@@ -204,8 +182,9 @@ export default class PricelistManagerCommands {
             (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
             `\n🔰 Group: ${entry.group}` +
             `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
-        );
+            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`;
+
+        return reply;
     }
 
     async autoAddCommand(steamID: SteamID, message: string): Promise<void> {
@@ -429,8 +408,6 @@ export default class PricelistManagerCommands {
                                 total - added - skipped - failed
                             } remaining`
                     );
-
-                    this.requestPricecheck(entry);
                 })
                 .catch(err => {
                     failed++;
@@ -929,8 +906,6 @@ export default class PricelistManagerCommands {
                     steamID,
                     `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
                 );
-
-                this.requestPricecheck(entry);
             })
             .catch((err: ErrorRequest) => {
                 this.bot.sendMessage(
@@ -945,7 +920,7 @@ export default class PricelistManagerCommands {
         const keyPrice = this.bot.pricelist.getKeyPrice;
         const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
 
-        return (
+        const reply =
             `\n💲 Buy: ${
                 oldEntry.buy.toValue(keyPrice.metal) !== newEntry.buy.toValue(keyPrice.metal)
                     ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
@@ -987,8 +962,9 @@ export default class PricelistManagerCommands {
                 oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
             }` +
             `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
-            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
-        );
+            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`;
+
+        return reply;
     }
 
     async shuffleCommand(steamID: SteamID): Promise<void> {
@@ -1013,7 +989,8 @@ export default class PricelistManagerCommands {
             this.lastExecutedTime = dayjs().valueOf();
 
             const shufflePricelist = (arr: Entry[]) => {
-                return arr.sort(() => Math.random() - 0.5);
+                const shuffled = arr.sort(() => Math.random() - 0.5);
+                return shuffled;
             };
 
             await this.bot.handler.onPricelist(shufflePricelist(pricelist));
@@ -1172,8 +1149,6 @@ export default class PricelistManagerCommands {
             .removePrice(params.sku as string, true)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
-
-                this.requestPricecheck(entry);
             })
             .catch(err =>
                 this.bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${(err as Error).message}`)
@@ -1267,11 +1242,13 @@ export default class PricelistManagerCommands {
             const name = this.bot.schema.getName(SKU.fromString(entry.sku));
             const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
 
-            return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
+            const info = `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
             }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
                 isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
             }${entry.group})`;
+
+            return info;
         });
 
         const listCount = list.length;
@@ -1428,11 +1405,13 @@ export default class PricelistManagerCommands {
                 const name = this.bot.schema.getName(SKU.fromString(entry.sku));
                 const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
 
-                return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
-                    entry.max
-                }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
+                const info = `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${
+                    entry.min
+                }, ${entry.max}, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
                     isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
                 }${entry.group})`;
+
+                return info;
             });
             const listCount = list.length;
 

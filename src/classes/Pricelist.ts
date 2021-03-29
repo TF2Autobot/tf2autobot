@@ -302,7 +302,8 @@ export default class Pricelist extends EventEmitter {
         }
 
         // Found many that matched, return list of the names
-        return match.map(entry => entry.name);
+        const matchedNames = match.map(entry => entry.name);
+        return matchedNames;
     }
 
     private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
@@ -512,9 +513,9 @@ export default class Pricelist extends EventEmitter {
     }
 
     getIndex(sku: string, parsedSku?: SchemaManager.Item): number {
-        // Get name of item
-        //const name = this.schema.getName(parsedSku ? parsedSku : SKU.fromString(sku), false);
-        return this.prices.findIndex(entry => entry.sku === (sku ? sku : SKU.fromObject(parsedSku)));
+        sku = sku ? sku : SKU.fromObject(parsedSku);
+        const findIndex = this.prices.findIndex(entry => entry.sku === sku);
+        return findIndex;
     }
 
     /** returns index of sku's generic match otherwise returns -1 */
@@ -528,7 +529,9 @@ export default class Pricelist extends EventEmitter {
             const effectMatch = this.bot.effects.find(e => pSku.effect === e.id);
             if (effectMatch) {
                 // this means the sku given had a matching effect so we are going from a specific to generic
-                return this.prices.findIndex(entry => entry.name === name.replace(effectMatch.name, 'Unusual'));
+                const replacedName = name.replace(effectMatch.name, 'Unusual');
+                const index = this.prices.findIndex(entry => entry.name === replacedName);
+                return index;
             } else {
                 // this means the sku given was already generic so we just return the index of the generic
                 return this.getIndex(null, pSku);
@@ -1107,7 +1110,8 @@ export default class Pricelist extends EventEmitter {
         }
         const now = dayjs().unix();
 
-        return this.prices.filter(entry => entry.time + this.maxAge <= now);
+        const filtered = this.prices.filter(entry => entry.time + this.maxAge <= now);
+        return filtered;
     }
 
     static groupPrices(prices: Item[]): Group {

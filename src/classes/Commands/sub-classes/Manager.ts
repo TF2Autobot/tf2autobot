@@ -344,7 +344,10 @@ export default class ManagerCommands {
             this.bot.sendMessage(
                 steamid,
                 this.bot.options.customMessage.clearFriends
-                    ? this.bot.options.customMessage.clearFriends
+                    ? this.bot.options.customMessage.clearFriends.replace(
+                          /%name%/g,
+                          getFriend ? getFriend.player_name : steamid
+                      )
                     : `/quote Hey ${
                           getFriend ? getFriend.player_name : steamid
                       }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
