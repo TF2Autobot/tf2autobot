@@ -68,7 +68,7 @@ export function summarizeToChat(
         ? cT.lossFromUnderpay.discordWebhook
         : '📉 ***Loss from underpay:***';
 
-    return (
+    const reply =
         `\n\n${cTSummary}${isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''}\n` +
         `${cTAsked} ${generatedSummary.asked}` +
         `\n${cTOffered} ${generatedSummary.offered}` +
@@ -81,8 +81,9 @@ export function summarizeToChat(
                 ? `\n${cTLoss} ${value.diffRef} ref` +
                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                 : ''
-            : '')
-    );
+            : '');
+
+    return reply;
 }
 
 type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting';

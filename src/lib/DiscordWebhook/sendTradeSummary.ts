@@ -53,22 +53,20 @@ export default async function sendTradeSummary(
     let isMentionOurItems = false;
     let isMentionTheirItems = false;
 
-    if (skuToMention.length > 0) {
-        isMentionOurItems = enableMentionOnSpecificSKU
-            ? skuToMention.some(fromEnv => {
-                  return Object.keys(dict.our).some(ourItemSKU => {
-                      return ourItemSKU.includes(fromEnv);
-                  });
-              })
-            : false;
+    if (skuToMention.length > 0 && enableMentionOnSpecificSKU) {
+        const ourItems = Object.keys(dict.our);
+        isMentionOurItems = skuToMention.some(sku => {
+            return ourItems.some(ourItemSKU => {
+                return ourItemSKU.includes(sku);
+            });
+        });
 
-        isMentionTheirItems = enableMentionOnSpecificSKU
-            ? skuToMention.some(fromEnv => {
-                  return Object.keys(dict.their).some(theirItemSKU => {
-                      return theirItemSKU.includes(fromEnv);
-                  });
-              })
-            : false;
+        const theirItems = Object.keys(dict.their);
+        isMentionTheirItems = skuToMention.some(sku => {
+            return theirItems.some(theirItemSKU => {
+                return theirItemSKU.includes(sku);
+            });
+        });
     }
 
     const valueToMention = optDW.tradeSummary.mentionOwner.tradeValueInRef;

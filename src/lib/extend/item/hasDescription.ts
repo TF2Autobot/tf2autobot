@@ -11,5 +11,6 @@ export = function (description: string): boolean {
         return false;
     }
 
-    return self.descriptions.some(d => d.value === description);
+    const has = self.descriptions.some(d => d.value === description);
+    return has;
 };

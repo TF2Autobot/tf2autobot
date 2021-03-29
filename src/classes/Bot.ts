@@ -594,10 +594,11 @@ export default class Bot {
     }
 
     private get getCookies(): string[] {
-        return this.community._jar
+        const cookies = this.community._jar
             .getCookies('https://steamcommunity.com')
             .filter(cookie => ['sessionid', 'steamLogin', 'steamLoginSecure'].includes(cookie.key))
             .map(cookie => `${cookie.key}=${cookie.value}`);
+        return cookies;
     }
 
     private get getBptfAPICredentials(): Promise<{
@@ -934,7 +935,8 @@ export default class Bot {
     private get getLoginAttemptsWithinPeriod(): dayjs.Dayjs[] {
         const now = dayjs();
 
-        return this.loginAttempts.filter(attempt => now.diff(attempt, 'millisecond') < this.loginPeriodTime);
+        const filtered = this.loginAttempts.filter(attempt => now.diff(attempt, 'millisecond') < this.loginPeriodTime);
+        return filtered;
     }
 
     private newLoginAttempt(): void {

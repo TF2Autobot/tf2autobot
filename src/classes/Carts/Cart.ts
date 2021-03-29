@@ -129,7 +129,8 @@ export default abstract class Cart {
         const skusFromPricelist = this.bot.pricelist.getPrices.map(entry => entry.sku);
 
         // return filtered weapons
-        return allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+        const filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+        return filtered;
     }
 
     get isWeaponsAsCurrencyEnabled(): boolean {
@@ -152,16 +153,15 @@ export default abstract class Cart {
         const pSku = SKU.fromString(sku);
         if (pSku.quality === 5) {
             // try to count all unusual types
-            return (
-                this.bot.effects
-                    .map(e => {
-                        pSku.effect = e.id;
-                        const s = SKU.fromObject(pSku);
-                        return getCountFn(s);
-                    })
-                    // add up total found; total is undefined to being with
-                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
-            );
+            const reduced = this.bot.effects
+                .map(e => {
+                    pSku.effect = e.id;
+                    const s = SKU.fromObject(pSku);
+                    return getCountFn(s);
+                })
+                // add up total found; total is undefined to being with
+                .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
+            return reduced;
         } else {
             return getCountFn(sku);
         }
