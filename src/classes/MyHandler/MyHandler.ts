@@ -1034,6 +1034,7 @@ export default class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
         let hasOverstock = false;
+        let hasOverstockAndIsPartialPriced = false;
         let hasUnderstock = false;
 
         // A list of things that is wrong about the offer and other information
@@ -1123,6 +1124,10 @@ export default class MyHandler extends Handler {
                             if (match.enabled) {
                                 // User is offering too many
                                 hasOverstock = true;
+
+                                if (match.isPartialPriced) {
+                                    hasOverstockAndIsPartialPriced = true;
+                                }
 
                                 wrongAboutOffer.push({
                                     reason: '🟦_OVERSTOCKED',
@@ -1631,6 +1636,7 @@ export default class MyHandler extends Handler {
             const isAcceptOverstocked =
                 isOverstocked &&
                 canAcceptOverstockedOverpay &&
+                !hasOverstockAndIsPartialPriced && // because partial priced will use old buying prices
                 exchange.our.value < exchange.their.value &&
                 (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
                 (isUnderstocked ? canAcceptUnderstockedOverpay : true) &&
