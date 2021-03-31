@@ -12,6 +12,11 @@ import { PaintedNames } from '../../../Options';
 
 let itemsFromPreviousTrades: string[] = [];
 
+const removeDuplicate = (skus: string[]): string[] => {
+    const fix = new Set(skus);
+    return [...fix];
+};
+
 export default function updateListings(
     offer: TradeOffer,
     bot: Bot,
@@ -405,7 +410,7 @@ export default function updateListings(
     }
 
     if (skus.length > 0) {
-        const itemsToCheck = skus.concat(itemsFromPreviousTrades);
+        const itemsToCheck = removeDuplicate(skus.concat(itemsFromPreviousTrades));
 
         itemsToCheck.forEach(sku => {
             if (sku !== '5021;6') {
