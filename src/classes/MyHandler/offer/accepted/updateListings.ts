@@ -413,9 +413,7 @@ export default function updateListings(
         const itemsToCheck = removeDuplicate(skus.concat(itemsFromPreviousTrades));
 
         itemsToCheck.forEach(sku => {
-            if (sku !== '5021;6') {
-                PriceCheckQueue.enqueue(sku);
-            }
+            PriceCheckQueue.enqueue(sku);
         });
 
         itemsFromPreviousTrades = skus.slice(0);

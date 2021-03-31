@@ -52,6 +52,12 @@ export default class PriceCheckQueue {
         // Update listings (exclude weapons/pure)
         this.bot.listings.checkBySKU(sku, null, false, true);
 
+        if (sku === '5021;6') {
+            this.isProcessing = false;
+            this.dequeue();
+            return void this.process();
+        }
+
         void this.requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
             if (err) {
                 log.debug(`❌ Failed to request pricecheck for ${sku}: ${JSON.stringify(err)}`);
