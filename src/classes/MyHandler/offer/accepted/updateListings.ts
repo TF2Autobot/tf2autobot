@@ -413,6 +413,6 @@ export default function updateListings(
             }
         });
 
-        itemsFromPreviousTrades = skus;
+        itemsFromPreviousTrades = skus.slice(0);
     }
 }
