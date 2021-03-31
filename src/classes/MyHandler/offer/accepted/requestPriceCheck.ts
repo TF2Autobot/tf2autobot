@@ -2,10 +2,9 @@ import sleepasync from 'sleep-async';
 import { RequestCheckFn, RequestCheckResponse } from '../../../Pricer';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
-import { UnknownDictionary } from '../../../../types/common';
 
 export default class PriceCheckQueue {
-    private static priceUpdate: UnknownDictionary<string> = {};
+    private static skus: string[] = [];
 
     private static requestCheck: RequestCheckFn;
 
@@ -22,21 +21,21 @@ export default class PriceCheckQueue {
     private static isProcessing = false;
 
     static enqueue(sku: string): void {
-        this.priceUpdate[Date.now()] = sku;
+        this.skus.push(sku);
 
         void this.process();
     }
 
     private static dequeue(): void {
-        delete this.priceUpdate[this.first()];
+        this.skus.shift();
     }
 
     private static first(): string {
-        return Object.keys(this.priceUpdate)[0];
+        return this.skus[0];
     }
 
     private static size(): number {
-        return Object.keys(this.priceUpdate).length;
+        return this.skus.length;
     }
 
     private static async process(): Promise<void> {
