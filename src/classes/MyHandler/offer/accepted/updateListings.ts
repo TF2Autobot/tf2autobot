@@ -10,7 +10,6 @@ import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';
 
-const itemsFromCurrentTrades: string[] = [];
 let itemsFromPreviousTrades: string[] = [];
 
 export default function updateListings(
@@ -398,27 +397,22 @@ export default function updateListings(
                 if (existInPricelist) {
                     // Only includes sku of weapons that are in the pricelist (enabled)
                     skus.push(sku);
-                    itemsFromCurrentTrades.push(sku);
                 }
             } else {
                 skus.push(sku);
-                itemsFromCurrentTrades.push(sku);
             }
         }
     }
 
     if (skus.length > 0) {
-        setTimeout(() => {
-            const itemsToCheck = skus.concat(itemsFromPreviousTrades);
+        const itemsToCheck = skus.concat(itemsFromPreviousTrades);
 
-            itemsToCheck.forEach(sku => {
-                if (sku !== '5021;6') {
-                    PriceCheckQueue.enqueue(sku);
-                }
-            });
+        itemsToCheck.forEach(sku => {
+            if (sku !== '5021;6') {
+                PriceCheckQueue.enqueue(sku);
+            }
+        });
 
-            itemsFromPreviousTrades = itemsFromCurrentTrades;
-            itemsFromCurrentTrades.length = 0;
-        }, 1000);
+        itemsFromPreviousTrades = skus;
     }
 }
