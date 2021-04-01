@@ -20,7 +20,7 @@ import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
-import { processAccepted, updateListings } from './offer/accepted/exportAccepted';
+import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
@@ -224,6 +224,9 @@ export default class MyHandler extends Handler {
 
         this.paths = genPaths(this.opt.steamAccountName);
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
+
+        PriceCheckQueue.setBot(this.bot);
+        PriceCheckQueue.setRequestCheckFn(this.requestCheck);
     }
 
     onRun(): Promise<OnRun> {
@@ -1872,7 +1875,7 @@ export default class MyHandler extends Handler {
             log.debug(uptime());
 
             // Update listings
-            updateListings(offer, this.bot, highValue, this.requestCheck);
+            updateListings(offer, this.bot, highValue);
 
             // Invite to group
             this.inviteToGroups(offer.partner);
