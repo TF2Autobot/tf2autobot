@@ -827,7 +827,7 @@ export default class Pricelist extends EventEmitter {
                             const newBuy = new Currencies(newestPrice.buy);
                             const newSell = new Currencies(newestPrice.sell);
 
-                            const newBuyValue = newBuy.toValue(keyPrice);
+                            // const newBuyValue = newBuy.toValue(keyPrice);
                             const newSellValue = newSell.toValue(keyPrice);
 
                             // TODO: Use last bought prices instead of current buying prices
@@ -864,17 +864,17 @@ export default class Pricelist extends EventEmitter {
                                     } else {
                                         if (ppu.activateMinimumProfit) {
                                             /*
+                                             * ****************************IMPLEMENTATION SUSPENDED****************************
                                              * else if both condition does not met, and user set activateMinimumProfit to true,
                                              * update selling price with:
                                              * - If new marginValue > 9 scrap (1 ref), add floor value of marginValue * 0.15
                                              * - else, add 0.11 ref
                                              * profit from our static buying price
                                              */
-                                            const marginValue = newSellValue - newBuyValue;
+                                            // const marginValue = newSellValue - newBuyValue;
 
                                             currPrice.sell = Currencies.toCurrencies(
-                                                currBuyingValue +
-                                                    (marginValue > 9 ? Math.floor(marginValue * 0.15) : 1),
+                                                currBuyingValue + 1, // (marginValue > 9 ? Math.floor(marginValue * 0.15) : 1)
                                                 keyPrice
                                             );
 
@@ -1066,6 +1066,7 @@ export default class Pricelist extends EventEmitter {
                     } else {
                         if (ppu.activateMinimumProfit) {
                             /*
+                             * ****************************IMPLEMENTATION SUSPENDED****************************
                              * else if both condition does not met, and user set activateMinimumProfit to true,
                              * update selling price with:
                              * - If new marginValue > 9 scrap (1 ref), add floor value of marginValue * 0.15
@@ -1074,12 +1075,12 @@ export default class Pricelist extends EventEmitter {
                              */
                             const marginValue = newSellValue - newBuyValue;
 
-                            log.debug('ppu - update selling price with minimum profit', {
+                            log.debug('ppu - update selling price with minimum profit of 1 scrap', {
                                 marginValue: marginValue
                             });
 
                             match.sell = Currencies.toCurrencies(
-                                currBuyingValue + (marginValue > 9 ? Math.floor(marginValue * 0.15) : 1),
+                                currBuyingValue + 1, // (marginValue > 9 ? Math.floor(marginValue * 0.15) : 1)
                                 keyPrice
                             );
                             isUpdate = true;
