@@ -800,6 +800,7 @@ export default class Pricelist extends EventEmitter {
 
                 // Go through pricestf/custom pricer prices
                 let grouped: Item[];
+
                 try {
                     grouped = groupedPrices[item.quality][item.killstreak];
                 } catch (err) {
@@ -826,7 +827,7 @@ export default class Pricelist extends EventEmitter {
                             const newBuy = new Currencies(newestPrice.buy);
                             const newSell = new Currencies(newestPrice.sell);
 
-                            // const newBuyValue = newBuy.toValue(keyPrice);
+                            const newBuyValue = newBuy.toValue(keyPrice);
                             const newSellValue = newSell.toValue(keyPrice);
 
                             // TODO: Use last bought prices instead of current buying prices
@@ -862,9 +863,21 @@ export default class Pricelist extends EventEmitter {
                                         pricesChanged = true;
                                     } else {
                                         if (ppu.activateMinimumProfit) {
-                                            // else if both condition does not met, and user set activateMinimumProfit to true,
-                                            // update selling price with 0.11 ref profit from our static buying price
-                                            currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
+                                            /*
+                                             * else if both condition does not met, and user set activateMinimumProfit to true,
+                                             * update selling price with:
+                                             * - If new marginValue > 9 scrap (1 ref), add floor value of marginValue * 0.15
+                                             * - else, add 0.11 ref
+                                             * profit from our static buying price
+                                             */
+                                            const marginValue = newSellValue - newBuyValue;
+
+                                            currPrice.sell = Currencies.toCurrencies(
+                                                currBuyingValue +
+                                                    (marginValue > 9 ? Math.floor(marginValue * 0.15) : 1),
+                                                keyPrice
+                                            );
+
                                             pricesChanged = true;
                                         }
                                     }
@@ -993,28 +1006,31 @@ export default class Pricelist extends EventEmitter {
             };
 
             let pricesChanged = false;
+            const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
 
             const ppu = opt.pricelist.partialPriceUpdate;
-            const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
+            const isInStock = currentStock > 0;
             const isNotExceedThreshold = data.time - match.time < ppu.thresholdInSeconds;
             const isNotExcluded = !['5021;6'].concat(ppu.excludeSKU).includes(match.sku);
             const isApplyOnMaxMoreThanOne = ppu.applyOnMaxMoreThanOne || !(match.max > 1);
 
-            if (
-                ppu.enable &&
-                isInStock &&
-                isNotExceedThreshold &&
-                this.globalKeyPrices !== undefined &&
-                isNotExcluded &&
-                isApplyOnMaxMoreThanOne
-            ) {
+            if (ppu.enable) {
+                log.debug('ppu status - onHandlePriceChange', {
+                    sku: match.sku,
+                    inStock: isInStock,
+                    notExceed: isNotExceedThreshold,
+                    notExclude: isNotExcluded
+                });
+            }
+
+            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && isApplyOnMaxMoreThanOne) {
                 // if optPartialUpdate.enable is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
                 // and max is not more than 1 (if user set applyOnMaxMoreThanOne to false - default)
 
                 const keyPrice = this.getKeyPrice.metal;
 
-                // const newBuyValue = newPrices.buy.toValue(keyPrice);
+                const newBuyValue = newPrices.buy.toValue(keyPrice);
                 const newSellValue = newPrices.sell.toValue(keyPrice);
 
                 // TODO: Use last bought prices instead of current buying prices
@@ -1022,6 +1038,14 @@ export default class Pricelist extends EventEmitter {
                 const currSellingValue = match.sell.toValue(keyPrice);
 
                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
+
+                log.debug('', {
+                    newBuyValue,
+                    newSellValue,
+                    currBuyingValue,
+                    currSellingValue,
+                    isNegativeDiff
+                });
 
                 if (isNegativeDiff || match.isPartialPriced) {
                     // Only trigger this if difference of new selling price and current buying price is negative or zero
@@ -1039,9 +1063,19 @@ export default class Pricelist extends EventEmitter {
                         isUpdate = true;
                     } else {
                         if (ppu.activateMinimumProfit) {
-                            // else if both condition does not met, and user set activateMinimumProfit to true,
-                            // update selling price with 0.11 ref profit from our static buying price
-                            match.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
+                            /*
+                             * else if both condition does not met, and user set activateMinimumProfit to true,
+                             * update selling price with:
+                             * - If new marginValue > 9 scrap (1 ref), add floor value of marginValue * 0.15
+                             * - else, add 0.11 ref
+                             * profit from our static buying price
+                             */
+                            const marginValue = newSellValue - newBuyValue;
+
+                            match.sell = Currencies.toCurrencies(
+                                currBuyingValue + (marginValue > 9 ? Math.floor(marginValue * 0.15) : 1),
+                                keyPrice
+                            );
                             isUpdate = true;
                         }
                     }
@@ -1104,8 +1138,7 @@ export default class Pricelist extends EventEmitter {
             if (pricesChanged) {
                 this.priceChanged(match.sku, match);
 
-                if (isDwEnabled && this.globalKeyPrices !== undefined) {
-                    const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+                if (isDwEnabled) {
                     const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
 
                     if (showOnlyInStock) {
