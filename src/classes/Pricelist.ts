@@ -857,17 +857,22 @@ export default class Pricelist extends EventEmitter {
                                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                                 // and/or more than threshold, update everything
 
-                                currPrice.buy = newBuy;
-                                currPrice.sell = newSell;
-                                currPrice.time = newestPrice.time;
+                                if (
+                                    currPrice.group !== 'isPartialPriced' ||
+                                    (currPrice.group === 'isPartialPriced' && !isNotExceedThreshold)
+                                ) {
+                                    currPrice.buy = newBuy;
+                                    currPrice.sell = newSell;
+                                    currPrice.time = newestPrice.time;
 
-                                if (currPrice.group === 'isPartialPriced') {
-                                    // reset group to "all"
-                                    // (temporary, will not reset group once https://github.com/TF2Autobot/tf2autobot/pull/520 is reviewed, approved, and merged)
-                                    currPrice.group = 'all';
+                                    if (currPrice.group === 'isPartialPriced') {
+                                        // reset group to "all"
+                                        // (temporary, will not reset group once https://github.com/TF2Autobot/tf2autobot/pull/520 is reviewed, approved, and merged)
+                                        currPrice.group = 'all';
+                                    }
+
+                                    pricesChanged = true;
                                 }
-
-                                pricesChanged = true;
                             }
                         }
 
@@ -1057,17 +1062,19 @@ export default class Pricelist extends EventEmitter {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                 // and/or more than threshold, update everything
 
-                match.buy = newPrices.buy;
-                match.sell = newPrices.sell;
-                match.time = data.time;
+                if (match.group !== 'isPartialPriced' || (match.group === 'isPartialPriced' && !isNotExceedThreshold)) {
+                    match.buy = newPrices.buy;
+                    match.sell = newPrices.sell;
+                    match.time = data.time;
 
-                if (match.group === 'isPartialPriced') {
-                    // reset group to "all"
-                    // (temporary, will not reset group once https://github.com/TF2Autobot/tf2autobot/pull/520 is reviewed, approved, and merged)
-                    match.group = 'all';
+                    if (match.group === 'isPartialPriced') {
+                        // reset group to "all"
+                        // (temporary, will not reset group once https://github.com/TF2Autobot/tf2autobot/pull/520 is reviewed, approved, and merged)
+                        match.group = 'all';
+                    }
+
+                    pricesChanged = true;
                 }
-
-                pricesChanged = true;
             }
 
             if (pricesChanged) {
