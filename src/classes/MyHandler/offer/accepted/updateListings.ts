@@ -3,19 +3,24 @@ import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 
-import pricecheck from './requestPriceCheck';
+import PriceCheckQueue from './requestPriceCheck';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
-import { RequestCheckFn } from '../../../Pricer';
 import { PaintedNames } from '../../../Options';
+
+let itemsFromPreviousTrades: string[] = [];
+
+const removeDuplicate = (skus: string[]): string[] => {
+    const fix = new Set(skus);
+    return [...fix];
+};
 
 export default function updateListings(
     offer: TradeOffer,
     bot: Bot,
-    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items },
-    requestCheck: RequestCheckFn
+    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items }
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
@@ -405,8 +410,12 @@ export default function updateListings(
     }
 
     if (skus.length > 0) {
-        setTimeout(() => {
-            void pricecheck(bot, skus, requestCheck);
-        }, 1 * 1000);
+        const itemsToCheck = removeDuplicate(skus.concat(itemsFromPreviousTrades));
+
+        itemsToCheck.forEach(sku => {
+            PriceCheckQueue.enqueue(sku);
+        });
+
+        itemsFromPreviousTrades = skus.slice(0);
     }
 }

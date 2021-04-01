@@ -882,16 +882,21 @@ export default class Pricelist extends EventEmitter {
                                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                                 // and/or more than threshold, update everything
 
-                                currPrice.buy = newBuy;
-                                currPrice.sell = newSell;
-                                currPrice.time = newestPrice.time;
+                                if (
+                                    !currPrice.isPartialPriced ||
+                                    (currPrice.isPartialPriced && !isNotExceedThreshold)
+                                ) {
+                                    currPrice.buy = newBuy;
+                                    currPrice.sell = newSell;
+                                    currPrice.time = newestPrice.time;
 
-                                if (currPrice.isPartialPriced) {
-                                    currPrice.isPartialPriced = false; // reset to default
-                                    this.autoResetPartialPriceBulk.push(sku);
+                                    if (currPrice.isPartialPriced) {
+                                        currPrice.isPartialPriced = false; // reset to default
+                                        this.autoResetPartialPriceBulk.push(sku);
+                                    }
+
+                                    pricesChanged = true;
                                 }
-
-                                pricesChanged = true;
                             }
                         }
 
@@ -1082,16 +1087,18 @@ export default class Pricelist extends EventEmitter {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                 // and/or more than threshold, update everything
 
-                match.buy = newPrices.buy;
-                match.sell = newPrices.sell;
-                match.time = data.time;
+                if (!match.isPartialPriced || (match.isPartialPriced && !isNotExceedThreshold)) {
+                    match.buy = newPrices.buy;
+                    match.sell = newPrices.sell;
+                    match.time = data.time;
 
-                if (match.isPartialPriced) {
-                    match.isPartialPriced = false; // reset to default
-                    sendAlert('autoResetPartialPrice', this.bot);
+                    if (match.isPartialPriced) {
+                        match.isPartialPriced = false; // reset to default
+                        sendAlert('autoResetPartialPrice', this.bot);
+                    }
+
+                    pricesChanged = true;
                 }
-
-                pricesChanged = true;
             }
 
             if (pricesChanged) {
