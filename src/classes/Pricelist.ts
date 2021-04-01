@@ -897,7 +897,7 @@ export default class Pricelist extends EventEmitter {
 
                                 if (
                                     !currPrice.isPartialPriced ||
-                                    (currPrice.isPartialPriced && !isNotExceedThreshold)
+                                    (currPrice.isPartialPriced && !(isNotExceedThreshold || isInStock))
                                 ) {
                                     currPrice.buy = newBuy;
                                     currPrice.sell = newSell;
@@ -1127,7 +1127,7 @@ export default class Pricelist extends EventEmitter {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                 // and/or more than threshold, update everything
 
-                if (!match.isPartialPriced || (match.isPartialPriced && !isNotExceedThreshold)) {
+                if (!match.isPartialPriced || (match.isPartialPriced && !(isNotExceedThreshold || isInStock))) {
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
                     match.time = data.time;
