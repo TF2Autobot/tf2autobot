@@ -357,7 +357,8 @@ export default function updateListings(
                 min: inPrice.min,
                 max: inPrice.max,
                 intent: inPrice.intent,
-                group: inPrice.group
+                group: inPrice.group,
+                isPartialPriced: false
             } as EntryData;
 
             bot.pricelist
