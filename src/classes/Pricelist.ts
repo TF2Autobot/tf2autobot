@@ -780,8 +780,8 @@ export default class Pricelist extends EventEmitter {
 
             // Go through our pricelist
             const oldCount = old.length;
-            const opt = this.options.pricelist.partialPriceUpdate;
-            const excludedSKU = ['5021;6'].concat(opt.excludeSKU);
+            const ppu = this.options.pricelist.partialPriceUpdate;
+            const excludedSKU = ['5021;6'].concat(ppu.excludeSKU);
 
             const keyPrice = this.getKeyPrice.metal;
 
@@ -793,7 +793,7 @@ export default class Pricelist extends EventEmitter {
 
                 const sku = currPrice.sku;
                 const isInStock = inventory.getAmount(sku, true) > 0;
-                const isApplyOnMaxMoreThanOne = opt.applyOnMaxMoreThanOne || !(currPrice.max > 1);
+                const isApplyOnMaxMoreThanOne = ppu.applyOnMaxMoreThanOne || !(currPrice.max > 1);
                 const isNotExcluded = !excludedSKU.includes(sku);
 
                 const item = SKU.fromString(sku);
@@ -833,10 +833,10 @@ export default class Pricelist extends EventEmitter {
                             const currBuyingValue = currPrice.buy.toValue(keyPrice);
                             const currSellingValue = currPrice.sell.toValue(keyPrice);
 
-                            const isNotExceedThreshold = newestPrice.time - currPrice.time < opt.thresholdInSeconds;
+                            const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
 
                             if (
-                                opt.enable &&
+                                ppu.enable &&
                                 isInStock &&
                                 isNotExceedThreshold &&
                                 isNotExcluded &&
@@ -861,7 +861,7 @@ export default class Pricelist extends EventEmitter {
                                         currPrice.sell = newSell;
                                         pricesChanged = true;
                                     } else {
-                                        if (opt.activateMinimumProfit) {
+                                        if (ppu.activateMinimumProfit) {
                                             // else if both condition does not met, and user set activateMinimumProfit to true,
                                             // update selling price with 0.11 ref profit from our static buying price
                                             currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
@@ -994,14 +994,14 @@ export default class Pricelist extends EventEmitter {
 
             let pricesChanged = false;
 
-            const optPartialUpdate = opt.pricelist.partialPriceUpdate;
+            const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true) > 0;
-            const isNotExceedThreshold = data.time - match.time < optPartialUpdate.thresholdInSeconds;
-            const isNotExcluded = !['5021;6'].concat(optPartialUpdate.excludeSKU).includes(match.sku);
-            const isApplyOnMaxMoreThanOne = optPartialUpdate.applyOnMaxMoreThanOne || !(match.max > 1);
+            const isNotExceedThreshold = data.time - match.time < ppu.thresholdInSeconds;
+            const isNotExcluded = !['5021;6'].concat(ppu.excludeSKU).includes(match.sku);
+            const isApplyOnMaxMoreThanOne = ppu.applyOnMaxMoreThanOne || !(match.max > 1);
 
             if (
-                optPartialUpdate.enable &&
+                ppu.enable &&
                 isInStock &&
                 isNotExceedThreshold &&
                 this.globalKeyPrices !== undefined &&
@@ -1038,7 +1038,7 @@ export default class Pricelist extends EventEmitter {
                         match.sell = newPrices.sell;
                         isUpdate = true;
                     } else {
-                        if (optPartialUpdate.activateMinimumProfit) {
+                        if (ppu.activateMinimumProfit) {
                             // else if both condition does not met, and user set activateMinimumProfit to true,
                             // update selling price with 0.11 ref profit from our static buying price
                             match.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
