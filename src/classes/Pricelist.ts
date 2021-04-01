@@ -1039,12 +1039,13 @@ export default class Pricelist extends EventEmitter {
 
                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
 
-                log.debug('', {
-                    newBuyValue,
-                    newSellValue,
-                    currBuyingValue,
-                    currSellingValue,
-                    isNegativeDiff
+                log.debug('ppu', {
+                    newBuyValue: newBuyValue,
+                    newSellValue: newSellValue,
+                    currBuyingValue: currBuyingValue,
+                    currSellingValue: currSellingValue,
+                    isNegativeDiff: isNegativeDiff,
+                    isAlreadyPartialPriced: match.isPartialPriced
                 });
 
                 if (isNegativeDiff || match.isPartialPriced) {
@@ -1059,6 +1060,7 @@ export default class Pricelist extends EventEmitter {
                     if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
                         // if the new selling price above static buying price OR new selling price more than current selling price,
                         // update selling price
+                        log.debug('ppu - update selling price with the latest price');
                         match.sell = newPrices.sell;
                         isUpdate = true;
                     } else {
@@ -1071,6 +1073,10 @@ export default class Pricelist extends EventEmitter {
                              * profit from our static buying price
                              */
                             const marginValue = newSellValue - newBuyValue;
+
+                            log.debug('ppu - update selling price with minimum profit', {
+                                marginValue: marginValue
+                            });
 
                             match.sell = Currencies.toCurrencies(
                                 currBuyingValue + (marginValue > 9 ? Math.floor(marginValue * 0.15) : 1),
