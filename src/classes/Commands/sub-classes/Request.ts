@@ -159,8 +159,9 @@ export default class RequestCommands {
         }
 
         const pricelist = this.bot.pricelist.getPrices;
+        const skus = pricelist.filter(entry => entry.sku !== '5021;6').map(entry => entry.sku);
 
-        const total = pricelist.length;
+        const total = skus.length;
         const totalTime = total * 2 * 1000;
         const aSecond = 1 * 1000;
         const aMin = 1 * 60 * 1000;
@@ -175,8 +176,6 @@ export default class RequestCommands {
                     : `${Math.round(totalTime / anHour)} hours.`
             } (about 2 seconds for each item).`
         );
-
-        const skus = pricelist.filter(entry => entry.sku !== '5021;6').map(entry => entry.sku);
 
         const pricecheck = new Pricecheck(this.bot, this.priceSource, steamID);
         pricecheck.enqueue = skus;
