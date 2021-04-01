@@ -25,6 +25,8 @@ export default class RequestCommands {
         this.getSnapshots = this.priceSource.getSnapshots.bind(this.priceSource);
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
         this.getPrice = this.priceSource.getPrice.bind(this.priceSource);
+
+        Pricecheck.setRequestCheckFn(this.requestCheck);
     }
 
     async getSnapshotsCommand(steamID: SteamID, message: string): Promise<void> {
@@ -177,7 +179,7 @@ export default class RequestCommands {
             } (about 2 seconds for each item).`
         );
 
-        const pricecheck = new Pricecheck(this.bot, this.priceSource, steamID);
+        const pricecheck = new Pricecheck(this.bot, steamID);
         pricecheck.enqueue = skus;
 
         Pricecheck.addJob();
@@ -234,7 +236,11 @@ class Pricecheck {
 
     private static pricecheck: UnknownDictionary<boolean> = {};
 
-    private requestCheck: RequestCheckFn;
+    private static requestCheck: RequestCheckFn;
+
+    static setRequestCheckFn(fn: RequestCheckFn): void {
+        this.requestCheck = fn;
+    }
 
     private skus: string[] = [];
 
@@ -246,9 +252,8 @@ class Pricecheck {
 
     private total = 0;
 
-    constructor(private readonly bot: Bot, private readonly priceSource: Pricer, private readonly steamID: SteamID) {
+    constructor(private readonly bot: Bot, private readonly steamID: SteamID) {
         this.bot = bot;
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
     }
 
     set enqueue(skus: string[]) {
@@ -259,7 +264,7 @@ class Pricecheck {
     async executeCheck(): Promise<void> {
         await sleepasync().Promise.sleep(2 * 1000);
 
-        void this.requestCheck(this.sku, 'bptf').asCallback(err => {
+        void Pricecheck.requestCheck(this.sku, 'bptf').asCallback(err => {
             if (err) {
                 this.submitted++;
                 this.failed++;
