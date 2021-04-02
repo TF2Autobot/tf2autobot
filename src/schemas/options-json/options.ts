@@ -525,9 +525,6 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'integer',
                             minimum: 86400 // 1 day
                         },
-                        activateMinimumProfit: {
-                            type: 'boolean'
-                        },
                         excludeSKU: {
                             type: '#/definitions/string-array'
                         },
@@ -535,13 +532,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         }
                     },
-                    required: [
-                        'enable',
-                        'thresholdInSeconds',
-                        'activateMinimumProfit',
-                        'excludeSKU',
-                        'applyOnMaxMoreThanOne'
-                    ],
+                    required: ['enable', 'thresholdInSeconds', 'excludeSKU', 'applyOnMaxMoreThanOne'],
                     additionalProperties: false
                 },
                 filterCantAfford: {

@@ -861,12 +861,11 @@ export default class Pricelist extends EventEmitter {
                                         // if the new selling price above static buying price OR new selling price more than current selling price,
                                         // update selling price
                                         currPrice.sell = newSell;
-                                        pricesChanged = true;
-                                    } else if (ppu.activateMinimumProfit) {
+                                    } else {
                                         currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
-
-                                        pricesChanged = true;
                                     }
+
+                                    pricesChanged = true;
                                 } else {
                                     // else, just update as usual now (except if isPartialPriced is true).
                                     if (!currPrice.isPartialPriced) {
@@ -1040,8 +1039,6 @@ export default class Pricelist extends EventEmitter {
                     // Only trigger this if difference of new selling price and current buying price is negative or zero
                     // Or the new buying price is not equal to the current buying price, Or isPartialPriced.
 
-                    let isUpdate = false;
-
                     // https://github.com/TF2Autobot/tf2autobot/issues/506
                     // We will not update the buying price since that was the price the bot last bought - make it static
 
@@ -1050,8 +1047,7 @@ export default class Pricelist extends EventEmitter {
                         // update selling price
                         log.debug('ppu - update selling price with the latest price');
                         match.sell = newPrices.sell;
-                        isUpdate = true;
-                    } else if (ppu.activateMinimumProfit) {
+                    } else {
                         const marginValue = newSellValue - newBuyValue;
 
                         log.debug('ppu - update selling price with minimum profit of 1 scrap', {
@@ -1059,34 +1055,29 @@ export default class Pricelist extends EventEmitter {
                         });
 
                         match.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
-                        isUpdate = true;
                     }
 
-                    if (isUpdate) {
-                        match.isPartialPriced = true;
-                        pricesChanged = true;
+                    match.isPartialPriced = true;
+                    pricesChanged = true;
 
-                        const dwAlert = opt.discordWebhook.sendAlert;
-                        const isAlertEnabledDW = dwAlert.enable && dwAlert.url !== '';
+                    const dwAlert = opt.discordWebhook.sendAlert;
+                    const isAlertEnabledDW = dwAlert.enable && dwAlert.url !== '';
 
-                        const msg =
-                            `${
-                                isAlertEnabledDW
-                                    ? `[${match.name}](https://www.prices.tf/items/${match.sku})`
-                                    : match.name
-                            } (${match.sku}):\n▸ ` +
-                            [
-                                `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
-                                `current: ${match.buy.toString()}/${match.sell.toString()}`,
-                                `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
-                            ].join('\n▸ ');
+                    const msg =
+                        `${
+                            isAlertEnabledDW ? `[${match.name}](https://www.prices.tf/items/${match.sku})` : match.name
+                        } (${match.sku}):\n▸ ` +
+                        [
+                            `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
+                            `current: ${match.buy.toString()}/${match.sell.toString()}`,
+                            `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
+                        ].join('\n▸ ');
 
-                        if (opt.sendAlert.partialPrice.onUpdate) {
-                            if (isAlertEnabledDW) {
-                                sendAlert('isPartialPriced', this.bot, msg);
-                            } else {
-                                this.bot.messageAdmins('Partial price update\n\n' + msg, []);
-                            }
+                    if (opt.sendAlert.partialPrice.onUpdate) {
+                        if (isAlertEnabledDW) {
+                            sendAlert('isPartialPriced', this.bot, msg);
+                        } else {
+                            this.bot.messageAdmins('Partial price update\n\n' + msg, []);
                         }
                     }
                 } else {
