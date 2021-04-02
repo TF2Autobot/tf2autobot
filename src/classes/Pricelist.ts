@@ -1119,31 +1119,31 @@ export default class Pricelist extends EventEmitter {
 
             if (pricesChanged) {
                 this.priceChanged(match.sku, match);
+            }
 
-                if (isDwEnabled) {
-                    const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
+            if (isDwEnabled) {
+                const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
 
-                    if (showOnlyInStock) {
-                        const tz = opt.timezone;
-                        const format = opt.customTimeFormat;
+                if (showOnlyInStock) {
+                    const tz = opt.timezone;
+                    const format = opt.customTimeFormat;
 
-                        const time = dayjs()
-                            .tz(tz ? tz : 'UTC')
-                            .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+                    const time = dayjs()
+                        .tz(tz ? tz : 'UTC')
+                        .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
 
-                        sendWebHookPriceUpdateV1(
-                            data.sku,
-                            data.name,
-                            match,
-                            time,
-                            this.schema,
-                            opt,
-                            currentStock,
-                            oldPrice,
-                            this.getKeyPrice.metal,
-                            this.isUseCustomPricer
-                        );
-                    }
+                    sendWebHookPriceUpdateV1(
+                        data.sku,
+                        data.name,
+                        match,
+                        time,
+                        this.schema,
+                        opt,
+                        currentStock,
+                        oldPrice,
+                        this.getKeyPrice.metal,
+                        this.isUseCustomPricer
+                    );
                 }
             }
         }
