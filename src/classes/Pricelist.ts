@@ -827,7 +827,7 @@ export default class Pricelist extends EventEmitter {
                             const newBuy = new Currencies(newestPrice.buy);
                             const newSell = new Currencies(newestPrice.sell);
 
-                            // const newBuyValue = newBuy.toValue(keyPrice);
+                            const newBuyValue = newBuy.toValue(keyPrice);
                             const newSellValue = newSell.toValue(keyPrice);
 
                             // TODO: Use last bought prices instead of current buying prices
@@ -848,10 +848,11 @@ export default class Pricelist extends EventEmitter {
                                 // and max is not more than 1 (if user set applyOnMaxMoreThanOne to false - default)
 
                                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
+                                const isBuyingChanged = currBuyingValue !== newBuyValue;
 
-                                if (isNegativeDiff || currPrice.isPartialPriced) {
+                                if (isNegativeDiff || isBuyingChanged || currPrice.isPartialPriced) {
                                     // Only trigger this if difference of new selling price and current buying price is negative or zero
-                                    // Or isPartialPriced.
+                                    // Or the new buying price is not equal to the current buying price, isPartialPriced.
 
                                     // https://github.com/TF2Autobot/tf2autobot/issues/506
                                     // We will not update the buying price since that was the price the bot last bought - make it static
@@ -1036,6 +1037,7 @@ export default class Pricelist extends EventEmitter {
                 const currSellingValue = match.sell.toValue(keyPrice);
 
                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
+                const isBuyingChanged = currBuyingValue !== newBuyValue;
 
                 log.debug('ppu', {
                     newBuyValue: newBuyValue,
@@ -1043,12 +1045,13 @@ export default class Pricelist extends EventEmitter {
                     currBuyingValue: currBuyingValue,
                     currSellingValue: currSellingValue,
                     isNegativeDiff: isNegativeDiff,
+                    isBuyingChanged: isBuyingChanged,
                     isAlreadyPartialPriced: match.isPartialPriced
                 });
 
-                if (isNegativeDiff || match.isPartialPriced) {
+                if (isNegativeDiff || isBuyingChanged || match.isPartialPriced) {
                     // Only trigger this if difference of new selling price and current buying price is negative or zero
-                    // Or isPartialPriced.
+                    // Or the new buying price is not equal to the current buying price, Or isPartialPriced.
 
                     let isUpdate = false;
 
