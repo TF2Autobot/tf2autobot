@@ -632,6 +632,8 @@ export default class PricelistManagerCommands {
                         if (params.autoprice === undefined) {
                             entry.autoprice = false;
                         }
+
+                        entry.isPartialPriced = false;
                     }
 
                     if (typeof params.sell === 'object') {
@@ -641,6 +643,8 @@ export default class PricelistManagerCommands {
                         if (params.autoprice === undefined) {
                             entry.autoprice = false;
                         }
+
+                        entry.isPartialPriced = false;
                     }
                 }
 
@@ -817,6 +821,8 @@ export default class PricelistManagerCommands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+
+            params.isPartialPriced = false;
         } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
             params['buy'] = {
                 keys: itemEntry.buy.keys,
@@ -831,6 +837,8 @@ export default class PricelistManagerCommands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+
+            params.isPartialPriced = false;
         } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
             params['sell'] = {
                 keys: itemEntry.sell.keys,
