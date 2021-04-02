@@ -1,6 +1,5 @@
 declare module 'tf2-schema-2' {
     import { EventEmitter } from 'events';
-    import { skuObject } from 'tf2-sku-2';
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
@@ -236,10 +235,6 @@ declare module 'tf2-schema-2' {
             getItemObjectFromName(name: string): Item;
 
             getItemByDefindex(defindex: number): SchemaItem | null;
-
-            getItemObjectFromName(name: string): skuObject;
-
-            getSkuFromName(name: string): string | null;
 
             getItemByItemName(name: string): SchemaItem | null;
 

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import dayjs from 'dayjs';
 import Currencies from 'tf2-currencies-2';
-import SKU, { skuObject } from 'tf2-sku-2';
+import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import { Currency } from '../types/TeamFortress2';
 import Options from './Options';
@@ -1056,10 +1056,6 @@ export class ParsedPrice {
         this.buy = new Currencies(priceResponse.buy);
         this.sell = new Currencies(priceResponse.sell);
     }
-}
-
-interface Group {
-    [quality: string]: { [killstreak: string]: Item[] };
 }
 
 interface ErrorRequest {
