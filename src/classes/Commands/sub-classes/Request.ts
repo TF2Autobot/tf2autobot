@@ -179,8 +179,6 @@ export default class RequestCommands {
             } (about 2 seconds for each item).`
         );
 
-        const skus = Object.keys(pricelist);
-
         const pricecheck = new Pricecheck(this.bot, steamID);
         pricecheck.enqueue = skus;
 
