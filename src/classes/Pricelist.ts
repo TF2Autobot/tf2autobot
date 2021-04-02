@@ -195,6 +195,8 @@ export default class Pricelist extends EventEmitter {
 
     failedUpdateOldPrices: string[] = [];
 
+    partialPricedUpdateBulk: string[] = [];
+
     autoResetPartialPriceBulk: string[] = [];
 
     set resetFailedUpdateOldPrices(value: number) {
@@ -783,6 +785,9 @@ export default class Pricelist extends EventEmitter {
             const ppu = this.options.pricelist.partialPriceUpdate;
             const excludedSKU = ['5021;6'].concat(ppu.excludeSKU);
 
+            const dwAlert = this.options.discordWebhook.sendAlert;
+            const isAlertEnabledDW = dwAlert.enable && dwAlert.url !== '';
+
             const keyPrice = this.getKeyPrice.metal;
 
             for (let i = 0; i < oldCount; i++) {
@@ -824,11 +829,18 @@ export default class Pricelist extends EventEmitter {
                         // Found matching items
                         if (currPrice.time < newestPrice.time) {
                             // Times don't match, update our price
-                            const newBuy = new Currencies(newestPrice.buy);
-                            const newSell = new Currencies(newestPrice.sell);
+                            const oldPrices = {
+                                buy: new Currencies(currPrice.buy),
+                                sell: new Currencies(currPrice.sell)
+                            };
 
-                            const newBuyValue = newBuy.toValue(keyPrice);
-                            const newSellValue = newSell.toValue(keyPrice);
+                            const newPrices = {
+                                buy: new Currencies(newestPrice.buy),
+                                sell: new Currencies(newestPrice.sell)
+                            };
+
+                            const newBuyValue = newPrices.buy.toValue(keyPrice);
+                            const newSellValue = newPrices.sell.toValue(keyPrice);
 
                             // TODO: Use last bought prices instead of current buying prices
                             const currBuyingValue = currPrice.buy.toValue(keyPrice);
@@ -860,17 +872,31 @@ export default class Pricelist extends EventEmitter {
                                     if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
                                         // if the new selling price above static buying price OR new selling price more than current selling price,
                                         // update selling price
-                                        currPrice.sell = newSell;
+                                        currPrice.sell = newPrices.sell;
                                     } else {
                                         currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
                                     }
+
+                                    const msg =
+                                        `${
+                                            isAlertEnabledDW
+                                                ? `[${currPrice.name}](https://www.prices.tf/items/${currPrice.sku})`
+                                                : currPrice.name
+                                        } (${currPrice.sku}):\n▸ ` +
+                                        [
+                                            `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
+                                            `current: ${currPrice.buy.toString()}/${currPrice.sell.toString()}`,
+                                            `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
+                                        ].join('\n▸ ');
+
+                                    this.partialPricedUpdateBulk.push(msg);
 
                                     pricesChanged = true;
                                 } else {
                                     // else, just update as usual now (except if isPartialPriced is true).
                                     if (!currPrice.isPartialPriced) {
-                                        currPrice.buy = newBuy;
-                                        currPrice.sell = newSell;
+                                        currPrice.buy = newPrices.buy;
+                                        currPrice.sell = newPrices.sell;
                                         currPrice.time = newestPrice.time;
 
                                         pricesChanged = true;
@@ -884,8 +910,8 @@ export default class Pricelist extends EventEmitter {
                                     !currPrice.isPartialPriced ||
                                     (currPrice.isPartialPriced && !(isNotExceedThreshold || isInStock))
                                 ) {
-                                    currPrice.buy = newBuy;
-                                    currPrice.sell = newSell;
+                                    currPrice.buy = newPrices.buy;
+                                    currPrice.sell = newPrices.sell;
                                     currPrice.time = newestPrice.time;
 
                                     if (currPrice.isPartialPriced) {

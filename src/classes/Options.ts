@@ -66,6 +66,7 @@ export const DEFAULTS = {
             onUpdate: true,
             onSuccessUpdatePartialPriced: true,
             onFailedUpdatePartialPriced: true,
+            onBulkUpdatePartialPriced: true,
             onResetAfterThreshold: true
         },
         receivedUnusualNotInPricelist: true,
@@ -1044,6 +1045,7 @@ interface PartialPrice {
     onUpdate?: boolean;
     onSuccessUpdatePartialPriced?: boolean;
     onFailedUpdatePartialPriced?: boolean;
+    onBulkUpdatePartialPriced?: boolean;
     onResetAfterThreshold?: boolean;
 }
 

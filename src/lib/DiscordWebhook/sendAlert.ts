@@ -38,6 +38,7 @@ type AlertType =
     | 'autoUpdatePartialPriceFailed'
     | 'autoResetPartialPrice'
     | 'autoResetPartialPriceBulk'
+    | 'onBulkUpdatePartialPriced'
     | 'isPartialPriced'
     | 'unusualInvalidItems'
     | 'failedToUpdateOldPrices';
@@ -131,6 +132,10 @@ export default function sendAlert(
         title = '✅ Automatically reset partially priced item';
         description = msg;
         color = '8323327'; // purple
+    } else if (type === 'onBulkUpdatePartialPriced') {
+        title = '✅ Partial price update - bulk';
+        description = msg;
+        color = '16776960'; // yellow
     } else if (type === 'autoResetPartialPriceBulk') {
         title = '✅ Automatically reset partially priced item - bulk';
         description = msg;

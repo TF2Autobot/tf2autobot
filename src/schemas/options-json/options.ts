@@ -479,6 +479,9 @@ export const optionsSchema: jsonschema.Schema = {
                         onFailedUpdatePartialPriced: {
                             type: 'boolean'
                         },
+                        onBulkUpdatePartialPriced: {
+                            type: 'boolean'
+                        },
                         onResetAfterThreshold: {
                             type: 'boolean'
                         }
