@@ -180,6 +180,11 @@ export default class Pricelist extends EventEmitter {
         return this.globalKeyPrices.sell;
     }
 
+    get isDwAlertEnabled(): boolean {
+        const opt = this.bot.options.discordWebhook.sendAlert;
+        return opt.enable && opt.url !== '';
+    }
+
     /**
      * Current key rate before receiving new prices data, this
      * can be different with global key rate.
@@ -785,9 +790,6 @@ export default class Pricelist extends EventEmitter {
             const ppu = this.options.pricelist.partialPriceUpdate;
             const excludedSKU = ['5021;6'].concat(ppu.excludeSKU);
 
-            const dwAlert = this.options.discordWebhook.sendAlert;
-            const isAlertEnabledDW = dwAlert.enable && dwAlert.url !== '';
-
             const keyPrice = this.getKeyPrice.metal;
 
             for (let i = 0; i < oldCount; i++) {
@@ -877,17 +879,7 @@ export default class Pricelist extends EventEmitter {
                                         currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
                                     }
 
-                                    const msg =
-                                        `${
-                                            isAlertEnabledDW
-                                                ? `[${currPrice.name}](https://www.prices.tf/items/${currPrice.sku})`
-                                                : currPrice.name
-                                        } (${currPrice.sku}):\n▸ ` +
-                                        [
-                                            `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
-                                            `current: ${currPrice.buy.toString()}/${currPrice.sell.toString()}`,
-                                            `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
-                                        ].join('\n▸ ');
+                                    const msg = this.generatePartialPriceUpdateMsg(oldPrices, currPrice, newPrices);
 
                                     this.partialPricedUpdateBulk.push(msg);
 
@@ -937,13 +929,28 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
+    private generatePartialPriceUpdateMsg(oldPrices: BuyAndSell, currPrices: Entry, newPrices: BuyAndSell): string {
+        return (
+            `${
+                this.isDwAlertEnabled
+                    ? `[${currPrices.name}](https://www.prices.tf/items/${currPrices.sku})`
+                    : currPrices.name
+            } (${currPrices.sku}):\n▸ ` +
+            [
+                `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
+                `current: ${currPrices.buy.toString()}/${currPrices.sell.toString()}`,
+                `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
+            ].join('\n▸ ')
+        );
+    }
+
     private handlePriceChange(data: GetItemPriceResponse): void {
         if (data.source !== 'bptf') {
             return;
         }
 
         const match = this.getPrice(data.sku);
-        const opt = this.options;
+        const opt = this.bot.options;
         const dw = opt.discordWebhook.priceUpdate;
         const isDwEnabled = dw.enable && dw.url !== '';
 
@@ -1086,21 +1093,10 @@ export default class Pricelist extends EventEmitter {
                     match.isPartialPriced = true;
                     pricesChanged = true;
 
-                    const dwAlert = opt.discordWebhook.sendAlert;
-                    const isAlertEnabledDW = dwAlert.enable && dwAlert.url !== '';
-
-                    const msg =
-                        `${
-                            isAlertEnabledDW ? `[${match.name}](https://www.prices.tf/items/${match.sku})` : match.name
-                        } (${match.sku}):\n▸ ` +
-                        [
-                            `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
-                            `current: ${match.buy.toString()}/${match.sell.toString()}`,
-                            `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
-                        ].join('\n▸ ');
+                    const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices);
 
                     if (opt.sendAlert.partialPrice.onUpdate) {
-                        if (isAlertEnabledDW) {
+                        if (this.isDwAlertEnabled) {
                             sendAlert('isPartialPriced', this.bot, msg);
                         } else {
                             this.bot.messageAdmins('Partial price update\n\n' + msg, []);
