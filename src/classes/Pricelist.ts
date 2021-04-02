@@ -22,8 +22,8 @@ export interface EntryData {
     sku: string;
     enabled: boolean;
     autoprice: boolean;
-    max: number;
     min: number;
+    max: number;
     intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
     buy?: Currency | null;
     sell?: Currency | null;
@@ -42,9 +42,9 @@ export class Entry implements EntryData {
 
     autoprice: boolean;
 
-    max: number;
-
     min: number;
+
+    max: number;
 
     intent: 0 | 1 | 2;
 
@@ -65,8 +65,8 @@ export class Entry implements EntryData {
         this.name = name;
         this.enabled = entry.enabled;
         this.autoprice = entry.autoprice;
-        this.max = entry.max;
         this.min = entry.min;
+        this.max = entry.max;
         this.intent = entry.intent;
 
         if (entry.buy && entry.sell) {
@@ -124,8 +124,8 @@ export class Entry implements EntryData {
             sku: this.sku,
             enabled: this.enabled,
             autoprice: this.autoprice,
-            max: this.max,
             min: this.min,
+            max: this.max,
             intent: this.intent,
             buy: this.buy === null ? null : this.buy.toJSON(),
             sell: this.sell === null ? null : this.sell.toJSON(),
@@ -735,13 +735,19 @@ export default class Pricelist extends EventEmitter {
                         // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                         // and/or more than threshold, update everything
 
-                        //TODO: what about items in this group ? do they ever get priced if partialPriceUpate is disabled ?
-                        if (currPrice.group !== 'isPartialPriced') {
-                            // Only update if group is not "isPartialPriced"
-
+                        if (
+                            currPrice.group !== 'isPartialPriced' ||
+                            (currPrice.group === 'isPartialPriced' && !(isNotExceedThreshold || isInStock))
+                        ) {
                             currPrice.buy = newBuy;
                             currPrice.sell = newSell;
                             currPrice.time = newestPrice.time;
+
+                            if (currPrice.group === 'isPartialPriced') {
+                                // reset group to "all"
+                                // (temporary, will not reset group once https://github.com/TF2Autobot/tf2autobot/pull/520 is reviewed, approved, and merged)
+                                currPrice.group = 'all';
+                            }
 
                             pricesChanged = true;
                         }
@@ -892,9 +898,14 @@ export default class Pricelist extends EventEmitter {
                         match.group = 'isPartialPriced';
                         pricesChanged = true;
 
+                        const dwAlert = opt.discordWebhook.sendAlert;
+                        const isAlertEnabledDW = dwAlert.enable && dwAlert.url !== '';
+
                         const msg =
                             `${
-                                isDwEnabled ? `[${match.name}](https://www.prices.tf/items/${match.sku})` : match.name
+                                isAlertEnabledDW
+                                    ? `[${match.name}](https://www.prices.tf/items/${match.sku})`
+                                    : match.name
                             } (${match.sku}):\n▸ ` +
                             [
                                 `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
@@ -903,7 +914,7 @@ export default class Pricelist extends EventEmitter {
                             ].join('\n▸ ');
 
                         if (opt.sendAlert.partialPrice.onUpdate) {
-                            if (isDwEnabled) {
+                            if (isAlertEnabledDW) {
                                 sendAlert('isPartialPriced', this.bot, msg);
                             } else {
                                 this.bot.messageAdmins('Partial price update\n\n' + msg, []);
@@ -924,44 +935,51 @@ export default class Pricelist extends EventEmitter {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                 // and/or more than threshold, update everything
 
-                if (match.group !== 'isPartialPriced') {
-                    // Only update if group is not "isPartialPriced"
-
+                if (
+                    match.group !== 'isPartialPriced' ||
+                    (match.group === 'isPartialPriced' && !(isNotExceedThreshold || isInStock))
+                ) {
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
                     match.time = data.time;
 
-                    pricesChanged = true;
-
-                    if (pricesChanged) {
-                        this.priceChanged(match.sku, match);
+                    if (match.group === 'isPartialPriced') {
+                        // reset group to "all"
+                        // (temporary, will not reset group once https://github.com/TF2Autobot/tf2autobot/pull/520 is reviewed, approved, and merged)
+                        match.group = 'all';
                     }
 
-                    if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
-                        const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
-                        const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
+                    pricesChanged = true;
+                }
+            }
 
-                        if (showOnlyInStock) {
-                            const tz = opt.timezone;
-                            const format = opt.customTimeFormat;
+            if (pricesChanged) {
+                this.priceChanged(match.sku, match);
 
-                            const time = dayjs()
-                                .tz(tz ? tz : 'UTC')
-                                .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+                if (isDwEnabled && this.globalKeyPrices !== undefined) {
+                    const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+                    const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
 
-                            sendWebHookPriceUpdateV1(
-                                data.sku,
-                                data.name,
-                                match,
-                                time,
-                                this.schema,
-                                opt,
-                                currentStock,
-                                oldPrice,
-                                this.getKeyPrice.metal,
-                                this.isUseCustomPricer
-                            );
-                        }
+                    if (showOnlyInStock) {
+                        const tz = opt.timezone;
+                        const format = opt.customTimeFormat;
+
+                        const time = dayjs()
+                            .tz(tz ? tz : 'UTC')
+                            .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+
+                        sendWebHookPriceUpdateV1(
+                            data.sku,
+                            data.name,
+                            match,
+                            time,
+                            this.schema,
+                            opt,
+                            currentStock,
+                            oldPrice,
+                            this.getKeyPrice.metal,
+                            this.isUseCustomPricer
+                        );
                     }
                 }
             }

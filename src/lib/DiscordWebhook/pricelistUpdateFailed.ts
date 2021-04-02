@@ -2,6 +2,8 @@ import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
 import { GetItemPriceResponse } from '../../classes/Pricer';
+import sleepasync from 'sleep-async';
+import { UnknownDictionary } from '../../types/common';
 import Options from '../../classes/Options';
 
 export default function sendFailedPriceUpdate(
@@ -34,7 +36,63 @@ export default function sendFailedPriceUpdate(
         ]
     };
 
-    sendWebhook(opt.priceUpdate.url, priceUpdate, 'partner-message')
-        .then(() => log.debug(`✅ Sent price update error to Discord.`))
-        .catch(err => log.debug(`❌ Failed to send price update error to Discord: `, err));
+    PriceUpdateFailedQueue.setURL(opt.priceUpdate.url);
+    PriceUpdateFailedQueue.enqueue(data.sku, priceUpdate);
+}
+
+class PriceUpdateFailedQueue {
+    private static priceUpdate: UnknownDictionary<Webhook> = {};
+
+    private static url: string;
+
+    static setURL(url: string) {
+        this.url = url;
+    }
+
+    private static isProcessing = false;
+
+    static enqueue(sku: string, webhook: Webhook): void {
+        this.priceUpdate[sku] = webhook;
+
+        void this.process();
+    }
+
+    private static dequeue(): void {
+        delete this.priceUpdate[this.first()];
+    }
+
+    private static first(): string {
+        return Object.keys(this.priceUpdate)[0];
+    }
+
+    private static size(): number {
+        return Object.keys(this.priceUpdate).length;
+    }
+
+    private static async process(): Promise<void> {
+        const sku = this.first();
+
+        if (sku === undefined || this.isProcessing) {
+            return;
+        }
+
+        this.isProcessing = true;
+
+        if (this.size() >= 5) {
+            await sleepasync().Promise.sleep(500);
+        }
+
+        sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
+            .then(() => {
+                log.debug(`Sent price update error for ${sku} to Discord.`);
+            })
+            .catch(err => {
+                log.debug(`❌ Failed to send price update error for ${sku} to Discord: `, err);
+            })
+            .finally(() => {
+                this.isProcessing = false;
+                this.dequeue();
+                void this.process();
+            });
+    }
 }

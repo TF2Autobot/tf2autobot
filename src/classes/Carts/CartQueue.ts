@@ -176,7 +176,8 @@ export default class CartQueue {
 
     getPosition(steamID: SteamID | string): number {
         const steamID64 = steamID.toString();
-        return this.carts.findIndex(cart => cart.partner.toString() === steamID64);
+        const position = this.carts.findIndex(cart => cart.partner.toString() === steamID64);
+        return position;
     }
 
     getCart(steamID: SteamID | string): Cart | null {

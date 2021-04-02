@@ -60,9 +60,12 @@ export default class SocketManager {
                 log.warn(`Socket blocked. Expires in ${blocked.expire}`);
             });
 
-            this.socket.connect();
             resolve(undefined);
         });
+    }
+
+    connect(): void {
+        this.socket.connect();
     }
 
     shutDown(): void {

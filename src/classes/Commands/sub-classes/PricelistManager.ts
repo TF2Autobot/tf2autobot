@@ -10,7 +10,6 @@ import { fixSKU, getItemFromParams, removeLinkProtocol, testSKU } from '../funct
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
-import Pricer, { RequestCheckResponse, RequestCheckFn } from '../../Pricer';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 
@@ -19,15 +18,12 @@ import log from '../../../lib/logger';
 export default class PricelistManagerCommands {
     private stopAutoAdd = false;
 
-    private requestCheck: RequestCheckFn;
-
     stopAutoAddCommand(): void {
         this.stopAutoAdd = true;
     }
 
-    constructor(private readonly bot: Bot, private priceSource: Pricer) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
     }
 
     addCommand(steamID: SteamID, message: string): void {
@@ -37,12 +33,12 @@ export default class PricelistManagerCommands {
             params.enabled = true;
         }
 
-        if (params.max === undefined) {
-            params.max = 1;
-        }
-
         if (params.min === undefined) {
             params.min = 0;
+        }
+
+        if (params.max === undefined) {
+            params.max = 1;
         }
 
         if (params.intent === undefined) {
@@ -161,23 +157,6 @@ export default class PricelistManagerCommands {
                 this.bot.sendMessage(
                     steamID,
                     `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
-                );
-
-                void this.requestCheck(params.sku, 'bptf').asCallback(
-                    (err: ErrorRequest, body: RequestCheckResponse) => {
-                        if (err) {
-                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                            return;
-                        }
-
-                        if (!body) {
-                            log.debug(
-                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
-                            );
-                        } else {
-                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-                        }
-                    }
                 );
             })
             .catch(err => {
@@ -421,23 +400,6 @@ export default class PricelistManagerCommands {
                             `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
                                 total - added - skipped - failed
                             } remaining`
-                    );
-
-                    void this.requestCheck(params.sku, 'bptf').asCallback(
-                        (err: ErrorRequest, body: RequestCheckResponse) => {
-                            if (err) {
-                                log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                                return;
-                            }
-
-                            if (!body) {
-                                log.debug(
-                                    `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
-                                );
-                            } else {
-                                log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-                            }
-                        }
                     );
                 })
                 .catch(err => {
@@ -852,23 +814,6 @@ export default class PricelistManagerCommands {
                     steamID,
                     `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
                 );
-
-                void this.requestCheck(params.sku, 'bptf').asCallback(
-                    (err: ErrorRequest, body: RequestCheckResponse) => {
-                        if (err) {
-                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                            return;
-                        }
-
-                        if (!body) {
-                            log.debug(
-                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
-                            );
-                        } else {
-                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-                        }
-                    }
-                );
             })
             .catch((err: ErrorRequest) => {
                 this.bot.sendMessage(
@@ -1019,23 +964,6 @@ export default class PricelistManagerCommands {
             .removePrice(params.sku as string, true)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
-
-                void this.requestCheck(params.sku, 'bptf').asCallback(
-                    (err: ErrorRequest, body: RequestCheckResponse) => {
-                        if (err) {
-                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                            return;
-                        }
-
-                        if (!body) {
-                            log.debug(
-                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
-                            );
-                        } else {
-                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-                        }
-                    }
-                );
             })
             .catch(err =>
                 this.bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${(err as Error).message}`)
