@@ -68,7 +68,7 @@ export function summarizeToChat(
         ? cT.lossFromUnderpay.discordWebhook
         : '📉 ***Loss from underpay:***';
 
-    return (
+    const reply =
         `\n\n${cTSummary}${isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''}\n` +
         `${cTAsked} ${generatedSummary.asked}` +
         `\n${cTOffered} ${generatedSummary.offered}` +
@@ -81,8 +81,9 @@ export function summarizeToChat(
                 ? `\n${cTLoss} ${value.diffRef} ref` +
                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                 : ''
-            : '')
-    );
+            : '');
+
+    return reply;
 }
 
 type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting';
@@ -179,7 +180,13 @@ function getSummary(
 
             if (summaryAccepted || summaryInProcess) {
                 oldStock =
-                    which === 'our' ? currentStock + amount : summaryInProcess ? currentStock : currentStock - amount;
+                    which === 'our'
+                        ? summaryInProcess
+                            ? currentStock
+                            : currentStock + amount
+                        : summaryInProcess
+                        ? currentStock
+                        : currentStock - amount;
             } else {
                 oldStock = currentStock;
             }
@@ -194,9 +201,15 @@ function getSummary(
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
-                    }${summaryInProcess && which !== 'our' ? currentStock + amount : currentStock}${
-                        maxStock ? `/${maxStock.max}` : ''
-                    })`
+                    }${
+                        which === 'our'
+                            ? summaryInProcess
+                                ? currentStock - amount
+                                : currentStock
+                            : summaryInProcess
+                            ? currentStock + amount
+                            : currentStock
+                    }${maxStock ? `/${maxStock.max}` : ''})`
                 );
             } else {
                 summary.push(
@@ -204,7 +217,13 @@ function getSummary(
                         ['review-partner', 'declined'].includes(type)
                             ? ''
                             : ` (${(summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''}${
-                                  summaryInProcess && which !== 'our' ? currentStock + amount : currentStock
+                                  which === 'our'
+                                      ? summaryInProcess
+                                          ? currentStock - amount
+                                          : currentStock
+                                      : summaryInProcess
+                                      ? currentStock + amount
+                                      : currentStock
                               }${maxStock ? `/${maxStock.max}` : ''})`
                     }`
                 );

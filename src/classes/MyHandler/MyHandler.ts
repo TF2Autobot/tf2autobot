@@ -20,7 +20,7 @@ import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
-import { processAccepted, updateListings } from './offer/accepted/exportAccepted';
+import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
@@ -69,7 +69,7 @@ export default class MyHandler extends Handler {
     }
 
     private get groups(): string[] {
-        if (!this.groupsStore) {
+        if (this.groupsStore === undefined) {
             const groups = this.opt.groups;
 
             if (groups !== null && Array.isArray(groups)) {
@@ -90,7 +90,7 @@ export default class MyHandler extends Handler {
     private friendsToKeepStore: string[];
 
     get friendsToKeep(): string[] {
-        if (!this.friendsToKeepStore) {
+        if (this.friendsToKeepStore === undefined) {
             const friendsToKeep = this.opt.keep.concat(this.bot.getAdmins.map(steamID => steamID.getSteamID64()));
 
             if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
@@ -224,6 +224,9 @@ export default class MyHandler extends Handler {
 
         this.paths = genPaths(this.opt.steamAccountName);
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
+
+        PriceCheckQueue.setBot(this.bot);
+        PriceCheckQueue.setRequestCheckFn(this.requestCheck);
     }
 
     onRun(): Promise<OnRun> {
@@ -1322,23 +1325,25 @@ export default class MyHandler extends Handler {
         let isOurItems = false;
         let isTheirItems = false;
         const exceptionSKU = opt.offerReceived.invalidValue.exceptionValue.skus;
+        const exceptionValue = this.invalidValueException;
 
-        if (exceptionSKU.length > 0) {
-            isOurItems = exceptionSKU.some(fromEnv => {
-                return Object.keys(itemsDict.our).some(ourItemSKU => {
-                    return ourItemSKU.includes(fromEnv);
+        if (exceptionSKU.length > 0 && exceptionValue > 0) {
+            const ourItems = Object.keys(itemsDict.our);
+            isOurItems = exceptionSKU.some(sku => {
+                return ourItems.some(ourItemSKU => {
+                    return ourItemSKU.includes(sku);
                 });
             });
 
-            isTheirItems = exceptionSKU.some(fromEnv => {
-                return Object.keys(itemsDict.their).some(theirItemSKU => {
-                    return theirItemSKU.includes(fromEnv);
+            const theirItems = Object.keys(itemsDict.their);
+            isTheirItems = exceptionSKU.some(sku => {
+                return theirItems.some(theirItemSKU => {
+                    return theirItemSKU.includes(sku);
                 });
             });
         }
 
         const isExcept = isOurItems || isTheirItems;
-        const exceptionValue = this.invalidValueException;
 
         let hasInvalidValue = false;
         if (exchange.our.value > exchange.their.value) {
@@ -1881,7 +1886,7 @@ export default class MyHandler extends Handler {
             log.debug(uptime());
 
             // Update listings
-            updateListings(offer, this.bot, highValue, this.requestCheck);
+            updateListings(offer, this.bot, highValue);
 
             // Invite to group
             this.inviteToGroups(offer.partner);

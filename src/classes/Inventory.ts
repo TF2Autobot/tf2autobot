@@ -171,15 +171,15 @@ export default class Inventory {
     }
 
     findBySKU(sku: string, tradableOnly = true): string[] {
+        const tradable = (this.tradable[sku] || []).map(item => (item ? item.id : undefined));
         if (tradableOnly) {
             // Copies the array
-            return (this.tradable[sku] || []).map(item => (item ? item.id : undefined)).slice(0);
+            return tradable.slice(0);
         }
 
-        return (this.nonTradable[sku] || [])
-            .map(item => (item ? item.id : undefined))
-            .concat((this.tradable[sku] || []).map(item => (item ? item.id : undefined)))
-            .slice(0);
+        const nonTradable = (this.nonTradable[sku] || []).map(item => (item ? item.id : undefined));
+
+        return nonTradable.concat(tradable).slice(0);
     }
 
     getAmount(sku: string, tradableOnly?: boolean): number {
@@ -191,15 +191,14 @@ export default class Inventory {
 
         if (s.quality === 5) {
             // generic getAmount so return total that match the generic sku type
-            return (
-                this.effects
-                    .map(e => {
-                        s.effect = e.id;
-                        return this.getAmount(SKU.fromObject(s), tradableOnly);
-                    })
-                    // add up total found; total is undefined to being with
-                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
-            );
+            const reduced = this.effects
+                .map(e => {
+                    s.effect = e.id;
+                    return this.getAmount(SKU.fromObject(s), tradableOnly);
+                })
+                // add up total found; total is undefined to being with
+                .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
+            return reduced;
         } else {
             return this.getAmount(sku, tradableOnly);
         }

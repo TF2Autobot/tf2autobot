@@ -132,7 +132,8 @@ export default class MiscCommands {
                         return 0;
                     }
                 }
-                return b.amount - a.amount;
+                const diff = b.amount - a.amount;
+                return diff;
             });
 
             const pure = [
@@ -245,7 +246,8 @@ export default class MiscCommands {
                     return 0;
                 }
             }
-            return b.amount - a.amount;
+            const diff = b.amount - a.amount;
+            return diff;
         });
 
         const stock: string[] = [];

@@ -302,7 +302,8 @@ export default class Pricelist extends EventEmitter {
         }
 
         // Found many that matched, return list of the names
-        return match.map(entry => entry.name);
+        const matchedNames = match.map(entry => entry.name);
+        return matchedNames;
     }
 
     private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
@@ -512,9 +513,9 @@ export default class Pricelist extends EventEmitter {
     }
 
     getIndex(sku: string, parsedSku?: SchemaManager.Item): number {
-        // Get name of item
-        //const name = this.schema.getName(parsedSku ? parsedSku : SKU.fromString(sku), false);
-        return this.prices.findIndex(entry => entry.sku === (sku ? sku : SKU.fromObject(parsedSku)));
+        sku = sku ? sku : SKU.fromObject(parsedSku);
+        const findIndex = this.prices.findIndex(entry => entry.sku === sku);
+        return findIndex;
     }
 
     /** returns index of sku's generic match otherwise returns -1 */
@@ -528,7 +529,9 @@ export default class Pricelist extends EventEmitter {
             const effectMatch = this.bot.effects.find(e => pSku.effect === e.id);
             if (effectMatch) {
                 // this means the sku given had a matching effect so we are going from a specific to generic
-                return this.prices.findIndex(entry => entry.name === name.replace(effectMatch.name, 'Unusual'));
+                const replacedName = name.replace(effectMatch.name, 'Unusual');
+                const index = this.prices.findIndex(entry => entry.name === replacedName);
+                return index;
             } else {
                 // this means the sku given was already generic so we just return the index of the generic
                 return this.getIndex(null, pSku);
@@ -854,12 +857,19 @@ export default class Pricelist extends EventEmitter {
                                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                                 // and/or more than threshold, update everything
 
-                                if (currPrice.group !== 'isPartialPriced') {
-                                    // Only update if group is not "isPartialPriced"
-
+                                if (
+                                    currPrice.group !== 'isPartialPriced' ||
+                                    (currPrice.group === 'isPartialPriced' && !(isNotExceedThreshold || isInStock))
+                                ) {
                                     currPrice.buy = newBuy;
                                     currPrice.sell = newSell;
                                     currPrice.time = newestPrice.time;
+
+                                    if (currPrice.group === 'isPartialPriced') {
+                                        // reset group to "all"
+                                        // (temporary, will not reset group once https://github.com/TF2Autobot/tf2autobot/pull/520 is reviewed, approved, and merged)
+                                        currPrice.group = 'all';
+                                    }
 
                                     pricesChanged = true;
                                 }
@@ -1015,9 +1025,14 @@ export default class Pricelist extends EventEmitter {
                         match.group = 'isPartialPriced';
                         pricesChanged = true;
 
+                        const dwAlert = opt.discordWebhook.sendAlert;
+                        const isAlertEnabledDW = dwAlert.enable && dwAlert.url !== '';
+
                         const msg =
                             `${
-                                isDwEnabled ? `[${match.name}](https://www.prices.tf/items/${match.sku})` : match.name
+                                isAlertEnabledDW
+                                    ? `[${match.name}](https://www.prices.tf/items/${match.sku})`
+                                    : match.name
                             } (${match.sku}):\n▸ ` +
                             [
                                 `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
@@ -1026,7 +1041,7 @@ export default class Pricelist extends EventEmitter {
                             ].join('\n▸ ');
 
                         if (opt.sendAlert.partialPrice.onUpdate) {
-                            if (isDwEnabled) {
+                            if (isAlertEnabledDW) {
                                 sendAlert('isPartialPriced', this.bot, msg);
                             } else {
                                 this.bot.messageAdmins('Partial price update\n\n' + msg, []);
@@ -1047,44 +1062,51 @@ export default class Pricelist extends EventEmitter {
                 // else if optPartialUpdate.enable is false and/or the item is currently not in stock
                 // and/or more than threshold, update everything
 
-                if (match.group !== 'isPartialPriced') {
-                    // Only update if group is not "isPartialPriced"
-
+                if (
+                    match.group !== 'isPartialPriced' ||
+                    (match.group === 'isPartialPriced' && !(isNotExceedThreshold || isInStock))
+                ) {
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
                     match.time = data.time;
 
-                    pricesChanged = true;
-
-                    if (pricesChanged) {
-                        this.priceChanged(match.sku, match);
+                    if (match.group === 'isPartialPriced') {
+                        // reset group to "all"
+                        // (temporary, will not reset group once https://github.com/TF2Autobot/tf2autobot/pull/520 is reviewed, approved, and merged)
+                        match.group = 'all';
                     }
 
-                    if (dw.enable && dw.url !== '' && this.globalKeyPrices !== undefined) {
-                        const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
-                        const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
+                    pricesChanged = true;
+                }
+            }
 
-                        if (showOnlyInStock) {
-                            const tz = opt.timezone;
-                            const format = opt.customTimeFormat;
+            if (pricesChanged) {
+                this.priceChanged(match.sku, match);
 
-                            const time = dayjs()
-                                .tz(tz ? tz : 'UTC')
-                                .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+                if (isDwEnabled && this.globalKeyPrices !== undefined) {
+                    const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+                    const showOnlyInStock = dw.showOnlyInStock ? currentStock > 0 : true;
 
-                            sendWebHookPriceUpdateV1(
-                                data.sku,
-                                data.name,
-                                match,
-                                time,
-                                this.schema,
-                                opt,
-                                currentStock,
-                                oldPrice,
-                                this.getKeyPrice.metal,
-                                this.isUseCustomPricer
-                            );
-                        }
+                    if (showOnlyInStock) {
+                        const tz = opt.timezone;
+                        const format = opt.customTimeFormat;
+
+                        const time = dayjs()
+                            .tz(tz ? tz : 'UTC')
+                            .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
+
+                        sendWebHookPriceUpdateV1(
+                            data.sku,
+                            data.name,
+                            match,
+                            time,
+                            this.schema,
+                            opt,
+                            currentStock,
+                            oldPrice,
+                            this.getKeyPrice.metal,
+                            this.isUseCustomPricer
+                        );
                     }
                 }
             }
@@ -1102,7 +1124,8 @@ export default class Pricelist extends EventEmitter {
         }
         const now = dayjs().unix();
 
-        return this.prices.filter(entry => entry.time + this.maxAge <= now);
+        const filtered = this.prices.filter(entry => entry.time + this.maxAge <= now);
+        return filtered;
     }
 
     static groupPrices(prices: Item[]): Group {

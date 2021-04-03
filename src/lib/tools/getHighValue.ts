@@ -78,5 +78,7 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
 }
 
 function getKeyByValue(object: { [key: string]: any }, value: any): string {
-    return Object.keys(object).find(key => object[key] === value);
+    const keys = Object.keys(object);
+    const key = keys.find(key => object[key] === value);
+    return key;
 }

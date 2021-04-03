@@ -150,7 +150,8 @@ export default class Trades {
     }
 
     isInTrade(assetid: string): boolean {
-        return this.itemsInTrade.some(v => assetid === v);
+        const haveInTrade = this.itemsInTrade.some(v => assetid === v);
+        return haveInTrade;
     }
 
     getActiveOffer(steamID: SteamID): string | null {
@@ -1113,6 +1114,11 @@ export default class Trades {
         offer.data('isAccepted', true);
 
         offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
+
+        // Exit all running apps ("TF2Autobot v#" or custom, and Team Fortress 2)
+        // Will play again after craft/smelt/sort inventory job
+        // https://github.com/TF2Autobot/tf2autobot/issues/527
+        this.bot.client.gamesPlayed([]);
 
         void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
             this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
