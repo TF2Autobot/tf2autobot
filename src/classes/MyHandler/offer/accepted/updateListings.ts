@@ -271,6 +271,8 @@ export default function updateListings(
             }
         } else if (isAutoDisableHighValueItems) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
+            const oldGroup = inPrice.group;
+
             const entry: EntryData = {
                 sku: sku, // required
                 enabled: false, // required
@@ -302,7 +304,7 @@ export default function updateListings(
                     let msg =
                         `I have temporarily disabled ${name} (${sku}) because it contains some high value spells/parts.` +
                         `\nYou can manually price it with "!update sku=${sku}&enabled=true&<buy and sell price>"` +
-                        ` or just re-enable it with "!update sku=${sku}&enabled=true".` +
+                        ` or just re-enable it with "!update sku=${sku}&enabled=true&group=${oldGroup}".` +
                         '\n\nItem information:\n\n- ';
 
                     const theirCount = highValue.theirItems.length;
