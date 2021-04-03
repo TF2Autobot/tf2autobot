@@ -940,7 +940,8 @@ export default class Pricelist extends EventEmitter {
                 `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
                 `current: ${currPrices.buy.toString()}/${currPrices.sell.toString()}`,
                 `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
-            ].join('\n▸ ')
+            ].join('\n▸ ') +
+            `Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
         );
     }
 
