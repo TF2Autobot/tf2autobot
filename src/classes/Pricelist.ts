@@ -941,7 +941,7 @@ export default class Pricelist extends EventEmitter {
                 `current: ${currPrices.buy.toString()}/${currPrices.sell.toString()}`,
                 `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
             ].join('\n▸ ') +
-            `Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
+            `\n - Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
         );
     }
 
