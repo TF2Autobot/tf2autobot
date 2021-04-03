@@ -1198,7 +1198,7 @@ export default class MyHandler extends Handler {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
 
-                            itemPrices[match.sku] = {
+                            itemPrices[sku] = {
                                 buy: price.buy,
                                 sell: price.sell
                             };
