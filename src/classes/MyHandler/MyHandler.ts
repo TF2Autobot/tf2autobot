@@ -1852,7 +1852,7 @@ export default class MyHandler extends Handler {
         };
     }
 
-    onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): void {
+    onTradeOfferChanged(offer: TradeOffer, oldState: number, timeTakenToComplete?: number): void {
         // Not sure if it can go from other states to active
         if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
             offer.data('switchedState', oldState);
@@ -1906,7 +1906,7 @@ export default class MyHandler extends Handler {
 
                 this.autokeys.check();
 
-                const result = processAccepted(offer, this.bot, this.isTradingKeys, processTime);
+                const result = processAccepted(offer, this.bot, this.isTradingKeys, timeTakenToComplete);
                 this.isTradingKeys = false; // reset
 
                 highValue.isDisableSKU = result.isDisableSKU;

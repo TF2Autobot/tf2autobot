@@ -143,7 +143,7 @@ export default abstract class Handler {
      * @param offer - The offer that changed
      * @param oldState - The old state of the offer
      */
-    onTradeOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number, processTime?: number): void {
+    onTradeOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number, timeTakenToComplete?: number): void {
         // empty function
     }
 

@@ -95,11 +95,23 @@ export function timeNow(opt: Options): { timeUnix: number; time: string; emoji: 
     };
 }
 
-export function convertTime(time: number, showInMS: boolean): string {
+export function convertTime(
+    completeTime: number,
+    processOrConstructTime: number,
+    isOfferSent: boolean,
+    showDetailedTimeTaken: boolean,
+    showInMS: boolean
+): string {
     const now = dayjs();
-    const timeText = `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}${
-        showInMS ? ` (${time} ms)` : ''
-    }`;
+    const timeText = showDetailedTimeTaken
+        ? `\n- ${isOfferSent ? 'To construct offer' : 'To process offer'}: ${dayjs
+              .unix(Math.round((now.valueOf() - processOrConstructTime) / 1000))
+              .fromNow(true)}${showInMS ? ` (${processOrConstructTime} ms)` : ''}\n- To complete: ${dayjs
+              .unix(Math.round((now.valueOf() - completeTime) / 1000))
+              .fromNow(true)}${showInMS ? ` (${completeTime} ms)` : ''}`
+        : `${dayjs.unix(Math.round((now.valueOf() - completeTime) / 1000)).fromNow(true)}${
+              showInMS ? ` (${completeTime} ms)` : ''
+          }`;
     return timeText;
 }
 
