@@ -201,13 +201,13 @@ export default class Pricelist extends EventEmitter {
 
     failedUpdateOldPrices: string[] = [];
 
-    set resetFailedUpdateOldPrices(value: number) {
-        this.failedUpdateOldPrices.length = value;
-    }
-
     partialPricedUpdateBulk: string[] = [];
 
     autoResetPartialPriceBulk: string[] = [];
+
+    set resetFailedUpdateOldPrices(value: number) {
+        this.failedUpdateOldPrices.length = value;
+    }
 
     constructor(
         private readonly priceSource: Pricer,

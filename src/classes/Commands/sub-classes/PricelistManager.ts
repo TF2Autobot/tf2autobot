@@ -1230,8 +1230,8 @@ export default class PricelistManagerCommands {
                 params.isPartialPriced !== undefined
                     ? `isPartialPriced=${(params.isPartialPriced as boolean).toString()}`
                     : '',
-            max: params.max !== undefined ? `max=${params.max as number}` : '',
             min: params.min !== undefined ? `min=${params.min as number}` : '',
+            max: params.max !== undefined ? `max=${params.max as number}` : '',
             intent:
                 params.intent !== undefined
                     ? `intent=${

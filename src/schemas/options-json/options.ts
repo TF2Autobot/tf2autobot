@@ -602,6 +602,9 @@ export const optionsSchema: jsonschema.Schema = {
                 showTimeTakenInMS: {
                     type: 'boolean'
                 },
+                showDetailedTimeTaken: {
+                    type: 'boolean'
+                },
                 showItemPrices: {
                     type: 'boolean'
                 },
@@ -676,7 +679,14 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices', 'showPureInEmoji', 'customText'],
+            required: [
+                'showStockChanges',
+                'showTimeTakenInMS',
+                'showDetailedTimeTaken',
+                'showItemPrices',
+                'showPureInEmoji',
+                'customText'
+            ],
             additionalProperties: false
         },
 

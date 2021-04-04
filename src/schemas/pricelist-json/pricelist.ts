@@ -14,13 +14,16 @@ export const pricelistSchema: jsonschema.Schema = {
             type: 'boolean'
         },
         min: {
-            type: 'number'
+            // minimum stock
+            type: 'integer',
+            minimum: 0
         },
         max: {
-            type: 'number'
+            type: 'integer',
+            minimum: 0
         },
         intent: {
-            type: 'number',
+            type: 'integer',
             enum: [0, 1, 2]
         },
         buy: {
@@ -30,7 +33,7 @@ export const pricelistSchema: jsonschema.Schema = {
             $ref: 'tf2-currencies'
         },
         promoted: {
-            type: 'number',
+            type: 'integer',
             enum: [0, 1]
         },
         group: {
