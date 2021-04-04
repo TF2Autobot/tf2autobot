@@ -279,7 +279,7 @@ export default class Trades {
             }
 
             offer.data('handledByUs', true);
-            const timeTaken = dayjs().valueOf() - (start + (offer.data('checkEscrowBannedTime') as number));
+            const timeTaken = dayjs().valueOf() - (start + (offer.data('checkEscrowBannedTime') as number) || 0);
 
             offer.data('processOfferTime', timeTaken);
             log.debug(`Processing offer #${offer.id} took ${timeTaken} ms`);
