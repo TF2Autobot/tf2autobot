@@ -2,6 +2,7 @@ import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
+import dayjs from 'dayjs';
 
 import PriceCheckQueue from './requestPriceCheck';
 import Bot from '../../../Bot';
@@ -124,7 +125,7 @@ export default function updateListings(
         const isUpdatePartialPricedItem =
             inPrice !== null &&
             inPrice.autoprice &&
-            inPrice.group === 'isPartialPriced' &&
+            inPrice.isPartialPriced &&
             bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
@@ -344,13 +345,15 @@ export default function updateListings(
                     }
                 });
         } else if (isUpdatePartialPricedItem) {
-            // If item exist in pricelist with group "isPartialPriced" and we no longer have that in stock,
+            // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
             // then update entry with the latest prices.
 
             const oldPrice = {
                 buy: new Currencies(inPrice.buy),
                 sell: new Currencies(inPrice.sell)
             };
+
+            const oldTime = inPrice.time;
 
             const entry = {
                 sku: sku,
@@ -359,18 +362,21 @@ export default function updateListings(
                 min: inPrice.min,
                 max: inPrice.max,
                 intent: inPrice.intent,
-                group: 'all'
+                group: inPrice.group,
+                isPartialPriced: false
             } as EntryData;
 
             bot.pricelist
                 .updatePrice(entry, true)
                 .then(data => {
                     const msg =
-                        `${name} (${sku})\n▸ ` +
+                        `${dwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})\n▸ ` +
                         [
                             `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
                             `new: ${data.buy.toString()}/${data.sell.toString()}`
-                        ].join('\n▸ ');
+                        ].join('\n▸ ') +
+                        `\n - Partial priced since ${dayjs.unix(oldTime).fromNow()}` +
+                        `\n - Current prices last update: ${dayjs.unix(data.time).fromNow()}`;
 
                     log.debug(msg);
 

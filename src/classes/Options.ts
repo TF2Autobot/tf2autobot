@@ -65,7 +65,9 @@ export const DEFAULTS = {
         partialPrice: {
             onUpdate: true,
             onSuccessUpdatePartialPriced: true,
-            onFailedUpdatePartialPriced: true
+            onFailedUpdatePartialPriced: true,
+            onBulkUpdatePartialPriced: true,
+            onResetAfterThreshold: true
         },
         receivedUnusualNotInPricelist: true,
         failedToUpdateOldPrices: true
@@ -1039,9 +1041,11 @@ interface SendAlert extends OnlyEnable {
 }
 
 interface PartialPrice {
-    onUpdate: boolean;
-    onSuccessUpdatePartialPriced: boolean;
-    onFailedUpdatePartialPriced: boolean;
+    onUpdate?: boolean;
+    onSuccessUpdatePartialPriced?: boolean;
+    onFailedUpdatePartialPriced?: boolean;
+    onBulkUpdatePartialPriced?: boolean;
+    onResetAfterThreshold?: boolean;
 }
 
 interface AutokeysAlert {
