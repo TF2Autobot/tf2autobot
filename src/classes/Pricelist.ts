@@ -800,7 +800,7 @@ export default class Pricelist extends EventEmitter {
 
                 const sku = currPrice.sku;
                 const isInStock = inventory.getAmount(sku, true) > 0;
-                const isApplyOnMaxMoreThanOne = ppu.applyOnMaxMoreThanOne || !(currPrice.max > 1);
+                const maxIsOne = currPrice.max === 1;
                 const isNotExcluded = !excludedSKU.includes(sku);
 
                 const item = SKU.fromString(sku);
@@ -850,16 +850,10 @@ export default class Pricelist extends EventEmitter {
 
                             const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
 
-                            if (
-                                ppu.enable &&
-                                isInStock &&
-                                isNotExceedThreshold &&
-                                isNotExcluded &&
-                                isApplyOnMaxMoreThanOne
-                            ) {
+                            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
                                 // if optPartialUpdate.enable is true and the item is currently in stock
                                 // and difference between latest time and time recorded in pricelist is less than threshold
-                                // and max is not more than 1 (if user set applyOnMaxMoreThanOne to false - default)
+                                // and max is only 1 (not -1 or more)
 
                                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
                                 const isBuyingChanged = currBuyingValue !== newBuyValue;
@@ -1031,7 +1025,7 @@ export default class Pricelist extends EventEmitter {
             const isInStock = currentStock > 0;
             const isNotExceedThreshold = data.time - match.time < ppu.thresholdInSeconds;
             const isNotExcluded = !['5021;6'].concat(ppu.excludeSKU).includes(match.sku);
-            const isApplyOnMaxMoreThanOne = ppu.applyOnMaxMoreThanOne || !(match.max > 1);
+            const maxIsOne = match.max === 1;
 
             if (ppu.enable) {
                 log.debug('ppu status - onHandlePriceChange', {
@@ -1042,10 +1036,10 @@ export default class Pricelist extends EventEmitter {
                 });
             }
 
-            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && isApplyOnMaxMoreThanOne) {
+            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
                 // if optPartialUpdate.enable is true and the item is currently in stock
                 // and difference between latest time and time recorded in pricelist is less than threshold
-                // and max is not more than 1 (if user set applyOnMaxMoreThanOne to false - default)
+                // and max is 1 (not -1 or more)
 
                 const keyPrice = this.getKeyPrice.metal;
 
