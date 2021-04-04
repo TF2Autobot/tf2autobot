@@ -381,7 +381,7 @@ export default class UserCart extends Cart {
         if (this.isEmpty) {
             return Promise.reject('cart is empty');
         }
-
+        const start = Date.now();
         const offer = this.bot.manager.createOffer(this.partner);
 
         const alteredMessages: string[] = [];
@@ -1043,7 +1043,7 @@ export default class UserCart extends Cart {
 
         // clear memory
         theirInventory.clearFetch();
-
+        log.debug(`Constructing offer took ${Date.now() - start}ms`);
         return alteredMessages.length === 0 ? undefined : alteredMessages.join(', ');
     }
 
