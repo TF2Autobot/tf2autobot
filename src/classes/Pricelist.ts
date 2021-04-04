@@ -647,7 +647,13 @@ export default class Pricelist extends EventEmitter {
                     return;
                 }
 
-                return this.updateOldPrices(old);
+                return this.updateOldPrices(old)
+                    .then(() => {
+                        log.debug('Done update old prices...');
+                    })
+                    .catch(err => {
+                        log.error('Error on updateOldPrices', err);
+                    });
             })
             .catch(err => {
                 log.debug('❌ Unable to get key prices: ', err);
