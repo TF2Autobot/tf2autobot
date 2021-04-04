@@ -18,11 +18,12 @@ export default function listItems(
     },
     isSteamChat: boolean
 ): string {
+    const invalidCount = items.invalid.length;
+
     const itemsPrices = bot.options.tradeSummary.showItemPrices ? listPrices(offer, bot, isSteamChat) : '';
     let list = itemsPrices;
 
     const itemsPricesLength = itemsPrices.length;
-    const invalidCount = items.invalid.length;
     const disabledCount = items.disabled.length;
     const overstockedCount = items.overstock.length;
     const understockedCount = items.understock.length;
@@ -116,7 +117,7 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
 
     let buyPrice: string;
     let sellPrice: string;
-    let autoprice = 'removed';
+    let autoprice = 'removed/unlisted';
 
     for (const sku in prices) {
         if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
