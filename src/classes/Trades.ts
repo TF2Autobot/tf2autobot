@@ -264,6 +264,7 @@ export default class Trades {
     private handlerProcessOffer(offer: TradeOffer): void {
         log.debug('Giving offer to handler');
 
+        // Will try in nano or microseconds some other time. Unnecessary.
         const start = dayjs().valueOf();
 
         offer.data('handleTimestamp', start);
