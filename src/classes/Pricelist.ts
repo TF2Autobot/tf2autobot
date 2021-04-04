@@ -850,36 +850,24 @@ export default class Pricelist extends EventEmitter {
 
                             const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
 
-                            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
-                                // if optPartialUpdate.enable is true and the item is currently in stock
-                                // and difference between latest time and time recorded in pricelist is less than threshold
-                                // and max is only 1 (not -1 or more)
+                            // https://github.com/TF2Autobot/tf2autobot/issues/506
+                            // https://github.com/TF2Autobot/tf2autobot/pull/520
 
+                            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
                                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
                                 const isBuyingChanged = currBuyingValue !== newBuyValue;
 
                                 if (isNegativeDiff || isBuyingChanged || currPrice.isPartialPriced) {
-                                    // Only trigger this if difference of new selling price and current buying price is negative or zero
-                                    // Or the new buying price is not equal to the current buying price, isPartialPriced.
-
-                                    // https://github.com/TF2Autobot/tf2autobot/issues/506
-                                    // We will not update the buying price since that was the price the bot last bought - make it static
-
                                     if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
-                                        // if the new selling price above static buying price OR new selling price more than current selling price,
-                                        // update selling price
                                         currPrice.sell = newPrices.sell;
                                     } else {
                                         currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
                                     }
 
                                     const msg = this.generatePartialPriceUpdateMsg(oldPrices, currPrice, newPrices);
-
                                     this.partialPricedUpdateBulk.push(msg);
-
                                     pricesChanged = true;
                                 } else {
-                                    // else, just update as usual now (except if isPartialPriced is true).
                                     if (!currPrice.isPartialPriced) {
                                         currPrice.buy = newPrices.buy;
                                         currPrice.sell = newPrices.sell;
@@ -889,9 +877,6 @@ export default class Pricelist extends EventEmitter {
                                     }
                                 }
                             } else {
-                                // else if optPartialUpdate.enable is false and/or the item is currently not in stock
-                                // and/or more than threshold, update everything
-
                                 if (
                                     !currPrice.isPartialPriced ||
                                     (currPrice.isPartialPriced && !(isNotExceedThreshold || isInStock))
@@ -1036,11 +1021,10 @@ export default class Pricelist extends EventEmitter {
                 });
             }
 
-            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
-                // if optPartialUpdate.enable is true and the item is currently in stock
-                // and difference between latest time and time recorded in pricelist is less than threshold
-                // and max is 1 (not -1 or more)
+            // https://github.com/TF2Autobot/tf2autobot/issues/506
+            // https://github.com/TF2Autobot/tf2autobot/pull/520
 
+            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
                 const keyPrice = this.getKeyPrice.metal;
 
                 const newBuyValue = newPrices.buy.toValue(keyPrice);
@@ -1063,25 +1047,12 @@ export default class Pricelist extends EventEmitter {
                     isAlreadyPartialPriced: match.isPartialPriced
                 });
 
-                if (isNegativeDiff || isBuyingChanged || match.isPartialPriced) {
-                    // Only trigger this if difference of new selling price and current buying price is negative or zero
-                    // Or the new buying price is not equal to the current buying price, Or isPartialPriced.
-
-                    // https://github.com/TF2Autobot/tf2autobot/issues/506
-                    // We will not update the buying price since that was the price the bot last bought - make it static
-
+                if (match.isPartialPriced || isNegativeDiff || isBuyingChanged) {
                     if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
-                        // if the new selling price above static buying price OR new selling price more than current selling price,
-                        // update selling price
                         log.debug('ppu - update selling price with the latest price');
                         match.sell = newPrices.sell;
                     } else {
-                        const marginValue = newSellValue - newBuyValue;
-
-                        log.debug('ppu - update selling price with minimum profit of 1 scrap', {
-                            marginValue: marginValue
-                        });
-
+                        log.debug('ppu - update selling price with minimum profit of 1 scrap');
                         match.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
                     }
 
@@ -1098,7 +1069,6 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 } else {
-                    // else, just update as usual now (except if isPartialPriced is true).
                     if (!match.isPartialPriced) {
                         match.buy = newPrices.buy;
                         match.sell = newPrices.sell;
@@ -1108,9 +1078,6 @@ export default class Pricelist extends EventEmitter {
                     }
                 }
             } else {
-                // else if optPartialUpdate.enable is false and/or the item is currently not in stock
-                // and/or more than threshold, update everything
-
                 if (!match.isPartialPriced || (match.isPartialPriced && !(isNotExceedThreshold || isInStock))) {
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
