@@ -10,7 +10,6 @@ import { fixSKU, getItemFromParams, removeLinkProtocol, testSKU } from '../funct
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
-import Pricer, { RequestCheckResponse, RequestCheckFn } from '../../Pricer';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 
@@ -19,15 +18,12 @@ import log from '../../../lib/logger';
 export default class PricelistManagerCommands {
     private stopAutoAdd = false;
 
-    private requestCheck: RequestCheckFn;
-
     stopAutoAddCommand(): void {
         this.stopAutoAdd = true;
     }
 
-    constructor(private readonly bot: Bot, private priceSource: Pricer) {
+    constructor(private readonly bot: Bot) {
         this.bot = bot;
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
     }
 
     addCommand(steamID: SteamID, message: string): void {
@@ -37,12 +33,12 @@ export default class PricelistManagerCommands {
             params.enabled = true;
         }
 
-        if (params.max === undefined) {
-            params.max = 1;
-        }
-
         if (params.min === undefined) {
             params.min = 0;
+        }
+
+        if (params.max === undefined) {
+            params.max = 1;
         }
 
         if (params.intent === undefined) {
@@ -139,6 +135,10 @@ export default class PricelistManagerCommands {
             params.autoprice = true;
         }
 
+        if (params.isPartialPriced === undefined) {
+            params.isPartialPriced = false;
+        }
+
         if (params.sku !== undefined && !testSKU(params.sku as string)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
@@ -162,23 +162,6 @@ export default class PricelistManagerCommands {
                     steamID,
                     `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
                 );
-
-                void this.requestCheck(params.sku, 'bptf').asCallback(
-                    (err: ErrorRequest, body: RequestCheckResponse) => {
-                        if (err) {
-                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                            return;
-                        }
-
-                        if (!body) {
-                            log.debug(
-                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
-                            );
-                        } else {
-                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-                        }
-                    }
-                );
             })
             .catch(err => {
                 this.bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${(err as Error).message}`);
@@ -187,18 +170,19 @@ export default class PricelistManagerCommands {
 
     private generateAddedReply(isPremium: boolean, entry: Entry): string {
         const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku);
-
-        return (
+        const reply =
             `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
             `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
             `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
             `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
             `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
+            `\n½🔄 isPartialPriced: ${entry.isPartialPriced ? '✅' : '❌'}` +
             (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
             `\n🔰 Group: ${entry.group}` +
             `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
-        );
+            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`;
+
+        return reply;
     }
 
     async autoAddCommand(steamID: SteamID, message: string): Promise<void> {
@@ -422,23 +406,6 @@ export default class PricelistManagerCommands {
                                 total - added - skipped - failed
                             } remaining`
                     );
-
-                    void this.requestCheck(params.sku, 'bptf').asCallback(
-                        (err: ErrorRequest, body: RequestCheckResponse) => {
-                            if (err) {
-                                log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                                return;
-                            }
-
-                            if (!body) {
-                                log.debug(
-                                    `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
-                                );
-                            } else {
-                                log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-                            }
-                        }
-                    );
                 })
                 .catch(err => {
                     failed++;
@@ -523,19 +490,32 @@ export default class PricelistManagerCommands {
                 return this.bot.sendMessage(steamID, 'Your pricelist is empty.');
             }
 
-            const newPricelist = Object.assign({}, pricelist);
+            const newPricelist = pricelist; // no need to copy
 
             let changed = false;
             for (const sku in newPricelist) {
-                if (!Object.prototype.hasOwnProperty.call(newPricelist, sku)) continue;
+                if (!Object.prototype.hasOwnProperty.call(newPricelist, sku)) {
+                    continue;
+                }
+
                 const entry = newPricelist[sku];
-                if (params.withgroup && entry.group !== params.withgroup) continue;
-                if (params.withgroup && entry.group === params.withoutgroup) continue;
+                if (params.withgroup && entry.group !== params.withgroup) {
+                    continue;
+                }
+
+                if (params.withgroup && entry.group === params.withoutgroup) {
+                    continue;
+                }
+
                 // Autokeys is a feature, so when updating multiple entry with
                 // "!update all=true", key entry will be removed from newPricelist.
                 // https://github.com/TF2Autobot/tf2autobot/issues/131
-                if (this.bot.options.autokeys.enable && sku == '5021;6') continue;
+                if (this.bot.options.autokeys.enable && sku == '5021;6') {
+                    continue;
+                }
+
                 changed = true;
+
                 if (params.intent || params.intent === 0) {
                     entry.intent = params.intent as 0 | 1 | 2;
                 }
@@ -575,6 +555,10 @@ export default class PricelistManagerCommands {
                     entry.autoprice = params.autoprice;
                 }
 
+                if (typeof params.isPartialPriced === 'boolean') {
+                    entry.isPartialPriced = params.isPartialPriced;
+                }
+
                 if (params.withgroup || params.withoutgroup) {
                     if (typeof params.note === 'object') {
                         // can change note if have withgroup/withoutgroup parameter
@@ -589,6 +573,8 @@ export default class PricelistManagerCommands {
                         if (params.autoprice === undefined) {
                             entry.autoprice = false;
                         }
+
+                        entry.isPartialPriced = false;
                     }
 
                     if (typeof params.sell === 'object') {
@@ -598,10 +584,14 @@ export default class PricelistManagerCommands {
                         if (params.autoprice === undefined) {
                             entry.autoprice = false;
                         }
+
+                        entry.isPartialPriced = false;
                     }
                 }
+
                 newPricelist[sku] = entry;
             }
+
             if (changed) {
                 const errors = validator(newPricelist, 'pricelist');
                 if (errors !== null) {
@@ -623,7 +613,6 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            //? why are we deleting params
             if (params.removenote) {
                 delete params.removenote;
             }
@@ -650,7 +639,7 @@ export default class PricelistManagerCommands {
             }
 
             this.bot.sendMessage(steamID, '⌛ Updating prices...');
-            //? where are we changing current pricelist ???
+
             return this.bot.pricelist
                 .setupPricelist()
                 .then(async () => {
@@ -753,6 +742,8 @@ export default class PricelistManagerCommands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+
+            params.isPartialPriced = false;
         } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
             params['buy'] = {
                 keys: itemEntry.buy.keys,
@@ -767,6 +758,8 @@ export default class PricelistManagerCommands {
             if (params.autoprice === undefined) {
                 params.autoprice = false;
             }
+
+            params.isPartialPriced = false;
         } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
             params['sell'] = {
                 keys: itemEntry.sell.keys,
@@ -852,23 +845,6 @@ export default class PricelistManagerCommands {
                     steamID,
                     `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
                 );
-
-                void this.requestCheck(params.sku, 'bptf').asCallback(
-                    (err: ErrorRequest, body: RequestCheckResponse) => {
-                        if (err) {
-                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                            return;
-                        }
-
-                        if (!body) {
-                            log.debug(
-                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
-                            );
-                        } else {
-                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-                        }
-                    }
-                );
             })
             .catch((err: ErrorRequest) => {
                 this.bot.sendMessage(
@@ -883,7 +859,7 @@ export default class PricelistManagerCommands {
         const keyPrice = this.bot.pricelist.getKeyPrice;
         const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
 
-        return (
+        const reply =
             `\n💲 Buy: ${
                 oldEntry.buy.toValue(keyPrice.metal) !== newEntry.buy.toValue(keyPrice.metal)
                     ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
@@ -914,6 +890,11 @@ export default class PricelistManagerCommands {
                     ? `${oldEntry.autoprice ? '✅' : '❌'} → ${newEntry.autoprice ? '✅' : '❌'}`
                     : `${newEntry.autoprice ? '✅' : '❌'}`
             }` +
+            `\n½🔄 isPartialPriced: ${
+                oldEntry.isPartialPriced !== newEntry.isPartialPriced
+                    ? `${oldEntry.isPartialPriced ? '✅' : '❌'} → ${newEntry.isPartialPriced ? '✅' : '❌'}`
+                    : `${newEntry.isPartialPriced ? '✅' : '❌'}`
+            }` +
             (isPremium
                 ? `\n📢 Promoted: ${
                       oldEntry.promoted !== newEntry.promoted
@@ -925,8 +906,9 @@ export default class PricelistManagerCommands {
                 oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
             }` +
             `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
-            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
-        );
+            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`;
+
+        return reply;
     }
 
     async removeCommand(steamID: SteamID, message: string): Promise<void> {
@@ -1019,23 +1001,6 @@ export default class PricelistManagerCommands {
             .removePrice(params.sku as string, true)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
-
-                void this.requestCheck(params.sku, 'bptf').asCallback(
-                    (err: ErrorRequest, body: RequestCheckResponse) => {
-                        if (err) {
-                            log.debug(`❌ Failed to request pricecheck for ${entry.sku}: ${JSON.stringify(err)}`);
-                            return;
-                        }
-
-                        if (!body) {
-                            log.debug(
-                                `❌ Error while requesting price check for ${entry.sku} (returned null/undefined).`
-                            );
-                        } else {
-                            log.debug(`✅ Requested pricecheck for ${body.name} (${entry.sku}).`);
-                        }
-                    }
-                );
             })
             .catch(err =>
                 this.bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${(err as Error).message}`)
@@ -1115,9 +1080,9 @@ export default class PricelistManagerCommands {
 
             return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
-            }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
-                isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
-            }${entry.group})`;
+            }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}, ${entry.group}, ${
+                entry.isPartialPriced ? '✅' : '❌'
+            }${isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''})`;
         });
 
         const listCount = list.length;
@@ -1132,7 +1097,7 @@ export default class PricelistManagerCommands {
                     : `${
                           limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
                       }.`
-            }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n` +
+            }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", "group", "isPartialPriced", *"promoted")\n\n` +
                 '* - Only shown if your account is Backpack.tf Premium\n\n.'
         );
 
@@ -1161,12 +1126,14 @@ export default class PricelistManagerCommands {
                 params.intent !== undefined ||
                 params.autoprice !== undefined ||
                 params.group !== undefined ||
-                params.promoted !== undefined
+                params.promoted !== undefined ||
+                params.isPartialPriced !== undefined
             )
         ) {
             return this.bot.sendMessage(
                 steamID,
-                '⚠️ Only parameters available for !find command: enabled, max, min, intent, promoted, autoprice or group\nExample: !find intent=bank&max=2'
+                '⚠️ Only parameters available for !find command: enabled, max, min, intent,' +
+                    ' promoted, autoprice, isPartialPriced, or group\nExample: !find intent=bank&max=2'
             );
         }
 
@@ -1174,6 +1141,7 @@ export default class PricelistManagerCommands {
         let filter = Object.keys(pricelist).map(sku => {
             return pricelist[sku];
         });
+
         if (params.enabled !== undefined) {
             if (typeof params.enabled !== 'boolean') {
                 return this.bot.sendMessage(steamID, '⚠️ enabled parameter must be "true" or "false"');
@@ -1181,18 +1149,18 @@ export default class PricelistManagerCommands {
             filter = filter.filter(entry => entry.enabled === params.enabled);
         }
 
-        if (params.max !== undefined) {
-            if (typeof params.max !== 'number') {
-                return this.bot.sendMessage(steamID, '⚠️ max parameter must be an integer');
-            }
-            filter = filter.filter(entry => entry.max === params.max);
-        }
-
         if (params.min !== undefined) {
             if (typeof params.min !== 'number') {
                 return this.bot.sendMessage(steamID, '⚠️ min parameter must be an integer');
             }
             filter = filter.filter(entry => entry.min === params.min);
+        }
+
+        if (params.max !== undefined) {
+            if (typeof params.max !== 'number') {
+                return this.bot.sendMessage(steamID, '⚠️ max parameter must be an integer');
+            }
+            filter = filter.filter(entry => entry.max === params.max);
         }
 
         if (params.promoted !== undefined) {
@@ -1241,6 +1209,13 @@ export default class PricelistManagerCommands {
             filter = filter.filter(entry => entry.autoprice === params.autoprice);
         }
 
+        if (params.isPartialPriced !== undefined) {
+            if (typeof params.isPartialPriced !== 'boolean') {
+                return this.bot.sendMessage(steamID, '⚠️ isPartialPriced parameter must be "true" or "false"');
+            }
+            filter = filter.filter(entry => entry.isPartialPriced === params.isPartialPriced);
+        }
+
         if (params.group !== undefined) {
             if (typeof params.group !== 'string') {
                 return this.bot.sendMessage(steamID, '⚠️ group parameter must be a string');
@@ -1251,6 +1226,10 @@ export default class PricelistManagerCommands {
         const parametersUsed = {
             enabled: params.enabled !== undefined ? `enabled=${(params.enabled as boolean).toString()}` : '',
             autoprice: params.autoprice !== undefined ? `autoprice=${(params.autoprice as boolean).toString()}` : '',
+            isPartialPriced:
+                params.isPartialPriced !== undefined
+                    ? `isPartialPriced=${(params.isPartialPriced as boolean).toString()}`
+                    : '',
             max: params.max !== undefined ? `max=${params.max as number}` : '',
             min: params.min !== undefined ? `min=${params.min as number}` : '',
             intent:
@@ -1279,9 +1258,9 @@ export default class PricelistManagerCommands {
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max
-                }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}${
-                    isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}, ` : ', '
-                }${entry.group})`;
+                }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}, ${entry.group}, ${
+                    entry.isPartialPriced ? '✅' : '❌'
+                }${isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''})`;
             });
             const listCount = list.length;
 
@@ -1298,8 +1277,8 @@ export default class PricelistManagerCommands {
                                   ? ` (limit set to ${limit})`
                                   : ''
                           }.`
-                }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", *"promoted", "group")\n\n` +
-                    '* - Only shown if your account is Backpack.tf Premium\n\n.'
+                }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", "group", "isPartialPriced", *"promoted",)\n\n` +
+                    '* - Only shown if your account is Backpack.tf Premium.\n\n.'
             );
 
             const applyLimit = limit === -1 ? listCount : limit;

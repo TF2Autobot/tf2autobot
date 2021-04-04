@@ -633,12 +633,13 @@ export default class Listings {
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             const inventory = this.bot.inventoryManager.getInventory;
-            return details
+            const newDetail = details
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
                 .replace(/%current_stock%/g, inventory.getAmount(entry.sku, true).toString())
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
+            return newDetail;
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;
@@ -692,14 +693,17 @@ export default class Listings {
             //
         }
 
-        return details + (highValueString.length > 0 ? ' ' + highValueString : '');
+        const generated = details + (highValueString.length > 0 ? ' ' + highValueString : '');
+        return generated;
     }
 }
 
 type Attachment = 's' | 'sp' | 'ke' | 'ks' | 'p';
 
 function getKeyByValue(object: { [key: string]: any }, value: any): string {
-    return Object.keys(object).find(key => object[key] === value);
+    const keys = Object.keys(object);
+    const key = keys.find(key => object[key] === value);
+    return key;
 }
 
 function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {

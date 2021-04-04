@@ -13,10 +13,10 @@ export const pricelistSchema: jsonschema.Schema = {
         autoprice: {
             type: 'boolean'
         },
-        max: {
+        min: {
             type: 'number'
         },
-        min: {
+        max: {
             type: 'number'
         },
         intent: {
@@ -38,6 +38,10 @@ export const pricelistSchema: jsonschema.Schema = {
         },
         note: {
             $ref: 'listing-note'
+        },
+        isPartialPriced: {
+            // partialPrice feature: https://github.com/TF2Autobot/tf2autobot/pull/520
+            type: 'boolean'
         },
         time: {
             type: ['number', 'null']

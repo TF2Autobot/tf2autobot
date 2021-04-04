@@ -478,9 +478,21 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         onFailedUpdatePartialPriced: {
                             type: 'boolean'
+                        },
+                        onBulkUpdatePartialPriced: {
+                            type: 'boolean'
+                        },
+                        onResetAfterThreshold: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['onUpdate', 'onSuccessUpdatePartialPriced', 'onFailedUpdatePartialPriced'],
+                    required: [
+                        'onUpdate',
+                        'onSuccessUpdatePartialPriced',
+                        'onFailedUpdatePartialPriced',
+                        'onBulkUpdatePartialPriced',
+                        'onResetAfterThreshold'
+                    ],
                     additionalProperties: false
                 },
                 receivedUnusualNotInPricelist: {

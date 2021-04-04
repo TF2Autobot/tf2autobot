@@ -97,7 +97,10 @@ export function timeNow(opt: Options): { timeUnix: number; time: string; emoji: 
 
 export function convertTime(time: number, showInMS: boolean): string {
     const now = dayjs();
-    return `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}${showInMS ? ` (${time} ms)` : ''}`;
+    const timeText = `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}${
+        showInMS ? ` (${time} ms)` : ''
+    }`;
+    return timeText;
 }
 
 export function uptime(): string {

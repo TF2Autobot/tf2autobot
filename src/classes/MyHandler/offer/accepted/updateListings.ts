@@ -2,20 +2,26 @@ import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
+import dayjs from 'dayjs';
 
-import pricecheck from './requestPriceCheck';
+import PriceCheckQueue from './requestPriceCheck';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
-import { RequestCheckFn } from '../../../Pricer';
 import { PaintedNames } from '../../../Options';
+
+let itemsFromPreviousTrades: string[] = [];
+
+const removeDuplicate = (skus: string[]): string[] => {
+    const fix = new Set(skus);
+    return [...fix];
+};
 
 export default function updateListings(
     offer: TradeOffer,
     bot: Bot,
-    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items },
-    requestCheck: RequestCheckFn
+    highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items }
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
@@ -119,7 +125,7 @@ export default function updateListings(
         const isUpdatePartialPricedItem =
             inPrice !== null &&
             inPrice.autoprice &&
-            inPrice.group === 'isPartialPriced' &&
+            inPrice.isPartialPriced &&
             bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
             isNotPureOrWeapons;
 
@@ -266,6 +272,8 @@ export default function updateListings(
             }
         } else if (isAutoDisableHighValueItems) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
+            const oldGroup = inPrice.group;
+
             const entry: EntryData = {
                 sku: sku, // required
                 enabled: false, // required
@@ -297,7 +305,7 @@ export default function updateListings(
                     let msg =
                         `I have temporarily disabled ${name} (${sku}) because it contains some high value spells/parts.` +
                         `\nYou can manually price it with "!update sku=${sku}&enabled=true&<buy and sell price>"` +
-                        ` or just re-enable it with "!update sku=${sku}&enabled=true".` +
+                        ` or just re-enable it with "!update sku=${sku}&enabled=true&group=${oldGroup}".` +
                         '\n\nItem information:\n\n- ';
 
                     const theirCount = highValue.theirItems.length;
@@ -337,13 +345,15 @@ export default function updateListings(
                     }
                 });
         } else if (isUpdatePartialPricedItem) {
-            // If item exist in pricelist with group "isPartialPriced" and we no longer have that in stock,
+            // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
             // then update entry with the latest prices.
 
             const oldPrice = {
                 buy: new Currencies(inPrice.buy),
                 sell: new Currencies(inPrice.sell)
             };
+
+            const oldTime = inPrice.time;
 
             const entry = {
                 sku: sku,
@@ -352,18 +362,21 @@ export default function updateListings(
                 min: inPrice.min,
                 max: inPrice.max,
                 intent: inPrice.intent,
-                group: 'all'
+                group: inPrice.group,
+                isPartialPriced: false
             } as EntryData;
 
             bot.pricelist
                 .updatePrice(entry, true)
                 .then(data => {
                     const msg =
-                        `${name} (${sku})\n▸ ` +
+                        `${dwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})\n▸ ` +
                         [
                             `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
                             `new: ${data.buy.toString()}/${data.sell.toString()}`
-                        ].join('\n▸ ');
+                        ].join('\n▸ ') +
+                        `\n - Partial priced since ${dayjs.unix(oldTime).fromNow()}` +
+                        `\n - Current prices last update: ${dayjs.unix(data.time).fromNow()}`;
 
                     log.debug(msg);
 
@@ -405,8 +418,12 @@ export default function updateListings(
     }
 
     if (skus.length > 0) {
-        setTimeout(() => {
-            void pricecheck(bot, skus, requestCheck);
-        }, 1 * 1000);
+        const itemsToCheck = removeDuplicate(skus.concat(itemsFromPreviousTrades));
+
+        itemsToCheck.forEach(sku => {
+            PriceCheckQueue.enqueue(sku);
+        });
+
+        itemsFromPreviousTrades = skus.slice(0);
     }
 }

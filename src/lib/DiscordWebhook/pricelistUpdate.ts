@@ -1,6 +1,8 @@
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import Currencies from 'tf2-currencies-2';
+import sleepasync from 'sleep-async';
+import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';
 
 import log from '../logger';
@@ -280,11 +282,63 @@ export default function sendWebHookPriceUpdateV1(
         ]
     };
 
-    sendWebhook(opt.priceUpdate.url, priceUpdate, 'pricelist-update')
-        .then(() => {
-            log.debug(`Sent ${sku} update to Discord.`);
-        })
-        .catch(err => {
-            log.debug(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
-        });
+    PriceUpdateQueue.setURL(opt.priceUpdate.url);
+    PriceUpdateQueue.enqueue(sku, priceUpdate);
+}
+
+class PriceUpdateQueue {
+    private static priceUpdate: UnknownDictionary<Webhook> = {};
+
+    private static url: string;
+
+    static setURL(url: string) {
+        this.url = url;
+    }
+
+    private static isProcessing = false;
+
+    static enqueue(sku: string, webhook: Webhook): void {
+        this.priceUpdate[sku] = webhook;
+
+        void this.process();
+    }
+
+    private static dequeue(): void {
+        delete this.priceUpdate[this.first()];
+    }
+
+    private static first(): string {
+        return Object.keys(this.priceUpdate)[0];
+    }
+
+    private static size(): number {
+        return Object.keys(this.priceUpdate).length;
+    }
+
+    private static async process(): Promise<void> {
+        const sku = this.first();
+
+        if (sku === undefined || this.isProcessing) {
+            return;
+        }
+
+        this.isProcessing = true;
+
+        if (this.size() >= 5) {
+            await sleepasync().Promise.sleep(500);
+        }
+
+        sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
+            .then(() => {
+                log.debug(`Sent ${sku} update to Discord.`);
+            })
+            .catch(err => {
+                log.debug(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
+            })
+            .finally(() => {
+                this.isProcessing = false;
+                this.dequeue();
+                void this.process();
+            });
+    }
 }

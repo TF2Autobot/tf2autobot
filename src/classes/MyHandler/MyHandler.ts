@@ -20,7 +20,7 @@ import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
-import { processAccepted, updateListings } from './offer/accepted/exportAccepted';
+import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
@@ -69,7 +69,7 @@ export default class MyHandler extends Handler {
     }
 
     private get groups(): string[] {
-        if (!this.groupsStore) {
+        if (this.groupsStore === undefined) {
             const groups = this.opt.groups;
 
             if (groups !== null && Array.isArray(groups)) {
@@ -90,7 +90,7 @@ export default class MyHandler extends Handler {
     private friendsToKeepStore: string[];
 
     get friendsToKeep(): string[] {
-        if (!this.friendsToKeepStore) {
+        if (this.friendsToKeepStore === undefined) {
             const friendsToKeep = this.opt.keep.concat(this.bot.getAdmins.map(steamID => steamID.getSteamID64()));
 
             if (friendsToKeep !== null && Array.isArray(friendsToKeep)) {
@@ -224,6 +224,9 @@ export default class MyHandler extends Handler {
 
         this.paths = genPaths(this.opt.steamAccountName);
         this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
+
+        PriceCheckQueue.setBot(this.bot);
+        PriceCheckQueue.setRequestCheckFn(this.requestCheck);
     }
 
     onRun(): Promise<OnRun> {
@@ -317,6 +320,54 @@ export default class MyHandler extends Handler {
             }
 
             this.bot.pricelist.resetFailedUpdateOldPrices = 0;
+        }
+
+        // Send notification to admin/Discord Webhook if there's any partially priced item got reset on updateOldPrices
+        const bulkUpdatedPartiallyPriced = this.bot.pricelist.partialPricedUpdateBulk;
+
+        if (bulkUpdatedPartiallyPriced.length > 0) {
+            const dw = this.opt.discordWebhook.sendAlert;
+            const isDwEnabled = dw.enable && dw.url !== '';
+
+            const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced
+                .map(sku => {
+                    const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
+                    return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
+                })
+                .join('\n\n• ')}`;
+
+            if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onBulkUpdatePartialPriced) {
+                if (isDwEnabled) {
+                    sendAlert('onBulkUpdatePartialPriced', this.bot, msg);
+                } else {
+                    this.bot.messageAdmins(msg, []);
+                }
+            }
+        }
+
+        // Send notification to admin/Discord Webhook if there's any partially priced item got reset on updateOldPrices
+        const bulkPartiallyPriced = this.bot.pricelist.autoResetPartialPriceBulk;
+
+        if (bulkPartiallyPriced.length > 0) {
+            const dw = this.opt.discordWebhook.sendAlert;
+            const isDwEnabled = dw.enable && dw.url !== '';
+
+            const msg =
+                `All partially priced items below has been reset to use the current prices ` +
+                `because no longer in stock or exceed the threshold:\n\n• ${bulkPartiallyPriced
+                    .map(sku => {
+                        const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
+                        return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
+                    })
+                    .join('\n• ')}`;
+
+            if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onResetAfterThreshold) {
+                if (isDwEnabled) {
+                    sendAlert('autoResetPartialPriceBulk', this.bot, msg);
+                } else {
+                    this.bot.messageAdmins(msg, []);
+                }
+            }
         }
     }
 
@@ -1004,6 +1055,7 @@ export default class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
         let hasOverstock = false;
+        let hasOverstockAndIsPartialPriced = false;
         let hasUnderstock = false;
 
         // A list of things that is wrong about the offer and other information
@@ -1093,6 +1145,10 @@ export default class MyHandler extends Handler {
                             if (match.enabled) {
                                 // User is offering too many
                                 hasOverstock = true;
+
+                                if (match.isPartialPriced) {
+                                    hasOverstockAndIsPartialPriced = true;
+                                }
 
                                 wrongAboutOffer.push({
                                     reason: '🟦_OVERSTOCKED',
@@ -1190,6 +1246,11 @@ export default class MyHandler extends Handler {
                         } else {
                             price.buy = new Currencies(price.buy);
                             price.sell = new Currencies(price.sell);
+
+                            itemPrices[sku] = {
+                                buy: price.buy,
+                                sell: price.sell
+                            };
 
                             if (
                                 opt.offerReceived.invalidItems.givePrice &&
@@ -1318,23 +1379,25 @@ export default class MyHandler extends Handler {
         let isOurItems = false;
         let isTheirItems = false;
         const exceptionSKU = opt.offerReceived.invalidValue.exceptionValue.skus;
+        const exceptionValue = this.invalidValueException;
 
-        if (exceptionSKU.length > 0) {
-            isOurItems = exceptionSKU.some(fromEnv => {
-                return Object.keys(itemsDict.our).some(ourItemSKU => {
-                    return ourItemSKU.includes(fromEnv);
+        if (exceptionSKU.length > 0 && exceptionValue > 0) {
+            const ourItems = Object.keys(itemsDict.our);
+            isOurItems = exceptionSKU.some(sku => {
+                return ourItems.some(ourItemSKU => {
+                    return ourItemSKU.includes(sku);
                 });
             });
 
-            isTheirItems = exceptionSKU.some(fromEnv => {
-                return Object.keys(itemsDict.their).some(theirItemSKU => {
-                    return theirItemSKU.includes(fromEnv);
+            const theirItems = Object.keys(itemsDict.their);
+            isTheirItems = exceptionSKU.some(sku => {
+                return theirItems.some(theirItemSKU => {
+                    return theirItemSKU.includes(sku);
                 });
             });
         }
 
         const isExcept = isOurItems || isTheirItems;
-        const exceptionValue = this.invalidValueException;
 
         let hasInvalidValue = false;
         if (exchange.our.value > exchange.their.value) {
@@ -1599,6 +1662,7 @@ export default class MyHandler extends Handler {
             const isAcceptOverstocked =
                 isOverstocked &&
                 canAcceptOverstockedOverpay &&
+                !hasOverstockAndIsPartialPriced && // because partial priced will use old buying prices
                 exchange.our.value < exchange.their.value &&
                 (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
                 (isUnderstocked ? canAcceptUnderstockedOverpay : true) &&
@@ -1866,7 +1930,7 @@ export default class MyHandler extends Handler {
             log.debug(uptime());
 
             // Update listings
-            updateListings(offer, this.bot, highValue, this.requestCheck);
+            updateListings(offer, this.bot, highValue);
 
             // Invite to group
             this.inviteToGroups(offer.partner);

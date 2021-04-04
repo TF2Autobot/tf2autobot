@@ -59,7 +59,7 @@ export default class Commands {
         this.message = new c.MessageCommand(bot);
         this.misc = new c.MiscCommands(bot);
         this.opt = new c.OptionsCommand(bot);
-        this.pManager = new c.PricelistManager(bot, pricer);
+        this.pManager = new c.PricelistManager(bot);
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);

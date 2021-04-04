@@ -127,7 +127,7 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
         if (pricelist !== null) {
             buyPrice = pricelist.buy.toString();
             sellPrice = pricelist.sell.toString();
-            autoprice = pricelist.autoprice ? 'autopriced' : 'manual';
+            autoprice = pricelist.autoprice ? `autopriced${pricelist.isPartialPriced ? ' - ppu' : ''}` : 'manual';
         } else {
             buyPrice = new Currencies(prices[sku].buy).toString();
             sellPrice = new Currencies(prices[sku].sell).toString();

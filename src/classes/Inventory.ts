@@ -171,15 +171,15 @@ export default class Inventory {
     }
 
     findBySKU(sku: string, tradableOnly = true): string[] {
+        const tradable = (this.tradable[sku] || []).map(item => (item ? item.id : undefined));
         if (tradableOnly) {
             // Copies the array
-            return (this.tradable[sku] || []).map(item => item?.id).slice(0);
+            return tradable.slice(0);
         }
 
-        return (this.nonTradable[sku] || [])
-            .map(item => item?.id)
-            .concat((this.tradable[sku] || []).map(item => item?.id))
-            .slice(0);
+        const nonTradable = (this.nonTradable[sku] || []).map(item => (item ? item.id : undefined));
+
+        return nonTradable.concat(tradable).slice(0);
     }
 
     getAmount(sku: string, tradableOnly?: boolean): number {
