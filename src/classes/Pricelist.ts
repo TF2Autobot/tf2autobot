@@ -652,7 +652,7 @@ export default class Pricelist extends EventEmitter {
                         log.debug('Done update old prices...');
                     })
                     .catch(err => {
-                        log.error('Error on updateOldPrices', err);
+                        log.error('Error on updateOldPrices:', err);
                     });
             })
             .catch(err => {
@@ -790,7 +790,7 @@ export default class Pricelist extends EventEmitter {
                         currPrice.enabled = false;
                         currPrice.group = 'failed-updateOldPrices';
                         this.failedUpdateOldPrices.push(sku);
-                        log.warn(`updateOldPrices failed for ${sku}`, err);
+                        log.error(`updateOldPrices failed for ${sku}`, err);
                         pricesChanged = true;
                     }
 
