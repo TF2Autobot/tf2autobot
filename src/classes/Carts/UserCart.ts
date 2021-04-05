@@ -1046,7 +1046,6 @@ export default class UserCart extends Cart {
         // clear memory
         theirInventory.clearFetch();
 
-        // Will try in nano or microseconds some other time. Unnecessary.
         const timeTaken = Date.now() - start;
         offer.data('constructOfferTime', timeTaken);
         log.debug(`Constructing offer took ${timeTaken} ms`);

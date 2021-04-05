@@ -264,7 +264,6 @@ export default class Trades {
     private handlerProcessOffer(offer: TradeOffer): void {
         log.debug('Giving offer to handler');
 
-        // Will try in nano or microseconds some other time. Unnecessary.
         const start = dayjs().valueOf();
 
         offer.data('handleTimestamp', start);
@@ -280,7 +279,7 @@ export default class Trades {
             }
 
             offer.data('handledByUs', true);
-            const timeTaken = dayjs().valueOf() - (start + (offer.data('checkEscrowBannedTime') as number) || 0);
+            const timeTaken = dayjs().valueOf() - start;
 
             offer.data('processOfferTime', timeTaken);
             log.debug(`Processing offer #${offer.id} took ${timeTaken} ms`);
