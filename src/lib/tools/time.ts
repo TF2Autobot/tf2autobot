@@ -106,12 +106,12 @@ export function convertTime(
     const timePC = dayjs.unix(Math.round((now.valueOf() - processOrConstructTime) / 1000)).fromNow(true);
     const timeComp = dayjs.unix(Math.round((now.valueOf() - completeTime) / 1000)).fromNow(true);
 
-    const is0secondsPC = timePC.includes('0 second');
-    const is0secondComp = timeComp.includes('0 second');
+    const is0secondPC = timePC === '0 second';
+    const is0secondComp = timeComp === '0 second';
 
     const timeText = showDetailedTimeTaken
         ? `\n- ${isOfferSent ? 'To construct offer' : 'To process offer'}: ${
-              is0secondsPC
+              is0secondPC
                   ? `${processOrConstructTime} ms`
                   : `${timePC}${showInMS ? ` (${processOrConstructTime} ms)` : ''}`
           }\n- To complete: ${
