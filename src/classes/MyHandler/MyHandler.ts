@@ -1549,7 +1549,6 @@ export default class MyHandler extends Handler {
         }
 
         offer.log('info', 'checking escrow...');
-        const startRequest = Date.now();
 
         try {
             const hasEscrow = await this.bot.checkEscrow(offer);
@@ -1625,11 +1624,6 @@ export default class MyHandler extends Handler {
                 return;
             }
         }
-
-        // Will try in nano or microseconds some other time. Unnecessary.
-        const TimeTakenRequest = Date.now() - startRequest;
-        offer.data('checkEscrowBannedTime', TimeTakenRequest);
-        log.debug(`Took ${TimeTakenRequest} ms to check for Escrow and banned status`);
 
         // TO DO: Counter offer?
 
