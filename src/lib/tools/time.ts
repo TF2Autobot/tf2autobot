@@ -103,15 +103,23 @@ export function convertTime(
     showInMS: boolean
 ): string {
     const now = dayjs();
+    const timePC = dayjs.unix(Math.round((now.valueOf() - processOrConstructTime) / 1000)).fromNow(true);
+    const timeComp = dayjs.unix(Math.round((now.valueOf() - completeTime) / 1000)).fromNow(true);
+
+    const is0secondsPC = timePC.includes('0 second');
+    const is0secondComp = timeComp.includes('0 second');
+
     const timeText = showDetailedTimeTaken
-        ? `\n- ${isOfferSent ? 'To construct offer' : 'To process offer'}: ${dayjs
-              .unix(Math.round((now.valueOf() - processOrConstructTime) / 1000))
-              .fromNow(true)}${showInMS ? ` (${processOrConstructTime} ms)` : ''}\n- To complete: ${dayjs
-              .unix(Math.round((now.valueOf() - completeTime) / 1000))
-              .fromNow(true)}${showInMS ? ` (${completeTime} ms)` : ''}`
-        : `${dayjs.unix(Math.round((now.valueOf() - completeTime) / 1000)).fromNow(true)}${
-              showInMS ? ` (${completeTime} ms)` : ''
-          }`;
+        ? `\n- ${isOfferSent ? 'To construct offer' : 'To process offer'}: ${
+              is0secondsPC
+                  ? `${processOrConstructTime} ms`
+                  : `${timePC}${showInMS ? ` (${processOrConstructTime} ms)` : ''}`
+          }\n- To complete: ${
+              is0secondComp ? `${timeComp} ms` : `${timeComp}${showInMS ? ` (${completeTime} ms)` : ''}`
+          }`
+        : is0secondComp
+        ? `${timeComp} ms`
+        : `${timeComp}${showInMS ? ` (${completeTime} ms)` : ''}`;
     return timeText;
 }
 
