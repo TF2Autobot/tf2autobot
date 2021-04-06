@@ -36,6 +36,9 @@ type AlertType =
     | 'error-accept'
     | 'autoUpdatePartialPriceSuccess'
     | 'autoUpdatePartialPriceFailed'
+    | 'autoResetPartialPrice'
+    | 'autoResetPartialPriceBulk'
+    | 'onBulkUpdatePartialPriced'
     | 'isPartialPriced'
     | 'unusualInvalidItems'
     | 'failedToUpdateOldPrices';
@@ -125,6 +128,18 @@ export default function sendAlert(
         title = 'Failed update item prices (Partial price update)';
         description = msg;
         color = '16711680'; // red
+    } else if (type === 'autoResetPartialPrice') {
+        title = '✅ Automatically reset partially priced item';
+        description = msg;
+        color = '8323327'; // purple
+    } else if (type === 'onBulkUpdatePartialPriced') {
+        title = '✅ Partial price update - bulk';
+        description = msg;
+        color = '16776960'; // yellow
+    } else if (type === 'autoResetPartialPriceBulk') {
+        title = '✅ Automatically reset partially priced item - bulk';
+        description = msg;
+        color = '8323327'; // purple
     } else if (type === 'autoAddPaintedItems') {
         title = 'Added painted items to sell';
         description = msg;

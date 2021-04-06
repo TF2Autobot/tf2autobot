@@ -1043,7 +1043,11 @@ export default class UserCart extends Cart {
 
         // clear memory
         theirInventory.clearFetch();
-        log.debug(`Constructing offer took ${Date.now() - start}ms`);
+
+        const timeTaken = Date.now() - start;
+        offer.data('constructOfferTime', timeTaken);
+        log.debug(`Constructing offer took ${timeTaken} ms`);
+
         return alteredMessages.length === 0 ? undefined : alteredMessages.join(', ');
     }
 

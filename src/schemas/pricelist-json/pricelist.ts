@@ -13,14 +13,17 @@ export const pricelistSchema: jsonschema.Schema = {
         autoprice: {
             type: 'boolean'
         },
-        max: {
-            type: 'number'
-        },
         min: {
-            type: 'number'
+            // minimum stock
+            type: 'integer',
+            minimum: 0
+        },
+        max: {
+            type: 'integer',
+            minimum: 0
         },
         intent: {
-            type: 'number',
+            type: 'integer',
             enum: [0, 1, 2]
         },
         buy: {
@@ -30,7 +33,7 @@ export const pricelistSchema: jsonschema.Schema = {
             $ref: 'tf2-currencies'
         },
         promoted: {
-            type: 'number',
+            type: 'integer',
             enum: [0, 1]
         },
         group: {
@@ -38,6 +41,10 @@ export const pricelistSchema: jsonschema.Schema = {
         },
         note: {
             $ref: 'listing-note'
+        },
+        isPartialPriced: {
+            // partialPrice feature: https://github.com/TF2Autobot/tf2autobot/pull/520
+            type: 'boolean'
         },
         time: {
             type: ['number', 'null']

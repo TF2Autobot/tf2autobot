@@ -416,17 +416,14 @@ export default class Bot {
 
                         log.info('Setting up pricelist...');
 
-                        void this.pricelist
-                            .setPricelist(
-                                Array.isArray(data.pricelist)
-                                    ? data.pricelist.reduce(
-                                          (buff: Record<string, unknown>, e: EntryData) => (buff[e.sku] = e),
-                                          {}
-                                      )
-                                    : data.pricelist,
-                                this
-                            )
-                            .asCallback(callback);
+                        const pricelist = Array.isArray(data.pricelist)
+                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
+                                  buff[e.sku] = e;
+                                  return buff;
+                              }, {}) as PricesDataObject)
+                            : data.pricelist;
+
+                        void this.pricelist.setPricelist(pricelist, this).asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Waiting for web session');
