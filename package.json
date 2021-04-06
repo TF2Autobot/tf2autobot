@@ -71,7 +71,7 @@
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.13.0",
-        "@types/async": "^3.2.5",
+        "@types/async": "^3.2.6",
         "@types/bluebird-global": "^3.5.12",
         "@types/cheerio": "^0.22.28",
         "@types/death": "^1.1.1",
