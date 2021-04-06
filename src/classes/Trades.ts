@@ -273,7 +273,7 @@ export default class Trades {
                 log.debug('Error occurred while handler was processing offer: ', err);
                 throw err;
             }
-            log.debug(`Offer handler took ${Date.now() - start}ms`);
+
             if (offer.data('dict') === undefined) {
                 throw new Error('dict not saved on offer');
             }
