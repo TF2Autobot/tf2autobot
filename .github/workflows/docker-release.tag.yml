@@ -27,7 +27,7 @@ jobs:
 
       - name: Docker meta
         id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v1
+        uses: crazy-max/ghaction-docker-meta@v2.2.1
         with:
           images: tf2autobot/tf2autobot
           tag-semver: |
