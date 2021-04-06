@@ -116,7 +116,7 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
 
     let buyPrice: string;
     let sellPrice: string;
-    let autoprice = 'removed';
+    let autoprice = 'removed/unlisted';
 
     for (const sku in prices) {
         if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
@@ -127,7 +127,7 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
         if (pricelist !== null) {
             buyPrice = pricelist.buy.toString();
             sellPrice = pricelist.sell.toString();
-            autoprice = pricelist.autoprice ? 'autopriced' : 'manual';
+            autoprice = pricelist.autoprice ? `autopriced${pricelist.isPartialPriced ? ' - ppu' : ''}` : 'manual';
         } else {
             buyPrice = new Currencies(prices[sku].buy).toString();
             sellPrice = new Currencies(prices[sku].sell).toString();

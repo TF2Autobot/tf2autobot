@@ -137,8 +137,10 @@ export default class BotManager {
                         return this.stop(null, false, false);
                     }
 
-                    log.info('Connecting to socket server...');
-                    this.socketManager.connect();
+                    if (this.bot?.options.enableSocket) {
+                        log.info('Connecting to socket server...');
+                        this.socketManager.connect();
+                    }
 
                     return resolve();
                 }

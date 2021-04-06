@@ -8,7 +8,7 @@ export default function processAccepted(
     offer: i.TradeOffer,
     bot: Bot,
     isTradingKeys: boolean,
-    processTime: number
+    timeTakenToComplete: number
 ): { theirHighValuedItems: string[]; isDisableSKU: string[]; items: i.Items | undefined } {
     const opt = bot.options;
 
@@ -172,10 +172,20 @@ export default function processAccepted(
         }
     }
 
-    const isOfferSent = offer?.data('action') === undefined;
+    const isOfferSent = offer.data('action') === undefined;
+    const timeTakenToProcessOrConstruct = (offer.data('constructOfferTime') ||
+        offer.data('processOfferTime')) as number;
 
     if (isWebhookEnabled) {
-        void sendTradeSummary(offer, accepted, bot, processTime, isTradingKeys, isOfferSent);
+        void sendTradeSummary(
+            offer,
+            accepted,
+            bot,
+            timeTakenToComplete,
+            timeTakenToProcessOrConstruct,
+            isTradingKeys,
+            isOfferSent
+        );
     } else {
         const slots = bot.tf2.backpackSlots;
         const itemsName = {
@@ -195,7 +205,8 @@ export default function processAccepted(
         const autokeys = bot.handler.autokeys;
         const status = autokeys.getOverallStatus;
 
-        const cT = bot.options.tradeSummary.customText;
+        const tSum = bot.options.tradeSummary;
+        const cT = tSum.customText;
         const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
         const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
         const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
@@ -226,7 +237,13 @@ export default function processAccepted(
                 `\n${cTTotalItems} ${bot.inventoryManager.getInventory.getTotalItems}${
                     slots !== undefined ? `/${slots}` : ''
                 }` +
-                `\n${cTTimeTaken} ${t.convertTime(processTime, opt.tradeSummary.showTimeTakenInMS)}` +
+                `\n${cTTimeTaken} ${t.convertTime(
+                    timeTakenToComplete,
+                    timeTakenToProcessOrConstruct,
+                    isOfferSent,
+                    tSum.showDetailedTimeTaken,
+                    tSum.showTimeTakenInMS
+                )}` +
                 `\n\nVersion ${process.env.BOT_VERSION}`,
             []
         );

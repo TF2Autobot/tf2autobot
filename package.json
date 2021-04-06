@@ -71,7 +71,7 @@
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.13.0",
-        "@types/async": "^3.2.5",
+        "@types/async": "^3.2.6",
         "@types/bluebird-global": "^3.5.12",
         "@types/cheerio": "^0.22.28",
         "@types/death": "^1.1.1",
@@ -88,7 +88,7 @@
         "@typescript-eslint/parser": "^4.20.0",
         "eslint": "^7.23.0",
         "eslint-config-prettier": "^8.1.0",
-        "eslint-plugin-jest": "^24.3.2",
+        "eslint-plugin-jest": "^24.3.4",
         "eslint-plugin-prettier": "^3.3.1",
         "eslint-plugin-tsdoc": "^0.2.11",
         "jest": "^26.6.3",
