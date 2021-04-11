@@ -2246,6 +2246,14 @@ export default class MyHandler extends Handler {
         log.debug('Queue finished');
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
+
+    onCreateListingsError(err: Error): void {
+        log.error('Error on create listings:', err);
+    }
+
+    onDeleteListingsError(err: Error): void {
+        log.error('Error on delete listings:', err);
+    }
 }
 
 interface OnRun {
