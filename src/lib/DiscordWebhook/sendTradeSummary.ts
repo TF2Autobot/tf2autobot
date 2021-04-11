@@ -6,6 +6,7 @@ import { Webhook } from './interfaces';
 import log from '../logger';
 import * as t from '../tools/export';
 import Bot from '../../classes/Bot';
+import { sendToAdmin } from '../../classes/MyHandler/offer/accepted/processAccepted';
 
 export default async function sendTradeSummary(
     offer: TradeOffer,
@@ -224,14 +225,35 @@ export default async function sendTradeSummary(
     url.forEach((link, i) => {
         sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
             .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
-            .catch(err =>
+            .catch(err => {
                 log.debug(
                     `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? `(${i + 1})` : ''
                     }: `,
                     err
-                )
-            );
+                );
+
+                sendToAdmin(
+                    bot,
+                    offer,
+                    optBot.steamChat.customInitializer.acceptedTradeSummary,
+                    value,
+                    itemList,
+                    keyPrices,
+                    isOfferSent,
+                    isCustomPricer,
+                    cTKeyRate,
+                    autokeys,
+                    status,
+                    slots,
+                    cTPureStock,
+                    cTTotalItems,
+                    cTTimeTaken,
+                    timeTakenToComplete,
+                    timeTakenToProcessOrConstruct,
+                    tSum
+                );
+            });
     });
 }
 
