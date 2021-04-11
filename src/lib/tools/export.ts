@@ -1,5 +1,5 @@
 import getHighValueItems from './getHighValue';
-import generateLinks from './links';
+import generateLinks, { Links } from './links';
 import * as pure from './pure';
 import * as replace from './replace';
 import stats from './stats';
@@ -13,6 +13,7 @@ import itemStats from './itemStats';
 export {
     getHighValueItems,
     generateLinks,
+    Links,
     pure,
     replace,
     stats,
