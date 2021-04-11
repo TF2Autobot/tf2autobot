@@ -1098,7 +1098,7 @@ interface OnlyAllow {
 
 // ------------ TradeSummary ------------
 
-interface TradeSummary {
+export interface TradeSummary {
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
     showDetailedTimeTaken?: boolean;

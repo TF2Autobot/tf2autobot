@@ -6,7 +6,7 @@ export default function generateLinks(steamID: string): Links {
     };
 }
 
-interface Links {
+export interface Links {
     steam: string;
     bptf: string;
     steamrep: string;
