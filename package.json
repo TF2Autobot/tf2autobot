@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot",
-    "version": "3.8.0",
+    "version": "3.8.1",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
@@ -22,7 +22,7 @@
     "bugs": {
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
-    "updateMessage": "• <=v3.7.7 - Manual update recommended. Please create a backup of your pricelist.json file.",
+    "updateMessage": "• <=v3.7.7 - Manual update recommended. Please create a backup of your pricelist.json file.\n• >=v3.8.0 - Clear to update with !updaterepo command.",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
