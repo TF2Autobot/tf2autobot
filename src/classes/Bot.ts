@@ -333,6 +333,18 @@ export default class Bot {
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
         this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
+        this.addListener(
+            this.listingManager,
+            'createListingsError',
+            this.handler.onCreateListingsError.bind(this),
+            true
+        );
+        this.addListener(
+            this.listingManager,
+            'deleteListingsError',
+            this.handler.onDeleteListingsError.bind(this),
+            true
+        );
 
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this.addListener(this.pricelist, 'pricelist', this.handler.onPricelist.bind(this.handler), false);

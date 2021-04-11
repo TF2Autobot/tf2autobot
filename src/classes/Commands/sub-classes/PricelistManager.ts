@@ -144,13 +144,25 @@ export default class PricelistManagerCommands {
         }
 
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            if (params.item !== undefined) {
+                params.sku = this.bot.schema.getSkuFromName(params.item);
 
-            if (item === null) {
-                return;
+                if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        `❌ The sku for "${params.item as string}" returned "${params.sku as string}".` +
+                            `\nIf the item name is correct, please let us know in our Discord server.`
+                    );
+                }
+            } else {
+                const item = getItemFromParams(steamID, params, this.bot);
+
+                if (item === null) {
+                    return;
+                }
+
+                params.sku = SKU.fromObject(item);
             }
-
-            params.sku = SKU.fromObject(item);
         }
 
         params.sku = fixSKU(params.sku);
@@ -1079,9 +1091,11 @@ export default class PricelistManagerCommands {
 
             return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
-            }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}, ${entry.group}, ${
-                entry.isPartialPriced ? '✅' : '❌'
-            }${isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''})`;
+            }, ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}, ${entry.enabled ? '✅' : '❌'}, ${
+                entry.autoprice ? '✅' : '❌'
+            }, ${entry.group}, ${entry.isPartialPriced ? '✅' : '❌'}${
+                isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''
+            })`;
         });
 
         const listCount = list.length;
@@ -1257,9 +1271,11 @@ export default class PricelistManagerCommands {
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max
-                }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}, ${entry.group}, ${
-                    entry.isPartialPriced ? '✅' : '❌'
-                }${isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''})`;
+                }, ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}, ${
+                    entry.enabled ? '✅' : '❌'
+                }, ${entry.autoprice ? '✅' : '❌'}, ${entry.group}, ${entry.isPartialPriced ? '✅' : '❌'}${
+                    isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''
+                })`;
             });
             const listCount = list.length;
 

@@ -190,4 +190,20 @@ export default abstract class Handler {
     onHeartbeat(bumped: number): void {
         // empty function
     }
+
+    /**
+     * Called on error when creating listings
+     * @param err - Error message
+     */
+    onCreateListingsError(err: Error): void {
+        // empty function
+    }
+
+    /**
+     * Called on error when deleting listings
+     * @param err - Error message
+     */
+    onDeleteListingsError(err: Error): void {
+        // empty function
+    }
 }

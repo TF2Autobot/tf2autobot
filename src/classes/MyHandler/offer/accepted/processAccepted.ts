@@ -1,6 +1,9 @@
 import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Bot from '../../../Bot';
+import { KeyPrices } from '../../../Pricelist';
+import { TradeSummary } from '../../../Options';
+import Autokeys, { OverallStatus } from '../../../Autokeys/Autokeys';
 import * as t from '../../../../lib/tools/export';
 import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 
@@ -215,37 +218,25 @@ export default function processAccepted(
         const customInitializer = bot.options.steamChat.customInitializer.acceptedTradeSummary;
         const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
-        bot.messageAdmins(
-            'trade',
-            `${customInitializer ? customInitializer : '/me'} Trade #${
-                offer.id
-            } with ${offer.partner.getSteamID64()} is accepted. ✅` +
-                t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
-                (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
-                `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-                ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
-                `${
-                    autokeys.isEnabled
-                        ? ' | Autokeys: ' +
-                          (autokeys.getActiveStatus
-                              ? '✅' +
-                                (status.isBankingKeys ? ' (banking)' : status.isBuyingKeys ? ' (buying)' : ' (selling)')
-                              : '🛑')
-                        : ''
-                }` +
-                `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
-                `\n${cTTotalItems} ${bot.inventoryManager.getInventory.getTotalItems}${
-                    slots !== undefined ? `/${slots}` : ''
-                }` +
-                `\n${cTTimeTaken} ${t.convertTime(
-                    timeTakenToComplete,
-                    timeTakenToProcessOrConstruct,
-                    isOfferSent,
-                    tSum.showDetailedTimeTaken,
-                    tSum.showTimeTakenInMS
-                )}` +
-                `\n\nVersion ${process.env.BOT_VERSION}`,
-            []
+        sendToAdmin(
+            bot,
+            offer,
+            customInitializer,
+            value,
+            itemList,
+            keyPrices,
+            isOfferSent,
+            isCustomPricer,
+            cTKeyRate,
+            autokeys,
+            status,
+            slots,
+            cTPureStock,
+            cTTotalItems,
+            cTTimeTaken,
+            timeTakenToComplete,
+            timeTakenToProcessOrConstruct,
+            tSum
         );
     }
 
@@ -254,6 +245,60 @@ export default function processAccepted(
         isDisableSKU,
         items: highValue?.items?.their
     };
+}
+
+export function sendToAdmin(
+    bot: Bot,
+    offer: i.TradeOffer,
+    customInitializer: string,
+    value: t.ValueDiff,
+    itemList: string,
+    keyPrices: KeyPrices,
+    isOfferSent: boolean,
+    isCustomPricer: boolean,
+    cTKeyRate: string,
+    autokeys: Autokeys,
+    status: OverallStatus,
+    slots: number,
+    cTPureStock: string,
+    cTTotalItems: string,
+    cTTimeTaken: string,
+    timeTakenToComplete: number,
+    timeTakenToProcessOrConstruct: number,
+    tSum: TradeSummary
+): void {
+    bot.messageAdmins(
+        'trade',
+        `${customInitializer ? customInitializer : '/me'} Trade #${
+            offer.id
+        } with ${offer.partner.getSteamID64()} is accepted. ✅` +
+            t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
+            (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
+            `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
+            ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
+            `${
+                autokeys.isEnabled
+                    ? ' | Autokeys: ' +
+                      (autokeys.getActiveStatus
+                          ? '✅' +
+                            (status.isBankingKeys ? ' (banking)' : status.isBuyingKeys ? ' (buying)' : ' (selling)')
+                          : '🛑')
+                    : ''
+            }` +
+            `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
+            `\n${cTTotalItems} ${bot.inventoryManager.getInventory.getTotalItems}${
+                slots !== undefined ? `/${slots}` : ''
+            }` +
+            `\n${cTTimeTaken} ${t.convertTime(
+                timeTakenToComplete,
+                timeTakenToProcessOrConstruct,
+                isOfferSent,
+                tSum.showDetailedTimeTaken,
+                tSum.showTimeTakenInMS
+            )}` +
+            `\n\nVersion ${process.env.BOT_VERSION}`,
+        []
+    );
 }
 
 interface Accepted {

@@ -2,10 +2,11 @@ import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
-import { pure, summarizeToChat, listItems, replace } from '../tools/export';
+import { pure, summarizeToChat, listItems, replace, ValueDiff } from '../tools/export';
 
 import Bot from '../../classes/Bot';
 import { KeyPrices } from '../../classes/Pricelist';
+import { sendToAdmin } from '../../classes/MyHandler/offer/review/send-review';
 
 export default function sendOfferReview(
     offer: TradeOffer,
@@ -189,7 +190,27 @@ export default function sendOfferReview(
 
         sendWebhook(opt.offerReview.url, webhookReview, 'offer-review')
             .then(() => log.debug(`✅ Sent offer-review webhook (#${offer.id}) to Discord.`))
-            .catch(err => log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err));
+            .catch(err => {
+                log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
+
+                sendToAdmin(
+                    bot,
+                    offer,
+                    bot.options.steamChat.customInitializer.review,
+                    isCustomPricer,
+                    reasons,
+                    value,
+                    keyPrices,
+                    offer.message,
+                    itemList,
+                    links,
+                    currentItems,
+                    slots,
+                    cTKeyRate,
+                    cTTotalItems,
+                    cTPureStock
+                );
+            });
     });
 }
 
@@ -201,12 +222,6 @@ interface Review {
     duped: string[];
     dupedFailed: string[];
     highValue: string[];
-}
-
-interface ValueDiff {
-    diff: number;
-    diffRef: number;
-    diffKey: string;
 }
 
 interface Links {
