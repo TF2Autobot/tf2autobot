@@ -11,6 +11,8 @@ declare module 'bptf-listings-2' {
         actions: (actions: { create: Record<string, unknown>[]; remove: string[] }) => void;
         heartbeat: (bumped: number) => void;
         inventory: (lastUpdated: number) => void;
+        createListingsError: (err: Error) => void;
+        deleteListingsError: (err: Error) => void;
     }
 
     class ListingManager extends EventEmitter {
