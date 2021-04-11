@@ -1267,9 +1267,11 @@ export default class PricelistManagerCommands {
 
             return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
-            }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}, ${entry.group}, ${
-                entry.isPartialPriced ? '✅' : '❌'
-            }${isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''})`;
+            }, ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}, ${entry.enabled ? '✅' : '❌'}, ${
+                entry.autoprice ? '✅' : '❌'
+            }, ${entry.group}, ${entry.isPartialPriced ? '✅' : '❌'}${
+                isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''
+            })`;
         });
 
         const listCount = list.length;
@@ -1441,9 +1443,11 @@ export default class PricelistManagerCommands {
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max
-                }, ${entry.intent}, ${entry.enabled ? '✅' : '❌'}, ${entry.autoprice ? '✅' : '❌'}, ${entry.group}, ${
-                    entry.isPartialPriced ? '✅' : '❌'
-                }${isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''})`;
+                }, ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}, ${
+                    entry.enabled ? '✅' : '❌'
+                }, ${entry.autoprice ? '✅' : '❌'}, ${entry.group}, ${entry.isPartialPriced ? '✅' : '❌'}${
+                    isPremium ? `, ${entry.promoted === 1 ? '✅' : '❌'}` : ''
+                })`;
             });
             const listCount = list.length;
 
