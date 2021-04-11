@@ -5,9 +5,8 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
-import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
-import { removeLinkProtocol, testSKU, getItemFromParams, fixSKU } from '../functions/utils';
+import { fixSKU, getItemFromParams, removeLinkProtocol, testSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
@@ -18,12 +17,6 @@ import log from '../../../lib/logger';
 
 export default class PricelistManagerCommands {
     private stopAutoAdd = false;
-
-    private executed = false;
-
-    private lastExecutedTime: number | null = null;
-
-    private executeTimeout: NodeJS.Timeout;
 
     stopAutoAddCommand(): void {
         this.stopAutoAdd = true;
@@ -177,7 +170,8 @@ export default class PricelistManagerCommands {
 
     private generateAddedReply(isPremium: boolean, entry: Entry): string {
         const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku);
-        const reply =
+
+        return (
             `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
             `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
             `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
@@ -187,9 +181,8 @@ export default class PricelistManagerCommands {
             (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
             `\n🔰 Group: ${entry.group}` +
             `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`;
-
-        return reply;
+            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+        );
     }
 
     async autoAddCommand(steamID: SteamID, message: string): Promise<void> {
@@ -324,7 +317,7 @@ export default class PricelistManagerCommands {
         }
 
         const pricelist = this.bot.pricelist.getPrices;
-        const skusFromPricelist = pricelist.map(entry => entry.sku);
+        const skusFromPricelist = Object.keys(pricelist);
 
         const dict = this.bot.inventoryManager.getInventory.getItems;
         const clonedDict = Object.assign({}, dict);
@@ -346,9 +339,9 @@ export default class PricelistManagerCommands {
         const total = Object.keys(clonedDict).length;
 
         const totalTime = total * (params.autoprice ? 2 : 1) * 1000;
-        const aSecond = 1 * 1000;
-        const aMin = 1 * 60 * 1000;
-        const anHour = 1 * 60 * 60 * 1000;
+        const aSecond = 1000;
+        const aMin = 60 * 1000;
+        const anHour = 60 * 60 * 1000;
 
         this.bot.sendMessage(
             steamID,
@@ -389,14 +382,14 @@ export default class PricelistManagerCommands {
                         } remaining`
                 );
                 // Prevent spamming detection and cause the bot to stop sending messages
-                await sleepasync().Promise.sleep(1 * 1000);
+                await sleepasync().Promise.sleep(1000);
                 continue;
             }
 
             if (params.autoprice === true) {
                 await sleepasync().Promise.sleep(2 * 1000);
             } else {
-                await sleepasync().Promise.sleep(1 * 1000);
+                await sleepasync().Promise.sleep(1000);
             }
 
             params.sku = sku;
@@ -447,115 +440,7 @@ export default class PricelistManagerCommands {
         }
 
         if (params.all === true) {
-            // TODO: Must have at least one other param
-            const pricelist = this.bot.pricelist.getPrices;
-            const keyPrice = this.bot.pricelist.getKeyPrice;
-
-            let targetedPricelist: Entry[];
-            let unTargetedPricelist: Entry[];
-            let newPricelist: Entry[];
-
-            if (params.promoted) {
-                return this.bot.sendMessage(steamID, `❌ Parameter "promoted" can't be used with "!update all=true".`);
-            }
-
-            if (params.withgroup && params.withoutgroup) {
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ Don't be dumb. Please choose only "withgroup" OR "withoutgroup", not both. Thanks.`
-                );
-            }
-
-            if (params.withgroup) {
-                targetedPricelist = pricelist.filter(entry =>
-                    entry.group
-                        ? [(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : false
-                );
-                unTargetedPricelist = pricelist.filter(entry =>
-                    entry.group
-                        ? ![(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : true
-                );
-
-                if (targetedPricelist.length === 0) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ There is no entry with "${params.withgroup as string}" group found in your pricelist.`
-                    );
-                }
-
-                newPricelist = targetedPricelist;
-
-                if (typeof params.buy === 'object' || typeof params.sell === 'object') {
-                    if (
-                        (params.buy !== null && params.sell === undefined) ||
-                        (params.buy === undefined && params.sell !== null)
-                    ) {
-                        return this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
-                    } else if (
-                        new Currencies(params.buy).toValue(keyPrice.metal) >=
-                        new Currencies(params.sell).toValue(keyPrice.metal)
-                    ) {
-                        return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
-                    }
-                }
-            } else if (params.withoutgroup) {
-                // reverse of withgroup
-                targetedPricelist = pricelist.filter(entry =>
-                    entry.group
-                        ? ![(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : true
-                );
-                unTargetedPricelist = pricelist.filter(entry =>
-                    entry.group
-                        ? [(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : false
-                );
-
-                if (targetedPricelist.length === 0) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ There is no entry other than "${
-                            params.withoutgroup as string
-                        }" group found in your pricelist.`
-                    );
-                }
-
-                newPricelist = targetedPricelist;
-
-                if (typeof params.buy === 'object' || typeof params.sell === 'object') {
-                    if (
-                        (params.buy !== null && params.sell === undefined) ||
-                        (params.buy === undefined && params.sell !== null)
-                    ) {
-                        return this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
-                    } else if (
-                        new Currencies(params.buy).toValue(keyPrice.metal) >=
-                        new Currencies(params.sell).toValue(keyPrice.metal)
-                    ) {
-                        return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
-                    }
-                }
-            } else {
-                newPricelist = pricelist;
-
-                if (this.bot.options.autokeys.enable) {
-                    // Autokeys is a feature, so when updating multiple entry with
-                    // "!update all=true", key entry will be removed from newPricelist.
-                    // https://github.com/TF2Autobot/tf2autobot/issues/131
-                    const keyEntry = this.bot.pricelist.getPrice('5021;6');
-                    if (keyEntry !== null) {
-                        const index = this.bot.pricelist.getIndex('5021;6');
-                        newPricelist.splice(index, 1);
-                    }
-                }
-            }
-
-            if (newPricelist.length === 0) {
-                return this.bot.sendMessage(steamID, 'Your pricelist is empty.');
-            }
-
+            //Check for invalid usages first
             if (!params.withgroup && !params.withoutgroup) {
                 if (typeof params.note === 'object') {
                     return this.bot.sendMessage(
@@ -573,9 +458,65 @@ export default class PricelistManagerCommands {
                     );
                 }
             }
+            if (params.promoted) {
+                return this.bot.sendMessage(steamID, `❌ Parameter "promoted" can't be used with "!update all=true".`);
+            }
 
-            newPricelist.forEach((entry, i) => {
-                if (typeof params.intent === 'number') {
+            if (params.withgroup && params.withoutgroup) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ Don't be dumb. Please choose only "withgroup" OR "withoutgroup", not both. Thanks.`
+                );
+            }
+            const keyPrice = this.bot.pricelist.getKeyPrice;
+            if (typeof params.buy === 'object' || typeof params.sell === 'object') {
+                if (
+                    (params.buy !== null && params.sell === undefined) ||
+                    (params.buy === undefined && params.sell !== null)
+                ) {
+                    return this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
+                } else if (
+                    new Currencies(params.buy).toValue(keyPrice.metal) >=
+                    new Currencies(params.sell).toValue(keyPrice.metal)
+                ) {
+                    return this.bot.sendMessage(steamID, `❌ Buying price can't be higher than selling price.`);
+                }
+            }
+            // TODO: Must have at least one other param
+
+            const pricelist = this.bot.pricelist.getPrices;
+
+            if (Object.keys(pricelist).length === 0) {
+                return this.bot.sendMessage(steamID, 'Your pricelist is empty.');
+            }
+
+            const newPricelist = pricelist; // no need to copy
+
+            let changed = false;
+            for (const sku in newPricelist) {
+                if (!Object.prototype.hasOwnProperty.call(newPricelist, sku)) {
+                    continue;
+                }
+
+                const entry = newPricelist[sku];
+                if (params.withgroup && entry.group !== params.withgroup) {
+                    continue;
+                }
+
+                if (params.withgroup && entry.group === params.withoutgroup) {
+                    continue;
+                }
+
+                // Autokeys is a feature, so when updating multiple entry with
+                // "!update all=true", key entry will be removed from newPricelist.
+                // https://github.com/TF2Autobot/tf2autobot/issues/131
+                if (this.bot.options.autokeys.enable && sku == '5021;6') {
+                    continue;
+                }
+
+                changed = true;
+
+                if (params.intent || params.intent === 0) {
                     entry.intent = params.intent as 0 | 1 | 2;
                 }
 
@@ -648,31 +589,29 @@ export default class PricelistManagerCommands {
                     }
                 }
 
-                if (i === 0) {
-                    const errors = validator(
-                        {
-                            sku: entry.sku,
-                            enabled: entry.enabled,
-                            intent: entry.intent,
-                            min: entry.min,
-                            max: entry.max,
-                            autoprice: entry.autoprice,
-                            buy: entry.buy.toJSON(),
-                            sell: entry.sell.toJSON(),
-                            promoted: entry.promoted,
-                            group: entry.group,
-                            note: entry.note,
-                            isPartialPriced: entry.isPartialPriced,
-                            time: entry.time
-                        },
-                        'pricelist'
-                    );
+                newPricelist[sku] = entry;
+            }
 
-                    if (errors !== null) {
-                        throw new Error(errors.join(', '));
-                    }
+            if (changed) {
+                const errors = validator(newPricelist, 'pricelist');
+                if (errors !== null) {
+                    throw new Error(errors.join(', '));
                 }
-            });
+            } else {
+                if (params.withgroup) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        `❌ There is no entry with "${params.withgroup as string}" group found in your pricelist.`
+                    );
+                } else if (params.withoutgroup) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        `❌ There is no entry other than "${
+                            params.withoutgroup as string
+                        }" group found in your pricelist.`
+                    );
+                }
+            }
 
             if (params.removenote) {
                 delete params.removenote;
@@ -683,12 +622,10 @@ export default class PricelistManagerCommands {
             }
 
             if (params.withgroup) {
-                newPricelist = unTargetedPricelist.concat(newPricelist);
                 delete params.withgroup;
             }
 
             if (params.withoutgroup) {
-                newPricelist = unTargetedPricelist.concat(newPricelist);
                 delete params.withoutgroup;
             }
 
@@ -770,28 +707,12 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            let match = this.bot.pricelist.searchByName(params.item as string, false);
+            const match = this.bot.pricelist.searchByName(params.item as string, false);
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
                 );
-            } else if (Array.isArray(match)) {
-                const matchCount = match.length;
-                if (matchCount > 20) {
-                    match = match.splice(0, 20);
-                }
-
-                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
-                    ',\n'
-                )}`;
-
-                if (matchCount > match.length) {
-                    const other = matchCount - match.length;
-                    reply += `,\nand ${other} other ${pluralize('item', other)}.`;
-                }
-
-                return this.bot.sendMessage(steamID, reply);
             }
 
             delete params.item;
@@ -900,7 +821,7 @@ export default class PricelistManagerCommands {
             params.group = String(params.group);
         }
 
-        const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON();
+        const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON(); //TODO: CONTINUE
         delete entryData.time;
         delete params.sku;
 
@@ -938,7 +859,7 @@ export default class PricelistManagerCommands {
         const keyPrice = this.bot.pricelist.getKeyPrice;
         const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
 
-        const reply =
+        return (
             `\n💲 Buy: ${
                 oldEntry.buy.toValue(keyPrice.metal) !== newEntry.buy.toValue(keyPrice.metal)
                     ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
@@ -985,48 +906,8 @@ export default class PricelistManagerCommands {
                 oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
             }` +
             `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
-            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`;
-
-        return reply;
-    }
-
-    async shuffleCommand(steamID: SteamID): Promise<void> {
-        const newExecutedTime = dayjs().valueOf();
-        const timeDiff = newExecutedTime - this.lastExecutedTime;
-
-        const pricelist = this.bot.pricelist.getPrices;
-
-        if (pricelist.length === 0) {
-            return this.bot.sendMessage(steamID, '❌ Pricelist is empty!');
-        }
-
-        if (this.executed === true) {
-            return this.bot.sendMessage(
-                steamID,
-                `⚠️ You need to wait ${Math.trunc(
-                    (30 * 60 * 1000 - timeDiff) / (1000 * 60)
-                )} minutes before you can shuffle pricelist/shuffle again.`
-            );
-        } else {
-            clearTimeout(this.executeTimeout);
-            this.lastExecutedTime = dayjs().valueOf();
-
-            const shufflePricelist = (arr: Entry[]) => {
-                const shuffled = arr.sort(() => Math.random() - 0.5);
-                return shuffled;
-            };
-
-            await this.bot.handler.onPricelist(shufflePricelist(pricelist));
-            this.bot.sendMessage(steamID, '✅ Pricelist shuffled!');
-            await this.bot.listings.redoListings();
-
-            this.executed = true;
-            this.executeTimeout = setTimeout(() => {
-                this.lastExecutedTime = null;
-                this.executed = false;
-                clearTimeout(this.executeTimeout);
-            }, 30 * 60 * 1000);
-        }
+            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
+        );
     }
 
     async removeCommand(steamID: SteamID, message: string): Promise<void> {
@@ -1038,11 +919,6 @@ export default class PricelistManagerCommands {
             if (pricelistLength === 0) {
                 return this.bot.sendMessage(steamID, '❌ Your pricelist is already empty!');
             }
-
-            const pricelist = this.bot.pricelist.getPrices;
-            let newPricelist: Entry[] = [];
-            let newPricelistCount: Entry[] = [];
-
             if (params.withgroup && params.withoutgroup) {
                 return this.bot.sendMessage(
                     steamID,
@@ -1050,66 +926,34 @@ export default class PricelistManagerCommands {
                 );
             }
 
-            if (params.withgroup) {
-                // first filter out pricelist with ONLY "withgroup" value.
-                newPricelistCount = pricelist.filter(entry =>
-                    entry.group
-                        ? [(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : false
-                );
+            const pricelist = this.bot.pricelist.getPrices;
+            let newPricelist = Object.assign({}, pricelist);
 
-                if (newPricelistCount.length === 0) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ There is no entry with "${params.withgroup as string}" group found in your pricelist.`
-                    );
+            if (params.withgroup || params.withoutgroup) {
+                for (const sku in newPricelist) {
+                    if (!Object.prototype.hasOwnProperty.call(newPricelist, sku)) continue;
+                    const entity = newPricelist[sku];
+                    if (params.withgroup && entity.group === params.withgroup) delete newPricelist[sku];
+                    else if (params.withoutgroup && entity.group !== params.withgroup) delete newPricelist[sku];
                 }
-
-                // then filter out pricelist with NOT "withgroup" value.
-                newPricelist = pricelist.filter(entry =>
-                    entry.group
-                        ? ![(params.withgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : true
-                );
-            } else if (params.withoutgroup) {
-                // reverse of withgroup
-                newPricelistCount = pricelist.filter(entry =>
-                    entry.group
-                        ? ![(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : true
-                );
-
-                if (newPricelistCount.length === 0) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ There is no entry other than "${
-                            params.withoutgroup as string
-                        }" group found in your pricelist.`
-                    );
-                }
-
-                newPricelist = pricelist.filter(entry =>
-                    entry.group
-                        ? [(params.withoutgroup as string).toLowerCase()].includes(entry.group.toLowerCase())
-                        : false
-                );
             } else {
-                newPricelistCount = pricelist;
+                newPricelist = {};
             }
 
+            const removeCount = pricelistLength - Object.keys(newPricelist).length;
             if (params.i_am_sure !== 'yes_i_am') {
                 return this.bot.sendMessage(
                     steamID,
                     '/pre ⚠️ Are you sure that you want to remove ' +
-                        pluralize('item', newPricelistCount.length, true) +
+                        pluralize('item', removeCount, true) +
                         '? Try again with i_am_sure=yes_i_am'
                 );
             }
 
             if (params.withgroup || params.withoutgroup) {
                 try {
-                    await this.bot.pricelist.removeByGroup(newPricelist);
-                    this.bot.sendMessage(steamID, `✅ Removed ${newPricelistCount.length} items from pricelist.`);
+                    await this.bot.pricelist.setNewPricelist(newPricelist);
+                    this.bot.sendMessage(steamID, `✅ Removed ${removeCount} items from pricelist.`);
                     return await this.bot.listings.redoListings();
                 } catch (err) {
                     return this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
@@ -1130,28 +974,12 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            let match = this.bot.pricelist.searchByName(params.item as string, false);
+            const match = this.bot.pricelist.searchByName(params.item as string, false);
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
                 );
-            } else if (Array.isArray(match)) {
-                const matchCount = match.length;
-                if (matchCount > 20) {
-                    match = match.splice(0, 20);
-                }
-
-                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
-                    ',\n'
-                )}`;
-
-                if (matchCount > match.length) {
-                    const other = matchCount - match.length;
-                    reply += `,\nand ${other} other ${pluralize('item', other)}.`;
-                }
-
-                return this.bot.sendMessage(steamID, reply);
             }
 
             delete params.item;
@@ -1193,29 +1021,13 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            let match = this.bot.pricelist.searchByName(params.item as string, false);
+            const match = this.bot.pricelist.searchByName(params.item as string, false);
 
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
                 );
-            } else if (Array.isArray(match)) {
-                const matchCount = match.length;
-                if (matchCount > 20) {
-                    match = match.splice(0, 20);
-                }
-
-                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
-                    ',\n'
-                )}`;
-
-                if (matchCount > match.length) {
-                    const other = matchCount - match.length;
-                    reply += `,\nand ${other} other ${pluralize('item', other)}.`;
-                }
-
-                return this.bot.sendMessage(steamID, reply);
             }
 
             delete params.item;
@@ -1245,8 +1057,7 @@ export default class PricelistManagerCommands {
     }
 
     private generateOutput(filtered: Entry): string {
-        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
-        filtered['stock'] = currentStock;
+        filtered['stock'] = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
 
         return JSON.stringify(filtered, null, 4);
     }
@@ -1255,14 +1066,15 @@ export default class PricelistManagerCommands {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         const pricelist = this.bot.pricelist.getPrices;
-        if (pricelist.length === 0) {
+        if (Object.keys(pricelist).length === 0) {
             return this.bot.sendMessage(steamID, '❌ Your pricelist is empty.');
         }
 
         const isPremium = this.bot.handler.getBotInfo.premium;
 
-        const list = pricelist.map((entry, i) => {
-            const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+        const list = Object.keys(pricelist).map((sku, i) => {
+            const entry = pricelist[sku];
+            const name = entry.name;
             const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
 
             return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
@@ -1299,7 +1111,7 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
 
-            await sleepasync().Promise.sleep(1 * 1000);
+            await sleepasync().Promise.sleep(1000);
         }
     }
 
@@ -1324,7 +1136,11 @@ export default class PricelistManagerCommands {
             );
         }
 
-        let filter = this.bot.pricelist.getPrices;
+        const pricelist = this.bot.pricelist.getPrices;
+        let filter = Object.keys(pricelist).map(sku => {
+            return pricelist[sku];
+        });
+
         if (params.enabled !== undefined) {
             if (typeof params.enabled !== 'boolean') {
                 return this.bot.sendMessage(steamID, '⚠️ enabled parameter must be "true" or "false"');
@@ -1475,7 +1291,7 @@ export default class PricelistManagerCommands {
 
                 this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
 
-                await sleepasync().Promise.sleep(1 * 1000);
+                await sleepasync().Promise.sleep(1000);
             }
         }
     }

@@ -208,6 +208,8 @@ declare module 'tf2-schema-2' {
 
             raw: {
                 schema: {
+                    qualities: { [id: string]: number };
+                    qualityNames: { [id: string]: string };
                     items_game_url: string;
                     attributes: SchemaAttribute[];
                     item_sets: ItemSet[];
@@ -228,7 +230,7 @@ declare module 'tf2-schema-2' {
 
             getItemByItemNameWithThe(name: string): SchemaItem | null;
 
-            getSkuFromName(name: string): string;
+            getSkuFromName(name: string): string | null;
 
             getItemObjectFromName(name: string): Item;
 
