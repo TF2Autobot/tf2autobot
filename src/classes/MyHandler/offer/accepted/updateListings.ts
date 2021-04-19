@@ -96,23 +96,7 @@ export default function updateListings(
             !isAdmin;
 
         const isAutoDisableHighValueItems =
-            existInPricelist &&
-            isDisabledHV &&
-            (normalizePainted.our === false
-                ? !highValue.theirItems.some(
-                      str =>
-                          str.includes(name) &&
-                          str.includes('🎨 Painted') &&
-                          !(
-                              str.includes('🎰 Parts') ||
-                              str.includes('🔥 Killstreaker') ||
-                              str.includes('✨ Sheen') ||
-                              str.includes('🎃 Spells')
-                          )
-                  )
-                : true) &&
-            isNotPureOrWeapons &&
-            opt.highValue.enableHold;
+            existInPricelist && isDisabledHV && isNotPureOrWeapons && opt.highValue.enableHold;
 
         const isAutoRemoveIntentSell =
             opt.pricelist.autoRemoveIntentSell.enable &&
@@ -137,7 +121,9 @@ export default function updateListings(
 
             const priceFromOptions =
                 opt.detailsExtra.painted[
-                    bot.schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames
+                    pSKU === 'p5801378'
+                        ? 'Legacy Paint'
+                        : (bot.schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames)
                 ].price;
 
             const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
@@ -178,7 +164,11 @@ export default function updateListings(
                 .addPrice(entry, true)
                 .then(data => {
                     const msg =
-                        `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
+                        `✅ Automatically added ${
+                            pSKU === 'p5801378'
+                                ? `${bot.schema.getName(SKU.fromString(sku), false)} (Legacy Paint)`
+                                : bot.schema.getName(SKU.fromString(paintedSKU), false)
+                        }` +
                         ` (${paintedSKU}) to sell.` +
                         `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
                         `\nSelling for: ${data.sell.toString()} ` +

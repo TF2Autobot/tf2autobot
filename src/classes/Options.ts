@@ -919,6 +919,13 @@ export const DEFAULTS = {
                     keys: 0,
                     metal: 30
                 }
+            },
+            'Legacy Paint': {
+                stringNote: '🔵⛔',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
             }
         },
         /**
@@ -1693,6 +1700,7 @@ interface Painted {
     'Team Spirit'?: PaintedProperties;
     'The Value of Teamwork'?: PaintedProperties;
     'Waterlogged Lab Coat'?: PaintedProperties;
+    'Legacy Paint'?: PaintedProperties;
 }
 
 export type PaintedNames =
@@ -1724,7 +1732,8 @@ export type PaintedNames =
     | 'Cream Spirit'
     | 'Team Spirit'
     | 'The Value of Teamwork'
-    | 'Waterlogged Lab Coat';
+    | 'Waterlogged Lab Coat'
+    | 'Legacy Paint';
 
 interface StrangeParts {
     'Robots Destroyed'?: string;
