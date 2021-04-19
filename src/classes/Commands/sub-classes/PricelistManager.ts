@@ -161,6 +161,8 @@ export default class PricelistManagerCommands {
                             `\nIf the item name is correct, please let us know in our Discord server.`
                     );
                 }
+
+                delete params.item;
             } else {
                 const item = getItemFromParams(steamID, params, this.bot);
 
