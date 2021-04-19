@@ -389,6 +389,10 @@ function highValue(
         }
     }
 
+    if (econ.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi') && Object.keys(p).length === 0) {
+        p['p5801378'] = true; // Legacy Paint
+    }
+
     [s, sp, ke, ks, p].forEach((attachment, i) => {
         if (Object.keys(attachment).length > 0) {
             attributes[['s', 'sp', 'ke', 'ks', 'p'][i]] = attachment;

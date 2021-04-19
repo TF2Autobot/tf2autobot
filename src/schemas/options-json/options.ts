@@ -1990,6 +1990,9 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         'Waterlogged Lab Coat': {
                             $ref: '#/definitions/painted-properties'
+                        },
+                        'Legacy Paint': {
+                            $ref: '#/definitions/painted-properties'
                         }
                     },
                     required: [
@@ -2021,7 +2024,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'Cream Spirit',
                         'Team Spirit',
                         'The Value of Teamwork',
-                        'Waterlogged Lab Coat'
+                        'Waterlogged Lab Coat',
+                        'Legacy Paint'
                     ],
                     additionalProperties: false
                 },

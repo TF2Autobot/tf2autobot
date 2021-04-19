@@ -38,7 +38,14 @@ export default class UserCart extends Cart {
         }
 
         if (escrow) {
-            return Promise.reject('trade would be held');
+            return Promise.reject(
+                'trade would be held.' +
+                    ' I do not accept escrow (trade holds). To prevent this from happening in the future, ' +
+                    'please enable Steam Guard Mobile Authenticator.' +
+                    '\nRead:\n' +
+                    '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
+                    '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+            );
         }
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
