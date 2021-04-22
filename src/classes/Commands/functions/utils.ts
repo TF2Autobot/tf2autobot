@@ -5,10 +5,10 @@ import SchemaManager from 'tf2-schema-2';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { Item } from '../../../types/TeamFortress2';
-import Bot from '../../Bot';
-import { Entry } from '../../Pricelist';
-import { genericNameAndMatch } from '../../Inventory';
-import { fixItem } from '../../../lib/items';
+import Bot from '@classes/Bot';
+import { Entry } from '@classes/Pricelist';
+import { genericNameAndMatch } from '@classes/Inventory';
+import { fixItem } from '@lib/items';
 
 export function getItemAndAmount(
     steamID: SteamID,
@@ -592,10 +592,4 @@ export function fixSKU(sku: string): string {
 
 export function removeLinkProtocol(message: string): string {
     return message.replace(/(\w+:|^)\/\//g, '');
-}
-
-export function testSKU(sku: string): boolean {
-    return /^(\d+);([0-9]|[1][0-5])(;((uncraftable)|(untrad(e)?able)|(australium)|(festive)|(strange)|((u|pk|td-|c|od-|oq-|p)\d+)|(w[1-5])|(kt-[1-3])|(n((100)|[1-9]\d?))))*?$/.test(
-        sku
-    );
 }

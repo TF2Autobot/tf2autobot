@@ -4,7 +4,7 @@ import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 import Bot from './Bot';
-import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
+import { noiseMakers, spellsData, killstreakersData, sheensData } from '@lib/data';
 
 export default class Inventory {
     private readonly steamID: SteamID;

@@ -1,12 +1,12 @@
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 import sleepasync from 'sleep-async';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
-import validator from '../../../lib/validator';
-import log from '../../../lib/logger';
-import { deepMerge } from '../../../lib/tools/deep-merge';
+import Bot from '@classes/Bot';
+import CommandParser from '@classes/CommandParser';
+import { getOptionsPath, JsonOptions, removeCliOptions } from '@classes/Options';
+import validator from '@lib/validator';
+import log from '@lib/logger';
+import { deepMerge } from '@tools/deep-merge';
 
 export type OptionsKeys =
     | 'miscSettings'

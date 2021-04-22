@@ -1,6 +1,7 @@
-import { KeyPrices } from '../../classes/Pricelist';
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../classes/Bot';
+
+import { KeyPrices } from '@classes/Pricelist';
+import Bot from '@classes/Bot';
 
 const pureEmoji = new Map<string, string>();
 pureEmoji
@@ -143,7 +144,7 @@ export default function summarize(
 }
 
 import SKU from 'tf2-sku-2';
-import { replace, testSKU } from '../tools/export';
+import { replace, testSKU } from '@tools/export';
 
 function getSummary(
     dict: OurTheirItemsDict,

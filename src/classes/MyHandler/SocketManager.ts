@@ -1,5 +1,5 @@
 import io from 'socket.io-client';
-import log from '../../lib/logger';
+import log from '@lib/logger';
 
 export default class SocketManager {
     private socket: SocketIOClient.Socket;

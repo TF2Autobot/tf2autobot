@@ -2,9 +2,10 @@ import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import jsonlint from 'jsonlint';
 import * as path from 'path';
-import { deepMerge } from '../lib/tools/deep-merge';
-import validator from '../lib/validator';
 import { Currency } from '../types/TeamFortress2';
+
+import { deepMerge } from '@lib/tools/deep-merge';
+import validator from '@lib/validator';
 
 export const DEFAULTS = {
     miscSettings: {

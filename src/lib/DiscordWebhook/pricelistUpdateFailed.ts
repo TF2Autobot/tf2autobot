@@ -1,10 +1,11 @@
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
-import { GetItemPriceResponse } from '../../classes/Pricer';
 import sleepasync from 'sleep-async';
 import { UnknownDictionary } from '../../types/common';
-import Options from '../../classes/Options';
+
+import log from '../logger';
+import { GetItemPriceResponse } from '@classes/Pricer';
+import Options from '@classes/Options';
 
 export default function sendFailedPriceUpdate(
     data: GetItemPriceResponse,

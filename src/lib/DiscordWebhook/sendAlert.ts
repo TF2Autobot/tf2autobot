@@ -1,10 +1,10 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import { uptime } from '../../lib/tools/export';
 import log from '../logger';
-import { timeNow } from '../tools/time';
-import Bot from '../../classes/Bot';
+
+import { uptime, timeNow } from '@tools/export';
+import Bot from '@classes/Bot';
 
 type AlertType =
     | 'lowPure'

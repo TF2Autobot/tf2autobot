@@ -4,13 +4,15 @@ import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import { Currency } from '../types/TeamFortress2';
+
 import Options from './Options';
 import Bot from './Bot';
-import log from '../lib/logger';
-import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
-import SocketManager from './MyHandler/SocketManager';
 import Pricer, { GetItemPriceResponse, Item } from './Pricer';
+import SocketManager from './MyHandler/SocketManager';
+
+import log from '@lib/logger';
+import validator from '@lib/validator';
+import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '@DiscordWebhook/export';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',

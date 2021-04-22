@@ -1,10 +1,9 @@
 import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import processReview from './process-review';
-import Bot from '../../../Bot';
-import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
-import * as t from '../../../../lib/tools/export';
-import { KeyPrices } from 'src/classes/Pricelist';
-import { Links } from '../../../../lib/tools/export';
+import Bot from '@classes/Bot';
+import { sendOfferReview } from '@DiscordWebhook/export';
+import * as t from '@tools/export';
+import { KeyPrices } from '@classes/Pricelist';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
@@ -148,7 +147,7 @@ export function sendToAdmin(
     keyPrices: KeyPrices,
     offerMessage: string,
     list: string,
-    links: Links,
+    links: t.Links,
     currentItems: number,
     slots: number,
     cTKeyRate: string,

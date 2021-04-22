@@ -4,12 +4,14 @@ import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
+
 import Bot from './Bot';
-import log from '../lib/logger';
-import { exponentialBackoff } from '../lib/helpers';
-import { sendAlert } from '../lib/DiscordWebhook/export';
-import { isBptfBanned } from '../lib/bans';
-import * as t from '../lib/tools/export';
+import log from '@lib/logger';
+import { exponentialBackoff } from '@lib/helpers';
+import { isBptfBanned } from '@lib/bans';
+
+import { sendAlert } from '@DiscordWebhook/export';
+import * as t from '@tools/export';
 
 export default class Trades {
     private itemsInTrade: string[] = [];

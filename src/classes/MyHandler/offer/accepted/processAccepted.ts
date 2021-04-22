@@ -1,11 +1,11 @@
 import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
-import Bot from '../../../Bot';
-import { KeyPrices } from '../../../Pricelist';
-import { TradeSummary } from '../../../Options';
-import Autokeys, { OverallStatus } from '../../../Autokeys/Autokeys';
-import * as t from '../../../../lib/tools/export';
-import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
+import Bot from '@classes/Bot';
+import { KeyPrices } from '@classes/Pricelist';
+import { TradeSummary } from '@classes/Options';
+import Autokeys, { OverallStatus } from '@classes/Autokeys/Autokeys';
+import * as t from '@tools/export';
+import { sendTradeSummary } from '@DiscordWebhook/export';
 
 export default function processAccepted(
     offer: i.TradeOffer,

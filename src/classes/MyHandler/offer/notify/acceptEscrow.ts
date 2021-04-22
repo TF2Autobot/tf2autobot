@@ -1,5 +1,5 @@
 import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../Bot';
+import Bot from '@classes/Bot';
 
 export default function acceptEscrow(offer: TradeOffer, bot: Bot): void {
     const custom = bot.options.customMessage.successEscrow;

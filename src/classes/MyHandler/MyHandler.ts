@@ -19,10 +19,10 @@ import async from 'async';
 import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
-import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
-import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
-import { sendReview } from './offer/review/export-review';
-import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
+import { accepted, declined, cancelled, acceptEscrow, invalid } from '@notify/export-notify';
+import { processAccepted, updateListings, PriceCheckQueue } from '@accepted/exportAccepted';
+import { sendReview } from '@review/export-review';
+import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from '@handlerUtils//export-utils';
 
 import { BPTFGetUserInfo } from './interfaces';
 
@@ -34,19 +34,18 @@ import CartQueue from '../Carts/CartQueue';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
-
-import { Paths } from '../../resources/paths';
-import log from '../../lib/logger';
-import * as files from '../../lib/files';
-import { exponentialBackoff } from '../../lib/helpers';
-
-import { noiseMakers } from '../../lib/data';
-import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
-import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
-
-import genPaths from '../../resources/paths';
 import Pricer, { RequestCheckFn } from '../Pricer';
 import Options from '../Options';
+
+import log from '@lib/logger';
+import * as files from '@lib/files';
+import { exponentialBackoff } from '@lib/helpers';
+import { noiseMakers } from '@lib/data';
+import { sendAlert, sendStats } from '@DiscordWebhook/export';
+import { summarize, uptime, getHighValueItems, testSKU } from '@tools/export';
+
+import { Paths } from '@resources/paths';
+import genPaths from '@resources/paths';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);

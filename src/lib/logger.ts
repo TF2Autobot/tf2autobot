@@ -6,8 +6,8 @@ import winston from 'winston';
 import 'winston-daily-rotate-file';
 import { FormatWrap } from 'logform';
 
-import { Paths } from '../resources/paths';
-import Options from '../classes/Options';
+import { Paths } from '@resources/paths';
+import Options from '@classes/Options';
 
 const levels = {
     debug: 5,

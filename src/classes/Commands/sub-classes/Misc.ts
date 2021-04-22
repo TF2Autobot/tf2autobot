@@ -1,9 +1,9 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import Bot from '../../Bot';
-import { Discord, Stock } from '../../Options';
-import { pure, timeNow, uptime } from '../../../lib/tools/export';
+import Bot from '@classes/Bot';
+import { Discord, Stock } from '@classes/Options';
+import { pure, timeNow, uptime } from '@tools/export';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';

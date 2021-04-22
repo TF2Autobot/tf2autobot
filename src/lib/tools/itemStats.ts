@@ -1,5 +1,5 @@
-import Bot from '../../classes/Bot';
 import { OfferData } from '@tf2autobot/tradeoffer-manager';
+import Bot from '@classes/Bot';
 
 // trigger update file name
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js

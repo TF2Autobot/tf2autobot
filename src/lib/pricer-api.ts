@@ -9,7 +9,7 @@ import Pricer, {
     PricerOptions,
     PricesResponse,
     RequestCheckResponse
-} from '../classes/Pricer';
+} from '@classes/Pricer';
 
 export default class PricerApi implements Pricer {
     public constructor(public url?: string, public apiToken?: string) {}

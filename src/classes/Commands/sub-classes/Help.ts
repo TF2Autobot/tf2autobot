@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import Bot from '../../Bot';
+import Bot from '@classes/Bot';
 
 export default class HelpCommands {
     constructor(private readonly bot: Bot) {

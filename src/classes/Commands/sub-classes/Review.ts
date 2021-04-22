@@ -5,9 +5,9 @@ import Currencies from 'tf2-currencies-2';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import { generateLinks, testSKU } from '../../../lib/tools/export';
+import Bot from '@classes/Bot';
+import CommandParser from '@classes/CommandParser';
+import { generateLinks, testSKU } from '@tools/export';
 
 // Manual review commands
 

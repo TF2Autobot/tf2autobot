@@ -1,6 +1,6 @@
 import { Action, Meta, TradeOffer } from '@tf2autobot/tradeoffer-manager';
-import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
-import Bot from '../../../Bot';
+import { valueDiff, summarizeToChat } from '@tools/export';
+import Bot from '@classes/Bot';
 
 export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {
     const opt = bot.options;

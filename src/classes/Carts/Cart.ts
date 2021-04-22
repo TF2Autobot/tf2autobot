@@ -7,8 +7,8 @@ import request from 'request-retry-dayjs';
 import { UnknownDictionary } from '../../types/common';
 import Bot from '../Bot';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
-import log from '../../lib/logger';
-import { sendAlert } from '../../lib/DiscordWebhook/export';
+import log from '@lib/logger';
+import { sendAlert } from '@DiscordWebhook/export';
 
 /**
  * An abstract class used for sending offers

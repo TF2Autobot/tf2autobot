@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import Bot from './Bot';
-import log from '../lib/logger';
+import log from '@lib/logger';
 
 export default class Groups {
     constructor(private readonly bot: Bot) {

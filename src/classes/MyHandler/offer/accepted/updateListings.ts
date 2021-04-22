@@ -5,12 +5,12 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 
 import PriceCheckQueue from './requestPriceCheck';
-import Bot from '../../../Bot';
-import { EntryData } from '../../../Pricelist';
-import log from '../../../../lib/logger';
-import { sendAlert } from '../../../../lib/DiscordWebhook/export';
-import { PaintedNames } from '../../../Options';
-import { testSKU } from '../../../../lib/tools/export';
+import Bot from '@classes/Bot';
+import { EntryData } from '@classes/Pricelist';
+import log from '@lib/logger';
+import { sendAlert } from '@DiscordWebhook/export';
+import { PaintedNames } from '@classes/Options';
+import { testSKU } from '@tools/export';
 
 let itemsFromPreviousTrades: string[] = [];
 
@@ -54,8 +54,9 @@ export default function updateListings(
         const isNotPure = !pure.includes(sku);
         const isNotPureOrWeapons = !pure.concat(weapons).includes(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
-
         const existInPricelist = inPrice !== null;
+        const amount = inventory.getAmount(sku, true);
+
         const isDisabledHV = highValue.isDisableSKU.includes(sku);
         const isAdmin = bot.isAdmin(offer.partner);
         const isNotSkinsOrWarPaint = item.wear === null;
@@ -108,14 +109,14 @@ export default function updateListings(
             existInPricelist &&
             inPrice.intent === 1 &&
             (opt.autokeys.enable ? sku !== '5021;6' : true) && // not Mann Co. Supply Crate Key if Autokeys enabled
-            inventory.getAmount(sku, true) < 1 && // current stock
+            amount < 1 && // current stock
             isNotPureOrWeapons;
 
         const isUpdatePartialPricedItem =
             inPrice !== null &&
             inPrice.autoprice &&
             inPrice.isPartialPriced &&
-            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
+            amount < 1 && // current stock
             isNotPureOrWeapons;
 
         //
