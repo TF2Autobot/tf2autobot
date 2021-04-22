@@ -41,13 +41,9 @@ export default function processAccepted(
                 // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
                 (meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(el => {
-                    accepted.invalidItems.push(
-                        `${
-                            isWebhookEnabled
-                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                : bot.schema.getName(SKU.fromString(el.sku), false)
-                        } - ${el.price}`
-                    );
+                    const name = t.testSKU(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
+
+                    accepted.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
                 });
             }
             if (meta?.uniqueReasons?.includes('🟧_DISABLED_ITEMS')) {

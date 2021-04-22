@@ -992,6 +992,9 @@ export const optionsSchema: jsonschema.Schema = {
                 sendPreAcceptMessage: {
                     $ref: '#/definitions/only-enable'
                 },
+                alwaysDeclineNonTF2Items: {
+                    type: 'boolean'
+                },
                 invalidValue: {
                     type: 'object',
                     properties: {
