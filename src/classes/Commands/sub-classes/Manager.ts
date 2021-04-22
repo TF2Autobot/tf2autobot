@@ -9,11 +9,11 @@ import sleepasync from 'sleep-async';
 import path from 'path';
 import dayjs from 'dayjs';
 import { EPersonaState } from 'steam-user';
-import { testSKU, fixSKU } from '../functions/utils';
+import { fixSKU } from '../functions/utils';
 import Bot from '@classes/Bot';
 import CommandParser from '@classes/CommandParser';
 import log from '@lib/logger';
-import { pure } from '@lib/tools/export';
+import { pure, testSKU } from '@lib/tools/export';
 
 // Bot manager commands
 

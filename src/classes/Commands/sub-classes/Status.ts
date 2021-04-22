@@ -2,10 +2,10 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
-import { getItemAndAmount, testSKU, fixSKU } from '../functions/utils';
+import { getItemAndAmount, fixSKU } from '../functions/utils';
 import Bot from '@classes/Bot';
 import CommandParser from '@classes/CommandParser';
-import { stats, profit, itemStats } from '@tools/export';
+import { stats, profit, itemStats, testSKU } from '@tools/export';
 import { sendStats } from '@DiscordWebhook/export';
 
 // Bot status
