@@ -90,8 +90,6 @@ export function summarizeToChat(
 type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting';
 
 import Currencies from 'tf2-currencies-2';
-import SKU from 'tf2-sku-2';
-import { replace } from '@tools/export';
 
 export default function summarize(
     offer: TradeOffer,
@@ -145,6 +143,9 @@ export default function summarize(
     }
 }
 
+import SKU from 'tf2-sku-2';
+import { replace, testSKU } from '@tools/export';
+
 function getSummary(
     dict: OurTheirItemsDict,
     bot: Bot,
@@ -166,9 +167,13 @@ function getSummary(
             continue;
         }
 
+        const isTF2Items = testSKU(sku);
+
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
-        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), properName);
+        const generateName = isTF2Items
+            ? bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), properName)
+            : sku; // Non-TF2 items
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
@@ -192,7 +197,7 @@ function getSummary(
                 oldStock = currentStock;
             }
 
-            if (withLink) {
+            if (withLink && isTF2Items) {
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
@@ -230,7 +235,7 @@ function getSummary(
                 );
             }
         } else {
-            if (withLink) {
+            if (withLink && isTF2Items) {
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji

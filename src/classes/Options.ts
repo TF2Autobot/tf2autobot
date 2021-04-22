@@ -274,6 +274,7 @@ export const DEFAULTS = {
         sendPreAcceptMessage: {
             enable: true
         },
+        alwaysDeclineNonTF2Items: true,
         // 🟥_INVALID_VALUE
         invalidValue: {
             autoDecline: {
@@ -1270,6 +1271,7 @@ interface Metals extends OnlyEnable {
 
 interface OfferReceived {
     sendPreAcceptMessage?: OnlyEnable;
+    alwaysDeclineNonTF2Items?: boolean;
     invalidValue?: InvalidValue;
     invalidItems?: InvalidItems;
     disabledItems?: AutoAcceptOverpayAndAutoDecline;

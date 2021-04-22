@@ -3,7 +3,7 @@ import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 
 import Bot from '@classes/Bot';
-import { replace } from '@tools/export';
+import { replace, testSKU } from '@tools/export';
 
 export default function listItems(
     offer: TradeOffer,
@@ -135,7 +135,7 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
             sellPrice = new Currencies(prices[sku].sell).toString();
         }
 
-        const name = bot.schema.getName(SKU.fromString(sku), properName);
+        const name = testSKU(sku) ? bot.schema.getName(SKU.fromString(sku), properName) : sku;
 
         toJoin.push(
             `${

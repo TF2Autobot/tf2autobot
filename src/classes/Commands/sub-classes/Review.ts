@@ -146,7 +146,9 @@ export default class ReviewCommands {
                     continue;
                 }
 
-                summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
+                const name = testSKU(sku) ? schema.getName(SKU.fromString(sku), false) : sku;
+
+                summary.push(name + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
             }
 
             if (summary.length === 0) {

@@ -10,6 +10,7 @@ import { EntryData } from '@classes/Pricelist';
 import log from '@lib/logger';
 import { sendAlert } from '@DiscordWebhook/export';
 import { PaintedNames } from '@classes/Options';
+import { testSKU } from '@tools/export';
 
 let itemsFromPreviousTrades: string[] = [];
 
@@ -40,6 +41,10 @@ export default function updateListings(
 
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
+            continue;
+        }
+
+        if (!testSKU(sku)) {
             continue;
         }
 
