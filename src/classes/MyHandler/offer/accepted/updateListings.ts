@@ -127,9 +127,7 @@ export default function updateListings(
 
             const priceFromOptions =
                 opt.detailsExtra.painted[
-                    pSKU === 'p5801378'
-                        ? 'Legacy Paint'
-                        : (bot.schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames)
+                    bot.schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames
                 ].price;
 
             const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
@@ -170,11 +168,7 @@ export default function updateListings(
                 .addPrice(entry, true)
                 .then(data => {
                     const msg =
-                        `✅ Automatically added ${
-                            pSKU === 'p5801378'
-                                ? `${bot.schema.getName(SKU.fromString(sku), false)} (Legacy Paint)`
-                                : bot.schema.getName(SKU.fromString(paintedSKU), false)
-                        }` +
+                        `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
                         ` (${paintedSKU}) to sell.` +
                         `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
                         `\nSelling for: ${data.sell.toString()} ` +
