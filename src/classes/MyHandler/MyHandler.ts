@@ -758,7 +758,7 @@ export default class MyHandler extends Handler {
         let isNoiseMakerNotFullUses = false;
         const noiseMakerNotFullSKUs: string[] = [];
 
-        // let hasInvalidItems = false;
+        let hasNonTF2Items = false;
 
         const states = [false, true];
         for (let i = 0; i < states.length; i++) {
@@ -770,10 +770,10 @@ export default class MyHandler extends Handler {
                     continue;
                 }
 
-                // if (sku === 'unknown') {
-                //     // Offer contains an item that is not from TF2
-                //     hasInvalidItems = true;
-                // }
+                if (!testSKU(sku)) {
+                    // Offer contains an item that is not from TF2
+                    hasNonTF2Items = true;
+                }
 
                 if (sku === '5000;6') {
                     exchange.contains.metal = true;
@@ -907,11 +907,11 @@ export default class MyHandler extends Handler {
             return;
         }
 
-        // if (hasInvalidItems) {
-        //     // Using boolean because items dict always needs to be saved
-        //     offer.log('info', 'contains items not from TF2, declining...');
-        //     return { action: 'decline', reason: '🟨_INVALID_ITEMS_CONTAINS_NON_TF2' };
-        // }
+        if (hasNonTF2Items && opt.offerReceived.alwaysDeclineNonTF2Items) {
+            // Using boolean because items dict always needs to be saved
+            offer.log('info', 'contains items not from TF2, declining...');
+            return { action: 'decline', reason: '🟨_CONTAINS_NON_TF2' };
+        }
 
         const offerMessage = offer.message.toLowerCase();
 
@@ -1089,6 +1089,8 @@ export default class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
+                let isNonTF2Items = false;
+
                 if (sku === '5000;6') {
                     exchange[which].value += amount;
                     exchange[which].scrap += amount;
@@ -1109,14 +1111,23 @@ export default class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else {
-                    const match =
-                        which === 'our'
-                            ? testSKU(sku)
+                    let match: Entry | null = null;
+
+                    if (hasNonTF2Items) {
+                        if (testSKU(sku)) {
+                            match =
+                                which === 'our'
+                                    ? this.bot.pricelist.getPrice(sku)
+                                    : this.bot.pricelist.getPrice(sku, false, true);
+                        } else {
+                            isNonTF2Items = true;
+                        }
+                    } else {
+                        match =
+                            which === 'our'
                                 ? this.bot.pricelist.getPrice(sku)
-                                : null
-                            : testSKU(sku)
-                            ? this.bot.pricelist.getPrice(sku, false, true)
-                            : null;
+                                : this.bot.pricelist.getPrice(sku, false, true);
+                    }
 
                     const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
                         ? !(
@@ -1240,7 +1251,7 @@ export default class MyHandler extends Handler {
 
                         let itemSuggestedValue = 'No price';
 
-                        if (testSKU(sku)) {
+                        if (!isNonTF2Items) {
                             // await sleepasync().Promise.sleep(1 * 1000);
                             const price = await this.bot.pricelist.getItemPrices(sku);
                             const item = SKU.fromString(sku);
