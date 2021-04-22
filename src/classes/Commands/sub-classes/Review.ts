@@ -7,7 +7,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import Bot from '@classes/Bot';
 import CommandParser from '@classes/CommandParser';
-import { generateLinks } from '@tools/export';
+import { generateLinks, testSKU } from '@tools/export';
 
 // Manual review commands
 
