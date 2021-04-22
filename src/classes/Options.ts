@@ -447,6 +447,7 @@ export const DEFAULTS = {
         successEscrow: '',
         decline: {
             general: '',
+            hasNonTF2Items: '',
             giftNoNote: '',
             crimeAttempt: '',
             onlyMetal: '',
@@ -1423,6 +1424,7 @@ interface CustomMessage {
 
 interface DeclineNote {
     general?: string;
+    hasNonTF2Items?: string;
     giftNoNote?: string;
     crimeAttempt?: string;
     onlyMetal?: string;

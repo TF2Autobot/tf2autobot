@@ -1356,6 +1356,9 @@ export const optionsSchema: jsonschema.Schema = {
                         general: {
                             type: 'string'
                         },
+                        hasNonTF2Items: {
+                            type: 'string'
+                        },
                         giftNoNote: {
                             type: 'string'
                         },
