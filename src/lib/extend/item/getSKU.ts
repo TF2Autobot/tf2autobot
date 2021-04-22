@@ -515,7 +515,7 @@ function getPainted(
         }
     }
 
-    if (item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')) {
+    if (paintsInOptions.includes('legacy paint') && item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')) {
         return 5801378;
     }
 
