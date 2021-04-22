@@ -1,7 +1,7 @@
 import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import * as re from './reasons/export-reasons';
-import Bot from '../../../Bot';
-import { ValueDiff, valueDiff } from '../../../../lib/tools/export';
+import Bot from '@classes/Bot';
+import { ValueDiff, valueDiff } from '@tools/export';
 
 export default function processReview(offer: TradeOffer, meta: Meta, bot: Bot, isTradingKeys: boolean): Content {
     const keyPrices = bot.pricelist.getKeyPrices;

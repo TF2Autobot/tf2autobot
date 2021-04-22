@@ -2,9 +2,9 @@ import Currencies from 'tf2-currencies-2';
 import { genUserPure, genScrapAdjustment } from './userSettings';
 import Bot from '../Bot';
 import { EntryData, KeyPrices, PricelistChangedSource } from '../Pricelist';
-import log from '../../lib/logger';
-import { currPure } from '../../lib/tools/pure';
-import sendAlert from '../../lib/DiscordWebhook/sendAlert';
+import log from '@lib/logger';
+import { currPure } from '@tools/pure';
+import sendAlert from '@DiscordWebhook/sendAlert';
 
 export interface OverallStatus {
     isBuyingKeys: boolean;

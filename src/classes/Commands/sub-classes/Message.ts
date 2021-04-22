@@ -1,8 +1,8 @@
 import SteamID from 'steamid';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import { generateLinks, timeNow } from '../../../lib/tools/export';
-import { sendPartnerMessage, sendAdminMessage } from '../../../lib/DiscordWebhook/export';
+import Bot from '@classes/Bot';
+import CommandParser from '@classes/CommandParser';
+import { generateLinks, timeNow } from '@tools/export';
+import { sendPartnerMessage, sendAdminMessage } from '@DiscordWebhook/export';
 
 export default class MessageCommand {
     constructor(private readonly bot: Bot) {

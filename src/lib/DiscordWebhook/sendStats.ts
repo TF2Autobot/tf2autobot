@@ -4,8 +4,8 @@ import SteamID from 'steamid';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
-import { stats, profit, timeNow } from '../../lib/tools/export';
-import Bot from '../../classes/Bot';
+import { stats, profit, timeNow } from '@tools/export';
+import Bot from '@classes/Bot';
 
 export default async function sendStats(bot: Bot, forceSend = false, steamID?: SteamID): Promise<void> {
     const optDW = bot.options.discordWebhook;

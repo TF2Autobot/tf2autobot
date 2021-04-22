@@ -1,6 +1,6 @@
 import request from 'request-retry-dayjs';
 import SteamID from 'steamid';
-import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
+import { BPTFGetUserInfo } from '@classes/MyHandler/interfaces';
 
 export async function isBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
     const steamID64 = steamID.toString();

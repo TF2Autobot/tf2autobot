@@ -16,8 +16,8 @@ v.addSchema(stringArrayURLSchema);
 import { optionsSchema } from '../schemas/options-json/options';
 v.addSchema(optionsSchema);
 
-import { EntryData } from '../classes/Pricelist';
-import Options from '../classes/Options';
+import { EntryData } from '@classes/Pricelist';
+import Options from '@classes/Options';
 
 export = function (data: EntryData | Options, schema: string): string[] | null {
     const putSchema =

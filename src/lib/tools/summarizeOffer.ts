@@ -1,6 +1,7 @@
-import { KeyPrices } from '../../classes/Pricelist';
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../classes/Bot';
+
+import { KeyPrices } from '@classes/Pricelist';
+import Bot from '@classes/Bot';
 
 const pureEmoji = new Map<string, string>();
 pureEmoji
@@ -90,7 +91,7 @@ type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'revie
 
 import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
-import { replace } from '../tools/export';
+import { replace } from '@tools/export';
 
 export default function summarize(
     offer: TradeOffer,

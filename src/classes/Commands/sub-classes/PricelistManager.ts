@@ -8,11 +8,11 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 import { removeLinkProtocol, testSKU, getItemFromParams, fixSKU } from '../functions/utils';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
-import validator from '../../../lib/validator';
-import log from '../../../lib/logger';
+import Bot from '@classes/Bot';
+import CommandParser from '@classes/CommandParser';
+import { Entry, EntryData, PricelistChangedSource } from '@classes/Pricelist';
+import validator from '@lib/validator';
+import log from '@lib/logger';
 
 // Pricelist manager
 

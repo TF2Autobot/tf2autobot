@@ -17,7 +17,18 @@
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "paths": {
-            "@pricer/*": ["src/lib/pricer/*"]
+            "@classes/*": ["src/classes/*"],
+            "@Carts/*": ["src/classes/Carts/*"],
+            "@accepted/*": ["src/classes/MyHandler/offer/accepted/*"],
+            "@notify/*": ["src/classes/MyHandler/offer/notify/*"],
+            "@review/*": ["src/classes/MyHandler/offer/review/*"],
+            "@handlerUtils/*": ["src/classes/MyHandler/utils/*"],
+            "@lib/*": ["src/lib/*"],
+            "@pricer/*": ["src/lib/pricer/*"],
+            "@tools/*": ["src/lib/tools/*"],
+            "@extend/*": ["src/lib/extend/*"],
+            "@DiscordWebhook/*": ["src/lib/DiscordWebhook/*"],
+            "@resources/*": ["src/resources/*"]
         }
     },
     "exclude": ["./node_modules", "**/__mocks__/*", "**/__tests__/*"],

@@ -1,5 +1,5 @@
 import Bot from './Bot';
-import log from '../lib/logger';
+import log from '@lib/logger';
 
 type Job = {
     type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort';

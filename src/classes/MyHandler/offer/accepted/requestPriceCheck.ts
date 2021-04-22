@@ -1,7 +1,7 @@
 import sleepasync from 'sleep-async';
-import { RequestCheckFn, RequestCheckResponse } from '../../../Pricer';
-import Bot from '../../../Bot';
-import log from '../../../../lib/logger';
+import { RequestCheckFn, RequestCheckResponse } from '@classes/Pricer';
+import Bot from '@classes/Bot';
+import log from '@lib/logger';
 
 export default class PriceCheckQueue {
     private static skus: string[] = [];

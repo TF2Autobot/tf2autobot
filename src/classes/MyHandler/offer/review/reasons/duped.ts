@@ -1,7 +1,7 @@
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import { Meta, DupedItems } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../../Bot';
+import Bot from '@classes/Bot';
 
 export default function duped(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;

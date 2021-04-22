@@ -6,8 +6,8 @@ import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';
 
 import log from '../logger';
-import { Entry } from '../../classes/Pricelist';
-import Options from '../../classes/Options';
+import { Entry } from '@classes/Pricelist';
+import Options from '@classes/Options';
 
 const australiumImageURL: { [name: string]: string } = {
     // Australium Ambassador

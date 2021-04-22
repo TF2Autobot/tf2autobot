@@ -22,11 +22,11 @@ import Inventory from './Inventory';
 import BotManager from './BotManager';
 import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
-
-import log from '../lib/logger';
-import { isBanned } from '../lib/bans';
 import Options from './Options';
 import Pricer from './Pricer';
+
+import log from '@lib/logger';
+import { isBanned } from '@lib/bans';
 
 export default class Bot {
     // Modules and classes

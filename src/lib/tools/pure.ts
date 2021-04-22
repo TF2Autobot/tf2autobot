@@ -1,6 +1,7 @@
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
-import Bot from '../../classes/Bot';
+
+import Bot from '@classes/Bot';
 
 export function stock(bot: Bot): string[] {
     const pureStock: string[] = [];

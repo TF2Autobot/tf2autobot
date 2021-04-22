@@ -1,8 +1,9 @@
 import { TradeOffer, Prices } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
-import Bot from '../../classes/Bot';
-import { replace } from '../tools/export';
+
+import Bot from '@classes/Bot';
+import { replace } from '@tools/export';
 
 export default function listItems(
     offer: TradeOffer,

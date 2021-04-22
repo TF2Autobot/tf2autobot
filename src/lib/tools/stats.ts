@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import Bot from '../../classes/Bot';
+import Bot from '@classes/Bot';
 
 export default function stats(bot: Bot): Stats {
     const now = dayjs();

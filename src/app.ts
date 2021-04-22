@@ -2,15 +2,15 @@ import 'module-alias/register';
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const { version: BOT_VERSION } = require('../package.json');
 import { getPricer } from '@pricer/pricer';
-import Pricer, { GetPricerFn } from './classes/Pricer';
-import { loadOptions } from './classes/Options';
-import HttpManager from './classes/HttpManager';
+import Pricer, { GetPricerFn } from '@classes/Pricer';
+import { loadOptions } from '@classes/Options';
+import HttpManager from '@classes/HttpManager';
 
 process.env.BOT_VERSION = BOT_VERSION as string;
 
 import fs from 'fs';
 import path from 'path';
-import genPaths from './resources/paths';
+import genPaths from '@resources/paths';
 
 if (!fs.existsSync(path.join(__dirname, '../node_modules'))) {
     /* eslint-disable-next-line no-console */
@@ -34,7 +34,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const options = loadOptions();
 const paths = genPaths(options.steamAccountName);
 
-import log, { init } from './lib/logger';
+import log, { init } from '@lib/logger';
 init(paths, options);
 
 if (process.env.pm_id === undefined) {
@@ -55,9 +55,9 @@ const botManager = new BotManager(_getPricer());
 
 import ON_DEATH from 'death';
 import * as inspect from 'util';
-import { Webhook } from './lib/DiscordWebhook/interfaces';
+import { Webhook } from '@DiscordWebhook/interfaces';
 import { XMLHttpRequest } from 'xmlhttprequest-ts';
-import { uptime } from './lib/tools/time';
+import { uptime } from '@tools/time';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = !['SIGINT', 'SIGTERM'].includes(signalOrErr as 'SIGINT' | 'SIGTERM' | 'SIGQUIT');

@@ -51,7 +51,7 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 
 dayjs.extend(advancedFormat);
 
-import Options from '../../classes/Options';
+import Options from '@classes/Options';
 
 export function timeNow(opt: Options): { timeUnix: number; time: string; emoji: string; note: string } {
     const timeEmoji = dayjs()

@@ -1,4 +1,4 @@
-import Bot from '../../../../Bot';
+import Bot from '@classes/Bot';
 
 export default function invalidValue(
     bot: Bot,

@@ -2,11 +2,11 @@ import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
-import { pure, summarizeToChat, listItems, replace, ValueDiff } from '../tools/export';
+import { pure, summarizeToChat, listItems, replace, ValueDiff } from '@tools/export';
 
-import Bot from '../../classes/Bot';
-import { KeyPrices } from '../../classes/Pricelist';
-import { sendToAdmin } from '../../classes/MyHandler/offer/review/send-review';
+import Bot from '@classes/Bot';
+import { KeyPrices } from '@classes/Pricelist';
+import { sendToAdmin } from '@review/send-review';
 
 export default function sendOfferReview(
     offer: TradeOffer,

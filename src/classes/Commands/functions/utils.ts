@@ -5,10 +5,10 @@ import SchemaManager from 'tf2-schema-2';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { Item } from '../../../types/TeamFortress2';
-import Bot from '../../Bot';
-import { Entry } from '../../Pricelist';
-import { genericNameAndMatch } from '../../Inventory';
-import { fixItem } from '../../../lib/items';
+import Bot from '@classes/Bot';
+import { Entry } from '@classes/Pricelist';
+import { genericNameAndMatch } from '@classes/Inventory';
+import { fixItem } from '@lib/items';
 
 export function getItemAndAmount(
     steamID: SteamID,

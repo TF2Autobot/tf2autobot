@@ -1,8 +1,9 @@
-import Bot from '../../classes/Bot';
 import dayjs from 'dayjs';
 import { Currency } from '../../types/TeamFortress2';
 import Currencies from 'tf2-currencies-2';
 import { OfferData } from '@tf2autobot/tradeoffer-manager';
+
+import Bot from '@classes/Bot';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 

@@ -5,12 +5,12 @@ import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 import Currencies from 'tf2-currencies-2';
 import { removeLinkProtocol, getItemFromParams, testSKU, fixSKU } from '../functions/utils';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import log from '../../../lib/logger';
-import { fixItem } from '../../../lib/items';
+import Bot from '@classes/Bot';
+import CommandParser from '@classes/CommandParser';
+import log from '@lib/logger';
+import { fixItem } from '@lib/items';
 import { UnknownDictionary } from '../../../types/common';
-import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
+import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '@classes/Pricer';
 
 export default class RequestCommands {
     private getSnapshots: GetSnapshotsFn;

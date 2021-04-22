@@ -1,4 +1,4 @@
-import Bot from '../../Bot';
+import Bot from '@classes/Bot';
 
 export default function craftClassWeapons(bot: Bot): Promise<void> {
     if (!bot.options.crafting.weapons.enable) {

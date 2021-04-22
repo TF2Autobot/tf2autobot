@@ -4,9 +4,9 @@ import Currencies from 'tf2-currencies-2';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
-import * as t from '../tools/export';
-import Bot from '../../classes/Bot';
-import { sendToAdmin } from '../../classes/MyHandler/offer/accepted/processAccepted';
+import * as t from '@tools/export';
+import Bot from '@classes/Bot';
+import { sendToAdmin } from '@accepted/processAccepted';
 
 export default async function sendTradeSummary(
     offer: TradeOffer,

@@ -5,11 +5,11 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 
 import PriceCheckQueue from './requestPriceCheck';
-import Bot from '../../../Bot';
-import { EntryData } from '../../../Pricelist';
-import log from '../../../../lib/logger';
-import { sendAlert } from '../../../../lib/DiscordWebhook/export';
-import { PaintedNames } from '../../../Options';
+import Bot from '@classes/Bot';
+import { EntryData } from '@classes/Pricelist';
+import log from '@lib/logger';
+import { sendAlert } from '@DiscordWebhook/export';
+import { PaintedNames } from '@classes/Options';
 
 let itemsFromPreviousTrades: string[] = [];
 
