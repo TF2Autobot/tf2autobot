@@ -273,6 +273,7 @@ export const DEFAULTS = {
         sendPreAcceptMessage: {
             enable: true
         },
+        alwaysDeclineNonTF2Items: true,
         // 🟥_INVALID_VALUE
         invalidValue: {
             autoDecline: {
@@ -446,6 +447,7 @@ export const DEFAULTS = {
         successEscrow: '',
         decline: {
             general: '',
+            hasNonTF2Items: '',
             giftNoNote: '',
             crimeAttempt: '',
             onlyMetal: '',
@@ -1269,6 +1271,7 @@ interface Metals extends OnlyEnable {
 
 interface OfferReceived {
     sendPreAcceptMessage?: OnlyEnable;
+    alwaysDeclineNonTF2Items?: boolean;
     invalidValue?: InvalidValue;
     invalidItems?: InvalidItems;
     disabledItems?: AutoAcceptOverpayAndAutoDecline;
@@ -1421,6 +1424,7 @@ interface CustomMessage {
 
 interface DeclineNote {
     general?: string;
+    hasNonTF2Items?: string;
     giftNoNote?: string;
     crimeAttempt?: string;
     onlyMetal?: string;

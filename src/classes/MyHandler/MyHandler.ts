@@ -42,7 +42,7 @@ import { exponentialBackoff } from '../../lib/helpers';
 
 import { noiseMakers } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
-import { summarize, uptime, getHighValueItems } from '../../lib/tools/export';
+import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
 import Pricer, { RequestCheckFn } from '../Pricer';
@@ -752,7 +752,7 @@ export default class MyHandler extends Handler {
         let isNoiseMakerNotFullUses = false;
         const noiseMakerNotFullSKUs: string[] = [];
 
-        let hasInvalidItems = false;
+        let hasNonTF2Items = false;
 
         const states = [false, true];
         for (let i = 0; i < states.length; i++) {
@@ -764,9 +764,9 @@ export default class MyHandler extends Handler {
                     continue;
                 }
 
-                if (sku === 'unknown') {
+                if (!testSKU(sku)) {
                     // Offer contains an item that is not from TF2
-                    hasInvalidItems = true;
+                    hasNonTF2Items = true;
                 }
 
                 if (sku === '5000;6') {
@@ -901,10 +901,10 @@ export default class MyHandler extends Handler {
             return;
         }
 
-        if (hasInvalidItems) {
+        if (hasNonTF2Items && opt.offerReceived.alwaysDeclineNonTF2Items) {
             // Using boolean because items dict always needs to be saved
             offer.log('info', 'contains items not from TF2, declining...');
-            return { action: 'decline', reason: '🟨_INVALID_ITEMS_CONTAINS_NON_TF2' };
+            return { action: 'decline', reason: '🟨_CONTAINS_NON_TF2' };
         }
 
         const offerMessage = offer.message.toLowerCase();
@@ -1083,6 +1083,8 @@ export default class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
+                let isNonTF2Items = false;
+
                 if (sku === '5000;6') {
                     exchange[which].value += amount;
                     exchange[which].scrap += amount;
@@ -1103,10 +1105,23 @@ export default class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else {
-                    const match =
-                        which === 'our'
-                            ? this.bot.pricelist.getPrice(sku)
-                            : this.bot.pricelist.getPrice(sku, false, true);
+                    let match: Entry | null = null;
+
+                    if (hasNonTF2Items) {
+                        if (testSKU(sku)) {
+                            match =
+                                which === 'our'
+                                    ? this.bot.pricelist.getPrice(sku)
+                                    : this.bot.pricelist.getPrice(sku, false, true);
+                        } else {
+                            isNonTF2Items = true;
+                        }
+                    } else {
+                        match =
+                            which === 'our'
+                                ? this.bot.pricelist.getPrice(sku)
+                                : this.bot.pricelist.getPrice(sku, false, true);
+                    }
 
                     const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
                         ? !(
@@ -1221,59 +1236,61 @@ export default class MyHandler extends Handler {
                         (match !== null && match.intent === (buying ? 1 : 0))
                     ) {
                         // Offer contains an item that we are not trading
-                        hasInvalidItems = true;
+                        // hasInvalidItems = true;
 
                         // If that particular item is on our side, then put to review
                         if (which === 'our') {
                             hasInvalidItemsOur = true;
                         }
 
-                        // await sleepasync().Promise.sleep(1 * 1000);
-                        const price = await this.bot.pricelist.getItemPrices(sku);
-                        const item = SKU.fromString(sku);
+                        let itemSuggestedValue = 'No price';
 
-                        const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
-                        // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
+                        if (!isNonTF2Items) {
+                            // await sleepasync().Promise.sleep(1 * 1000);
+                            const price = await this.bot.pricelist.getItemPrices(sku);
+                            const item = SKU.fromString(sku);
 
-                        const isWinterNoiseMaker = ['673;6'].includes(sku);
+                            const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
+                            // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
 
-                        const isSkinsOrWarPaints = item.wear !== null;
+                            const isWinterNoiseMaker = ['673;6'].includes(sku);
 
-                        let itemSuggestedValue: string;
-                        if (price === null) {
-                            itemSuggestedValue = 'No price';
-                            hasNoPrice = true;
-                        } else {
-                            price.buy = new Currencies(price.buy);
-                            price.sell = new Currencies(price.sell);
+                            const isSkinsOrWarPaints = item.wear !== null;
 
-                            itemPrices[sku] = {
-                                buy: price.buy,
-                                sell: price.sell
-                            };
+                            if (price === null) {
+                                hasNoPrice = true;
+                            } else {
+                                price.buy = new Currencies(price.buy);
+                                price.sell = new Currencies(price.sell);
 
-                            if (
-                                opt.offerReceived.invalidItems.givePrice &&
-                                !isSkinsOrWarPaints &&
-                                !isCrateOrCases &&
-                                !isWinterNoiseMaker // all of these (with !) should be false in order to be true
-                            ) {
-                                // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
-                                // then give that item price and include in exchange
-                                exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
-                                exchange[which].keys += price[intentString].keys * amount;
-                                exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
+                                itemPrices[sku] = {
+                                    buy: price.buy,
+                                    sell: price.sell
+                                };
+
+                                if (
+                                    opt.offerReceived.invalidItems.givePrice &&
+                                    !isSkinsOrWarPaints &&
+                                    !isCrateOrCases &&
+                                    !isWinterNoiseMaker // all of these (with !) should be false in order to be true
+                                ) {
+                                    // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
+                                    // then give that item price and include in exchange
+                                    exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
+                                    exchange[which].keys += price[intentString].keys * amount;
+                                    exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
+                                }
+                                const valueInRef = {
+                                    buy: Currencies.toRefined(price.buy.toValue(keyPrice.metal)),
+                                    sell: Currencies.toRefined(price.sell.toValue(keyPrice.metal))
+                                };
+
+                                itemSuggestedValue =
+                                    (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
+                                        ? `${valueInRef.buy.toString()} ref (${price.buy.toString()})` +
+                                          ` / ${valueInRef.sell.toString()} ref (${price.sell.toString()})`
+                                        : `${price.buy.toString()} / ${price.sell.toString()}`;
                             }
-                            const valueInRef = {
-                                buy: Currencies.toRefined(price.buy.toValue(keyPrice.metal)),
-                                sell: Currencies.toRefined(price.sell.toValue(keyPrice.metal))
-                            };
-
-                            itemSuggestedValue =
-                                (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
-                                    ? `${valueInRef.buy.toString()} ref (${price.buy.toString()})` +
-                                      ` / ${valueInRef.sell.toString()} ref (${price.sell.toString()})`
-                                    : `${price.buy.toString()} / ${price.sell.toString()}`;
                         }
 
                         wrongAboutOffer.push({

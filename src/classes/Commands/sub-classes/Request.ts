@@ -4,11 +4,12 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 import Currencies from 'tf2-currencies-2';
-import { removeLinkProtocol, getItemFromParams, testSKU, fixSKU } from '../functions/utils';
+import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
+import { testSKU } from '../../../lib/tools/export';
 import { UnknownDictionary } from '../../../types/common';
 import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 

@@ -800,6 +800,20 @@ export default class Pricelist extends EventEmitter {
         );
     }
 
+    private generatePartialPriceResetMsg(oldPrices: BuyAndSell, currPrices: Entry): string {
+        return (
+            `${
+                this.isDwAlertEnabled
+                    ? `[${currPrices.name}](https://www.prices.tf/items/${currPrices.sku})`
+                    : currPrices.name
+            } (${currPrices.sku}):\n▸ ` +
+            [
+                `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
+                `current: ${currPrices.buy.toString()}/${currPrices.sell.toString()}`
+            ].join('\n▸ ')
+        );
+    }
+
     private handlePriceChange(data: GetItemPriceResponse): void {
         if (data.source !== 'bptf') {
             return;
@@ -962,7 +976,16 @@ export default class Pricelist extends EventEmitter {
 
                     if (match.isPartialPriced) {
                         match.isPartialPriced = false; // reset to default
-                        sendAlert('autoResetPartialPrice', this.bot);
+
+                        const msg = this.generatePartialPriceResetMsg(oldPrice, match);
+
+                        if (opt.sendAlert.partialPrice.onResetAfterThreshold) {
+                            if (this.isDwAlertEnabled) {
+                                sendAlert('autoResetPartialPrice', this.bot, msg);
+                            } else {
+                                this.bot.messageAdmins('Partial price reset\n\n' + msg, []);
+                            }
+                        }
                     }
 
                     pricesChanged = true;
