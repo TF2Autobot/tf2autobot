@@ -233,22 +233,30 @@ export default async function sendTradeSummary(
                     err
                 );
 
+                const itemListx = t.listItems(offer, bot, itemsName, true);
+
+                const chatOpt = bot.options.tradeSummary.customText;
+                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
+                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
+                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
+                const cTxTimeTaken = chatOpt.timeTaken.steamChat ? chatOpt.timeTaken.steamChat : '⏱ Time taken:';
+
                 sendToAdmin(
                     bot,
                     offer,
                     optBot.steamChat.customInitializer.acceptedTradeSummary,
                     value,
-                    itemList,
+                    itemListx,
                     keyPrices,
                     isOfferSent,
                     isCustomPricer,
-                    cTKeyRate,
+                    cTxKeyRate,
                     autokeys,
                     status,
                     slots,
-                    cTPureStock,
-                    cTTotalItems,
-                    cTTimeTaken,
+                    cTxPureStock,
+                    cTxTotalItems,
+                    cTxTimeTaken,
                     timeTakenToComplete,
                     timeTakenToProcessOrConstruct,
                     tSum
