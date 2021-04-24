@@ -10,6 +10,7 @@ import { EntryData } from '../../../Pricelist';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';
+import { testSKU } from '../../../../lib/tools/export';
 
 let itemsFromPreviousTrades: string[] = [];
 
@@ -43,14 +44,19 @@ export default function updateListings(
             continue;
         }
 
+        if (!testSKU(sku)) {
+            continue;
+        }
+
         const item = SKU.fromString(sku);
         const name = bot.schema.getName(item, false);
         const pure = ['5000;6', '5001;6', '5002;6'];
         const isNotPure = !pure.includes(sku);
         const isNotPureOrWeapons = !pure.concat(weapons).includes(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
-
         const existInPricelist = inPrice !== null;
+        const amount = inventory.getAmount(sku, true);
+
         const isDisabledHV = highValue.isDisableSKU.includes(sku);
         const isAdmin = bot.isAdmin(offer.partner);
         const isNotSkinsOrWarPaint = item.wear === null;
@@ -103,14 +109,14 @@ export default function updateListings(
             existInPricelist &&
             inPrice.intent === 1 &&
             (opt.autokeys.enable ? sku !== '5021;6' : true) && // not Mann Co. Supply Crate Key if Autokeys enabled
-            inventory.getAmount(sku, true) < 1 && // current stock
+            amount < 1 && // current stock
             isNotPureOrWeapons;
 
         const isUpdatePartialPricedItem =
             inPrice !== null &&
             inPrice.autoprice &&
             inPrice.isPartialPriced &&
-            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
+            amount < 1 && // current stock
             isNotPureOrWeapons;
 
         //
@@ -121,9 +127,7 @@ export default function updateListings(
 
             const priceFromOptions =
                 opt.detailsExtra.painted[
-                    pSKU === 'p5801378'
-                        ? 'Legacy Paint'
-                        : (bot.schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames)
+                    bot.schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames
                 ].price;
 
             const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
@@ -164,11 +168,7 @@ export default function updateListings(
                 .addPrice(entry, true)
                 .then(data => {
                     const msg =
-                        `✅ Automatically added ${
-                            pSKU === 'p5801378'
-                                ? `${bot.schema.getName(SKU.fromString(sku), false)} (Legacy Paint)`
-                                : bot.schema.getName(SKU.fromString(paintedSKU), false)
-                        }` +
+                        `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
                         ` (${paintedSKU}) to sell.` +
                         `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
                         `\nSelling for: ${data.sell.toString()} ` +

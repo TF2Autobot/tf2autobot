@@ -193,6 +193,13 @@ export default function sendOfferReview(
             .catch(err => {
                 log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
 
+                const itemListx = listItems(offer, bot, itemsName, true);
+
+                const chatOpt = bot.options.tradeSummary.customText;
+                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
+                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
+                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
+
                 sendToAdmin(
                     bot,
                     offer,
@@ -202,13 +209,13 @@ export default function sendOfferReview(
                     value,
                     keyPrices,
                     offer.message,
-                    itemList,
+                    itemListx,
                     links,
                     currentItems,
                     slots,
-                    cTKeyRate,
-                    cTTotalItems,
-                    cTPureStock
+                    cTxKeyRate,
+                    cTxTotalItems,
+                    cTxPureStock
                 );
             });
     });

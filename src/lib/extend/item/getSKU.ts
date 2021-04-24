@@ -18,6 +18,10 @@ export = function (
     const self = this as EconItem;
 
     if (self.appid != 440) {
+        if (self.type && self.market_name) {
+            return `${self.type}: ${self.market_name}`;
+        }
+
         return 'unknown';
     }
 
@@ -509,6 +513,10 @@ function getPainted(
                 return paintDecimal;
             }
         }
+    }
+
+    if (paintsInOptions.includes('legacy paint') && item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')) {
+        return 5801378;
     }
 
     return null;

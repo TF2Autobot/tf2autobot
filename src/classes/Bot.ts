@@ -550,7 +550,6 @@ export default class Bot {
     private setProperties(): void {
         this.effects = this.schema.getUnusualEffects();
         this.paints = this.schema.getPaints();
-        this.paints['Legacy Paint'] = 'p5801378'; // use blue attribute
         this.strangeParts = this.schema.getStrangeParts();
         this.craftWeapons = this.schema.getCraftableWeaponsForTrading();
         this.uncraftWeapons = this.schema.getUncraftableWeaponsForTrading();
