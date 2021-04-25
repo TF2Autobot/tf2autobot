@@ -755,6 +755,9 @@ export const optionsSchema: jsonschema.Schema = {
         normalize: {
             type: 'object',
             properties: {
+                amountIncludeNonNormalizedVariant: {
+                    type: 'boolean'
+                },
                 festivized: {
                     $ref: '#/definitions/normalize-which'
                 },
@@ -765,7 +768,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/normalize-which'
                 }
             },
-            required: ['festivized', 'strangeAsSecondQuality', 'painted'],
+            required: ['amountIncludeNonNormalizedVariant', 'festivized', 'strangeAsSecondQuality', 'painted'],
             additionalProperties: false
         },
         details: {

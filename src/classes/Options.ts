@@ -188,6 +188,7 @@ export const DEFAULTS = {
     },
 
     normalize: {
+        amountIncludeNonNormalizedVariant: false,
         festivized: {
             our: false,
             their: false
@@ -1170,6 +1171,7 @@ interface HighValue {
 // ------------ Normalize ------------
 
 interface Normalize {
+    amountIncludeNonNormalizedVariant?: boolean;
     festivized?: NormalizeOurOrTheir;
     strangeAsSecondQuality?: NormalizeOurOrTheir;
     painted?: NormalizeOurOrTheir;
