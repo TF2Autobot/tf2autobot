@@ -183,54 +183,58 @@ export default class Inventory {
     }
 
     getAmount(sku: string, tradableOnly?: boolean): number {
-        // First determine if the sku have ";festive", ";p#", or ";strange" on it
-        const isIncludeFestivePaintStrange =
-            sku.includes(';festive') || /;[p][0-9]+/.test(sku) || sku.includes(';strange');
+        const optNormalize = this.options.normalize;
 
-        if (!isIncludeFestivePaintStrange && !['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) {
-            // If the sku does not have any of it (non-normalized) and is not Mann Co. Supply Crate Key and pure metal
-            // check if user set normalize[festivized || painted || strangeAsSecondQuality].our to false
-            const isNotNormalizedOur =
-                this.options.normalize.festivized.our === false ||
-                this.options.normalize.painted.our === false ||
-                this.options.normalize.strangeAsSecondQuality.our === false;
+        if (optNormalize.amountIncludeNonNormalizedVariant) {
+            // First determine if the sku have ";festive", ";p#", or ";strange" on it
+            const isIncludeFestivePaintStrange =
+                sku.includes(';festive') || /;[p][0-9]+/.test(sku) || sku.includes(';strange');
 
-            if (isNotNormalizedOur) {
-                // If any of it set to false, we get the amount of an item to include the non-normalized variants
+            if (!isIncludeFestivePaintStrange && !['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) {
+                // If the sku does not have any of it (non-normalized) and is not Mann Co. Supply Crate Key and pure metal
+                // check if user set normalize[festivized || painted || strangeAsSecondQuality].our to false
+                const isNotNormalizedOur =
+                    optNormalize.festivized.our === false ||
+                    optNormalize.painted.our === false ||
+                    optNormalize.strangeAsSecondQuality.our === false;
 
-                const schemaItem = this.schema.getItemBySKU(sku);
+                if (isNotNormalizedOur) {
+                    // If any of it set to false, we get the amount of an item to include the non-normalized variants
 
-                const canBeFestivized =
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    this.schema.raw.items_game.items[`${schemaItem.defindex}`].tags?.can_be_festivized === '1';
+                    const schemaItem = this.schema.getItemBySKU(sku);
 
-                // First just the amount of non-normalized
-                let accAmount = this.findBySKU(sku, tradableOnly).length;
+                    const canBeFestivized =
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                        this.schema.raw.items_game.items[`${schemaItem.defindex}`].tags?.can_be_festivized === '1';
 
-                // Festivized
-                if (canBeFestivized && !this.options.normalize.festivized.our) {
-                    const item = SKU.fromString(sku);
-                    item.festive = true;
-                    accAmount += this.findBySKU(SKU.fromObject(item), tradableOnly).length;
-                }
+                    // First just the amount of non-normalized
+                    let accAmount = this.findBySKU(sku, tradableOnly).length;
 
-                // Painted
-                if (schemaItem?.capabilities?.paintable && !this.options.normalize.painted.our) {
-                    const paintPartialSKU = Object.values(this.paints);
-                    for (const pSKU of paintPartialSKU) {
-                        accAmount += this.findBySKU(`${sku};${pSKU}`, tradableOnly).length;
+                    // Festivized
+                    if (canBeFestivized && !optNormalize.festivized.our) {
+                        const item = SKU.fromString(sku);
+                        item.festive = true;
+                        accAmount += this.findBySKU(SKU.fromObject(item), tradableOnly).length;
                     }
-                }
 
-                // Strange as second quality
-                if (schemaItem?.capabilities?.can_strangify && !this.options.normalize.strangeAsSecondQuality.our) {
-                    const item = SKU.fromString(sku);
-                    item.quality2 = 11;
-                    accAmount += this.findBySKU(SKU.fromObject(item), tradableOnly).length;
-                }
+                    // Painted
+                    if (schemaItem?.capabilities?.paintable && !optNormalize.painted.our) {
+                        const paintPartialSKU = Object.values(this.paints);
+                        for (const pSKU of paintPartialSKU) {
+                            accAmount += this.findBySKU(`${sku};${pSKU}`, tradableOnly).length;
+                        }
+                    }
 
-                // return accumulated amount
-                return accAmount;
+                    // Strange as second quality
+                    if (schemaItem?.capabilities?.can_strangify && !optNormalize.strangeAsSecondQuality.our) {
+                        const item = SKU.fromString(sku);
+                        item.quality2 = 11;
+                        accAmount += this.findBySKU(SKU.fromObject(item), tradableOnly).length;
+                    }
+
+                    // return accumulated amount
+                    return accAmount;
+                }
             }
         }
 
