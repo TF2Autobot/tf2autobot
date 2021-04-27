@@ -191,7 +191,7 @@ export default class PricelistManagerCommands {
     }
 
     private generateAddedReply(isPremium: boolean, entry: Entry): string {
-        const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku);
+        const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false);
         const reply =
             `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
             `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
@@ -951,7 +951,7 @@ export default class PricelistManagerCommands {
 
     private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
         const keyPrice = this.bot.pricelist.getKeyPrice;
-        const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
+        const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku, false);
 
         const reply =
             `\n💲 Buy: ${
@@ -1260,7 +1260,7 @@ export default class PricelistManagerCommands {
     }
 
     private generateOutput(filtered: Entry): string {
-        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
+        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, false, true);
         filtered['stock'] = currentStock;
 
         return JSON.stringify(filtered, null, 4);
@@ -1278,7 +1278,7 @@ export default class PricelistManagerCommands {
 
         const list = pricelist.map((entry, i) => {
             const name = this.bot.schema.getName(SKU.fromString(entry.sku));
-            const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
+            const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
 
             return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
@@ -1454,7 +1454,7 @@ export default class PricelistManagerCommands {
 
             const list = filter.map((entry, i) => {
                 const name = this.bot.schema.getName(SKU.fromString(entry.sku));
-                const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
+                const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max
