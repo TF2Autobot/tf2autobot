@@ -791,7 +791,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['amountIncludeNonNormalizedVariant', 'festivized', 'strangeAsSecondQuality', 'painted'],
+            required: ['festivized', 'strangeAsSecondQuality', 'painted'],
             additionalProperties: false
         },
         details: {
