@@ -182,7 +182,64 @@ export default class Inventory {
         return nonTradable.concat(tradable).slice(0);
     }
 
-    getAmount(sku: string, tradableOnly?: boolean): number {
+    getAmount(sku: string, includeNonNormalized: boolean, tradableOnly?: boolean): number {
+        if (includeNonNormalized && !['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) {
+            // This is true only on src/lib/tools/summarizeOffer.ts @ L180, and src/classes/InventoryManager.ts @ L69
+            let accAmount = this.findBySKU(sku, tradableOnly).length;
+
+            const optNormalize = this.options.normalize;
+            const normFestivized = optNormalize.festivized;
+            const normPainted = optNormalize.painted;
+            const normStrange = optNormalize.strangeAsSecondQuality;
+
+            const schemaItem = this.schema.getItemBySKU(sku);
+            if (schemaItem) {
+                const canBeFestivized =
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    this.schema.raw.items_game.items[`${schemaItem.defindex}`].tags?.can_be_festivized == 1;
+
+                // Festivized
+                if (
+                    !sku.includes(';festive') &&
+                    canBeFestivized &&
+                    normFestivized.amountIncludeNonFestivized &&
+                    !normFestivized.our
+                ) {
+                    const item = SKU.fromString(sku);
+                    item.festive = true;
+                    accAmount += this.findBySKU(SKU.fromObject(item), tradableOnly).length;
+                }
+
+                // Painted
+                if (
+                    !/;[p][0-9]+/.test(sku) &&
+                    schemaItem.capabilities?.paintable &&
+                    normPainted.amountIncludeNonPainted &&
+                    !normPainted.our
+                ) {
+                    const paintPartialSKU = Object.values(this.paints);
+                    for (const pSKU of paintPartialSKU) {
+                        accAmount += this.findBySKU(`${sku};${pSKU}`, tradableOnly).length;
+                    }
+                }
+
+                // Strange as second quality
+                if (
+                    !sku.includes(';strange') &&
+                    schemaItem.capabilities?.can_strangify &&
+                    normPainted.amountIncludeNonPainted &&
+                    !normStrange.our
+                ) {
+                    const item = SKU.fromString(sku);
+                    item.quality2 = 11;
+                    accAmount += this.findBySKU(SKU.fromObject(item), tradableOnly).length;
+                }
+            }
+
+            return accAmount;
+        }
+
+        // else just return amount
         return this.findBySKU(sku, tradableOnly).length;
     }
 
@@ -194,13 +251,13 @@ export default class Inventory {
             const reduced = this.effects
                 .map(e => {
                     s.effect = e.id;
-                    return this.getAmount(SKU.fromObject(s), tradableOnly);
+                    return this.getAmount(SKU.fromObject(s), false, tradableOnly);
                 })
                 // add up total found; total is undefined to being with
                 .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
             return reduced;
         } else {
-            return this.getAmount(sku, tradableOnly);
+            return this.getAmount(sku, false, tradableOnly);
         }
     }
 
