@@ -457,7 +457,7 @@ export default class Commands {
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, false, true);
         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.match.sku, false) - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(info.match.sku), false);
+        const name = info.match.name;
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
