@@ -9,7 +9,7 @@ declare module 'bptf-listings-2' {
         ready: () => void;
         listings: (listings: ListingManager.Listing[]) => void;
         actions: (actions: { create: Record<string, unknown>[]; remove: string[] }) => void;
-        heartbeat: (bumped: number) => void;
+        pulse: (pulse: { status: string; current_time?: number; expire_at?: number; client?: string }) => void;
         inventory: (lastUpdated: number) => void;
         createListingsError: (err: Error) => void;
         deleteListingsError: (err: Error) => void;
@@ -54,7 +54,14 @@ declare module 'bptf-listings-2' {
 
         init(callback: (err: any) => void): void;
 
-        sendHeartbeat(callback: (err: any, body?: any) => void): void;
+        registerUserAgent(
+            callback: (
+                err: any,
+                body?: { status: string; current_time?: number; expire_at?: number; client?: string }
+            ) => void
+        ): void;
+
+        stopUserAgent(callback: (err: any, body?: { status: string }) => void): void;
 
         getListings(callback: (err: any, body?: any) => any): void;
 
