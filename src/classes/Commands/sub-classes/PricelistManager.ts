@@ -1162,17 +1162,13 @@ export default class PricelistManagerCommands {
             return this.bot.sendMessage(steamID, '❌ No items with ppu enabled found.');
         }
 
-        const list: string[] = [];
-        let i = 0;
-
-        for (const sku in pricelist) {
+        const list = Object.keys(pricelist).map((sku, i) => {
             const entry = pricelist[sku];
             const name = entry.name;
             const time = entry.time;
 
-            list.push(`${i + 1}. ${entry.sku} - ${name} (since ${time})`);
-            i++;
-        }
+            return `${i + 1}. ${entry.sku} - ${name} (since ${time})`;
+        });
 
         const listCount = list.length;
 
@@ -1348,7 +1344,7 @@ export default class PricelistManagerCommands {
             const isPremium = this.bot.handler.getBotInfo.premium;
 
             const list = filter.map((entry, i) => {
-                const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+                const name = entry.name;
                 const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
