@@ -1328,8 +1328,18 @@ export default class PricelistManagerCommands {
             return this.bot.sendMessage(steamID, '❌ Your pricelist is empty.');
         }
 
+        const isPpuEnabled = this.bot.options.pricelist.partialPriceUpdate.enable;
+
         const ppuEd = pricelist.filter(entry => entry.isPartialPriced);
         if (ppuEd.length === 0) {
+            if (!isPpuEnabled) {
+                return this.bot.sendMessage(
+                    steamID,
+                    '❌ This feature is disabled. Read more: ' +
+                        'https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file#--partial-price-update--'
+                );
+            }
+
             return this.bot.sendMessage(steamID, '❌ No items with ppu enabled found.');
         }
 
@@ -1346,17 +1356,20 @@ export default class PricelistManagerCommands {
 
         this.bot.sendMessage(
             steamID,
-            `Found ${pluralize('item', listCount, true)} in your pricelist that ${pluralize(
-                'is',
-                listCount,
-                true
-            )} currently being partial priced${
-                limit !== -1 && params.limit === undefined && listCount > 50
-                    ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
-                    : `${
-                          limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
-                      }.`
-            }`
+            (!isPpuEnabled ? '⚠️ Partial Price Update disabled, but found ' : 'Found ') +
+                `${pluralize('item', listCount, true)} in your pricelist that ${pluralize(
+                    'is',
+                    listCount,
+                    true
+                )} currently being partial priced${
+                    limit !== -1 && params.limit === undefined && listCount > 50
+                        ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
+                        : `${
+                              limit < listCount && limit > 0 && params.limit !== undefined
+                                  ? ` (limit set to ${limit})`
+                                  : ''
+                          }.`
+                }`
         );
 
         const applyLimit = limit === -1 ? listCount : limit;
