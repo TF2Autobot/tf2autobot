@@ -55,7 +55,7 @@ export default function updateListings(
         const isNotPureOrWeapons = !pure.concat(weapons).includes(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
         const existInPricelist = inPrice !== null;
-        const amount = inventory.getAmount(sku, true);
+        const amount = inventory.getAmount(sku, false, true);
 
         const isDisabledHV = highValue.isDisableSKU.includes(sku);
         const isAdmin = bot.isAdmin(offer.partner);
@@ -73,7 +73,7 @@ export default function updateListings(
             hv[sku]?.s === undefined && // make sure spelled is undefined
             inPrice !== null && // base items must already in pricelist
             bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null && // painted items must not in pricelist
-            inventory.getAmount(`${sku};${Object.keys(hv[sku].p)[0]}`, true) > 0 &&
+            inventory.getAmount(`${sku};${Object.keys(hv[sku].p)[0]}`, false, true) > 0 &&
             opt.pricelist.autoAddPaintedItems.enable; // autoAddPaintedItems must enabled
 
         const isAutoaddInvalidItems =

@@ -727,7 +727,7 @@ export default class Pricelist extends EventEmitter {
                     const currBuyingValue = currPrice.buy.toValue(keyPrice);
                     const currSellingValue = currPrice.sell.toValue(keyPrice);
 
-                    const isInStock = inventory.getAmount(sku, true) > 0;
+                    const isInStock = inventory.getAmount(sku, false, true) > 0;
                     const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
                     const isNotExcluded = !excludedSKU.includes(sku);
                     const maxIsOne = currPrice.max === 1;
@@ -895,7 +895,7 @@ export default class Pricelist extends EventEmitter {
             };
 
             let pricesChanged = false;
-            const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, true);
+            const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true);
 
             const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = currentStock > 0;

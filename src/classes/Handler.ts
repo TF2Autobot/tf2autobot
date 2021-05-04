@@ -184,10 +184,9 @@ export default abstract class Handler {
     }
 
     /**
-     * Called when a heartbeat has been sent to bptf
-     * @param bumped - How many listings were bumped as the result of the heartbeat
+     * Called when a bptf user-agent renewed
      */
-    onHeartbeat(bumped: number): void {
+    onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
         // empty function
     }
 

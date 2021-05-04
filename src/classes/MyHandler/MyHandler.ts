@@ -2249,6 +2249,10 @@ export default class MyHandler extends Handler {
         this.bot.listings.checkBySKU(sku, entry, false, true);
     }
 
+    onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
+        log.debug('user-agent', pulse);
+    }
+
     onLoginThrottle(wait: number): void {
         log.warn(`Waiting ${wait} ms before trying to sign in...`);
     }

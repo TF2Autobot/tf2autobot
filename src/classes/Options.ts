@@ -190,15 +190,18 @@ export const DEFAULTS = {
     normalize: {
         festivized: {
             our: false,
-            their: false
+            their: false,
+            amountIncludeNonFestivized: false
         },
         strangeAsSecondQuality: {
             our: false,
-            their: false
+            their: false,
+            amountIncludeNonStrange: false
         },
         painted: {
             our: true,
-            their: true
+            their: true,
+            amountIncludeNonPainted: false
         }
     },
 
@@ -1170,14 +1173,26 @@ interface HighValue {
 // ------------ Normalize ------------
 
 interface Normalize {
-    festivized?: NormalizeOurOrTheir;
-    strangeAsSecondQuality?: NormalizeOurOrTheir;
-    painted?: NormalizeOurOrTheir;
+    festivized?: NormalizeFestivized;
+    strangeAsSecondQuality?: NormalizeStrange;
+    painted?: NormalizePainted;
 }
 
 interface NormalizeOurOrTheir {
     our?: boolean;
     their?: boolean;
+}
+
+interface NormalizeFestivized extends NormalizeOurOrTheir {
+    amountIncludeNonFestivized?: boolean;
+}
+
+interface NormalizeStrange extends NormalizeOurOrTheir {
+    amountIncludeNonStrange?: boolean;
+}
+
+interface NormalizePainted extends NormalizeOurOrTheir {
+    amountIncludeNonPainted?: boolean;
 }
 
 // ------------ Details ------------

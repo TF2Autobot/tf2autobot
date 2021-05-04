@@ -637,7 +637,7 @@ export default class Listings {
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-                .replace(/%current_stock%/g, inventory.getAmount(entry.sku, true).toString())
+                .replace(/%current_stock%/g, inventory.getAmount(entry.sku, false, true).toString())
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
         };
 
