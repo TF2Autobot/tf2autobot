@@ -1277,7 +1277,7 @@ export default class PricelistManagerCommands {
         const isPremium = this.bot.handler.getBotInfo.premium;
 
         const list = pricelist.map((entry, i) => {
-            const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+            const name = entry.name;
             const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
 
             return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
@@ -1344,7 +1344,7 @@ export default class PricelistManagerCommands {
         }
 
         const list = ppuEd.map((entry, i) => {
-            const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+            const name = entry.name;
             const time = dayjs.unix(entry.time).fromNow();
 
             return `${i + 1}. ${entry.sku} - ${name} (since ${time})`;
@@ -1520,7 +1520,7 @@ export default class PricelistManagerCommands {
             const isPremium = this.bot.handler.getBotInfo.premium;
 
             const list = filter.map((entry, i) => {
-                const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+                const name = entry.name;
                 const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
