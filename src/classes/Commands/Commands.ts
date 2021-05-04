@@ -200,6 +200,8 @@ export default class Commands {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
             void this.pManager.getAllCommand(steamID, message);
+        } else if (command === 'ppu' && isAdmin) {
+            void this.pManager.partialPriceUpdateCommand(steamID, message);
         } else if (['getslots', 'listings'].includes(command) && isAdmin) {
             void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
