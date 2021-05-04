@@ -1320,6 +1320,73 @@ export default class PricelistManagerCommands {
         }
     }
 
+    async partialPriceUpdateCommand(steamID: SteamID, message: string): Promise<void> {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        const pricelist = this.bot.pricelist.getPrices;
+        if (pricelist.length === 0) {
+            return this.bot.sendMessage(steamID, '❌ Your pricelist is empty.');
+        }
+
+        const isPpuEnabled = this.bot.options.pricelist.partialPriceUpdate.enable;
+
+        const ppuEd = pricelist.filter(entry => entry.isPartialPriced);
+        if (ppuEd.length === 0) {
+            if (!isPpuEnabled) {
+                return this.bot.sendMessage(
+                    steamID,
+                    '❌ This feature is disabled. Read more: ' +
+                        'https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file#--partial-price-update--'
+                );
+            }
+
+            return this.bot.sendMessage(steamID, '❌ No items with ppu enabled found.');
+        }
+
+        const list = ppuEd.map((entry, i) => {
+            const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+            const time = dayjs.unix(entry.time).fromNow();
+
+            return `${i + 1}. ${entry.sku} - ${name} (since ${time})`;
+        });
+
+        const listCount = list.length;
+
+        const limit = params.limit === undefined ? 50 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+
+        this.bot.sendMessage(
+            steamID,
+            (!isPpuEnabled ? '⚠️ Partial Price Update disabled, but found ' : 'Found ') +
+                `${pluralize('item', listCount, true)} in your pricelist that ${pluralize(
+                    'is',
+                    listCount,
+                    true
+                )} currently being partial priced${
+                    limit !== -1 && params.limit === undefined && listCount > 50
+                        ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
+                        : `${
+                              limit < listCount && limit > 0 && params.limit !== undefined
+                                  ? ` (limit set to ${limit})`
+                                  : ''
+                          }.`
+                }`
+        );
+
+        const applyLimit = limit === -1 ? listCount : limit;
+        const loops = Math.ceil(applyLimit / 50);
+
+        for (let i = 0; i < loops; i++) {
+            const last = loops - i === 1;
+            const i50 = i * 50;
+
+            const firstOrLast = i < 1 && limit > 0 && limit < 50 ? limit : i50 + (applyLimit - i50);
+
+            this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
+
+            await sleepasync().Promise.sleep(1 * 1000);
+        }
+    }
+
     async findCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
         if (
