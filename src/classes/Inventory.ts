@@ -447,7 +447,11 @@ function highValue(
         }
     }
 
-    if (econ.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi') && Object.keys(p).length === 0) {
+    if (
+        !econ.type.includes('Tool') && // Not a Paint Can
+        econ.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi') &&
+        Object.keys(p).length === 0
+    ) {
         p['p5801378'] = true; // Legacy Paint
     }
 
