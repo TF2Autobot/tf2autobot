@@ -332,7 +332,7 @@ export default class Bot {
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
+        this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
         this.addListener(
             this.listingManager,
             'createListingsError',
