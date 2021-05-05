@@ -350,14 +350,13 @@ export default class Listings {
                         // Filter pricelist to only items we can sell and we can afford to buy
 
                         const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
-                        const amountCanSell = inventoryManager.amountCanTrade(entry.sku, false);
 
                         if (
                             (amountCanBuy > 0 &&
                                 inventoryManager.isCanAffordToBuy(entry.buy, inventoryManager.getInventory)) ||
-                            amountCanSell > 0
+                            inventory.getAmount(entry.sku, false, true) > 0
                         ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
                             return true;
                         }
