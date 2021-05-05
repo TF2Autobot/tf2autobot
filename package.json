@@ -22,7 +22,7 @@
     "bugs": {
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
-    "updateMessage": "• <=v3.6.8 - Check your Node.js version. Make sure it's at least version 14 before updating your bot to the latest version. Manual update recommended.\n• >=v3.7.0 - Clear to update with \"!updaterepo\" command.",
+    "updateMessage": "• <=v3.7.7 - Manual update recommended. Please create a backup of your pricelist.json file.\n• >=v3.8.0 - Clear to update with !updaterepo command.",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
@@ -38,7 +38,7 @@
         "dayjs": "^1.10.4",
         "death": "^1.1.0",
         "dot-prop": "^6.0.1",
-        "dotenv": "^8.2.0",
+        "dotenv": "^8.5.0",
         "express": "^4.17.1",
         "graceful-fs": "^4.2.6",
         "isobject": "^4.0.0",
@@ -66,7 +66,7 @@
         "valid-url": "^1.0.9",
         "websocket-extensions": "^0.1.4",
         "winston": "^3.3.3",
-        "winston-daily-rotate-file": "^4.5.2",
+        "winston-daily-rotate-file": "^4.5.4",
         "xmlhttprequest-ts": "^1.0.1"
     },
     "devDependencies": {
@@ -84,8 +84,8 @@
         "@types/semver": "^7.3.5",
         "@types/socket.io-client": "^1.4.34",
         "@types/valid-url": "^1.0.3",
-        "@typescript-eslint/eslint-plugin": "^4.22.0",
-        "@typescript-eslint/parser": "^4.22.0",
+        "@typescript-eslint/eslint-plugin": "^4.22.1",
+        "@typescript-eslint/parser": "^4.22.1",
         "eslint": "^7.25.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-jest": "^24.3.6",
