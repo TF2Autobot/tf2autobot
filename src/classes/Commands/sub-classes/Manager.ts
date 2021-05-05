@@ -555,7 +555,8 @@ export default class ManagerCommands {
                     );
                 }
 
-                const inventory = this.bot.inventoryManager;
+                const inventoryManager = this.bot.inventoryManager;
+                const inventory = inventoryManager.getInventory;
                 const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
 
                 this.bot.listingManager.listings.forEach(listing => {
@@ -581,7 +582,7 @@ export default class ManagerCommands {
                     const match = this.bot.pricelist.getPrice(listingSKU);
 
                     if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                        const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
+                        const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
 
                         if (!canAffordToBuy) {
                             // Listing for buying exist but we can't afford to buy, remove.
@@ -607,12 +608,11 @@ export default class ManagerCommands {
                         continue;
                     }
 
-                    const amountCanBuy = inventory.amountCanTrade(sku, true);
-                    const amountCanSell = inventory.amountCanTrade(sku, false);
+                    const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
 
                     if (
-                        (amountCanBuy > 0 && inventory.isCanAffordToBuy(pricelist[sku].buy, inventory.getInventory)) ||
-                        amountCanSell > 0
+                        (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
+                        inventory.getAmount(sku, false, true) > 0
                     ) {
                         // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
                         // return this entry

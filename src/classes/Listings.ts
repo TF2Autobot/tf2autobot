@@ -345,14 +345,12 @@ export default class Listings {
                 if (this.bot.options.pricelist.filterCantAfford.enable) {
                     skus = skus.filter(sku => {
                         const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
-                        const amountCanSell = inventoryManager.amountCanTrade(sku, false);
 
                         if (
-                            (amountCanBuy > 0 &&
-                                inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventoryManager.getInventory)) ||
-                            amountCanSell > 0
+                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
+                            inventory.getAmount(sku, false, true) > 0
                         ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
                             return true;
                         }
