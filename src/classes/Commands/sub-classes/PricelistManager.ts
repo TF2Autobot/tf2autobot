@@ -723,7 +723,7 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            const match = this.bot.pricelist.searchByName(params.item as string, false);
+            const match = this.bot.pricelist.searchByName(params.item as string, false) as Entry;
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
@@ -990,7 +990,7 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            const match = this.bot.pricelist.searchByName(params.item as string, false);
+            const match = this.bot.pricelist.searchByName(params.item as string, false) as Entry;
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
@@ -1037,7 +1037,7 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            const match = this.bot.pricelist.searchByName(params.item as string, false);
+            const match = this.bot.pricelist.searchByName(params.item as string, false) as Entry;
 
             if (match === null) {
                 return this.bot.sendMessage(
