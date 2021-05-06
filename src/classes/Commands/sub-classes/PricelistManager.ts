@@ -5,6 +5,7 @@ import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
+import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
@@ -1165,7 +1166,7 @@ export default class PricelistManagerCommands {
         const list = Object.keys(pricelist).map((sku, i) => {
             const entry = pricelist[sku];
             const name = entry.name;
-            const time = entry.time;
+            const time = dayjs.unix(entry.time).fromNow();
 
             return `${i + 1}. ${entry.sku} - ${name} (since ${time})`;
         });

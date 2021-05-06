@@ -124,6 +124,7 @@ export default class Bot {
 
         this.listingManager = new ListingManager({
             token: this.options.bptfAccessToken,
+            userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
             batchSize: 25,
             waitTime: 100,
             schema: this.schema
