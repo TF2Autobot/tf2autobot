@@ -21,6 +21,7 @@ declare module 'bptf-listings-2' {
         constructor(options?: {
             token?: string;
             steamid?: string;
+            userAgent?: string;
             waitTime?: number;
             batchSize?: number;
             schema?: SchemaManager.Schema;
