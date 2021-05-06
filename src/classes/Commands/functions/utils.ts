@@ -52,7 +52,7 @@ export function getItemAndAmount(
         return null;
     }
 
-    const match = bot.pricelist.searchByName(name, true);
+    let match = bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 
@@ -172,23 +172,22 @@ export function getItemAndAmount(
 
             return null;
         }
+    } else if (Array.isArray(match)) {
+        const matchCount = match.length;
+
+        if (matchCount > 20) {
+            match = match.splice(0, 20);
+        }
+
+        let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(',\n')}`;
+        if (matchCount > match.length) {
+            const other = matchCount - match.length;
+            reply += `,\nand ${other} other ${pluralize('item', other)}.`;
+        }
+
+        bot.sendMessage(steamID, reply);
+        return null;
     }
-    // } else if (Array.isArray(match)) {
-    //     const matchCount = match.length;
-
-    //     if (matchCount > 20) {
-    //         match = match.splice(0, 20);
-    //     }
-
-    //     let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(',\n')}`;
-    //     if (matchCount > match.length) {
-    //         const other = matchCount - match.length;
-    //         reply += `,\nand ${other} other ${pluralize('item', other)}.`;
-    //     }
-
-    //     bot.sendMessage(steamID, reply);
-    //     return null;
-    // }
 
     return {
         amount: amount,

@@ -258,14 +258,74 @@ export default class Pricelist extends EventEmitter {
         return null;
     }
 
-    searchByName(search: string, enabledOnly = true): Entry | null {
+    searchByName(search: string, enabledOnly = true): Entry | string[] | null {
         const sku = this.schema.getSkuFromName(search);
 
         if (this.hasPrice(sku, enabledOnly)) {
             return this.prices[sku];
         }
 
-        return null;
+        // If unable to find by SKU, we iterate pricelist and search with name
+
+        search = search.toLowerCase();
+
+        const match: Entry[] = [];
+        const ArraySKU = Object.keys(this.prices);
+        const pricesCount = ArraySKU.length;
+
+        for (let i = 0; i < pricesCount; i++) {
+            const entry = this.prices[ArraySKU[i]];
+
+            if (enabledOnly && entry.enabled === false) {
+                continue;
+            }
+
+            if (entry.name === null) {
+                // Check if entry.name is null, if true, get the name
+                if (entry.sku !== null) {
+                    // Check if entry.sku not null, if yes, then get name from it
+                    entry.name = this.schema.getName(SKU.fromString(entry.sku), false);
+
+                    if (entry.name === null) {
+                        // If entry.name still null after getting its name, then skip current iteration
+                        continue;
+                    }
+                } else {
+                    // Else if entry.sku is null, then skip current iteration
+                    continue;
+                }
+            }
+
+            // Bot can crash here if entry.name is null
+            const name = entry.name.toLowerCase();
+
+            if (search.includes('uncraftable')) {
+                search = search.replace('uncraftable', 'non-craftable');
+            }
+
+            if (search === name || search.replace(/the /g, '').trim() === name.replace(/the /g, '').trim()) {
+                // Found direct match
+                return entry;
+            }
+
+            if (name.includes(search)) {
+                match.push(entry);
+            }
+        }
+
+        const matchCount = match.length;
+
+        if (matchCount === 0) {
+            // No match
+            return null;
+        } else if (matchCount === 1) {
+            // Found one that matched the search
+            return match[0];
+        }
+
+        // Found many that matched, return list of the names
+        const matchedNames = match.map(entry => entry.name);
+        return matchedNames;
     }
 
     private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
