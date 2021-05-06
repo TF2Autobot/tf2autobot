@@ -723,12 +723,29 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            const match = this.bot.pricelist.searchByName(params.item as string, false) as Entry;
+            let match = this.bot.pricelist.searchByName(params.item as string, false);
+
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
                 );
+            } else if (Array.isArray(match)) {
+                const matchCount = match.length;
+                if (matchCount > 20) {
+                    match = match.splice(0, 20);
+                }
+
+                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
+                    ',\n'
+                )}`;
+
+                if (matchCount > match.length) {
+                    const other = matchCount - match.length;
+                    reply += `,\nand ${other} other ${pluralize('item', other)}.`;
+                }
+
+                return this.bot.sendMessage(steamID, reply);
             }
 
             delete params.item;
@@ -990,12 +1007,29 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            const match = this.bot.pricelist.searchByName(params.item as string, false) as Entry;
+            let match = this.bot.pricelist.searchByName(params.item as string, false);
+
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
                 );
+            } else if (Array.isArray(match)) {
+                const matchCount = match.length;
+                if (matchCount > 20) {
+                    match = match.splice(0, 20);
+                }
+
+                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
+                    ',\n'
+                )}`;
+
+                if (matchCount > match.length) {
+                    const other = matchCount - match.length;
+                    reply += `,\nand ${other} other ${pluralize('item', other)}.`;
+                }
+
+                return this.bot.sendMessage(steamID, reply);
             }
 
             delete params.item;
@@ -1037,13 +1071,29 @@ export default class PricelistManagerCommands {
 
         if (params.item !== undefined) {
             // Remove by full name
-            const match = this.bot.pricelist.searchByName(params.item as string, false) as Entry;
+            let match = this.bot.pricelist.searchByName(params.item as string, false);
 
             if (match === null) {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ I could not find any items in my pricelist that contain "${params.item as string}"`
                 );
+            } else if (Array.isArray(match)) {
+                const matchCount = match.length;
+                if (matchCount > 20) {
+                    match = match.splice(0, 20);
+                }
+
+                let reply = `I've found ${matchCount} items. Try with one of the items shown below:\n${match.join(
+                    ',\n'
+                )}`;
+
+                if (matchCount > match.length) {
+                    const other = matchCount - match.length;
+                    reply += `,\nand ${other} other ${pluralize('item', other)}.`;
+                }
+
+                return this.bot.sendMessage(steamID, reply);
             }
 
             delete params.item;
