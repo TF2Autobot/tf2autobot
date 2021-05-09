@@ -11,7 +11,8 @@ export default async function sendTradeDeclined(
     declined: Declined,
     bot: Bot,
     timeTakenToProcessOrConstruct: number,
-    isTradingKeys: boolean
+    isTradingKeys: boolean,
+    isOfferSent: boolean
 ): Promise<void> {
     const optBot = bot.options;
     const optDW = optBot.discordWebhook;
@@ -41,7 +42,7 @@ export default async function sendTradeDeclined(
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);
-    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, false);
+    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, isOfferSent);
 
     log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
@@ -68,6 +69,8 @@ export default async function sendTradeDeclined(
 
     //Maybe mention owner on high value declines ?
     const mentionOwner = '';
+
+    const declinedDescription = declined.reasonDescription;
     const declinedTradeSummary: Webhook = {
         username: optDW.displayName ?? botInfo.name,
         avatar_url: optDW.avatarURL ?? optDW.avatarURL,
@@ -81,12 +84,14 @@ export default async function sendTradeDeclined(
                     icon_url: details.avatarFull as string
                 },
                 description:
-                    `⛔ An offer sent by ${partnerNameNoFormat} is declined.\nReason: ${declined.reasonDescription}` +
+                    `⛔ An offer sent by ${declinedDescription ? partnerNameNoFormat : 'us'} is declined.${
+                        declinedDescription ? '\nReason: ' + declinedDescription : ''
+                    }` +
                     summary +
                     `\n${cTTimeTaken} ${t.convertTime(
                         null,
                         timeTakenToProcessOrConstruct,
-                        false, //Needs to be changed if we include our offers as well
+                        isOfferSent,
                         tDec.showDetailedTimeTaken,
                         tDec.showTimeTakenInMS
                     )}\n\n` +
@@ -203,7 +208,7 @@ export default async function sendTradeDeclined(
                     value,
                     itemListx,
                     keyPrices,
-                    false, //isOfferSent is unused for now
+                    isOfferSent,
                     isCustomPricer,
                     cTxKeyRate,
                     autokeys,
