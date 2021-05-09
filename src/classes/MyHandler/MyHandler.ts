@@ -1932,7 +1932,7 @@ export default class MyHandler extends Handler {
                 highValue.items = result.items;
             } else if (
                 offer.state === TradeOfferManager.ETradeOfferState['Declined'] &&
-                this.bot.options.tradeDeclined.enable &&
+                this.bot.options.tradeSummary.declinedTrade.enable &&
                 !this.sentSummary[offer.id]
             ) {
                 //No need to create a new timeout cause a trade can't be accepted after getting declined or cant be declined after being accepted.

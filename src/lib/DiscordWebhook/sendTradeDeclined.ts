@@ -17,7 +17,7 @@ export default async function sendTradeDeclined(
     const optBot = bot.options;
     const optDW = optBot.discordWebhook;
 
-    const properName = bot.options.tradeDeclined.showProperName;
+    const properName = bot.options.tradeSummary.showProperName;
 
     //Unsure if highValue will work or not
     const itemsName = properName
@@ -49,14 +49,14 @@ export default async function sendTradeDeclined(
 
     const botInfo = bot.handler.getBotInfo;
     const links = t.generateLinks(offer.partner.toString());
-    const misc = optDW.tradeDeclined.misc;
+    const misc = optDW.declinedTrade.misc;
 
     const itemList = t.listItems(offer, bot, itemsName, false);
     const slots = bot.tf2.backpackSlots;
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
 
-    const tDec = optBot.tradeDeclined;
+    const tDec = optBot.tradeSummary;
     const cT = tDec.customText;
     const cTTimeTaken = cT.timeTaken.discordWebhook ? cT.timeTaken.discordWebhook : '⏱ **Time taken:**';
     const cTKeyRate = cT.keyRate.discordWebhook ? cT.keyRate.discordWebhook : '🔑 Key rate:';
@@ -171,12 +171,11 @@ export default async function sendTradeDeclined(
 
                 newSentences = '';
                 j++;
-                //
             } else newSentences += sentence;
         });
     }
 
-    const url = optDW.tradeDeclined.url;
+    const url = optDW.declinedTrade.url;
 
     url.forEach((link, i) => {
         sendWebhook(link, declinedTradeSummary, 'trade-declined', i)
@@ -191,7 +190,7 @@ export default async function sendTradeDeclined(
 
                 const itemListx = t.listItems(offer, bot, itemsName, true);
 
-                const chatOpt = bot.options.tradeDeclined.customText;
+                const chatOpt = bot.options.tradeSummary.customText;
                 const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
                 const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
                 const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';

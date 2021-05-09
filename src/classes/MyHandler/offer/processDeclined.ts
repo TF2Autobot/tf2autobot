@@ -5,7 +5,7 @@ import * as t from '../../../lib/tools/export';
 import sendTradeDeclined from 'src/lib/DiscordWebhook/sendTradeDeclined';
 import { KeyPrices } from 'src/classes/Pricelist';
 import Autokeys, { OverallStatus } from 'src/classes/Autokeys/Autokeys';
-import { TradeDeclined } from '../../Options';
+import { TradeSummary } from '../../Options';
 
 export default function processDeclined(
     offer: i.TradeOffer,
@@ -29,7 +29,7 @@ export default function processDeclined(
     const offerReceived = offer.data('action') as i.Action;
     const meta = offer.data('meta') as i.Meta;
 
-    const isWebhookEnabled = opt.discordWebhook.tradeDeclined.enable && opt.discordWebhook.tradeDeclined.url.length > 0;
+    const isWebhookEnabled = opt.discordWebhook.declinedTrade.enable && opt.discordWebhook.declinedTrade.url.length > 0;
 
     if (offerReceived) {
         switch (offerReceived.reason) {
@@ -193,7 +193,7 @@ export default function processDeclined(
             const autokeys = bot.handler.autokeys;
             const status = autokeys.getOverallStatus;
 
-            const tDec = bot.options.tradeDeclined;
+            const tDec = bot.options.tradeSummary;
             const cT = tDec.customText;
             const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
             const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
@@ -246,7 +246,7 @@ export function sendToAdmin(
     cTTimeTaken: string,
     timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
-    tSum: TradeDeclined
+    tSum: TradeSummary
 ): void {
     bot.messageAdmins(
         'trade',
