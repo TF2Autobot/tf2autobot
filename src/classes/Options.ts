@@ -115,6 +115,7 @@ export const DEFAULTS: JsonOptions = {
     },
 
     tradeSummary: {
+        declinedTrade:{enable:false},
         showStockChanges: false,
         showTimeTakenInMS: false,
         showDetailedTimeTaken: true,
@@ -392,7 +393,6 @@ export const DEFAULTS: JsonOptions = {
         avatarURL: '',
         embedColor: '9171753',
         tradeSummary: {
-            declinedTrade:{enable:false},
             enable: true,
             url: [],
             misc: {
@@ -1123,7 +1123,6 @@ export interface TradeSummary {
     customText?: TradeSummaryCustomText;
 }
 
-
 interface TradeSummaryCustomText {
     summary: SteamDiscord;
     asked: SteamDiscord;
@@ -1370,7 +1369,6 @@ interface DiscordWebhook {
 }
 
 interface TradeSummaryDW extends OnlyEnable {
-    declinedTrade: OnlyEnable;
     url?: string[];
     misc?: MiscTradeSummary;
     mentionOwner?: MentionOwner;
