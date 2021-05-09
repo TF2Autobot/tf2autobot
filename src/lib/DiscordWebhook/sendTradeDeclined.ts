@@ -10,7 +10,6 @@ export default async function sendTradeDeclined(
     offer: TradeOffer,
     declined: Declined,
     bot: Bot,
-    timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
     isTradingKeys: boolean
 ): Promise<void> {
@@ -85,7 +84,7 @@ export default async function sendTradeDeclined(
                     `⛔ An offer sent by ${partnerNameNoFormat} is declined.\nReason: ${declined.reasonDescription}\n` +
                     summary +
                     `\n${cTTimeTaken} ${t.convertTime(
-                        timeTakenToComplete,
+                        null,
                         timeTakenToProcessOrConstruct,
                         false, //Needs to be changed if we include our offers as well
                         tDec.showDetailedTimeTaken,
@@ -213,7 +212,6 @@ export default async function sendTradeDeclined(
                     cTxPureStock,
                     cTxTotalItems,
                     cTxTimeTaken,
-                    timeTakenToComplete,
                     timeTakenToProcessOrConstruct,
                     tDec
                 );

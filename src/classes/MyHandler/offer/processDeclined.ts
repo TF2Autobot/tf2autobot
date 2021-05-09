@@ -7,12 +7,7 @@ import { KeyPrices } from '../../../classes/Pricelist';
 import Autokeys, { OverallStatus } from '../../../classes/Autokeys/Autokeys';
 import { TradeSummary } from '../../Options';
 
-export default function processDeclined(
-    offer: i.TradeOffer,
-    bot: Bot,
-    isTradingKeys: boolean,
-    timeTakenToComplete: number
-): void {
+export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTradingKeys: boolean): void {
     const opt = bot.options;
 
     const declined: Declined = {
@@ -167,14 +162,7 @@ export default function processDeclined(
         const timeTakenToProcessOrConstruct = (offer.data('constructOfferTime') ||
             offer.data('processOfferTime')) as number;
         if (isWebhookEnabled) {
-            void sendTradeDeclined(
-                offer,
-                declined,
-                bot,
-                timeTakenToComplete,
-                timeTakenToProcessOrConstruct,
-                isTradingKeys
-            );
+            void sendTradeDeclined(offer, declined, bot, timeTakenToProcessOrConstruct, isTradingKeys);
         } else {
             const slots = bot.tf2.backpackSlots;
             const itemsName = {
@@ -219,7 +207,6 @@ export default function processDeclined(
                 cTPureStock,
                 cTTotalItems,
                 cTTimeTaken,
-                timeTakenToComplete,
                 timeTakenToProcessOrConstruct,
                 tDec
             );
@@ -244,7 +231,6 @@ export function sendToAdmin(
     cTPureStock: string,
     cTTotalItems: string,
     cTTimeTaken: string,
-    timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
     tSum: TradeSummary
 ): void {
@@ -271,7 +257,7 @@ export function sendToAdmin(
                 slots !== undefined ? `/${slots}` : ''
             }` +
             `\n${cTTimeTaken} ${t.convertTime(
-                timeTakenToComplete,
+                null,
                 timeTakenToProcessOrConstruct,
                 isOfferSent,
                 tSum.showDetailedTimeTaken,

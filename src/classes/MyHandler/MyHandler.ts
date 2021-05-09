@@ -1932,7 +1932,7 @@ export default class MyHandler extends Handler {
                 clearTimeout(this.resetSentSummaryTimeout);
                 this.sentSummary[offer.id] = true;
 
-                processDeclined(offer, this.bot, this.isTradingKeys, timeTakenToComplete);
+                processDeclined(offer, this.bot, this.isTradingKeys);
             }
         }
 
