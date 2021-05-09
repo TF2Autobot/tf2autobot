@@ -21,6 +21,7 @@ import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
 import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
+import processDeclined from './offer/processDeclined';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
@@ -1929,6 +1930,16 @@ export default class MyHandler extends Handler {
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
                 highValue.items = result.items;
+            } else if (
+                offer.state === TradeOfferManager.ETradeOfferState['Declined'] &&
+                this.bot.options.tradeDeclined.enable &&
+                !this.sentSummary[offer.id]
+            ) {
+                //No need to create a new timeout cause a trade can't be accepted after getting declined or cant be declined after being accepted.
+                clearTimeout(this.resetSentSummaryTimeout);
+                this.sentSummary[offer.id] = true;
+
+                processDeclined(offer, this.bot, this.isTradingKeys, timeTakenToComplete);
             }
         }
 

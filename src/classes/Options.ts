@@ -6,7 +6,7 @@ import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
 import { Currency } from '../types/TeamFortress2';
 
-export const DEFAULTS = {
+export const DEFAULTS: JsonOptions = {
     miscSettings: {
         showOnlyMetal: {
             enable: true
@@ -166,9 +166,62 @@ export const DEFAULTS = {
         }
     },
 
+    tradeDeclined: {
+        enable: false,
+        showStockChanges: false,
+        showTimeTakenInMS: false,
+        showDetailedTimeTaken: true,
+        showItemPrices: true,
+        showPureInEmoji: false,
+        showProperName: false,
+        customText: {
+            summary: {
+                steamChat: 'Summary',
+                discordWebhook: '__**Summary**__'
+            },
+            asked: {
+                steamChat: '• Asked:',
+                discordWebhook: '**• Asked:**'
+            },
+            offered: {
+                steamChat: '• Offered:',
+                discordWebhook: '**• Offered:**'
+            },
+            profitFromOverpay: {
+                steamChat: '📈 Profit from overpay:',
+                discordWebhook: '📈 ***Profit from overpay:***'
+            },
+            lossFromUnderpay: {
+                steamChat: '📉 Loss from underpay:',
+                discordWebhook: '📉 ***Loss from underpay:***'
+            },
+            timeTaken: {
+                steamChat: '⏱ Time taken:',
+                discordWebhook: '⏱ **Time taken:**'
+            },
+            keyRate: {
+                steamChat: '🔑 Key rate:',
+                discordWebhook: '🔑 Key rate:'
+            },
+            pureStock: {
+                steamChat: '💰 Pure stock:',
+                discordWebhook: '💰 Pure stock:'
+            },
+            totalItems: {
+                steamChat: '🎒 Total items:',
+                discordWebhook: '🎒 Total items:'
+            },
+            spells: '🎃 Spells:',
+            strangeParts: '🎰 Parts:',
+            killstreaker: '🔥 Killstreaker:',
+            sheen: '✨ Sheen:',
+            painted: '🎨 Painted:'
+        }
+    },
     steamChat: {
         customInitializer: {
             acceptedTradeSummary: '/me',
+            declinedTradeSummary: '/me',
             review: '',
             message: {
                 onReceive: '/quote',
@@ -392,6 +445,22 @@ export const DEFAULTS = {
         embedColor: '9171753',
         tradeSummary: {
             enable: true,
+            url: [],
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true,
+                showInventory: true,
+                note: ''
+            },
+            mentionOwner: {
+                enable: false,
+                itemSkus: [],
+                tradeValueInRef: 0
+            }
+        },
+        tradeDeclined: {
+            enable: false,
             url: [],
             misc: {
                 showQuickLinks: true,
@@ -1120,6 +1189,11 @@ export interface TradeSummary {
     customText?: TradeSummaryCustomText;
 }
 
+export interface TradeDeclined extends TradeSummary {
+    enable?: boolean;
+    // Extends TradeSummary instead of copying values so if a psycho wants it they can make them both different.
+}
+
 interface TradeSummaryCustomText {
     summary: SteamDiscord;
     asked: SteamDiscord;
@@ -1150,6 +1224,7 @@ interface SteamChat {
 
 interface CustomInitializer {
     acceptedTradeSummary?: string;
+    declinedTradeSummary?: string;
     review?: string;
     message?: CustomInitializerMessage;
 }
@@ -1357,6 +1432,7 @@ interface DiscordWebhook {
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
+    tradeDeclined: TradeSummaryDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
@@ -1817,6 +1893,7 @@ export interface JsonOptions {
     pricelist?: Pricelist;
     bypass?: Bypass;
     tradeSummary?: TradeSummary;
+    tradeDeclined?: TradeDeclined;
     steamChat?: SteamChat;
     highValue?: HighValue;
     normalize?: Normalize;
