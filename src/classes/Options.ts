@@ -115,7 +115,7 @@ export const DEFAULTS: JsonOptions = {
     },
 
     tradeSummary: {
-        declinedTrade:{enable:false},
+        declinedTrade: { enable: false },
         showStockChanges: false,
         showTimeTakenInMS: false,
         showDetailedTimeTaken: true,
@@ -408,7 +408,7 @@ export const DEFAULTS: JsonOptions = {
                 tradeValueInRef: 0
             }
         },
-        declinedTrades: {
+        declinedTrade: {
             enable: true,
             url: [],
             misc: {
@@ -1377,7 +1377,7 @@ interface DiscordWebhook {
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
-    declinedTrades?: TradeSummaryDW;
+    declinedTrade?: TradeSummaryDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;

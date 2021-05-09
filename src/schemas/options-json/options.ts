@@ -590,7 +590,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         }
                     },
-                    required:['enable']
+                    required: ['enable']
                 },
                 showStockChanges: {
                     type: 'boolean'
@@ -1254,7 +1254,7 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['enable', 'url', 'misc', 'mentionOwner'],
                     additionalProperties: false
                 },
-                declinedTrades: {
+                declinedTrade: {
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -1413,6 +1413,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'avatarURL',
                 'embedColor',
                 'tradeSummary',
+                'declinedTrade',
                 'offerReview',
                 'messages',
                 'priceUpdate',
