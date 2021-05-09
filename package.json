@@ -53,7 +53,7 @@
         "request-retry-dayjs": "^1.0.1",
         "retry": "^0.12.0",
         "sleep-async": "^1.0.5",
-        "socket.io-client": "^2.3.1",
+        "socket.io-client": "^4.0.2",
         "steam-totp": "^2.1.1",
         "steam-user": "^4.19.5",
         "steamcommunity": "^3.42.0",
