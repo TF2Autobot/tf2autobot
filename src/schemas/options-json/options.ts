@@ -583,6 +583,15 @@ export const optionsSchema: jsonschema.Schema = {
         tradeSummary: {
             type: 'object',
             properties: {
+                declinedTrade: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable']
+                },
                 showStockChanges: {
                     type: 'boolean'
                 },
@@ -667,6 +676,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
+                'declinedTrade',
                 'showStockChanges',
                 'showTimeTakenInMS',
                 'showDetailedTimeTaken',
@@ -686,6 +696,9 @@ export const optionsSchema: jsonschema.Schema = {
                         acceptedTradeSummary: {
                             $ref: '#/definitions/valid-initializer'
                         },
+                        declinedTradeSummary: {
+                            $ref: '#/definitions/valid-initializer'
+                        },
                         review: {
                             $ref: '#/definitions/valid-initializer'
                         },
@@ -703,7 +716,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         }
                     },
-                    required: ['acceptedTradeSummary', 'review', 'message'],
+                    required: ['acceptedTradeSummary', 'declinedTradeSummary', 'review', 'message'],
                     additionalProperties: false
                 }
             },
@@ -1241,6 +1254,56 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['enable', 'url', 'misc', 'mentionOwner'],
                     additionalProperties: false
                 },
+                declinedTrade: {
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        url: {
+                            $ref: 'array-string-url'
+                        },
+                        misc: {
+                            type: 'object',
+                            properties: {
+                                showQuickLinks: {
+                                    type: 'boolean'
+                                },
+                                showKeyRate: {
+                                    type: 'boolean'
+                                },
+                                showPureStock: {
+                                    type: 'boolean'
+                                },
+                                showInventory: {
+                                    type: 'boolean'
+                                },
+                                note: {
+                                    type: 'string'
+                                }
+                            },
+                            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory', 'note'],
+                            additionalProperties: false
+                        },
+                        mentionOwner: {
+                            properties: {
+                                enable: {
+                                    type: 'boolean'
+                                },
+                                itemSkus: {
+                                    $ref: '#/definitions/string-array'
+                                },
+                                tradeValueInRef: {
+                                    type: 'number',
+                                    minimum: 0
+                                }
+                            },
+                            required: ['enable', 'itemSkus', 'tradeValueInRef'],
+                            additionalProperties: false
+                        }
+                    },
+                    required: ['enable', 'url', 'misc', 'mentionOwner'],
+                    additionalProperties: false
+                },
                 offerReview: {
                     type: 'object',
                     properties: {
@@ -1350,6 +1413,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'avatarURL',
                 'embedColor',
                 'tradeSummary',
+                'declinedTrade',
                 'offerReview',
                 'messages',
                 'priceUpdate',
