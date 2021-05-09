@@ -388,9 +388,7 @@ export default class UserCart extends Cart {
         if (this.isEmpty) {
             return Promise.reject('cart is empty');
         }
-
         const start = Date.now();
-
         const offer = this.bot.manager.createOffer(this.partner);
 
         const alteredMessages: string[] = [];

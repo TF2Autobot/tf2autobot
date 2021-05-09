@@ -4,7 +4,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
-import { Item } from '../../../types/TeamFortress2';
+import { MinimumItem } from '../../../types/TeamFortress2';
 import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
@@ -62,6 +62,7 @@ export function getItemAndAmount(
                 steamID,
                 custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`
             );
+
             return null;
         }
     }
@@ -74,7 +75,13 @@ export function getItemAndAmount(
         let closestUnusualMatch: Entry = null;
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
         const genericEffect = genericNameAndMatch(name, bot.effects);
-        for (const pricedItem of bot.pricelist.getPrices) {
+        const pricelist = bot.pricelist.getPrices;
+        for (const sku in pricelist) {
+            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                continue;
+            }
+
+            const pricedItem = pricelist[sku];
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {
@@ -192,7 +199,7 @@ export function getItemFromParams(
     steamID: SteamID | string,
     params: UnknownDictionaryKnownValues,
     bot: Bot
-): Item | null {
+): MinimumItem | null {
     const item = SKU.fromString('');
     delete item.craftnumber;
 
