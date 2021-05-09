@@ -166,58 +166,6 @@ export const DEFAULTS: JsonOptions = {
         }
     },
 
-    tradeDeclined: {
-        enable: false,
-        showStockChanges: false,
-        showTimeTakenInMS: false,
-        showDetailedTimeTaken: true,
-        showItemPrices: true,
-        showPureInEmoji: false,
-        showProperName: false,
-        customText: {
-            summary: {
-                steamChat: 'Summary',
-                discordWebhook: '__**Summary**__'
-            },
-            asked: {
-                steamChat: '• Asked:',
-                discordWebhook: '**• Asked:**'
-            },
-            offered: {
-                steamChat: '• Offered:',
-                discordWebhook: '**• Offered:**'
-            },
-            profitFromOverpay: {
-                steamChat: '📈 Profit from overpay:',
-                discordWebhook: '📈 ***Profit from overpay:***'
-            },
-            lossFromUnderpay: {
-                steamChat: '📉 Loss from underpay:',
-                discordWebhook: '📉 ***Loss from underpay:***'
-            },
-            timeTaken: {
-                steamChat: '⏱ Time taken:',
-                discordWebhook: '⏱ **Time taken:**'
-            },
-            keyRate: {
-                steamChat: '🔑 Key rate:',
-                discordWebhook: '🔑 Key rate:'
-            },
-            pureStock: {
-                steamChat: '💰 Pure stock:',
-                discordWebhook: '💰 Pure stock:'
-            },
-            totalItems: {
-                steamChat: '🎒 Total items:',
-                discordWebhook: '🎒 Total items:'
-            },
-            spells: '🎃 Spells:',
-            strangeParts: '🎰 Parts:',
-            killstreaker: '🔥 Killstreaker:',
-            sheen: '✨ Sheen:',
-            painted: '🎨 Painted:'
-        }
-    },
     steamChat: {
         customInitializer: {
             acceptedTradeSummary: '/me',
@@ -444,23 +392,8 @@ export const DEFAULTS: JsonOptions = {
         avatarURL: '',
         embedColor: '9171753',
         tradeSummary: {
+            declinedTrade:{enable:false},
             enable: true,
-            url: [],
-            misc: {
-                showQuickLinks: true,
-                showKeyRate: true,
-                showPureStock: true,
-                showInventory: true,
-                note: ''
-            },
-            mentionOwner: {
-                enable: false,
-                itemSkus: [],
-                tradeValueInRef: 0
-            }
-        },
-        tradeDeclined: {
-            enable: false,
             url: [],
             misc: {
                 showQuickLinks: true,
@@ -1180,6 +1113,7 @@ interface OnlyAllow {
 // ------------ TradeSummary ------------
 
 export interface TradeSummary {
+    declinedTrade?: OnlyEnable;
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
     showDetailedTimeTaken?: boolean;
@@ -1189,10 +1123,6 @@ export interface TradeSummary {
     customText?: TradeSummaryCustomText;
 }
 
-export interface TradeDeclined extends TradeSummary {
-    enable?: boolean;
-    // Extends TradeSummary instead of copying values so if a psycho wants it they can make them both different.
-}
 
 interface TradeSummaryCustomText {
     summary: SteamDiscord;
@@ -1432,7 +1362,6 @@ interface DiscordWebhook {
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
-    tradeDeclined: TradeSummaryDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
@@ -1441,6 +1370,7 @@ interface DiscordWebhook {
 }
 
 interface TradeSummaryDW extends OnlyEnable {
+    declinedTrade: OnlyEnable;
     url?: string[];
     misc?: MiscTradeSummary;
     mentionOwner?: MentionOwner;
@@ -1893,7 +1823,6 @@ export interface JsonOptions {
     pricelist?: Pricelist;
     bypass?: Bypass;
     tradeSummary?: TradeSummary;
-    tradeDeclined?: TradeDeclined;
     steamChat?: SteamChat;
     highValue?: HighValue;
     normalize?: Normalize;
