@@ -519,7 +519,7 @@ export default class PricelistManagerCommands {
                     continue;
                 }
 
-                if (params.withgroup && entry.group === params.withoutgroup) {
+                if (params.withoutgroup && entry.group === params.withoutgroup) {
                     continue;
                 }
 
