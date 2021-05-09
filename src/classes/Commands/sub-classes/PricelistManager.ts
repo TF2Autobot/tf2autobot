@@ -506,15 +506,13 @@ export default class PricelistManagerCommands {
                 return this.bot.sendMessage(steamID, 'Your pricelist is empty.');
             }
 
-            const newPricelist = pricelist; // no need to copy
-
             let changed = false;
-            for (const sku in newPricelist) {
-                if (!Object.prototype.hasOwnProperty.call(newPricelist, sku)) {
+            for (const sku in pricelist) {
+                if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
                     continue;
                 }
 
-                const entry = newPricelist[sku];
+                const entry = pricelist[sku];
                 if (params.withgroup && entry.group !== params.withgroup) {
                     continue;
                 }
@@ -605,11 +603,11 @@ export default class PricelistManagerCommands {
                     }
                 }
 
-                newPricelist[sku] = entry;
+                pricelist[sku] = entry;
             }
 
             if (changed) {
-                const errors = validator(newPricelist, 'pricelist');
+                const errors = validator(pricelist, 'pricelist');
                 if (errors !== null) {
                     throw new Error(errors.join(', '));
                 }
@@ -648,7 +646,7 @@ export default class PricelistManagerCommands {
             // FIXME: Make it so that it is not needed to remove all listings
 
             if (params.autoprice !== true) {
-                await this.bot.handler.onPricelist(newPricelist);
+                await this.bot.handler.onPricelist(pricelist);
                 this.bot.sendMessage(steamID, '✅ Updated pricelist!');
 
                 return await this.bot.listings.redoListings();
