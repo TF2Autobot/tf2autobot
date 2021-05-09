@@ -81,7 +81,7 @@ export default async function sendTradeDeclined(
                     icon_url: details.avatarFull as string
                 },
                 description:
-                    `⛔ An offer sent by ${partnerNameNoFormat} is declined.\nReason: ${declined.reasonDescription}\n` +
+                    `⛔ An offer sent by ${partnerNameNoFormat} is declined.\nReason: ${declined.reasonDescription}` +
                     summary +
                     `\n${cTTimeTaken} ${t.convertTime(
                         null,
