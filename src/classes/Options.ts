@@ -408,6 +408,22 @@ export const DEFAULTS: JsonOptions = {
                 tradeValueInRef: 0
             }
         },
+        declinedTrades: {
+            enable: true,
+            url: [],
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true,
+                showInventory: true,
+                note: ''
+            },
+            mentionOwner: {
+                enable: false,
+                itemSkus: [],
+                tradeValueInRef: 0
+            }
+        },
         offerReview: {
             enable: true,
             url: '',
@@ -1361,6 +1377,7 @@ interface DiscordWebhook {
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
+    declinedTrades?: TradeSummaryDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
