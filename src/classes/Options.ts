@@ -6,7 +6,7 @@ import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
 import { Currency } from '../types/TeamFortress2';
 
-export const DEFAULTS = {
+export const DEFAULTS: JsonOptions = {
     miscSettings: {
         showOnlyMetal: {
             enable: true
@@ -115,6 +115,7 @@ export const DEFAULTS = {
     },
 
     tradeSummary: {
+        declinedTrade: { enable: false },
         showStockChanges: false,
         showTimeTakenInMS: false,
         showDetailedTimeTaken: true,
@@ -169,6 +170,7 @@ export const DEFAULTS = {
     steamChat: {
         customInitializer: {
             acceptedTradeSummary: '/me',
+            declinedTradeSummary: '/me',
             review: '',
             message: {
                 onReceive: '/quote',
@@ -391,6 +393,22 @@ export const DEFAULTS = {
         avatarURL: '',
         embedColor: '9171753',
         tradeSummary: {
+            enable: true,
+            url: [],
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true,
+                showInventory: true,
+                note: ''
+            },
+            mentionOwner: {
+                enable: false,
+                itemSkus: [],
+                tradeValueInRef: 0
+            }
+        },
+        declinedTrade: {
             enable: true,
             url: [],
             misc: {
@@ -1111,6 +1129,7 @@ interface OnlyAllow {
 // ------------ TradeSummary ------------
 
 export interface TradeSummary {
+    declinedTrade?: OnlyEnable;
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
     showDetailedTimeTaken?: boolean;
@@ -1150,6 +1169,7 @@ interface SteamChat {
 
 interface CustomInitializer {
     acceptedTradeSummary?: string;
+    declinedTradeSummary?: string;
     review?: string;
     message?: CustomInitializerMessage;
 }
@@ -1357,6 +1377,7 @@ interface DiscordWebhook {
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
+    declinedTrade?: TradeSummaryDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
