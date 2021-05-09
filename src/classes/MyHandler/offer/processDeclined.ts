@@ -2,9 +2,9 @@ import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Bot from '../../Bot';
 import * as t from '../../../lib/tools/export';
-import sendTradeDeclined from 'src/lib/DiscordWebhook/sendTradeDeclined';
-import { KeyPrices } from 'src/classes/Pricelist';
-import Autokeys, { OverallStatus } from 'src/classes/Autokeys/Autokeys';
+import sendTradeDeclined from '../../../lib/DiscordWebhook/sendTradeDeclined';
+import { KeyPrices } from '../../../classes/Pricelist';
+import Autokeys, { OverallStatus } from '../../../classes/Autokeys/Autokeys';
 import { TradeSummary } from '../../Options';
 
 export default function processDeclined(
