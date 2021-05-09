@@ -583,6 +583,15 @@ export const optionsSchema: jsonschema.Schema = {
         tradeSummary: {
             type: 'object',
             properties: {
+                declinedTrade: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        }
+                    },
+                    required:['enable']
+                },
                 showStockChanges: {
                     type: 'boolean'
                 },
@@ -667,6 +676,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
+                'declinedTrade',
                 'showStockChanges',
                 'showTimeTakenInMS',
                 'showDetailedTimeTaken',
@@ -686,6 +696,9 @@ export const optionsSchema: jsonschema.Schema = {
                         acceptedTradeSummary: {
                             $ref: '#/definitions/valid-initializer'
                         },
+                        declinedTradeSummary: {
+                            $ref: '#/definitions/valid-initializer'
+                        },
                         review: {
                             $ref: '#/definitions/valid-initializer'
                         },
@@ -703,7 +716,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         }
                     },
-                    required: ['acceptedTradeSummary', 'review', 'message'],
+                    required: ['acceptedTradeSummary', 'declinedTradeSummary', 'review', 'message'],
                     additionalProperties: false
                 }
             },
