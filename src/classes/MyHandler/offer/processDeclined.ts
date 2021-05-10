@@ -158,59 +158,61 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
                     break;
             }
         });
+    }
 
-        const timeTakenToProcessOrConstruct = (offer.data('constructOfferTime') ||
-            offer.data('processOfferTime')) as number;
-        if (isWebhookEnabled) {
-            void sendTradeDeclined(offer, declined, bot, timeTakenToProcessOrConstruct, isTradingKeys);
-        } else {
-            const slots = bot.tf2.backpackSlots;
-            const itemsName = {
-                invalid: declined.invalidItems, // 🟨_INVALID_ITEMS
-                disabled: declined.disabledItems, // 🟧_DISABLED_ITEMS
-                overstock: declined.overstocked, // 🟦_OVERSTOCKED
-                understock: declined.understocked, // 🟩_UNDERSTOCKED
-                duped: declined.dupedItems, // '🟫_DUPED_ITEMS'
-                dupedFailed: [],
-                highValue: declined.highNotSellingItems
-            };
-            const keyPrices = bot.pricelist.getKeyPrices;
-            const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
-            const itemList = t.listItems(offer, bot, itemsName, true);
+    const isOfferSent = offer.data('action') === undefined;
+    const timeTakenToProcessOrConstruct = (offer.data('constructOfferTime') ||
+        offer.data('processOfferTime')) as number;
 
-            const autokeys = bot.handler.autokeys;
-            const status = autokeys.getOverallStatus;
+    if (isWebhookEnabled) {
+        void sendTradeDeclined(offer, declined, bot, timeTakenToProcessOrConstruct, isTradingKeys, isOfferSent);
+    } else {
+        const slots = bot.tf2.backpackSlots;
+        const itemsName = {
+            invalid: declined.invalidItems, // 🟨_INVALID_ITEMS
+            disabled: declined.disabledItems, // 🟧_DISABLED_ITEMS
+            overstock: declined.overstocked, // 🟦_OVERSTOCKED
+            understock: declined.understocked, // 🟩_UNDERSTOCKED
+            duped: declined.dupedItems, // '🟫_DUPED_ITEMS'
+            dupedFailed: [],
+            highValue: declined.highNotSellingItems
+        };
+        const keyPrices = bot.pricelist.getKeyPrices;
+        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
+        const itemList = t.listItems(offer, bot, itemsName, true);
 
-            const tDec = bot.options.tradeSummary;
-            const cT = tDec.customText;
-            const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
-            const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
-            const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
-            const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
+        const autokeys = bot.handler.autokeys;
+        const status = autokeys.getOverallStatus;
 
-            const customInitializer = bot.options.steamChat.customInitializer.declinedTradeSummary;
-            const isCustomPricer = bot.pricelist.isUseCustomPricer;
+        const tDec = bot.options.tradeSummary;
+        const cT = tDec.customText;
+        const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
+        const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
+        const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
+        const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
 
-            sendToAdmin(
-                bot,
-                offer,
-                customInitializer,
-                value,
-                itemList,
-                keyPrices,
-                false, //isOfferSent is unused for now
-                isCustomPricer,
-                cTKeyRate,
-                autokeys,
-                status,
-                slots,
-                cTPureStock,
-                cTTotalItems,
-                cTTimeTaken,
-                timeTakenToProcessOrConstruct,
-                tDec
-            );
-        }
+        const customInitializer = bot.options.steamChat.customInitializer.declinedTradeSummary;
+        const isCustomPricer = bot.pricelist.isUseCustomPricer;
+
+        sendToAdmin(
+            bot,
+            offer,
+            customInitializer,
+            value,
+            itemList,
+            keyPrices,
+            isOfferSent,
+            isCustomPricer,
+            cTKeyRate,
+            autokeys,
+            status,
+            slots,
+            cTPureStock,
+            cTTotalItems,
+            cTTimeTaken,
+            timeTakenToProcessOrConstruct,
+            tDec
+        );
     }
     //else it's sent by us and they declined it so we don't care ?
 }

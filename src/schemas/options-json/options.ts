@@ -1283,25 +1283,9 @@ export const optionsSchema: jsonschema.Schema = {
                             },
                             required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory', 'note'],
                             additionalProperties: false
-                        },
-                        mentionOwner: {
-                            properties: {
-                                enable: {
-                                    type: 'boolean'
-                                },
-                                itemSkus: {
-                                    $ref: '#/definitions/string-array'
-                                },
-                                tradeValueInRef: {
-                                    type: 'number',
-                                    minimum: 0
-                                }
-                            },
-                            required: ['enable', 'itemSkus', 'tradeValueInRef'],
-                            additionalProperties: false
                         }
                     },
-                    required: ['enable', 'url', 'misc', 'mentionOwner'],
+                    required: ['enable', 'url', 'misc'],
                     additionalProperties: false
                 },
                 offerReview: {

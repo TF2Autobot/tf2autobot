@@ -417,11 +417,6 @@ export const DEFAULTS: JsonOptions = {
                 showPureStock: true,
                 showInventory: true,
                 note: ''
-            },
-            mentionOwner: {
-                enable: false,
-                itemSkus: [],
-                tradeValueInRef: 0
             }
         },
         offerReview: {
@@ -1377,7 +1372,7 @@ interface DiscordWebhook {
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
-    declinedTrade?: TradeSummaryDW;
+    declinedTrade?: DeclinedTradeDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
@@ -1389,6 +1384,11 @@ interface TradeSummaryDW extends OnlyEnable {
     url?: string[];
     misc?: MiscTradeSummary;
     mentionOwner?: MentionOwner;
+}
+
+interface DeclinedTradeDW extends OnlyEnable {
+    url?: string[];
+    misc?: MiscTradeSummary;
 }
 
 interface OnlyNote {
