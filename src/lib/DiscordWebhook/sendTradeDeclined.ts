@@ -67,14 +67,11 @@ export default async function sendTradeDeclined(
 
     const partnerNameNoFormat = t.replace.specialChar(details.personaName);
 
-    //Maybe mention owner on high value declines ?
-    const mentionOwner = '';
-
     const declinedDescription = declined.reasonDescription;
     const declinedTradeSummary: Webhook = {
         username: optDW.displayName ?? botInfo.name,
         avatar_url: optDW.avatarURL ?? optDW.avatarURL,
-        content: mentionOwner,
+        content: '',
         embeds: [
             {
                 color: optDW.embedColor,
