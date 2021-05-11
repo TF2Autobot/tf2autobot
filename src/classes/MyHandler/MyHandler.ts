@@ -402,21 +402,27 @@ export default class MyHandler extends Handler {
         return new Promise(resolve => {
             if (this.opt.autokeys.enable) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
-                this.autokeys.disable(this.bot.pricelist.getKeyPrices);
+                this.autokeys
+                    .disable(this.bot.pricelist.getKeyPrices)
+                    .catch(() => {
+                        log.debug('Removing Mann Co. Supply Crate Key...');
+                        void this.bot.pricelist.removePrice('5021;6', true);
+                    })
+                    .finally(() => {
+                        if (this.bot.listingManager.ready !== true) {
+                            // We have not set up the listing manager, don't try and remove listings
+                            return resolve();
+                        }
+
+                        void this.bot.listings.removeAll().asCallback(err => {
+                            if (err) {
+                                log.warn('Failed to remove all listings: ', err);
+                            }
+
+                            resolve();
+                        });
+                    });
             }
-
-            if (this.bot.listingManager.ready !== true) {
-                // We have not set up the listing manager, don't try and remove listings
-                return resolve();
-            }
-
-            void this.bot.listings.removeAll().asCallback(err => {
-                if (err) {
-                    log.warn('Failed to remove all listings: ', err);
-                }
-
-                resolve();
-            });
         });
     }
 

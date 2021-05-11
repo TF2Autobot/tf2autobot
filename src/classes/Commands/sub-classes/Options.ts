@@ -262,7 +262,7 @@ export default class OptionsCommands {
 
                 if (typeof knownParams.autokeys === 'object') {
                     if (knownParams.autokeys.enable !== undefined && !knownParams.autokeys.enable) {
-                        this.bot.handler.autokeys.disable(this.bot.pricelist.getKeyPrices);
+                        void this.bot.handler.autokeys.disable(this.bot.pricelist.getKeyPrices);
                     }
                     this.bot.handler.autokeys.check();
                 }
