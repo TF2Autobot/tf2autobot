@@ -688,6 +688,10 @@ export default class Autokeys {
                 return resolve();
             }
 
+            if (!match.enabled) {
+                return resolve();
+            }
+
             let entry = this.generateEntry(false, 0, 1, 2);
 
             if (keyPrices.src === 'manual') {
