@@ -400,7 +400,7 @@ export default class MyHandler extends Handler {
         this.bot.listings.disableAutorelistOption();
 
         return new Promise(resolve => {
-            if (this.opt.autokeys.enable && this.autokeys.getActiveStatus) {
+            if (this.opt.autokeys.enable) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
                 this.autokeys.disable(this.bot.pricelist.getKeyPrices);
             }
