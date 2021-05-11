@@ -1980,9 +1980,9 @@ export function loadOptions(options?: Options): Options {
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
     lintAllTheThings(getFilesPath(steamAccountName)); // you shall not pass
 
-    const jsonParseArray = (jsonString: string): string[] => (JSON.parse(jsonString) as unknown) as string[];
-    const jsonParseBoolean = (jsonString: string): boolean => (JSON.parse(jsonString) as unknown) as boolean;
-    const jsonParseNumber = (jsonString: string): number => (JSON.parse(jsonString) as unknown) as number;
+    const jsonParseArray = (jsonString: string): string[] => JSON.parse(jsonString) as unknown as string[];
+    const jsonParseBoolean = (jsonString: string): boolean => JSON.parse(jsonString) as unknown as boolean;
+    const jsonParseNumber = (jsonString: string): number => JSON.parse(jsonString) as unknown as number;
 
     const envOptions = {
         steamAccountName: steamAccountName,

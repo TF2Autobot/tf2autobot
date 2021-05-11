@@ -251,9 +251,9 @@ export default class MyHandler extends Handler {
                 'item',
                 this.bot.pricelist.getLength,
                 true
-            )} in pricelist | Listings cap: ${String(
-                this.bot.listingManager.cap
-            )} | Startup time: ${process.uptime().toFixed(0)} s`
+            )} in pricelist | Listings cap: ${String(this.bot.listingManager.cap)} | Startup time: ${process
+                .uptime()
+                .toFixed(0)} s`
         );
 
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
