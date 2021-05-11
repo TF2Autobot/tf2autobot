@@ -422,6 +422,19 @@ export default class MyHandler extends Handler {
                             resolve();
                         });
                     });
+            } else {
+                if (this.bot.listingManager.ready !== true) {
+                    // We have not set up the listing manager, don't try and remove listings
+                    return resolve();
+                }
+
+                void this.bot.listings.removeAll().asCallback(err => {
+                    if (err) {
+                        log.warn('Failed to remove all listings: ', err);
+                    }
+
+                    resolve();
+                });
             }
         });
     }

@@ -685,7 +685,7 @@ export default class Autokeys {
         return new Promise((resolve, reject) => {
             const match = this.bot.pricelist.getPrice('5021;6', false);
             if (match === null) {
-                return;
+                return resolve();
             }
 
             let entry = this.generateEntry(false, 0, 1, 2);
@@ -698,7 +698,7 @@ export default class Autokeys {
                 .updatePrice(entry, true, PricelistChangedSource.Autokeys)
                 .then(() => {
                     log.debug('✅ Automatically disabled Autokeys.');
-                    return resolve();
+                    resolve();
                 })
                 .catch(err => {
                     const opt2 = this.bot.options;
@@ -709,7 +709,7 @@ export default class Autokeys {
                         opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
                         'autokeys-failedToDisable'
                     );
-                    return reject();
+                    reject();
                 });
         });
     }
