@@ -405,8 +405,7 @@ export default class MyHandler extends Handler {
                 this.autokeys
                     .disable(this.bot.pricelist.getKeyPrices)
                     .catch(() => {
-                        log.debug('Removing Mann Co. Supply Crate Key...');
-                        void this.bot.pricelist.removePrice('5021;6', true);
+                        log.warn('Unable to disable Mann Co. Supply Crate Key...');
                     })
                     .finally(() => {
                         if (this.bot.listingManager.ready !== true) {
