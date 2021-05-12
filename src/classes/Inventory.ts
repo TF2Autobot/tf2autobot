@@ -191,6 +191,7 @@ export default class Inventory {
             const normFestivized = optNormalize.festivized;
             const normPainted = optNormalize.painted;
             const normStrange = optNormalize.strangeAsSecondQuality;
+            const normStrangeParts = optNormalize.strangeParts;
 
             const schemaItem = this.schema.getItemBySKU(sku);
             if (schemaItem) {
@@ -233,6 +234,36 @@ export default class Inventory {
                     const item = SKU.fromString(sku);
                     item.quality2 = 11;
                     accAmount += this.findBySKU(SKU.fromObject(item), tradableOnly).length;
+                }
+
+                // Strange parts
+                if (
+                    !/ /.test(sku) &&
+                    schemaItem.capabilities.can_killstreakify &&
+                    normStrangeParts.amountIncludeNoParts &&
+                    !normStrangeParts.our
+                ) {
+                    const strangePartIds = Object.values(this.strangeParts).sort();
+                    const idsCount = strangePartIds.length;
+
+                    for (let i = 0; i < idsCount; i++) {
+                        const id1 = strangePartIds[i];
+                        accAmount += this.findBySKU(`${sku};sp${id1}`, tradableOnly).length;
+
+                        for (let j = 0; j < idsCount; j++) {
+                            const id2 = strangePartIds[j];
+                            if (id2 !== id1) {
+                                accAmount += this.findBySKU(`${sku};sp${id1}-${id2}`, tradableOnly).length;
+                            }
+
+                            for (let k = 0; k < idsCount; k++) {
+                                const id3 = strangePartIds[k];
+                                if (id3 !== id1 && id3 !== id2) {
+                                    accAmount += this.findBySKU(`${sku};sp${id1}-${id2}-${id3}`, tradableOnly).length;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -287,6 +318,11 @@ export default class Inventory {
                 ? Object.keys(paints).map(paint => paint.toLowerCase())
                 : opt.highValue.painted.map(paint => paint.toLowerCase());
 
+        const strangePartsOptions =
+            opt.highValue.strangeParts.length < 1 || opt.highValue.strangeParts[0] === ''
+                ? Object.keys(strangeParts).map(part => part.toLowerCase())
+                : opt.highValue.strangeParts.map(part => part.toLowerCase());
+
         const itemsCount = items.length;
 
         for (let i = 0; i < itemsCount; i++) {
@@ -296,7 +332,10 @@ export default class Inventory {
                 opt.normalize.strangeAsSecondQuality[which],
                 opt.normalize.painted[which],
                 paints,
-                paintedOptions
+                paintedOptions,
+                opt.normalize.strangeParts[which],
+                strangeParts,
+                strangePartsOptions
             );
 
             const attributes = highValue(items[i], opt, paints, strangeParts);

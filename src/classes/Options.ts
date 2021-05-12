@@ -204,6 +204,11 @@ export const DEFAULTS: JsonOptions = {
             our: true,
             their: true,
             amountIncludeNonPainted: false
+        },
+        strangeParts: {
+            our: true,
+            their: true,
+            amountIncludeNoParts: false
         }
     },
 
@@ -1191,6 +1196,7 @@ interface Normalize {
     festivized?: NormalizeFestivized;
     strangeAsSecondQuality?: NormalizeStrange;
     painted?: NormalizePainted;
+    strangeParts?: NormalizeStrangeParts;
 }
 
 interface NormalizeOurOrTheir {
@@ -1208,6 +1214,10 @@ interface NormalizeStrange extends NormalizeOurOrTheir {
 
 interface NormalizePainted extends NormalizeOurOrTheir {
     amountIncludeNonPainted?: boolean;
+}
+
+interface NormalizeStrangeParts extends NormalizeOurOrTheir {
+    amountIncludeNoParts?: boolean;
 }
 
 // ------------ Details ------------

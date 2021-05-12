@@ -802,9 +802,25 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['our', 'their', 'amountIncludeNonPainted'],
                     additionalProperties: false
+                },
+                strangeParts: {
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        },
+                        amountIncludeNoParts: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their', 'amountIncludeNoParts'],
+                    additionalProperties: false
                 }
             },
-            required: ['festivized', 'strangeAsSecondQuality', 'painted'],
+            required: ['festivized', 'strangeAsSecondQuality', 'painted', 'strangeParts'],
             additionalProperties: false
         },
         details: {
