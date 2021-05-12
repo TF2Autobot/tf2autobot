@@ -859,980 +859,980 @@ const ks2Images: { [sku: string]: string } = {
     // Specialized Killstreak Kit
 
     // Kritzkrieg
-    '6523;6;uncraftable;kt-1;td-35':
+    '6523;6;uncraftable;kt-2;td-35':
         'y1FZPCfq1XFsaeB-B8fH0gL-7-OISHauPTOUeiDYRQ1qTOBaN2vZ_jSt5eWVEGnKQu0rRwwFfqIE92xXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXOt_xzn8',
     // Blutsauger
-    '6523;6;uncraftable;kt-1;td-36':
+    '6523;6;uncraftable;kt-2;td-36':
         'y1FaLyf71XN4a9pgOdnBxUv5ouHaTS31bmDCd3iBH1g_SeINMj6Ir2H3sbiTE2rJQ-4oR1sHe_AF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPS3h5Ays',
     // Ubersaw
-    '6523;6;uncraftable;kt-1;td-37':
+    '6523;6;uncraftable;kt-2;td-37':
         'y1FDKCfqznV6WultKszDjgSsp7GMSy30OjPHfSeLT1g4GLZeM2iL_TTx4OWVETmfQb0lFw8BfvQasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeOI5jad_M',
     // Axtinguisher
-    '6523;6;uncraftable;kt-1;td-38':
+    '6523;6;uncraftable;kt-2;td-38':
         'y1FXMjbx03N4bPZkPdn50Bzprt2BHWbwbXnHeXbfGQ0wSOdfZDnc_mWssb-cED7JQeksQwgNevFXpm1PbMqANhA_ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIx0QdScQPTZQxxZ5KhJngvgxQbrcxGkwbFPcoZjrSV_21xC3MXuTkOeFY45BTVgweTk_pnnEpWx98vv2IOA1GtH0i7OLM-BT7bFeC',
     // Flare Gun
-    '6523;6;uncraftable;kt-1;td-39':
+    '6523;6;uncraftable;kt-2;td-39':
         'y1FQJiPq2HN4a9p8IdnJ_wn6s-WIUnGhPmSVfXSNGgo6TLNZY2iP_Tuk4r_AQTrISO8tFw0CfPRWoGUbbsyXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxG6FlXmU',
     // Backburner
-    '6523;6;uncraftable;kt-1;td-40':
+    '6523;6;uncraftable;kt-2;td-40':
         'y1FUKyHz32F_a-B-B8fH0gL-77SIGCDyOG6VfHGJSVwwGbdWN26I9zun4-rHSzGcSespRVhQf_MGpmFXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXsI5QXnY',
     // Natascha
-    '6523;6;uncraftable;kt-1;td-41':
+    '6523;6;uncraftable;kt-2;td-41':
         'y1FBFS7t2XlkaeRTNMrUxwC187aLS3WibGWdfHbaRVxrHrpdNWqMrGL37b-QR2vPEroqFQ4HLKtR8HoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFo4tjVkLg',
     // Killing Gloves of Boxing
-    '6523;6;uncraftable;kt-1;td-43':
+    '6523;6;uncraftable;kt-2;td-43':
         'y1FUJTrx03NSYuljLs7V_wn6s-WIUnegaW6TdniBGVhsSrNaMWDc-TDw5rnARmufROl5R18GL6FX8WAdacCXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxgyb3-po',
     // Sandman
-    '6523;6;uncraftable;kt-1;td-44':
+    '6523;6;uncraftable;kt-2;td-44':
         'y1FBJS382HpSZ-R4B8fH0gL-77aMHS2nMTOWKXPfS1xqGLQLYTnZ-TLx4u-cRmvNEuouEV9XdaZQ8jJXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMX-y95lLQ',
     // Force-A-Nature
-    '6523;6;uncraftable;kt-1;td-45':
+    '6523;6;uncraftable;kt-2;td-45':
         'y1FSJTf60XFSZ-R-Ks7K_wn6s-WIUi32amScLniNTlpuH7dWPW7b9meltunAEDCbQb0pSl9ReKVWozVMbJyXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxdEVWMXU',
     // Huntsman
-    '6523;6;uncraftable;kt-1;td-56':
+    '6523;6;uncraftable;kt-2;td-56':
         'y1FUJTXH0XV_YuAiapvFkFKq87TaGCajOWWceiCOTw08TbddNj6M_2WhtL6SQzvMFO1-FRdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjUpwszJoIvc3xuF4Xad8-Hw5LF-9-NG_QV_iyx3qYCua3bbVfsJdUBgsaTEu-n2o7UR4RzbFKSQ',
     // Ambassador
-    '6523;6;uncraftable;kt-1;td-61':
+    '6523;6;uncraftable;kt-2;td-61':
         'y1FXJyD5zmdsYep-B8TW1Dr3oPCKGTrzOjXALXSNSAtqRbFaNGvdrDDw4-vBFzjPQewpRgxSfqsBpzUaNM6AIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pX9N5Tl3',
     // Direct Hit
-    '6523;6;uncraftable;kt-1;td-127':
+    '6523;6;uncraftable;kt-2;td-127':
         'y1FSIzD93mBlbPFTNMrUxwC18rOJS3GhOWfHK3fdRVw5TuBeYT7f-Tf34buXRjybQOkvQAkHf6ED9noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFr1GesOdA',
     // Equalizer
-    '6523;6;uncraftable;kt-1;td-128':
+    '6523;6;uncraftable;kt-2;td-128':
         'y1FGIyHz3GxoWvY-B8fH0gL-77vbH3LyOmaWKSWPHwlpH-FXMGGM-2Wj5urGQTydE-h4Rl8NfqVRo2NXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMX39hdoSk',
     // Scottish Resistance
-    '6523;6;uncraftable;kt-1;td-130':
+    '6523;6;uncraftable;kt-2;td-130':
         '31FFPiv71m1vauhuB8_DxgD1peefI3j2ejDBYXTcHg08RLBfPGqK_DSt57idEzjKSLp_FVxSLqsMoWEbaJuJPENv3YAVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkCXc4aW44twpBIupLNvB9Gaps4JFIdA74rez-CB6rkxyyfDbeyOLcP5ZBWBlobH0u5myB-Cht9vqyPblwSsHgi8aaM75PnZVBFHfg',
     // Chargin' Targe
-    '6523;6;uncraftable;kt-1;td-131':
+    '6523;6;uncraftable;kt-2;td-131':
         'y1FCKzD_2EthZPdrPYWexFf58ObbTnCnbWOXLnKJT1puReVbNW_Yqzf04uyUF2ybRbt6F18AY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKrXZe610J6ho8cSL6FEASsAPW6Iyyo1BvtD06A5AONw_TF0YQe4oY2nQUqjkwiucWuPmOuRbsZcFAV1LGE-7n3d_EQl3v9-wa3Xl',
     // Eyelander
-    '6523;6;uncraftable;kt-1;td-132':
+    '6523;6;uncraftable;kt-2;td-132':
         'y1FVJiPh0Ht_YNpgOdnBxUus8LGPSiKgOGSUenmJRAg9RLNfYGyI-Gbw5evGS27BSbt-Q1gEKKsF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPW-_RqMn',
     // Frontier Justice
-    '6523;6;uncraftable;kt-1;td-141':
+    '6523;6;uncraftable;kt-2;td-141':
         'y1FQOC32yX1od-95K9_PwwDEreOfG3G5am6SfSOJTFw5TecLZ2HYqjGk4-XBQGvIFOwvEV9QeaJV8mZKO8vabgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPVd5cfvWg',
     // Gunslinger
-    '6523;6;uncraftable;kt-1;td-142':
+    '6523;6;uncraftable;kt-2;td-142':
         'z3tYOS7x03Nod9pgOdnBxUuvpOaISyfyO2XHfHaKSlxuTeIINWyLqmb04u_CQD7BQuEuQlpQKfYF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPZJr6dGu',
     // Homewrecker
-    '6523;6;uncraftable;kt-1;td-153':
+    '6523;6;uncraftable;kt-2;td-153':
         'y1FFJif82nFlZOhhPdn5zATppufDHiKmP2CXKnGMGA09ReIKNm7c_Tui7OuXFmqaQL4oSglXfvMGoDFJPdfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7inHU3-v-A',
     // Pain Train
-    '6523;6;uncraftable;kt-1;td-154':
+    '6523;6;uncraftable;kt-2;td-154':
         'y1FGKyv2yWZsbOtTNMrUxwC1pbXYSnfzMG6cdnOIHgo_GLdcNWuKr2WjtruSQmqdQrkkQQwNf_QF8noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFoNV4ZgAg',
     // Southern Hospitality
-    '6523;6;uncraftable;kt-1;td-155':
+    '6523;6;uncraftable;kt-2;td-155':
         'y1FFOivz2GN_YOtvMPTKwRf8pKzZRCXxOW_AKXSOGQc-TbAPNDnd_jb0s-uSETvJQ7ouEV1WK6tVp2IbI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e56OVjcx7',
     // Lugermorph
-    '6523;6;uncraftable;kt-1;td-160':
+    '6523;6;uncraftable;kt-2;td-160':
         'y1FCPiXH0HV1WuJ5NvTKwRf8pKyMGnD2OmOVfHePS1s6HrteZGHf-WCg7LiTQG6bELt4EQ1QL6cB9mEfI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e56GpZyUr',
     // Lugermorph (second one?)
-    '6523;6;uncraftable;kt-1;td-294':
+    '6523;6;uncraftable;kt-2;td-294':
         'y1FCPiXH0HV1WuJ5NvTKwRf8pKyMGnD2OmOVfHePS1s6HrteZGHf-WCg7LiTQG6bELt4EQ1QL6cB9mEfI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e56GpZyUr',
     // Big Kill
-    '6523;6;uncraftable;kt-1;td-161':
+    '6523;6;uncraftable;kt-2;td-161':
         'y1FCPiXHznVgWuJ5NvTKwRf8pKzfSCOuOmPCfSCMGlwxG7ALMmyK_TLx5-qSSj_JFLwoEV1Qe_cM9TFPI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e5wcCwkyy',
     // Tribalman's Shiv
-    '6523;6;uncraftable;kt-1;td-171':
+    '6523;6;uncraftable;kt-2;td-171':
         'y1FBJS384nlsZu1pLM75zATppufDSXGua2OTKyXbTgY_TbFbYW_d_jPw5u_BRTrBQOF6F1sMLqBV8GBBaNfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7ikx5bmquA',
     // Scotsman's Skullcutter
-    '6523;6;uncraftable;kt-1;td-172':
+    '6523;6;uncraftable;kt-2;td-172':
         'y1FUKzbs0XFsfeBTNMrUxwC19LvYS3euMTGdfnjcHVg_TuVaY2yIrDXz5uyXF23IE74kFQ4GfaVRoXoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFoa0J7cmw',
     // Vita-Saw
-    '6523;6;uncraftable;kt-1;td-173':
+    '6523;6;uncraftable;kt-2;td-173':
         'y1FDKCfq03FoYelpB8fH0gL-77XVHyX0PG7CdiOKHVtqG7cKM2mK_2Gt4-_BEz-dEOp_Q1gGf6sE-2NXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMX8urJ7aU',
     // Bat
-    '6523;6;uncraftable;kt-1;td-190':
+    '6523;6;uncraftable;kt-2;td-190':
         'y1FUKzbH0XV_YuAiPJuVlgf-87HYTHGjP2DAKyOKTAs_S-FaNDrR_WKj4-uTETjLE-gkERdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjUpwszJoIvc3xuF4Xad8-Hw5LF-9-NG_QV_iyx3qYCua3bbVfsJdUBgsaTEu-n2o7UR6CTh6Fqw',
     // Bottle
-    '6523;6;uncraftable;kt-1;td-191':
+    '6523;6;uncraftable;kt-2;td-191':
         '31FUJTbs0XFSaeR-P86IlFH99LWOGCLyMTKcLHiORAxqTrZfNWDe_mb35u2SRGzISL4kQg0GdbxErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgBx55UvJu8vV5AaNtpGQkfFel5M2-BBf-2wH_NWueya-QMt5UGAg8eGx29nXB4C1dptq5ZULhmDA',
     // Fire Axe
-    '6523;6;uncraftable;kt-1;td-192':
+    '6523;6;uncraftable;kt-2;td-192':
         'y1FQIzD93GxoWvV1KsT5zATppufDHnGgMG-UfiTdRFpuSucNYWndq2Gt7LiUFm2fQ-8uRwkMfaMG8mFINNfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7ikQcFSvpQ',
     // Kukri
-    '6523;6;uncraftable;kt-1;td-193':
+    '6523;6;uncraftable;kt-2;td-193':
         '31FbKyHw2GBoWultKszDjgT5-LLcSSCvODSRLXXaGFhpT-JWM23e-TSg7bnCRm2bQbsqFQwCffYasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeO0KEHoZU',
     // Knife
-    '6523;6;uncraftable;kt-1;td-194':
+    '6523;6;uncraftable;kt-2;td-194':
         '31FdJCv-2EthZPdrPYWUkgf6-OOLGSHzOmWSeSWKGAdpG7MIMjyKqDqsseuTFj3BSbt-SwABY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKrXZe610J6ho8cSL6FEASsAPW6Iyyo1BvtD06A5AONw_TF0YQe4oY2nQUqjkwiucWuPmOuRbsZcFAV1LGE-7n3d_EQl3v8opPbei',
     // Fists
-    '6523;6;uncraftable;kt-1;td-195':
+    '6523;6;uncraftable;kt-2;td-195':
         '3lFQIzHs4nxoZPN1B8fH0gL-77qMTXGka2PHfiKBTFtrSLFWPTrY_Tui5r-WRD2cSe4vEAsEL6MH-mNXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXdH11i0g',
     // Shovel
-    '6523;6;uncraftable;kt-1;td-196':
+    '6523;6;uncraftable;kt-2;td-196':
         '31FFIi3u2HhSaeR-P86IxVKs97bcGXHzOzSXfnndRAk8RLpZM27e92GksOiWQmnIFegtEgkDf7xErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgBx55UvJu8vV5AaNtpGQkfFel5M2-BBf-2wH_NWueya-QMt5UGAg8eGx29nXB4C1dptq7eIFjrkQ',
     // Wrench
-    '6523;6;uncraftable;kt-1;td-197':
+    '6523;6;uncraftable;kt-2;td-197':
         '31FBOCf23nxSaeR-P86IkFL-8uSPRXajPWfGd3aKTwo5TLNYPGrZ_DGns-2cRW7LFb5_RF0Fe7xErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgBx55UvJu8vV5AaNtpGQkfFel5M2-BBf-2wH_NWueya-QMt5UGAg8eGx29nXB4C1dptq6wRYg0dA',
     // Bonesaw
-    '6523;6;uncraftable;kt-1;td-198':
+    '6523;6;uncraftable;kt-2;td-198':
         'y1FUJSz9znV6WultKszDjgT-p-OJSiWgPWCUeHffSgw-ReELMTzY-2KhtO6QS2yfFO8tEVgAdfMasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeOhN-kDxA',
     // Shotgun
-    '6523;6;uncraftable;kt-1;td-199':
+    '6523;6;uncraftable;kt-2;td-199':
         '31FFIi3s2mFjWultKszDjlz_-ebfT3ClPGbBfCSIH109SbBfMGyP_Geis-mXEzDMQbx9QQxRfaAasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeOq92s0m8',
     // Scattergun
-    '6523;6;uncraftable;kt-1;td-200':
+    '6523;6;uncraftable;kt-2;td-200':
         'y1FFKSPsyXF_YvBiB8fH0gL-77fcTHWuOW-Vf3mBRA49TuJYMW6L9jut7LyUF2zPROguRwEMevZSpzBXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXIUfOVOo',
     // Sniper Rifle
-    '6523;6;uncraftable;kt-1;td-201':
+    '6523;6;uncraftable;kt-2;td-201':
         '31FFJCvo2GZ_bONgPfTKwRf8pKzeTnKmP2LGfXeATAhtGeFbYGzdqjug5-3GR26cEL59EA8BLvMN9TdAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e5zLCpGFr',
     // Minigun
-    '6523;6;uncraftable;kt-1;td-202':
+    '6523;6;uncraftable;kt-2;td-202':
         '31FbIyzx2mFjWultKszDjl3_-LaOH3ela2DBLnbdTwk9GbNdPGDY-TLw4OqXSj_IF7skFwsBe6EasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeO0ZvHwkY',
     // SMG
-    '6523;6;uncraftable;kt-1;td-203':
+    '6523;6;uncraftable;kt-2;td-203':
         '31FFJyXH0XV_YuAibpvExAOp8rfbGiWjPWSUf3mORVowRLIKZmuP9zqmt-iTEDDIRu4sRBdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjUpwszJoIvc3xuF4Xad8-Hw5LF-9-NG_QV_iyx3qYCua3bbVfsJdUBgsaTEu-n2o7UR4miCddzQ',
     // Syringe Gun
-    '6523;6;uncraftable;kt-1;td-204':
+    '6523;6;uncraftable;kt-2;td-204':
         '31FFMzDx03NoYvBiB8fH0gL-7-fVSy2ibmbHfXCLTQ0_SeEIYTze_Tus4-qQFmmfQrl-Q1tQdaYE82xXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXbN748-U',
     // Rocket Launcher
-    '6523;6;uncraftable;kt-1;td-205':
+    '6523;6;uncraftable;kt-2;td-205':
         '31FEJSHz2GBhZPBiO8PD0jr3oPCKGTqkP2HBeneNSw05TLcKN2CI-Dui4uidED3PSbp-FVsEfvFVoWVLNcuKIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54peYqjIdj',
     // Grenade Launcher
-    '6523;6;uncraftable;kt-1;td-206':
+    '6523;6;uncraftable;kt-2;td-206':
         '31FROCf23HBoaeR5NsjOxRfEreOfG3G5OTKSKneJSl0-HLRYNmHbrGGs7bySEzjKReAtEFxXLKYN9GZMPcuOOAx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPWHBVvcAw',
     // Stickybomb Launcher
-    '6523;6;uncraftable;kt-1;td-207':
+    '6523;6;uncraftable;kt-2;td-207':
         '31FFPiv71m1vauhuB8fH1Qv4qeefI3j2ejDBYSDcSAppHOcNMG_Z_TWl5bvFQGvMRLp6RA4AKKQC9zIabMGLbUA90oQVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkCXc4aW44twpBIupLNvB9Gaps4JFIdA74rez-CB6rkxyyfDbeyOLcP5ZBWBlobH0u5myB-Cht9vqyPblwSsHgi8aaM75Pn8hDHDdo',
     // Flame Thrower
-    '6523;6;uncraftable;kt-1;td-208':
+    '6523;6;uncraftable;kt-2;td-208':
         'y1FQJiP12GBld-p7Pdn5zATppufDRHGjODPFfySPGA5rGbFXZj7f_zSk4eiVQDrJRrslQwADf_EF8jVMa9fJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7in8YLEqDA',
     // Pistol
-    '6523;6;uncraftable;kt-1;td-209':
+    '6523;6;uncraftable;kt-2;td-209':
         'y1FGIzHs0nhSaeR-P86IlwGq9rraRHX0MGHBeSLYTQtrSLFfMj7a-DL2sbucS27PEL5-EgoEfLxErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgBx55UvJu8vV5AaNtpGQkfFel5M2-BBf-2wH_NWueya-QMt5UGAg8eGx29nXB4C1dptq51VG8NlA',
     // Revolver
-    '6523;6;uncraftable;kt-1;td-210':
+    '6523;6;uncraftable;kt-2;td-210':
         '31FELzT30WJod9pgOdnBxUuj97DfSnX2OjTBf3bbTw0wS7cMPWzRr2fx4byQFzyfRe8rQl9SLqMM7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPbRRf7Kp',
     // Medi Gun
-    '6523;6;uncraftable;kt-1;td-211':
+    '6523;6;uncraftable;kt-2;td-211':
         'y1FbLybx2mFjWultKszDjgCo-LuOGHX2PGKdeiSKTA1qTbdaYG2L-2H3sO-XFmuYReB4S1sNKaMasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeOmrsC7No',
     // Powerjack
-    '6523;6;uncraftable;kt-1;td-214':
+    '6523;6;uncraftable;kt-2;td-214':
         'y1FGJTX9z35sZu5TNMrUxwC187reHyekbTSVdiDcRFppTbYKNDnRqGKmsOzCFzyfSO8qRQEEe6pV-noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFpVtWFnrg',
     // Degreaser
-    '6523;6;uncraftable;kt-1;td-215':
+    '6523;6;uncraftable;kt-2;td-215':
         'y1FSLyXq2HV-YPdTNMrUxwC187XYTyKja27HfHLdS106SOEMMTyM_TGktu_ARG7NQrksFQxQdaoM93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFrugnh3UA',
     // Shortstop
-    '6523;6;uncraftable;kt-1;td-220':
+    '6523;6;uncraftable;kt-2;td-220':
         'y1FFIi3qyWd5avVTNMrUxwC1o7DaSiekPzSQdnmARA5uHLYNMW6N_jXwtrucQjidQusoRwkBfPcM8noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFqTQPfMmg',
     // Holy Mackerel
-    '6523;6;uncraftable;kt-1;td-221':
+    '6523;6;uncraftable;kt-2;td-221':
         'y1FeJS7h0HVubuB-Pcf5zATppufDHXamMGTHLiKPSQs_TuYLMm7Z_TOg4byWETvBRuEvQwwDLqMB8TJJP9fJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7in8dXeDFw',
     // L'Etranger
-    '6523;6;uncraftable;kt-1;td-224':
+    '6523;6;uncraftable;kt-2;td-224':
         'y1FaLzbq3HpqYPdTNMrUxwC1oLGLRXGhODaRe3OMGlo5ReJbNmmK_zWs7ejFS2zMFeslQwECfaoD8XoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFpdBFKNdQ',
     // Your Eternal Reward
-    '6523;6;uncraftable;kt-1;td-225':
+    '6523;6;uncraftable;kt-2;td-225':
         'y1FTPifq03VhWvdpL8rUxDr3oPCKGTqlMGOWeSfbT18xH7oNMTuKqjH05eiTFzGYQuEqRAsFdKUC-2JPPMyMIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pVGa_prS',
     // Black Box
-    '6523;6;uncraftable;kt-1;td-228':
+    '6523;6;uncraftable;kt-2;td-228':
         'y1FUJiP71nZifdpgOdnBxUv-p-bbGS3ybmfGLieKHQ1qS7ZfYDrf_zr3tO3AETDAR7opRgBQf6MM7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPfYp-1kn',
     // Sydney Sleeper
-    '6523;6;uncraftable;kt-1;td-230':
+    '6523;6;uncraftable;kt-2;td-230':
         'y1FFMyb22G1SdulpPdvD0jr3oPCKGTqnPzSVfHDbRAhtH-VWNGraqzT34OTHR2ycEukpEglWf6dW9mxBNcjaIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pY3cxKk1',
     // Bushwacka
-    '6523;6;uncraftable;kt-1;td-232':
+    '6523;6;uncraftable;kt-2;td-232':
         'y1FVOC374n9jbONpB8fH0gL-7-HVHSOiazTGfCOAGVw9H7tcZDzbq2HwtO2QS23OEO4vRwEFdaAG9GRXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXsz-Zz-M',
     // Gloves of Running Urgently
-    '6523;6;uncraftable;kt-1;td-239':
+    '6523;6;uncraftable;kt-2;td-239':
         'y1FUJTrx03NSYuljLs7V_xDppueDH23IZDbWKCSXRQw_HOFWMGqM92an5OqVRTrIRet6QV0FK6cD-jcdaJ2IaRFrhYdYriuomUM7FxsvI_peIFLrhCZLZPssxSZDGtNTlCTuIJfckwY_P0cFE7jqVqLGbIGzyXJzXHUuHq0aeoyduDO9uNeoPvqCKfghPaxgosyE2FgBANEOUZs72IxPtJDztzJEeY08CFsjHbg8MjyfAvq0kH2cDOTha-EOs8dQBl9LSU7on3B7W0wsuq2PP1tE4Swm9KaRq9PwkIJgCtEZCA',
     // Frying Pan
-    '6523;6;uncraftable;kt-1;td-264':
+    '6523;6;uncraftable;kt-2;td-264':
         'yWJaFTL500thZPdrPYWelwf69LDbSXegOzPCeHPfT1w7GOYLMD6L_jGn5LiXQDrKQ716RA8BY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKrXZe610J6ho8cSL6FEASsAPW6Iyyo1BvtD06A5AONw_TF0YQe4oY2nQUqjkwiucWuPmOuRbsZcFAV1LGE-7n3d_EQl3vx6yRpJx',
     // Iron Curtain
-    '6523;6;uncraftable;kt-1;td-298':
+    '6523;6;uncraftable;kt-2;td-298':
         'y1FfOC324nd4d_FtMcX5zATppufDSib0bGHGeSOBRQ9sG-BaMTvQrDem7O2cQj_AEOgkFQ0MKaMM9TJJNdfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7ikmr4R27w',
     // Amputator
-    '6523;6;uncraftable;kt-1;td-304':
+    '6523;6;uncraftable;kt-2;td-304':
         'y1FXJzLtyXV5avdTNMrUxwC1o7XbGiGhPWGVdiLaHVoxHrMKNGqPrzGm7bnAQDvKSespSgEBf6oA9XoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFrrV5ZPew',
     // Crusader's Crossbow
-    '6523;6;uncraftable;kt-1;td-305':
+    '6523;6;uncraftable;kt-2;td-305':
         'y1FVODfr3HBod_ZTO9nJ0xb5rvWyEHXlbzKKLSWATA07SbNXMm-M-jGntO6VEzjKFeguEltWKfQM9WYbOpvcbhM1gplLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEYAQMcZTY43xJFHt6H1qQhCeI0CF18OFrxgM2rSB_rjkXnLCuO1aecJtMcBVFhPTku9z3F-XR1_va_dO19Atnol9rzS8ZqXY8KvAw',
     // Ullapool Caber
-    '6523;6;uncraftable;kt-1;td-307':
+    '6523;6;uncraftable;kt-2;td-307':
         'y1FVKyD9z0thZPdrPYWVklf58-SIGHf0bGaQLHDcSwZsTOEPN2zR_TGi4umTFjHBEOwtF11XY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKrXZe610J6ho8cSL6FEASsAPW6Iyyo1BvtD06A5AONw_TF0YQe4oY2nQUqjkwiucWuPmOuRbsZcFAV1LGE-7n3d_EQl3v0YR7VXZ',
     // Loch-n-Load
-    '6523;6;uncraftable;kt-1;td-308':
+    '6523;6;uncraftable;kt-2;td-308':
         'y1FaJSHw03hiZOFTNMrUxwC1-LLUGiSiODaRK3OORVxuT7EMYD2L-zal4--dSzCYR-B-QgsGL6cAp3oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFpA187RUg',
     // Warrior's Spirit
-    '6523;6;uncraftable;kt-1;td-310':
+    '6523;6;uncraftable;kt-2;td-310':
         'y1FULyPq4ndhZPJTNMrUxwC1-LSPHiGhbWHAfXmJSwxqTrNaPW3e_jKs5OWQRm6dRb0rFwgDe6AH-noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFryVtT43Q',
     // Brass Beast
-    '6523;6;uncraftable;kt-1;td-312':
+    '6523;6;uncraftable;kt-2;td-312':
         'y1FRKzb01HpqWuJ5NvTKwRf8pKzeHS3zMWaTd3mBHltqHrEKMD2K_zWjtLiRFDDOFL0pRwgGdfcH82wcI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e54HcTtDJ',
     // Candy Cane
-    '6523;6;uncraftable;kt-1;td-317':
+    '6523;6;uncraftable;kt-2;td-317':
         'y1FVKyz8xEtuZOtpB8fH0gL-77XfGCTxPzKUdiSNHgptG-VZN2GLqDunse3BSj3KSL5-EgANeKsApjFXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMX5xBqIn4',
     // Boston Basher
-    '6523;6;uncraftable;kt-1;td-325':
+    '6523;6;uncraftable;kt-2;td-325':
         'y1FUJTHs0npSZ-R_MM7U_wn6s-WIUieuPjTALXXfRAo9ROFeMD6NrGX3trnCFmrAROolQFpVe6IFpjBPNcCXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxIKqZaF0',
     // Back Scratcher
-    '6523;6;uncraftable;kt-1;td-326':
+    '6523;6;uncraftable;kt-2;td-326':
         'y1FUKyHz4mdud-R4O8PD0jr3oPCKGTr1PG_HK3eITFo_S7BZNTnRqmKhtrudEDyfEut4RQAEffEApmMYaJjfIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pePjXJQD',
     // Claidheamh Mòr
-    '6523;6;uncraftable;kt-1;td-327':
+    '6523;6;uncraftable;kt-2;td-327':
         'y1FVJiPx2XxoZOhjMMbJ0jr3oPCKGTqkPzaVenCLGgwwSeFcNGHa-TrztOrBSznIQe8uQ10CeKJQoTYYPJqLIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pbDCf-sg',
     // Jag
-    '6523;6;uncraftable;kt-1;td-329':
+    '6523;6;uncraftable;kt-2;td-329':
         'y1FcKyXH0XV_YuAiPsqQmFyv8OTaGi32MGDALSPdSg04HuFXZjvb_jKntO-SSznBSOwrQhdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjUpwszJoIvc3xuF4Xad8-Hw5LF-9-NG_QV_iyx3qYCua3bbVfsJdUBgsaTEu-n2o7UR4NzGxwnA',
     // Fists of Steel
-    '6523;6;uncraftable;kt-1;td-331':
+    '6523;6;uncraftable;kt-2;td-331':
         'y1FQIzHszktiY9p_LM7DzDr3oPCKGTrxP2OQenaMRAw6SbcLZG2K-WWl4u-dSzrLSLwtElhSffQNo21BO52JIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pdGTQDQG',
     // Sharpened Volcano Fragment
-    '6523;6;uncraftable;kt-1;td-348':
+    '6523;6;uncraftable;kt-2;td-348':
         'y1FEIyTs4nJkd-BTOdPD_wn6s-WIUnakamXBLnGKRQs-GbdYPGzZ_2agsOmRR27PSO8pQApSK6FX9TJNOsiXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxz5y3x9o',
     // Sun-on-a-Stick
-    '6523;6;uncraftable;kt-1;td-349':
+    '6523;6;uncraftable;kt-2;td-349':
         'y1FEIyTs4nJkd-BTNcrFxTr3oPCKGTr0ajWRenbcGQ86SOFZZmyM9zOg7euUQDDJSeElQgEFeqZVoWJANJ_aIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pbbeVe25',
     // Detonator
-    '6523;6;uncraftable;kt-1;td-351':
+    '6523;6;uncraftable;kt-2;td-351':
         'y1FSLzb303V5avdTNMrUxwC1oLWPHSXzMWKTe3eKSlppSLZaMWDZ-Dui5byRQDvASLp6FQoEdPBS8noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFoV8KI8zw',
     // Fan O'War
-    '6523;6;uncraftable;kt-1;td-355':
+    '6523;6;uncraftable;kt-2;td-355':
         'y1FFIi3_yHpScuR-PsrI_wn6s-WIUiOjbmWSdnLfTV87S7sLMGHR-mCi5uuXRDrOSeAvQggMeaBVoDFLaJ2Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxyQPUQLQ',
     // Conniver's Kunai
-    '6523;6;uncraftable;kt-1;td-356':
+    '6523;6;uncraftable;kt-2;td-356':
         'y1FFIi3_yHpSbvBiOcL5zATppufDGCL2OWWdfXbdGQZtRLVfMj3R-DPzs7nFS2rLSLwoFQFRffYHpjdJbtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7inXhNloEA',
     // Half-Zatoichi
-    '6523;6;uncraftable;kt-1;td-357':
+    '6523;6;uncraftable;kt-2;td-357':
         'y1FFIi3_yHpSbuR4OcXH_wn6s-WIUiH2OmbAfnSKSAk6TeIKMmjYrzKlsLvBF27LQLp9FggGfKUE-2RJacGXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBx6rr-ecU',
     // Shahanshah
-    '6523;6;uncraftable;kt-1;td-401':
+    '6523;6;uncraftable;kt-2;td-401':
         'y1FFKSv11GBsd9pgOdnBxUuuo7fURXH2bGaRKieOTl87H7tYND2Mqzqk5rvBQjHJQbssEAhQf6sC7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPW-ANHwz',
     // Bazaar Bargain
-    '6523;6;uncraftable;kt-1;td-402':
+    '6523;6;uncraftable;kt-2;td-402':
         'y1FUKzj53GZSdutlKM7U_wn6s-WIUiXzbTTCf3COSwxpTrUNMm2P-GWs5ruQQTnNFLp-RlhQKasM82Eaa52Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxecNUqYw',
     // Persian Persuader
-    '6523;6;uncraftable;kt-1;td-404':
+    '6523;6;uncraftable;kt-2;td-404':
         'y1FSLy_34md4afFtNvTV1wrppd2BHWbwbXmSKnCBTlwwHrcKZGDRrDDz4OuSQ23PQOgqQQ1XfPYA-mVLOMmNPhc8ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIx0QdScQPTZQxxZ5KhJngvgxQbrcxGkwbFPcoZjrSV_21xC3MXuTkOeFY45BTVgweTk_pnnEpWx98vv2IOA1GtH0i7OLM-As58GQp',
     // Splendid Screen
-    '6523;6;uncraftable;kt-1;td-406':
+    '6523;6;uncraftable;kt-2;td-406':
         'y1FGLzDr1HVjWvZkMc7KxDr3oPCKGTrxOzGQLHPbGVhsG-JaYD7e-mLx4-idF2vISLsuQQsFLKRQ82JBOc3cIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pU6Uk9Bs',
     // Quick-Fix
-    '6523;6;uncraftable;kt-1;td-411':
+    '6523;6;uncraftable;kt-2;td-411':
         'y1FGOC3s0ktgYOFlP97I_wn6s-WIUnf1a2SceXTYRAg-SrVXNjyP_2L0s-6TQ2vLELx4SlgGdKYA-mFPb8uXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBx2tqxUB0',
     // Overdose
-    '6523;6;uncraftable;kt-1;td-412':
+    '6523;6;uncraftable;kt-2;td-412':
         'y1FGOC3s0kt-fPdlNszDxxD1nu6MDnPyJmfBeXWAGgsxSOVYNG3e_jHws-_HFGnLQu0pFwgHK_AN-2RJb5qIahAjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVIQ8CVkZX799NjqCUKvgkCqYWbW0P7APtMJRAl0eShu4niYvWRx_7KiLagtEs3o4svzFAOSCnVo',
     // Solemn Vow
-    '6523;6;uncraftable;kt-1;td-413':
+    '6523;6;uncraftable;kt-2;td-413':
         'y1FeIzLo0nd_ZPFpK_TE1Rbvnu6MDnPyJmHFeXfdGVg7RLUMN2zQ-mGjsO7FET-fR-8oEQ1VKKJR-2VJbsjbNhYjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVIQ8CVkZX799NjqCUKvgkCqYWbW0P7APtMJRAl0eShu4niYvWRx_7KiLagtEs3o4svzF27UFEmY',
     // Liberty Launcher
-    '6523;6;uncraftable;kt-1;td-414':
+    '6523;6;uncraftable;kt-2;td-414':
         'y1FaIyD9z2B0WultLcXFyADpnu6MDnPyJmDAdnKATFhqSOZXNznf9zah4LiVFzHMRL0pRQoMevFQ9WwfbpqIOxUjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVIQ8CVkZX799NjqCUKvgkCqYWbW0P7APtMJRAl0eShu4niYvWRx_7KiLagtEs3o4svzFqmKHKN0',
     // Reserve Shooter
-    '6523;6;uncraftable;kt-1;td-415':
+    '6523;6;uncraftable;kt-2;td-415':
         'y1FELzH9z2JoWvZkN8TSxRfEreOfG3G5P27FfiPaSw8-HrNbMDmL9zX04OjCSzCaFLwlS10GdKcC9mxNOsqNawx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPUItzg8Uw',
     // Market Gardener
-    '6523;6;uncraftable;kt-1;td-416':
+    '6523;6;uncraftable;kt-2;td-416':
         'y1FbKzDz2GBSYuR-PM7IxRfEreOfG3G5PmSVLXWNSQxqG-BbZm2MqzT05unFED3LR-goRAEAfvdW92IfacDbPQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPUz09QUrw',
     // Tomislav
-    '6523;6;uncraftable;kt-1;td-424':
+    '6523;6;uncraftable;kt-2;td-424':
         'y1FCJS_xznhsc9pgOdnBxUuipeDeGCz0bmOXdnHbSgpqS7ENYGve_DPxse3GFj3BQb4kRl8GfKMF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPYcD5Ckh',
     // Family Business
-    '6523;6;uncraftable;kt-1;td-425':
+    '6523;6;uncraftable;kt-2;td-425':
         'y1FEPzHr1HVjWvdlN9_5zATppufDTy3xaWKXfCXdHVhrTrIPYDvb-mDz4biVQTvKRL0sQ1sCfaNQpjVKONfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7ikT1rOWGA',
     // Eviction Notice
-    '6523;6;uncraftable;kt-1;td-426':
+    '6523;6;uncraftable;kt-2;td-426':
         'y1FTPCv7yX1ia9piN9_PwwDEreOfG3G5PjXAeXXdHgY-G7JeMWGM_TGm5O-RQmycQbouRFwNKKsFoDcaaZ2BbQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPXogofKmg',
     // Cow Mangler 5000
-    '6523;6;uncraftable;kt-1;td-441':
+    '6523;6;uncraftable;kt-2;td-441':
         'y1FSOCXH3nt6aORiP8fD0jr3oPCKGTqhPDGdeHKIHg1uROZWPDqK-TvztujGQjnOEOh6Rg1QeaoH8jdBaZjYIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pb3U0GMp',
     // Righteous Bison
-    '6523;6;uncraftable;kt-1;td-442':
+    '6523;6;uncraftable;kt-2;td-442':
         'y1FSOCXHz31qbfFpN97VwgzoruyyEHXlbzKKfnOLHgw7G7oNZmDf-zei4-nCRD2YEO59Q1sBf6RQoDZLbMCJNkdphZlLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEYAQMcZTY43xJFHt6H1qQhCeI0CF18OFrxgM2rSB_rjkXnLCuO1aecJtMcBVFhPTku9z3F-XR1_va_dO19Atnol9rzS8Zo0wObqDw',
     // Mantreads
-    '6523;6;uncraftable;kt-1;td-444':
+    '6523;6;uncraftable;kt-2;td-444':
         'xW9YPjD93HB-WultKszDjlypp7GJGnD2bmfBfSONTQdsGbcKYTzcqGD25bmVE2vMQuApEABXefEasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeOZvZJQJk',
     // Disciplinary Action
-    '6523;6;uncraftable;kt-1;td-447':
+    '6523;6;uncraftable;kt-2;td-447':
         'y1FEIybx03NSZvdjKPTKwRf8pKzdT3DxbWaVeXeARAZuGbYNNDqM-DTw5umTRj_AQeksSw8DffdW8jYfI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e504r7i68',
     // Soda Popper
-    '6523;6;uncraftable;kt-1;td-448':
+    '6523;6;uncraftable;kt-2;td-448':
         'y1FFJSb54mRidfVpKvTKwRf8pKzVRCCmP2GSfHGAS1o7TeYNNmyKrWbz5-WXETCbQ-orFVwFKKIE9mxBI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e5zPhBXYn',
     // Winger
-    '6523;6;uncraftable;kt-1;td-449':
+    '6523;6;uncraftable;kt-2;td-449':
         'y1FBIyz_2GZSdex_LMTK_wn6s-WIUnGmaTXCdnncHwkxGbBXPWrcqDGit7-QQGzOQu8pSw9QLKVV9GZPbsuXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxCXTkEgk',
     // Atomizer
-    '6523;6;uncraftable;kt-1;td-450':
+    '6523;6;uncraftable;kt-2;td-450':
         'y1FUJSzz4nZscdpgOdnBxUuj8ubaGXClMGLHKiSOGl09GLFYNmzc92Wg4unGFm7JQO14FV9QLvcF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPTzYo7qt',
     // Three-Rune Blade
-    '6523;6;uncraftable;kt-1;td-452':
+    '6523;6;uncraftable;kt-2;td-452':
         'y1FFKS3tyUt-cup-PPTKwRf8pKzVSnKgam-SLCDcGgxqG-APMTmPr2ass77BET3OEukrQl0Af6AF-zEYI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e58ir5qWn',
     // Postal Pummeler
-    '6523;6;uncraftable;kt-1;td-457':
+    '6523;6;uncraftable;kt-2;td-457':
         'y1FbKyv033t1WultKszDjgP4-LSMTXahPGTCfiKKTlg6G7INYWiP-Wen5OicEDifF7ovF18FefEasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeOxI0yhTw',
     // Enforcer
-    '6523;6;uncraftable;kt-1;td-460':
+    '6523;6;uncraftable;kt-2;td-460':
         'y1FFJDf64npiduBTNMrUxwC1-bGMGiyiO2LHdiCBTw49RLcMMW7brGGh5LyTEzjIR-p6QwhSePYCoXoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFoqSEko3w',
     // Big Earner
-    '6523;6;uncraftable;kt-1;td-461':
+    '6523;6;uncraftable;kt-2;td-461':
         'y1FFPSvs3nxvaeRoPfTKwRf8pKzfTXemazaSeXbaTFwwH7BYYzzb-mXw7emSEz6cE7x6QV0HKfZV8jdPI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e55S1ofkh',
     // Maul
-    '6523;6;uncraftable;kt-1;td-466':
+    '6523;6;uncraftable;kt-2;td-466':
         'y1FELCPH1XVgaOB-B8fH0gL-77TeTnL0OG6XLHDfTAtpRLtfPG6M9mGmsO2cRDmbQ7woFwANf_QApmxXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXcX-TvE8',
     // Conscientious Objector
-    '6523;6;uncraftable;kt-1;td-474':
+    '6523;6;uncraftable;kt-2;td-474':
         'y1FGIyHz2GBSaeR-P86ImFyu97OOGXKuPDOWfnWOT1xsRLENYT6P-jqgs7jHRj-fFbx4RlwGfrxErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgBx55UvJu8vV5AaNtpGQkfFel5M2-BBf-2wH_NWueya-QMt5UGAg8eGx29nXB4C1dptq5MpzP4JQ',
     // Nessie's Nine Iron
-    '6523;6;uncraftable;kt-1;td-482':
+    '6523;6;uncraftable;kt-2;td-482':
         'y1FRJS7-3nh4Z9pgOdnBxUuu8LXdRCLzbGOdfCWJRQs9SeILMmCK-zX07ejGQT7PQukpS18Df6dR7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPcSHd7kr',
     // Original
-    '6523;6;uncraftable;kt-1;td-513':
+    '6523;6;uncraftable;kt-2;td-513':
         'y1FULzbHz3tubuB4NMrTzgbzpPCyEHXlbzKKeCLfTA4wSLReNGze9zaj5riWFz_MQ-l5RgBVKaIG8G0dOJrYbRI1gJlLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEYAQMcZTY43xJFHt6H1qQhCeI0CF18OFrxgM2rSB_rjkXnLCuO1aecJtMcBVFhPTku9z3F-XR1_va_dO19Atnol9rzS8Zr0bT06Uw',
     // Diamondback
-    '6523;6;uncraftable;kt-1;td-525':
+    '6523;6;uncraftable;kt-2;td-525':
         'y1FSLzrHz3F7aul6Pdn5zATppufDTy32aW6SKnLdS1o7S7tXPWja9zT37LjHRz_BR7soFwtReKpS8DVLOdfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7imlXLenxw',
     // Machina
-    '6523;6;uncraftable;kt-1;td-526':
+    '6523;6;uncraftable;kt-2;td-526':
         'y1FSLzrHznpkdeB-KsLAzADEreOfG3G5bTSVf3PbHlxuSrtaN2ra-jL2sbvAFD6aFb55QA4EK_ZWpzBLaMqAawx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPWIUJLbZw',
     // Widowmaker
-    '6523;6;uncraftable;kt-1;td-527':
+    '6523;6;uncraftable;kt-2;td-527':
         'y1FSLzrHznxiceJ5NvTKwRf8pKzYGiLzMG-cLHmASQk_HLoNZjuLqGDw5--dSjqaQ-gqEQFRdPcE9jFAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e52iUnj4K',
     // Short Circuit
-    '6523;6;uncraftable;kt-1;td-528':
+    '6523;6;uncraftable;kt-2;td-528':
         'y1FSLzrH3GZgWultKszDjlSroOeLGHKuOGGReCDbRVw4G7JWYG-N-jWj5b-cFz7PRekkFwkAe_casjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeOgvzUpQs',
     // Unarmed Combat
-    '6523;6;uncraftable;kt-1;td-572':
+    '6523;6;uncraftable;kt-2;td-572':
         'y1FDJCPq0HFpWuZjNcnH1Dr3oPCKGTqgPmCQe3SLRFxrH7FeYW2I_Tqn4eucET2YRO8tF19QevQDoDVAPMmIIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pVzLu5Sy',
     // Wanga Prick
-    '6523;6;uncraftable;kt-1;td-574':
+    '6523;6;uncraftable;kt-2;td-574':
         'y1FAJS380ntSdexiB8fH0gL-77PYTSX2bG_HKnmJSgs5RLcKZ2Hf-zCj5bzBETrLF7wkFQxQevYF8GZXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXMOzXEag',
     // Apoco-Fists
-    '6523;6;uncraftable;kt-1;td-587':
+    '6523;6;uncraftable;kt-2;td-587':
         'y1FFOHHHzWFjZu1TNMrUxwC1pLqLTSL1OGfCf3fYGQdsHLEPNj2N9jPztruTSzHOFex6RAkEeqcE93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFqRfH8pGg',
     // Pomson 6000
-    '6523;6;uncraftable;kt-1;td-588':
+    '6523;6;uncraftable;kt-2;td-588':
         'y1FSOCXHzXtgdupiB8fH0gL-7-fUGCymOWLCdiSOHQowTbFdPGver2bxse6QETzLELt_Sw0DeaEA9TJXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXMAbiKoM',
     // Eureka Effect
-    '6523;6;uncraftable;kt-1;td-589':
+    '6523;6;uncraftable;kt-2;td-589':
         'y1FSOCXHymZoa-ZkNcTS0gr1nu6MDnPyJmDFLCPcSww9SLRXMDnfr2Ws4rnBQzybSbwuEQkGevEE9zVMOc3YbRIjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVIQ8CVkZX799NjqCUKvgkCqYWbW0P7APtMJRAl0eShu4niYvWRx_7KiLagtEs3o4svzFlnPB8ww',
     // Third Degree
-    '6523;6;uncraftable;kt-1;td-593':
+    '6523;6;uncraftable;kt-2;td-593':
         'y1FSOCXHyXxkd-FoPczUxQDEreOfG3G5PWeUenaKRQ49SeVWZ2yI_2Cs5OSdFGzMFekoQ19ReqNS9GZPOpvcPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPWVkYZouw',
     // Phlogistinator
-    '6523;6;uncraftable;kt-1;td-594':
+    '6523;6;uncraftable;kt-2;td-594':
         'y1FSOCXHzXxhauJlK9_PzgTvrvCyEHXlbzKKKieMTgk7SOEMN26N-jv35biWFmrNQLsqEglRfasCoG1OOpuAOBU10plLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEYAQMcZTY43xJFHt6H1qQhCeI0CF18OFrxgM2rSB_rjkXnLCuO1aecJtMcBVFhPTku9z3F-XR1_va_dO19Atnol9rzS8Zp4qYzNwg',
     // Manmelter
-    '6523;6;uncraftable;kt-1;td-595':
+    '6523;6;uncraftable;kt-2;td-595':
         'y1FSOCXH0HVjaOBgLM7U_wn6s-WIUnbxO2GQfCLaGAtrG7JYNm7Z_jb37OSQET7LRu16RF9QfqoN-2RNaJ-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxRV9AonY',
     // Scottish Handshake
-    '6523;6;uncraftable;kt-1;td-609':
+    '6523;6;uncraftable;kt-2;td-609':
         'y1FFKS3s0XVjYdp_MMrUxDr3oPCKGTryPDOTeieNSV09HrpeMDzd_juh4OyURW2bQuEoQw0MefNR8W1IbMDYIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pTZli03L',
     // Sharp Dresser
-    '6523;6;uncraftable;kt-1;td-638':
+    '6523;6;uncraftable;kt-2;td-638':
         'y1FXKTDH1XtibudgOc_D_wn6s-WIUnXxbmGReHeLHgY6SbJdZGnf_Drws76cQz-cROwrEAwEf_FSpjcdO8uXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBx1ixgCvY',
     // Wrap Assassin
-    '6523;6;uncraftable;kt-1;td-648':
+    '6523;6;uncraftable;kt-2;td-648':
         'y1FOJzHH2n1rcfJ-Odv5zATppufDTiakbWeULSWPSlhsT7ZYNTzf9jb37L6cETjPEuElQgkCeKMG9jBLbtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7inLpYlGZg',
     // Spy-cicle
-    '6523;6;uncraftable;kt-1;td-649':
+    '6523;6;uncraftable;kt-2;td-649':
         'y1FOJzHH3nthYdp_MMTTzAH-s92BHWbwbXnGKnaJHgk-ROVaMWCL9jL0s--WEDDKQO9-RgAHf_RV92dINc2NPRY_ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIx0QdScQPTZQxxZ5KhJngvgxQbrcxGkwbFPcoZjrSV_21xC3MXuTkOeFY45BTVgweTk_pnnEpWx98vv2IOA1GtH0i7OLM-MO-Dttu',
     // Holiday Punch
-    '6523;6;uncraftable;kt-1;td-656':
+    '6523;6;uncraftable;kt-2;td-656':
         'y1FOJzHH2nhic-B_B8fH0gL-77HeSHKvbTXFKXeBGAwxS7cMNDne-Dqi4unCEz2cQugvFg4DffAF-m1XfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXoCUcdOs',
     // Black Rose
-    '6523;6;uncraftable;kt-1;td-727':
+    '6523;6;uncraftable;kt-2;td-727':
         'y1FXPCPHz3t-YO5iMc3D_xPEreOfG3G5bW6TfnndSAk_H7oKPGDdqjf2seqdQjzPFLx4QQkDfKANoTUfOp2OOgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPW2zqsmVQ',
     // Beggar's Bazooka
-    '6523;6;uncraftable;kt-1;td-730':
+    '6523;6;uncraftable;kt-2;td-730':
         'y1FSPy_ozmBod9poPd3PwwDEreOfG3G5aWHFeyOMGQZpSeJXMGCMqGX0t7icRGvJSOEtQwpSdPAB8WNIP8vbbQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPU2DYbSHg',
     // Lollichop
-    '6523;6;uncraftable;kt-1;td-739':
+    '6523;6;uncraftable;kt-2;td-739':
         'y1FaJS701HdlavVTNMrUxwC187CITXenPmGVLHaPRVo9T-ZcNjuMqjDxsOTFFD6YSboqFwoEdfYC93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFoJleEoNQ',
     // Scorch Shot
-    '6523;6;uncraftable;kt-1;td-740':
+    '6523;6;uncraftable;kt-2;td-740':
         'y1FFKS3q3nxSdu1jLPTKwRf8pKzbHnWgbjSRdnaNRQpqTrNXPDvb-DP25b-URT3NQL0qRAwEf6QApmIfI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e5z7I_3B4',
     // Rainblower
-    '6523;6;uncraftable;kt-1;td-741':
+    '6523;6;uncraftable;kt-2;td-741':
         'y1FEKyv233hicuB-B8fH0gL-77bYHXGhO2aWf3CMTA06H-VePW6Krzus5buVSzvIELwqEV0BeaFS9TdXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXtNsQyno',
     // Cleaner's Carbine
-    '6523;6;uncraftable;kt-1;td-751':
+    '6523;6;uncraftable;kt-2;td-751':
         'y1FGOC3HznlqWultKszDjgb987WMRHDyOWeSe3aJTg5sSrMPNWja-DX24unCF2maSeEvFw0EK_YasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeONi33NV0',
     // Hitman's Heatmaker
-    '6523;6;uncraftable;kt-1;td-752':
+    '6523;6;uncraftable;kt-2;td-752':
         'y1FGOC3Hz31raeBTNMrUxwC1o7LaRXHyOWfGLSfbRVxrG7pZNGzf-zumtL7HFD_ISb4pSwkMeKtV9HoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFqYGHD2hw',
     // Baby Face's Blaster
-    '6523;6;uncraftable;kt-1;td-772':
+    '6523;6;uncraftable;kt-2;td-772':
         'y1FGLzLHzndscfFpKszTzjr3oPCKGTqmMGTHfiXbGgc-G7ULNmjbq2as7OWUQz7BSLl4EF8GKfMN9TBPOMiJIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pU8h-GtT',
     // Pretty Boy's Pocket Pistol
-    '6523;6;uncraftable;kt-1;td-773':
+    '6523;6;uncraftable;kt-2;td-773':
         'y1FGLzLHzX1-cepgB8fH0gL-77vfHy30OTPCLnmIHws_HLoPZzra9zek57nHFjmaR-p5RAhRdPcA8WNXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMX1WmPrgQ',
     // Escape Plan
-    '6523;6;uncraftable;kt-1;td-775':
+    '6523;6;uncraftable;kt-2;td-775':
         'y1FGIyHz3GxoWultKszDjlSs8ObYTC2mMTKWeiXbTgprGOEPMmzb_GCn4OmRFDHIQLx-S1gEKfEasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479JNHqZn39QsQaItuT1xLEr1-Yj-HVKjhkn2ZC-e2P7UM4JMEAQxMTh7vm3J_DE03qKeO9YuTTjw',
     // Huo-Long Heater
-    '6523;6;uncraftable;kt-1;td-811':
+    '6523;6;uncraftable;kt-2;td-811':
         'y1FVKyzs0npSaeR-P86IwVH_pOTaRSSvOmaTenmBTF85TbtYYz3frzX0tOSXFD3KF-oqSw4Hf7xErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgBx55UvJu8vV5AaNtpGQkfFel5M2-BBf-2wH_NWueya-QMt5UGAg8eGx29nXB4C1dptq4_Qq1f9A',
-    '6523;6;uncraftable;kt-1;td-832':
+    '6523;6;uncraftable;kt-2;td-832':
         'y1FVKyzs0npSaeR-P86IwVH_pOTaRSSvOmaTenmBTF85TbtYYz3frzX0tOSXFD3KF-oqSw4Hf7xErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgBx55UvJu8vV5AaNtpGQkfFel5M2-BBf-2wH_NWueya-QMt5UGAg8eGx29nXB4C1dptq4_Qq1f9A',
     // Flying Guillotine
-    '6523;6;uncraftable;kt-1;td-812':
+    '6523;6;uncraftable;kt-2;td-812':
         'y1FFLh370XFsc-B-B8fH0gL-77GLRXKibmHFfyCBH1w4SbcIYGvQ9zPx7bmcR2vMRet9EgsBfapXo2JXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXRiL1NZU',
-    '6523;6;uncraftable;kt-1;td-833':
+    '6523;6;uncraftable;kt-2;td-833':
         'y1FFLh370XFsc-B-B8fH0gL-77GLRXKibmHFfyCBH1w4SbcIYGvQ9zPx7bmcR2vMRet9EgsBfapXo2JXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhJLzqQpGJY5uGF1PRbt5Nj2BU6_hwy-eD-CzauUN5ZVVUgtOHBrrnyUpD08t6_3HKlMXRiL1NZU',
     // Neon Annihilator
-    '6523;6;uncraftable;kt-1;td-813':
+    '6523;6;uncraftable;kt-2;td-813':
         'y1FFLh322HtjduxrNvTKwRf8pKyISnKvO2WSenffTg49HrsKYzyM9jussOWUEzDPR70rEAsHK6pX-mZAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e56AgoO6U',
-    '6523;6;uncraftable;kt-1;td-834':
+    '6523;6;uncraftable;kt-2;td-834':
         'y1FFLh322HtjduxrNvTKwRf8pKyISnKvO2WSenffTg49HrsKYzyM9jussOWUEzDPR70rEAsHK6pX-mZAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e56AgoO6U',
     // AWPer Hand
-    '6523;6;uncraftable;kt-1;td-851':
+    '6523;6;uncraftable;kt-2;td-851':
         'y1FVOSX34nV6ddpgOdnBxUv5-LPUGHWkMWWTKSWNSQ89TeBWY2GL-Gfws-zFRj3KRr15EA9VKPAC7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPfhOa_U1',
     // Freedom Staff
-    '6523;6;uncraftable;kt-1;td-880':
+    '6523;6;uncraftable;kt-2;td-880':
         'y1FCPR393HNhYNpgOdnBxUv_pbGJTiKiMGeTf3GLGQ44RbYPNWve-Dr2sbidRzHBQ7woRAkFfPZW7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPcbTi5_Y',
     // Bat Outta Hell
-    '6523;6;uncraftable;kt-1;td-939':
+    '6523;6;uncraftable;kt-2;td-939':
         'y1FFITf00XZscdpgOdnBxUv4oLfYHnL0MWWReXjbSgw7GeVdMmrbrTOltOSVRD7JQ-96SgEMfvFV7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPexBMvvm',
     // Loose Cannon
-    '6523;6;uncraftable;kt-1;td-996':
+    '6523;6;uncraftable;kt-2;td-996':
         'y1FSLy_34ndsa-tjNvTKwRf8pKyPHi3yam_GeiXaHl9qHrJYZmHYrDGj4-SQS27IEuwkEg8AK_QNoTYdI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e5zWlpsJk',
     // Rescue Ranger
-    '6523;6;uncraftable;kt-1;td-997':
+    '6523;6;uncraftable;kt-2;td-997':
         'y1FCLy794mdlavFrLcX5zATppufDTifxajaRfnmATwg8H7VfN2nf_TKj7O2XFzzLErl6QwsCL_cG8TdJPdfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7ikI3orWCQ',
     // Vaccinator
-    '6523;6;uncraftable;kt-1;td-998':
+    '6523;6;uncraftable;kt-2;td-998':
         'y1FbLybx2mFjWuFpPs7I0wDEreOfG3G5OmXCdnSMSVtrTroIMjnZ-Dqs5uWTF27AQrokEg8MeaYD8WJJaMDdPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPWjZjiD8w',
     // Ham Shank
-    '6523;6;uncraftable;kt-1;td-1013':
+    '6523;6;uncraftable;kt-2;td-1013':
         'y1FeKy_H0XV_YuAiYJKfwlOv9bOMGiDxPTKReXmAGls7TeVZMmmK_DWisOrHQDCdSO8rShdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjUpwszJoIvc3xuF4Xad8-Hw5LF-9-NG_QV_iyx3qYCua3bbVfsJdUBgsaTEu-n2o7UR7N8wq-Lw',
     // Fortified Compound
-    '6523;6;uncraftable;kt-1;td-1092':
+    '6523;6;uncraftable;kt-2;td-1092':
         'y1FUJTXHyXxkYONTNMrUxwC18-PVTHKlOWaSeXSPRV0xSLsLZmGN9jantOqTFjjPSb5-Fg9SKaQH93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFqyXSboUw',
     // Classic
-    '6523;6;uncraftable;kt-1;td-1098':
+    '6523;6;uncraftable;kt-2;td-1098':
         'y1FCLCHHznpkdeB-KsLAzADEreOfG3G5PGeQdnaAGQ9tROFbPWHY_TemtLnBR27PROAtR1pXKacN8zBPP8zYbQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPUgtbJ0Sw',
     // Tide Turner
-    '6523;6;uncraftable;kt-1;td-1099':
+    '6523;6;uncraftable;kt-2;td-1099':
         'y1FBIif90Ut-bexpNM_5zATppufDTyylamaTLXbaGlg-S7FZNGDaqDCj4rmXSjnBR70rElgDeqBW92cfOtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7ilIdICHPw',
     // Bread Bite
-    '6523;6;uncraftable;kt-1;td-1100':
+    '6523;6;uncraftable;kt-2;td-1100':
         'y1FUOCf52Xlia_Z4Pdn5xwn0t-eeI3j2ejDBYXDbGAg9H-JWMW3bqzL34ezGETHBFL19F10BKaYHozYaOsDcbRtu3dEVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkCXc4aW44twpBIupLNvB9Gaps4JFIdA74rez-CB6rkxyyfDbeyOLcP5ZBWBlobH0u5myB-Cht9vqyPblwSsHgi8aaM75PniYWV6UI',
     // Back Scatter
-    '6523;6;uncraftable;kt-1;td-1103':
+    '6523;6;uncraftable;kt-2;td-1103':
         'y1FFKSPsyXF_Yfd5NfTKwRf8pKzYSyOiOWOcKXKIH1ttTrpdYWGN_Teh5L6SRW3BFe0lQg0MKfQCpGFLI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqH-uh9EbsY7SF0fQu0sYjrVVP6xxX7JWLKxPrQN4cEEUlxIHhnozXAqXUkv7PrddE0e59qKbagh',
     // Air Strike
-    '6523;6;uncraftable;kt-1;td-1104':
+    '6523;6;uncraftable;kt-2;td-1104':
         'y1FXPi314nhscOtvMM7U_wn6s-WIUiz2PzLCd3eKTgk5HLcLPGHQrDLz5OjGRjubRbx-EQsNevEDoTYfPs2Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hAFCeY84VVhPErp9YTuGB63nxCieXrK0buIIsMVUVw0fTx3pzSEtCxh76P_daQle8CBxEog_sIQ',
     // Necro Smasher
-    '6523;6;uncraftable;kt-1;td-1123':
+    '6523;6;uncraftable;kt-2;td-1123':
         'y1FVKzD21GJsadphOcfKxRHEreOfG3G5OGWWf3HbHwdtG7dfZGzf_zSssO6RRjDPRO4rSgwHK6UBo2cYOZ3baQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPX4rRQosQ',
     // Quickiebomb Launcher
-    '6523;6;uncraftable;kt-1;td-1150':
+    '6523;6;uncraftable;kt-2;td-1150':
         'y1FdIyz_0HVmYPdTK9_Pww7inu6MDnPyJmCVLHWKRAxrRbpWNzvYqjWgseTCQzvBQLwrSwhRe6RV8GxObsvYPEMjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVIQ8CVkZX799NjqCUKvgkCqYWbW0P7APtMJRAl0eShu4niYvWRx_7KiLagtEs3o4svzF4L7S2oo',
     // Iron Bomber
-    '6523;6;uncraftable;kt-1;td-1151':
+    '6523;6;uncraftable;kt-2;td-1151':
         'y1FHPyP833VhadpgOdnBxUv997bYRHCkamCQLHWBTl1uGLRfNzuN-2ah4-nGSmuYF7p6QwkFdaMF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPXomeND4',
     // Panic Attack
-    '6523;6;uncraftable;kt-1;td-1153':
+    '6523;6;uncraftable;kt-2;td-1153':
         'y1FCOCf23nxqcOtTNMrUxwC19OaOGS2hOWaXfHLdSQc_SbBYYTrYqDX0t-iUET-fR-5-FQ9Re6YCpnoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFpu2LbFEA',
     // Dragon's Fury
-    '6523;6;uncraftable;kt-1;td-1178':
+    '6523;6;uncraftable;kt-2;td-1178':
         'y1FQJiP12HZsaelTNMrUxwC19uaMTCyhPTaRLnSKTQ9rSLMKNWDdqGemsLjHRDCfFLokQg8HfKUF9HoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5t5_gvAgNbds-GA1IE-4tMWmGAv_nknjJXeLnO-UJscRVBQ1MHxm5yiZ7CU0q7OeZNFogjgnKEA',
     // Hot Hand
-    '6523;6;uncraftable;kt-1;td-1181':
+    '6523;6;uncraftable;kt-2;td-1181':
         '31FFJiPozX1jYtprNMTQxTr3oPCKGTr0ODbFdySASl9rG7JcMGzZq2eituTFRGmYQOouRQ1WfacC9TZJPJ-KIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJPapo6HhAaQrotZm3TU6qzw3nOWOPjObAK5JRUU1lOT0rvzyIuWU14uvnfbg5Erj54pXh2v_k6',
     // Shooting Star
-    '6523;6;uncraftable;kt-1;td-30665':
+    '6523;6;uncraftable;kt-2;td-30665':
         'y1FfJDT5zn1ia9p_NsLWxRfpqOSBGUv7aSXDKm_YH1s5SuELZmuMrzrzsL_CFGvLF-p5Sg4NdaQApmBJPJ_caho80NEC5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdX9MTWJgt2JZJtZ_-hApRbokuHmEQEKspMHfXV6q0wHrKWbDmP-Zf48EBUQgZSxq5n3QvCkx7vK-MPAkR4n4g9qGWsY3umYGayLcp',
     // C.A.P.P.E.R
-    '6523;6;uncraftable;kt-1;td-30666':
+    '6523;6;uncraftable;kt-2;td-30666':
         'y1FfJDT5zn1ia9p8MdjSzwnEreOfG3G5OTLFfieAGgcwSrddZ22I_2Ggt7vFFj-aQrsrFQ4Ce6sN92VBNMrabgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8Z4kvHFtSF-otNmqFBv60l36fCOWybudY5sAFU10aHkq4ySAtWh8tuavZbAlDtGBmrPVZFtZhjQ',
     // Batsaber
-    '6523;6;uncraftable;kt-1;td-30667':
+    '6523;6;uncraftable;kt-2;td-30667':
         'y1FfJDT5zn1ia9puOd_5zATppufDHyL0amWReniJSFg_HrYINT7Q_jH34L-QFDufRbssElgCf6MG-zAaOtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNtwxRbI1zHQ0fEup6N27SAPnglXiYD-XjPOBc4cVQA1wfGBvrziJ_Xhsp7v3abhMA7inKI5ZAtw'
 };
 
 const ks3Images: { [sku: string]: string } = {
     // Professional Killstreak Kit
     // Kritzkrieg
-    '6526;6;uncraftable;kt-1;td-35':
+    '6526;6;uncraftable;kt-3;td-35':
         'y1FZPCfq1XFsaeB-B8fH0gL-7-OISHauPTOUeiDYRQ1qTOBaN2vZ_jSt5eWVEGnKQu0rRwwFfqIE92xXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPWuN_4KQA',
     // Blutsauger
-    '6526;6;uncraftable;kt-1;td-36':
+    '6526;6;uncraftable;kt-3;td-36':
         'y1FaLyf71XN4a9pgOdnBxUv5ouHaTS31bmDCd3iBH1g_SeINMj6Ir2H3sbiTE2rJQ-4oR1sHe_AF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxJ7dIt4k',
     // Ubersaw
-    '6526;6;uncraftable;kt-1;td-37':
+    '6526;6;uncraftable;kt-3;td-37':
         'y1FDKCfqznV6WultKszDjgSsp7GMSy30OjPHfSeLT1g4GLZeM2iL_TTx4OWVETmfQb0lFw8BfvQasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7ikXVbgfWw',
     // Axtinguisher
-    '6526;6;uncraftable;kt-1;td-38':
+    '6526;6;uncraftable;kt-3;td-38':
         'y1FXMjbx03N4bPZkPdn50Bzprt2BHWbwbXnHeXbfGQ0wSOdfZDnc_mWssb-cED7JQeksQwgNevFXpm1PbMqANhA_ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIx0QdScQPTZQxxZ5KhJngvgxQbrcvGkwZLrUvJz7USvrjwCqcDOO1OeMA4sJYVlgZTk20nyYpW04uuf_fbAVH4X918_eT-5mujou4q1NKmYk',
     // Flare Gun
-    '6526;6;uncraftable;kt-1;td-39':
+    '6526;6;uncraftable;kt-3;td-39':
         'y1FQJiPq2HN4a9p8IdnJ_wn6s-WIUnGhPmSVfXSNGgo6TLNZY2iP_Tuk4r_AQTrISO8tFw0CfPRWoGUbbsyXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZpxM4sKfw',
     // Backburner
-    '6526;6;uncraftable;kt-1;td-40':
+    '6526;6;uncraftable;kt-3;td-40':
         'y1FUKyHz32F_a-B-B8fH0gL-77SIGCDyOG6VfHGJSVwwGbdWN26I9zun4-rHSzGcSespRVhQf_MGpmFXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPWAm3bf0A',
     // Natascha
-    '6526;6;uncraftable;kt-1;td-41':
+    '6526;6;uncraftable;kt-3;td-41':
         'y1FBFS7t2XlkaeRTNMrUxwC187aLS3WibGWdfHbaRVxrHrpdNWqMrGL37b-QR2vPEroqFQ4HLKtR8HoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pb8j2Dlv',
     // Killing Gloves of Boxing
-    '6526;6;uncraftable;kt-1;td-43':
+    '6526;6;uncraftable;kt-3;td-43':
         'y1FUJTrx03NSYuljLs7V_wn6s-WIUnegaW6TdniBGVhsSrNaMWDc-TDw5rnARmufROl5R18GL6FX8WAdacCXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZrKD5xpvg',
     // Sandman
-    '6526;6;uncraftable;kt-1;td-44':
+    '6526;6;uncraftable;kt-3;td-44':
         'y1FBJS382HpSZ-R4B8fH0gL-77aMHS2nMTOWKXPfS1xqGLQLYTnZ-TLx4u-cRmvNEuouEV9XdaZQ8jJXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPWoXARMWg',
     // Force-A-Nature
-    '6526;6;uncraftable;kt-1;td-45':
+    '6526;6;uncraftable;kt-3;td-45':
         'y1FSJTf60XFSZ-R-Ks7K_wn6s-WIUi32amScLniNTlpuH7dWPW7b9meltunAEDCbQb0pSl9ReKVWozVMbJyXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZpsxfpcDQ',
     // Huntsman
-    '6526;6;uncraftable;kt-1;td-56':
+    '6526;6;uncraftable;kt-3;td-56':
         'y1FUJTXH0XV_YuAiapvFkFKq87TaGCajOWWceiCOTw08TbddNj6M_2WhtL6SQzvMFO1-FRdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjTJwszqBKuoz1vkMQP9s5T1xMRu98bG6CXPjmwHqaV-fgbbUO4pBWUV8STR68yHUuDh199rmHPbwNmEcO',
     // Ambassador
-    '6526;6;uncraftable;kt-1;td-61':
+    '6526;6;uncraftable;kt-3;td-61':
         'y1FXJyD5zmdsYep-B8TW1Dr3oPCKGTrzOjXALXSNSAtqRbFaNGvdrDDw4-vBFzjPQewpRgxSfqsBpzUaNM6AIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75Pn-Lry_Gk',
     // Direct Hit
-    '6526;6;uncraftable;kt-1;td-127':
+    '6526;6;uncraftable;kt-3;td-127':
         'y1FSIzD93mBlbPFTNMrUxwC18rOJS3GhOWfHK3fdRVw5TuBeYT7f-Tf34buXRjybQOkvQAkHf6ED9noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54patYk1xD',
     // Equalizer
-    '6526;6;uncraftable;kt-1;td-128':
+    '6526;6;uncraftable;kt-3;td-128':
         'y1FGIyHz3GxoWvY-B8fH0gL-77vbH3LyOmaWKSWPHwlpH-FXMGGM-2Wj5urGQTydE-h4Rl8NfqVRo2NXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPWCpuOO0w',
     // Scottish Resistance
-    '6526;6;uncraftable;kt-1;td-130':
+    '6526;6;uncraftable;kt-3;td-130':
         '31FFPiv71m1vauhuB8_DxgD1peefI3j2ejDBYXTcHg08RLBfPGqK_DSt57idEzjKSLp_FVxSLqsMoWEbaJuJPENv3YAVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkCXc4aW44twpBIupLNvB9Gaps4JEwdA7wROTjDA6z5wHqbCufgP-YP58hXVFEbS0y5mX1_XRt97_6IbAtGuHl38_GT-szkmsuvERcrcw85WQ',
     // Chargin' Targe
-    '6526;6;uncraftable;kt-1;td-131':
+    '6526;6;uncraftable;kt-3;td-131':
         'y1FCKzD_2EthZPdrPYWexFf58ObbTnCnbWOXLnKJT1puReVbNW_Yqzf04uyUF2ybRbt6F18AY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKrXZe610J6ho8cSL6FEASsAPW6Isyo1DhJLzqQpGJdtpSFpIE-l5Y2uIU_rvwn-bWuG7O7NbscZXBl8cTEe6ynUoDhwovK3HKlMXQXuU-Ac',
     // Eyelander
-    '6526;6;uncraftable;kt-1;td-132':
+    '6526;6;uncraftable;kt-3;td-132':
         'y1FVJiPh0Ht_YNpgOdnBxUus8LGPSiKgOGSUenmJRAg9RLNfYGyI-Gbw5evGS27BSbt-Q1gEKKsF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxZeldLTc',
     // Frontier Justice
-    '6526;6;uncraftable;kt-1;td-141':
+    '6526;6;uncraftable;kt-3;td-141':
         'y1FQOC32yX1od-95K9_PwwDEreOfG3G5am6SfSOJTFw5TecLZ2HYqjGk4-XBQGvIFOwvEV9QeaJV8mZKO8vabgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umT6ylaQx',
     // Gunslinger
-    '6526;6;uncraftable;kt-1;td-142':
+    '6526;6;uncraftable;kt-3;td-142':
         'z3tYOS7x03Nod9pgOdnBxUuvpOaISyfyO2XHfHaKSlxuTeIINWyLqmb04u_CQD7BQuEuQlpQKfYF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxZTLtpM0',
     // Homewrecker
-    '6526;6;uncraftable;kt-1;td-153':
+    '6526;6;uncraftable;kt-3;td-153':
         'y1FFJif82nFlZOhhPdn5zATppufDHiKmP2CXKnGMGA09ReIKNm7c_Tui7OuXFmqaQL4oSglXfvMGoDFJPdfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-K4tlfC2',
     // Pain Train
-    '6526;6;uncraftable;kt-1;td-154':
+    '6526;6;uncraftable;kt-3;td-154':
         'y1FGKyv2yWZsbOtTNMrUxwC1pbXYSnfzMG6cdnOIHgo_GLdcNWuKr2WjtruSQmqdQrkkQQwNf_QF8noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pUX6antM',
     // Southern Hospitality
-    '6526;6;uncraftable;kt-1;td-155':
+    '6526;6;uncraftable;kt-3;td-155':
         'y1FFOivz2GN_YOtvMPTKwRf8pKzZRCXxOW_AKXSOGQc-TbAPNDnd_jb0s-uSETvJQ7ouEV1WK6tVp2IbI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFNpKuHUQ',
     // Lugermorph
-    '6526;6;uncraftable;kt-1;td-160':
+    '6526;6;uncraftable;kt-3;td-160':
         'y1FCPiXH0HV1WuJ5NvTKwRf8pKyMGnD2OmOVfHePS1s6HrteZGHf-WCg7LiTQG6bELt4EQ1QL6cB9mEfI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFKp7R8Mg',
     // Lugermorph (second one?)
-    '6526;6;uncraftable;kt-1;td-294':
+    '6526;6;uncraftable;kt-3;td-294':
         'y1FCPiXH0HV1WuJ5NvTKwRf8pKyMGnD2OmOVfHePS1s6HrteZGHf-WCg7LiTQG6bELt4EQ1QL6cB9mEfI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFKp7R8Mg',
     // Big Kill
-    '6526;6;uncraftable;kt-1;td-161':
+    '6526;6;uncraftable;kt-3;td-161':
         'y1FCPiXHznVgWuJ5NvTKwRf8pKzfSCOuOmPCfSCMGlwxG7ALMmyK_TLx5-qSSj_JFLwoEV1Qe_cM9TFPI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFqxwfTLE',
     // Tribalman's Shiv
-    '6526;6;uncraftable;kt-1;td-171':
+    '6526;6;uncraftable;kt-3;td-171':
         'y1FBJS384nlsZu1pLM75zATppufDSXGua2OTKyXbTgY_TbFbYW_d_jPw5u_BRTrBQOF6F1sMLqBV8GBBaNfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-BJgg0Px',
     // Scotsman's Skullcutter
-    '6526;6;uncraftable;kt-1;td-172':
+    '6526;6;uncraftable;kt-3;td-172':
         'y1FUKzbs0XFsfeBTNMrUxwC19LvYS3euMTGdfnjcHVg_TuVaY2yIrDXz5uyXF23IE74kFQ4GfaVRoXoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pSNQLzUS',
     // Vita-Saw
-    '6526;6;uncraftable;kt-1;td-173':
+    '6526;6;uncraftable;kt-3;td-173':
         'y1FDKCfq03FoYelpB8fH0gL-77XVHyX0PG7CdiOKHVtqG7cKM2mK_2Gt4-_BEz-dEOp_Q1gGf6sE-2NXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPWHtsFD6g',
     // Bat
-    '6526;6;uncraftable;kt-1;td-190':
+    '6526;6;uncraftable;kt-3;td-190':
         'y1FUKzbH0XV_YuAiPJuVlgf-87HYTHGjP2DAKyOKTAs_S-FaNDrR_WKj4-uTETjLE-gkERdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjTJwszqBKuoz1vkMQP9s5T1xMRu98bG6CXPjmwHqaV-fgbbUO4pBWUV8STR68yHUuDh199rmHPdYmIp1Z',
     // Bottle
-    '6526;6;uncraftable;kt-1;td-191':
+    '6526;6;uncraftable;kt-3;td-191':
         '31FUJTbs0XFSaeR-P86IlFH99LWOGCLyMTKcLHiORAxqTrZfNWDe_mb35u2SRGzISL4kQg0GdbxErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgB2Z5UvqH-uh9EbsZuTw0YRbt-Ym-DXf7ky3-ZXeewNuVbt5VXUAgcTEm1nCV6XEh86a2NdE0e5yO7TuUT',
     // Fire Axe
-    '6526;6;uncraftable;kt-1;td-192':
+    '6526;6;uncraftable;kt-3;td-192':
         'y1FQIzD93GxoWvV1KsT5zATppufDHnGgMG-UfiTdRFpuSucNYWndq2Gt7LiUFm2fQ-8uRwkMfaMG8mFINNfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-BgCmh7p',
     // Kukri
-    '6526;6;uncraftable;kt-1;td-193':
+    '6526;6;uncraftable;kt-3;td-193':
         '31FbKyHw2GBoWultKszDjgT5-LLcSSCvODSRLXXaGFhpT-JWM23e-TSg7bnCRm2bQbsqFQwCffYasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7im8Fqi5ew',
     // Knife
-    '6526;6;uncraftable;kt-1;td-194':
+    '6526;6;uncraftable;kt-3;td-194':
         '31FdJCv-2EthZPdrPYWUkgf6-OOLGSHzOmWSeSWKGAdpG7MIMjyKqDqsseuTFj3BSbt-SwABY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKrXZe610J6ho8cSL6FEASsAPW6Isyo1DhJLzqQpGJdtpSFpIE-l5Y2uIU_rvwn-bWuG7O7NbscZXBl8cTEe6ynUoDhwovK3HKlMXpGBfv1I',
     // Fists
-    '6526;6;uncraftable;kt-1;td-195':
+    '6526;6;uncraftable;kt-3;td-195':
         '3lFQIzHs4nxoZPN1B8fH0gL-77qMTXGka2PHfiKBTFtrSLFWPTrY_Tui5r-WRD2cSe4vEAsEL6MH-mNXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPVJ_DwCJQ',
     // Shovel
-    '6526;6;uncraftable;kt-1;td-196':
+    '6526;6;uncraftable;kt-3;td-196':
         '31FFIi3u2HhSaeR-P86IxVKs97bcGXHzOzSXfnndRAk8RLpZM27e92GksOiWQmnIFegtEgkDf7xErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgB2Z5UvqH-uh9EbsZuTw0YRbt-Ym-DXf7ky3-ZXeewNuVbt5VXUAgcTEm1nCV6XEh86a2NdE0e52L2MIm2',
     // Wrench
-    '6526;6;uncraftable;kt-1;td-197':
+    '6526;6;uncraftable;kt-3;td-197':
         '31FBOCf23nxSaeR-P86IkFL-8uSPRXajPWfGd3aKTwo5TLNYPGrZ_DGns-2cRW7LFb5_RF0Fe7xErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgB2Z5UvqH-uh9EbsZuTw0YRbt-Ym-DXf7ky3-ZXeewNuVbt5VXUAgcTEm1nCV6XEh86a2NdE0e53-nnEBg',
     // Bonesaw
-    '6526;6;uncraftable;kt-1;td-198':
+    '6526;6;uncraftable;kt-3;td-198':
         'y1FUJSz9znV6WultKszDjgT-p-OJSiWgPWCUeHffSgw-ReELMTzY-2KhtO6QS2yfFO8tEVgAdfMasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7inlnFaFvQ',
     // Shotgun
-    '6526;6;uncraftable;kt-1;td-199':
+    '6526;6;uncraftable;kt-3;td-199':
         '31FFIi3s2mFjWultKszDjlz_-ebfT3ClPGbBfCSIH109SbBfMGyP_Geis-mXEzDMQbx9QQxRfaAasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7ikU6heOYg',
     // Scattergun
-    '6526;6;uncraftable;kt-1;td-200':
+    '6526;6;uncraftable;kt-3;td-200':
         'y1FFKSPsyXF_YvBiB8fH0gL-77fcTHWuOW-Vf3mBRA49TuJYMW6L9jut7LyUF2zPROguRwEMevZSpzBXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPWV_gHUhQ',
     // Sniper Rifle
-    '6526;6;uncraftable;kt-1;td-201':
+    '6526;6;uncraftable;kt-3;td-201':
         '31FFJCvo2GZ_bONgPfTKwRf8pKzeTnKmP2LGfXeATAhtGeFbYGzdqjug5-3GR26cEL59EA8BLvMN9TdAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFTaguNug',
     // Minigun
-    '6526;6;uncraftable;kt-1;td-202':
+    '6526;6;uncraftable;kt-3;td-202':
         '31FbIyzx2mFjWultKszDjl3_-LaOH3ela2DBLnbdTwk9GbNdPGDY-TLw4OqXSj_IF7skFwsBe6EasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7inJweLAnw',
     // SMG
-    '6526;6;uncraftable;kt-1;td-203':
+    '6526;6;uncraftable;kt-3;td-203':
         '31FFJyXH0XV_YuAibpvExAOp8rfbGiWjPWSUf3mORVowRLIKZmuP9zqmt-iTEDDIRu4sRBdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjTJwszqBKuoz1vkMQP9s5T1xMRu98bG6CXPjmwHqaV-fgbbUO4pBWUV8STR68yHUuDh199rmHPd8cFe-V',
     // Syringe Gun
-    '6526;6;uncraftable;kt-1;td-204':
+    '6526;6;uncraftable;kt-3;td-204':
         '31FFMzDx03NoYvBiB8fH0gL-7-fVSy2ibmbHfXCLTQ0_SeEIYTze_Tus4-qQFmmfQrl-Q1tQdaYE82xXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPXNFeROog',
     // Rocket Launcher
-    '6526;6;uncraftable;kt-1;td-205':
+    '6526;6;uncraftable;kt-3;td-205':
         '31FEJSHz2GBhZPBiO8PD0jr3oPCKGTqkP2HBeneNSw05TLcKN2CI-Dui4uidED3PSbp-FVsEfvFVoWVLNcuKIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnImLOu10',
     // Grenade Launcher
-    '6526;6;uncraftable;kt-1;td-206':
+    '6526;6;uncraftable;kt-3;td-206':
         '31FROCf23HBoaeR5NsjOxRfEreOfG3G5OTKSKneJSl0-HLRYNmHbrGGs7bySEzjKReAtEFxXLKYN9GZMPcuOOAx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umVPLaNtI',
     // Stickybomb Launcher
-    '6526;6;uncraftable;kt-1;td-207':
+    '6526;6;uncraftable;kt-3;td-207':
         '31FFPiv71m1vauhuB8fH1Qv4qeefI3j2ejDBYSDcSAppHOcNMG_Z_TWl5bvFQGvMRLp6RA4AKKQC9zIabMGLbUA90oQVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkCXc4aW44twpBIupLNvB9Gaps4JEwdA7wROTjDA6z5wHqbCufgP-YP58hXVFEbS0y5mX1_XRt97_6IbAtGuHl38_GT-szkmsuvERd9HXYLWQ',
     // Flame Thrower
-    '6526;6;uncraftable;kt-1;td-208':
+    '6526;6;uncraftable;kt-3;td-208':
         'y1FQJiP12GBld-p7Pdn5zATppufDRHGjODPFfySPGA5rGbFXZj7f_zSk4eiVQDrJRrslQwADf_EF8jVMa9fJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-AmSwu1Q',
     // Pistol
-    '6526;6;uncraftable;kt-1;td-209':
+    '6526;6;uncraftable;kt-3;td-209':
         'y1FGIzHs0nhSaeR-P86IlwGq9rraRHX0MGHBeSLYTQtrSLFfMj7a-DL2sbucS27PEL5-EgoEfLxErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgB2Z5UvqH-uh9EbsZuTw0YRbt-Ym-DXf7ky3-ZXeewNuVbt5VXUAgcTEm1nCV6XEh86a2NdE0e53vojYqK',
     // Revolver
-    '6526;6;uncraftable;kt-1;td-210':
+    '6526;6;uncraftable;kt-3;td-210':
         '31FELzT30WJod9pgOdnBxUuj97DfSnX2OjTBf3bbTw0wS7cMPWzRr2fx4byQFzyfRe8rQl9SLqMM7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBx_bq4rV4',
     // Medi Gun
-    '6526;6;uncraftable;kt-1;td-211':
+    '6526;6;uncraftable;kt-3;td-211':
         'y1FbLybx2mFjWultKszDjgCo-LuOGHX2PGKdeiSKTA1qTbdaYG2L-2H3sO-XFmuYReB4S1sNKaMasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7ilKNud5gg',
     // Powerjack
-    '6526;6;uncraftable;kt-1;td-214':
+    '6526;6;uncraftable;kt-3;td-214':
         'y1FGJTX9z35sZu5TNMrUxwC187reHyekbTSVdiDcRFppTbYKNDnRqGKmsOzCFzyfSO8qRQEEe6pV-noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54peRawaia',
     // Degreaser
-    '6526;6;uncraftable;kt-1;td-215':
+    '6526;6;uncraftable;kt-3;td-215':
         'y1FSLyXq2HV-YPdTNMrUxwC187XYTyKja27HfHLdS106SOEMMTyM_TGktu_ARG7NQrksFQxQdaoM93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pcoRdN3C',
     // Shortstop
-    '6526;6;uncraftable;kt-1;td-220':
+    '6526;6;uncraftable;kt-3;td-220':
         'y1FFIi3qyWd5avVTNMrUxwC1o7DaSiekPzSQdnmARA5uHLYNMW6N_jXwtrucQjidQusoRwkBfPcM8noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pYElYnId',
     // Holy Mackerel
-    '6526;6;uncraftable;kt-1;td-221':
+    '6526;6;uncraftable;kt-3;td-221':
         'y1FeJS7h0HVubuB-Pcf5zATppufDHXamMGTHLiKPSQs_TuYLMm7Z_TOg4byWETvBRuEvQwwDLqMB8TJJP9fJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-Iqc_KcX',
     // L'Etranger
-    '6526;6;uncraftable;kt-1;td-224':
+    '6526;6;uncraftable;kt-3;td-224':
         'y1FaLzbq3HpqYPdTNMrUxwC1oLGLRXGhODaRe3OMGlo5ReJbNmmK_zWs7ejFS2zMFeslQwECfaoD8XoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pcA4DRQE',
     // Your Eternal Reward
-    '6526;6;uncraftable;kt-1;td-225':
+    '6526;6;uncraftable;kt-3;td-225':
         'y1FTPifq03VhWvdpL8rUxDr3oPCKGTqlMGOWeSfbT18xH7oNMTuKqjH05eiTFzGYQuEqRAsFdKUC-2JPPMyMIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnaOgq7-A',
     // Black Box
-    '6526;6;uncraftable;kt-1;td-228':
+    '6526;6;uncraftable;kt-3;td-228':
         'y1FUJiP71nZifdpgOdnBxUv-p-bbGS3ybmfGLieKHQ1qS7ZfYDrf_zr3tO3AETDAR7opRgBQf6MM7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxkF2y2dI',
     // Sydney Sleeper
-    '6526;6;uncraftable;kt-1;td-230':
+    '6526;6;uncraftable;kt-3;td-230':
         'y1FFMyb22G1SdulpPdvD0jr3oPCKGTqnPzSVfHDbRAhtH-VWNGraqzT34OTHR2ycEukpEglWf6dW9mxBNcjaIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnhjWbPfg',
     // Bushwacka
-    '6526;6;uncraftable;kt-1;td-232':
+    '6526;6;uncraftable;kt-3;td-232':
         'y1FVOC374n9jbONpB8fH0gL-7-HVHSOiazTGfCOAGVw9H7tcZDzbq2HwtO2QS23OEO4vRwEFdaAG9GRXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPXjFEFX1g',
     // Gloves of Running Urgently
-    '6526;6;uncraftable;kt-1;td-239':
+    '6526;6;uncraftable;kt-3;td-239':
         'y1FUJTrx03NSYuljLs7V_xDppueDH23IZDbWKCSXRQw_HOFWMGqM92an5OqVRTrIRet6QV0FK6cD-jcdaJ2IaRFrhYdYriuomUM7FxsvI_peIFLrhCZLZPssxSZDGtNTlCTuIJfckwY_P0cFE7jqVqLGbIGzyXJzXHUuHq0aeoyduDO9uNeoPvqCKfghPaxgosyE2FgBANEOUZs72IxPtJDztzJEeY08CFsjA7g8MAbdBbuwlmCbWuDmO7MJ4sdSXl4ZQk68mHB5Bk17uq3ebVxGtngu9fOT_Mzlz4G7UQB5x27ihdVM',
     // Frying Pan
-    '6526;6;uncraftable;kt-1;td-264':
+    '6526;6;uncraftable;kt-3;td-264':
         'yWJaFTL500thZPdrPYWelwf69LDbSXegOzPCeHPfT1w7GOYLMD6L_jGn5LiXQDrKQ716RA8BY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKrXZe610J6ho8cSL6FEASsAPW6Isyo1DhJLzqQpGJdtpSFpIE-l5Y2uIU_rvwn-bWuG7O7NbscZXBl8cTEe6ynUoDhwovK3HKlMXEipImF4',
     // Iron Curtain
-    '6526;6;uncraftable;kt-1;td-298':
+    '6526;6;uncraftable;kt-3;td-298':
         'y1FfOC324nd4d_FtMcX5zATppufDSib0bGHGeSOBRQ9sG-BaMTvQrDem7O2cQj_AEOgkFQ0MKaMM9TJJNdfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-ByOfbNf',
     // Amputator
-    '6526;6;uncraftable;kt-1;td-304':
+    '6526;6;uncraftable;kt-3;td-304':
         'y1FXJzLtyXV5avdTNMrUxwC1o7XbGiGhPWGVdiLaHVoxHrMKNGqPrzGm7bnAQDvKSespSgEBf6oA9XoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pdYkshlS',
     // Crusader's Crossbow
-    '6526;6;uncraftable;kt-1;td-305':
+    '6526;6;uncraftable;kt-3;td-305':
         'y1FVODfr3HBod_ZTO9nJ0xb5rvWyEHXlbzKKLSWATA07SbNXMm-M-jGntO6VEzjKFeguEltWKfQM9WYbOpvcbhM1gplLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEYAQMcZTY43xJFHt6H1qQhCeI0CCV8OFIYiNCvWAefkx33MWrGyOOcL7MZTX1gbSUu_knApXR0u76jfbAtIty8noaPHrpnk0JWxGAssumDu',
     // Ullapool Caber
-    '6526;6;uncraftable;kt-1;td-307':
+    '6526;6;uncraftable;kt-3;td-307':
         'y1FVKyD9z0thZPdrPYWVklf58-SIGHf0bGaQLHDcSwZsTOEPN2zR_TGi4umTFjHBEOwtF11XY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKrXZe610J6ho8cSL6FEASsAPW6Isyo1DhJLzqQpGJdtpSFpIE-l5Y2uIU_rvwn-bWuG7O7NbscZXBl8cTEe6ynUoDhwovK3HKlMXrEMaM0Q',
     // Loch-n-Load
-    '6526;6;uncraftable;kt-1;td-308':
+    '6526;6;uncraftable;kt-3;td-308':
         'y1FaJSHw03hiZOFTNMrUxwC1-LLUGiSiODaRK3OORVxuT7EMYD2L-zal4--dSzCYR-B-QgsGL6cAp3oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pb_-E2Ok',
     // Warrior's Spirit
-    '6526;6;uncraftable;kt-1;td-310':
+    '6526;6;uncraftable;kt-3;td-310':
         'y1FULyPq4ndhZPJTNMrUxwC1-LSPHiGhbWHAfXmJSwxqTrNaPW3e_jKs5OWQRm6dRb0rFwgDe6AH-noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pfn_Jzzl',
     // Brass Beast
-    '6526;6;uncraftable;kt-1;td-312':
+    '6526;6;uncraftable;kt-3;td-312':
         'y1FRKzb01HpqWuJ5NvTKwRf8pKzeHS3zMWaTd3mBHltqHrEKMD2K_zWjtLiRFDDOFL0pRwgGdfcH82wcI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzF9HrTrgg',
     // Candy Cane
-    '6526;6;uncraftable;kt-1;td-317':
+    '6526;6;uncraftable;kt-3;td-317':
         'y1FVKyz8xEtuZOtpB8fH0gL-77XfGCTxPzKUdiSNHgptG-VZN2GLqDunse3BSj3KSL5-EgANeKsApjFXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPUzknPqEw',
     // Boston Basher
-    '6526;6;uncraftable;kt-1;td-325':
+    '6526;6;uncraftable;kt-3;td-325':
         'y1FUJTHs0npSZ-R_MM7U_wn6s-WIUieuPjTALXXfRAo9ROFeMD6NrGX3trnCFmrAROolQFpVe6IFpjBPNcCXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZrU_taL7Q',
     // Back Scratcher
-    '6526;6;uncraftable;kt-1;td-326':
+    '6526;6;uncraftable;kt-3;td-326':
         'y1FUKyHz4mdud-R4O8PD0jr3oPCKGTr1PG_HK3eITFo_S7BZNTnRqmKhtrudEDyfEut4RQAEffEApmMYaJjfIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PncpwZTrU',
     // Claidheamh Mòr
-    '6526;6;uncraftable;kt-1;td-327':
+    '6526;6;uncraftable;kt-3;td-327':
         'y1FVJiPx2XxoZOhjMMbJ0jr3oPCKGTqkPzaVenCLGgwwSeFcNGHa-TrztOrBSznIQe8uQ10CeKJQoTYYPJqLIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnDBPvApI',
     // Jag
-    '6526;6;uncraftable;kt-1;td-329':
+    '6526;6;uncraftable;kt-3;td-329':
         'y1FcKyXH0XV_YuAiPsqQmFyv8OTaGi32MGDALSPdSg04HuFXZjvb_jKntO-SSznBSOwrQhdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjTJwszqBKuoz1vkMQP9s5T1xMRu98bG6CXPjmwHqaV-fgbbUO4pBWUV8STR68yHUuDh199rmHPYk5dzEB',
     // Fists of Steel
-    '6526;6;uncraftable;kt-1;td-331':
+    '6526;6;uncraftable;kt-3;td-331':
         'y1FQIzHszktiY9p_LM7DzDr3oPCKGTrxP2OQenaMRAw6SbcLZG2K-WWl4u-dSzrLSLwtElhSffQNo21BO52JIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75Pn7lhw264',
     // Sharpened Volcano Fragment
-    '6526;6;uncraftable;kt-1;td-348':
+    '6526;6;uncraftable;kt-3;td-348':
         'y1FEIyTs4nJkd-BTOdPD_wn6s-WIUnakamXBLnGKRQs-GbdYPGzZ_2agsOmRR27PSO8pQApSK6FX9TJNOsiXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZrcEn6blw',
     // Sun-on-a-Stick
-    '6526;6;uncraftable;kt-1;td-349':
+    '6526;6;uncraftable;kt-3;td-349':
         'y1FEIyTs4nJkd-BTNcrFxTr3oPCKGTr0ajWRenbcGQ86SOFZZmyM9zOg7euUQDDJSeElQgEFeqZVoWJANJ_aIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnoOs2NXs',
     // Detonator
-    '6526;6;uncraftable;kt-1;td-351':
+    '6526;6;uncraftable;kt-3;td-351':
         'y1FSLzb303V5avdTNMrUxwC1oLWPHSXzMWKTe3eKSlppSLZaMWDZ-Dui5byRQDvASLp6FQoEdPBS8noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pY-wDnKg',
     // Fan O'War
-    '6526;6;uncraftable;kt-1;td-355':
+    '6526;6;uncraftable;kt-3;td-355':
         'y1FFIi3_yHpScuR-PsrI_wn6s-WIUiOjbmWSdnLfTV87S7sLMGHR-mCi5uuXRDrOSeAvQggMeaBVoDFLaJ2Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZogbW96CQ',
     // Conniver's Kunai
-    '6526;6;uncraftable;kt-1;td-356':
+    '6526;6;uncraftable;kt-3;td-356':
         'y1FFIi3_yHpSbvBiOcL5zATppufDGCL2OWWdfXbdGQZtRLVfMj3R-DPzs7nFS2rLSLwoFQFRffYHpjdJbtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-JJBUrxF',
     // Half-Zatoichi
-    '6526;6;uncraftable;kt-1;td-357':
+    '6526;6;uncraftable;kt-3;td-357':
         'y1FFIi3_yHpSbuR4OcXH_wn6s-WIUiH2OmbAfnSKSAk6TeIKMmjYrzKlsLvBF27LQLp9FggGfKUE-2RJacGXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZoBIDyKdA',
     // Shahanshah
-    '6526;6;uncraftable;kt-1;td-401':
+    '6526;6;uncraftable;kt-3;td-401':
         'y1FFKSv11GBsd9pgOdnBxUuuo7fURXH2bGaRKieOTl87H7tYND2Mqzqk5rvBQjHJQbssEAhQf6sC7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxjkRjEtk',
     // Bazaar Bargain
-    '6526;6;uncraftable;kt-1;td-402':
+    '6526;6;uncraftable;kt-3;td-402':
         'y1FUKzj53GZSdutlKM7U_wn6s-WIUiXzbTTCf3COSwxpTrUNMm2P-GWs5ruQQTnNFLp-RlhQKasM82Eaa52Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZoWX6sp-A',
     // Persian Persuader
-    '6526;6;uncraftable;kt-1;td-404':
+    '6526;6;uncraftable;kt-3;td-404':
         'y1FSLy_34md4afFtNvTV1wrppd2BHWbwbXmSKnCBTlwwHrcKZGDRrDDz4OuSQ23PQOgqQQ1XfPYA-mVLOMmNPhc8ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIx0QdScQPTZQxxZ5KhJngvgxQbrcvGkwZLrUvJz7USvrjwCqcDOO1OeMA4sJYVlgZTk20nyYpW04uuf_fbAVH4X918_eT-5mujou4LKSB4E8',
     // Splendid Screen
-    '6526;6;uncraftable;kt-1;td-406':
+    '6526;6;uncraftable;kt-3;td-406':
         'y1FGLzDr1HVjWvZkMc7KxDr3oPCKGTrxOzGQLHPbGVhsG-JaYD7e-mLx4-idF2vISLsuQQsFLKRQ82JBOc3cIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75Pn-xIydWk',
     // Quick-Fix
-    '6526;6;uncraftable;kt-1;td-411':
+    '6526;6;uncraftable;kt-3;td-411':
         'y1FGOC3s0ktgYOFlP97I_wn6s-WIUnf1a2SceXTYRAg-SrVXNjyP_2L0s-6TQ2vLELx4SlgGdKYA-mFPb8uXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZoY5Iy_Qw',
     // Overdose
-    '6526;6;uncraftable;kt-1;td-412':
+    '6526;6;uncraftable;kt-3;td-412':
         'y1FGOC3s0kt-fPdlNszDxxD1nu6MDnPyJmfBeXWAGgsxSOVYNG3e_jHws-_HFGnLQu0pFwgHK_AN-2RJb5qIahAjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVJo8CVsjHbg8MjyfV_3kl3rKXuS0PegO5slRVloeSEa5ySYvCE547v_fYgoRsS0np6PG-9PwkIIOiCzrnA',
     // Solemn Vow
-    '6526;6;uncraftable;kt-1;td-413':
+    '6526;6;uncraftable;kt-3;td-413':
         'y1FeIzLo0nd_ZPFpK_TE1Rbvnu6MDnPyJmHFeXfdGVg7RLUMN2zQ-mGjsO7FET-fR-8oEQ1VKKJR-2VJbsjbNhYjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVJo8CVsjHbg8MjyfV_3kl3rKXuS0PegO5slRVloeSEa5ySYvCE547v_fYgoRsS0np6PG-9PwkII6WPI6Zg',
     // Liberty Launcher
-    '6526;6;uncraftable;kt-1;td-414':
+    '6526;6;uncraftable;kt-3;td-414':
         'y1FaIyD9z2B0WultLcXFyADpnu6MDnPyJmDAdnKATFhqSOZXNznf9zah4LiVFzHMRL0pRQoMevFQ9WwfbpqIOxUjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVJo8CVsjHbg8MjyfV_3kl3rKXuS0PegO5slRVloeSEa5ySYvCE547v_fYgoRsS0np6PG-9PwkIKfYLQCrw',
     // Reserve Shooter
-    '6526;6;uncraftable;kt-1;td-415':
+    '6526;6;uncraftable;kt-3;td-415':
         'y1FELzH9z2JoWvZkN8TSxRfEreOfG3G5P27FfiPaSw8-HrNbMDmL9zX04OjCSzCaFLwlS10GdKcC9mxNOsqNawx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umfY0LFnH',
     // Market Gardener
-    '6526;6;uncraftable;kt-1;td-416':
+    '6526;6;uncraftable;kt-3;td-416':
         'y1FbKzDz2GBSYuR-PM7IxRfEreOfG3G5PmSVLXWNSQxqG-BbZm2MqzT05unFED3LR-goRAEAfvdW92IfacDbPQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umYO7shNO',
     // Tomislav
-    '6526;6;uncraftable;kt-1;td-424':
+    '6526;6;uncraftable;kt-3;td-424':
         'y1FCJS_xznhsc9pgOdnBxUuipeDeGCz0bmOXdnHbSgpqS7ENYGve_DPxse3GFj3BQb4kRl8GfKMF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxfiN8EjU',
     // Family Business
-    '6526;6;uncraftable;kt-1;td-425':
+    '6526;6;uncraftable;kt-3;td-425':
         'y1FEPzHr1HVjWvdlN9_5zATppufDTy3xaWKXfCXdHVhrTrIPYDvb-mDz4biVQTvKRL0sQ1sCfaNQpjVKONfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-IodopgY',
     // Eviction Notice
-    '6526;6;uncraftable;kt-1;td-426':
+    '6526;6;uncraftable;kt-3;td-426':
         'y1FTPCv7yX1ia9piN9_PwwDEreOfG3G5PjXAeXXdHgY-G7JeMWGM_TGm5O-RQmycQbouRFwNKKsFoDcaaZ2BbQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umbMCR7kg',
     // Cow Mangler 5000
-    '6526;6;uncraftable;kt-1;td-441':
+    '6526;6;uncraftable;kt-3;td-441':
         'y1FSOCXH3nt6aORiP8fD0jr3oPCKGTqhPDGdeHKIHg1uROZWPDqK-TvztujGQjnOEOh6Rg1QeaoH8jdBaZjYIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75Pn_ONQY8w',
     // Righteous Bison
-    '6526;6;uncraftable;kt-1;td-442':
+    '6526;6;uncraftable;kt-3;td-442':
         'y1FSOCXHz31qbfFpN97VwgzoruyyEHXlbzKKfnOLHgw7G7oNZmDf-zei4-nCRD2YEO59Q1sBf6RQoDZLbMCJNkdphZlLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEYAQMcZTY43xJFHt6H1qQhCeI0CCV8OFIYiNCvWAefkx33MWrGyOOcL7MZTX1gbSUu_knApXR0u76jfbAtIty8noaPHrpnk0JWxGGijvpxj',
     // Mantreads
-    '6526;6;uncraftable;kt-1;td-444':
+    '6526;6;uncraftable;kt-3;td-444':
         'xW9YPjD93HB-WultKszDjlypp7GJGnD2bmfBfSONTQdsGbcKYTzcqGD25bmVE2vMQuApEABXefEasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7ilQSQnlUw',
     // Disciplinary Action
-    '6526;6;uncraftable;kt-1;td-447':
+    '6526;6;uncraftable;kt-3;td-447':
         'y1FEIybx03NSZvdjKPTKwRf8pKzdT3DxbWaVeXeARAZuGbYNNDqM-DTw5umTRj_AQeksSw8DffdW8jYfI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzF9kVqkO8',
     // Soda Popper
-    '6526;6;uncraftable;kt-1;td-448':
+    '6526;6;uncraftable;kt-3;td-448':
         'y1FFJSb54mRidfVpKvTKwRf8pKzVRCCmP2GSfHGAS1o7TeYNNmyKrWbz5-WXETCbQ-orFVwFKKIE9mxBI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFxRZIv7U',
     // Winger
-    '6526;6;uncraftable;kt-1;td-449':
+    '6526;6;uncraftable;kt-3;td-449':
         'y1FBIyz_2GZSdex_LMTK_wn6s-WIUnGmaTXCdnncHwkxGbBXPWrcqDGit7-QQGzOQu8pSw9QLKVV9GZPbsuXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZqJAk9ihA',
     // Atomizer
-    '6526;6;uncraftable;kt-1;td-450':
+    '6526;6;uncraftable;kt-3;td-450':
         'y1FUJSzz4nZscdpgOdnBxUuj8ubaGXClMGLHKiSOGl09GLFYNmzc92Wg4unGFm7JQO14FV9QLvcF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBx5_Vg-Nw',
     // Three-Rune Blade
-    '6526;6;uncraftable;kt-1;td-452':
+    '6526;6;uncraftable;kt-3;td-452':
         'y1FFKS3tyUt-cup-PPTKwRf8pKzVSnKgam-SLCDcGgxqG-APMTmPr2ass77BET3OEukrQl0Af6AF-zEYI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFo2wpSpk',
     // Postal Pummeler
-    '6526;6;uncraftable;kt-1;td-457':
+    '6526;6;uncraftable;kt-3;td-457':
         'y1FbKyv033t1WultKszDjgP4-LSMTXahPGTCfiKKTlg6G7INYWiP-Wen5OicEDifF7ovF18FefEasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7imHt1MBBw',
     // Enforcer
-    '6526;6;uncraftable;kt-1;td-460':
+    '6526;6;uncraftable;kt-3;td-460':
         'y1FFJDf64npiduBTNMrUxwC1-bGMGiyiO2LHdiCBTw49RLcMMW7brGGh5LyTEzjIR-p6QwhSePYCoXoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pZqGGPyb',
     // Big Earner
-    '6526;6;uncraftable;kt-1;td-461':
+    '6526;6;uncraftable;kt-3;td-461':
         'y1FFPSvs3nxvaeRoPfTKwRf8pKzfTXemazaSeXbaTFwwH7BYYzzb-mXw7emSEz6cE7x6QV0HKfZV8jdPI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzF2PxWFhg',
     // Maul
-    '6526;6;uncraftable;kt-1;td-466':
+    '6526;6;uncraftable;kt-3;td-466':
         'y1FELCPH1XVgaOB-B8fH0gL-77TeTnL0OG6XLHDfTAtpRLtfPG6M9mGmsO2cRDmbQ7woFwANf_QApmxXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPVyCEdKrg',
     // Conscientious Objector
-    '6526;6;uncraftable;kt-1;td-474':
+    '6526;6;uncraftable;kt-3;td-474':
         'y1FGIyHz2GBSaeR-P86ImFyu97OOGXKuPDOWfnWOT1xsRLENYT6P-jqgs7jHRj-fFbx4RlwGfrxErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgB2Z5UvqH-uh9EbsZuTw0YRbt-Ym-DXf7ky3-ZXeewNuVbt5VXUAgcTEm1nCV6XEh86a2NdE0e54tv2_u2',
     // Nessie's Nine Iron
-    '6526;6;uncraftable;kt-1;td-482':
+    '6526;6;uncraftable;kt-3;td-482':
         'y1FRJS7-3nh4Z9pgOdnBxUuu8LXdRCLzbGOdfCWJRQs9SeILMmCK-zX07ejGQT7PQukpS18Df6dR7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxJzDyq5k',
     // Original
-    '6526;6;uncraftable;kt-1;td-513':
+    '6526;6;uncraftable;kt-3;td-513':
         'y1FULzbHz3tubuB4NMrTzgbzpPCyEHXlbzKKeCLfTA4wSLReNGze9zaj5riWFz_MQ-l5RgBVKaIG8G0dOJrYbRI1gJlLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEYAQMcZTY43xJFHt6H1qQhCeI0CCV8OFIYiNCvWAefkx33MWrGyOOcL7MZTX1gbSUu_knApXR0u76jfbAtIty8noaPHrpnk0JWxGFfXzCe1',
     // Diamondback
-    '6526;6;uncraftable;kt-1;td-525':
+    '6526;6;uncraftable;kt-3;td-525':
         'y1FSLzrHz3F7aul6Pdn5zATppufDTy32aW6SKnLdS1o7S7tXPWja9zT37LjHRz_BR7soFwtReKpS8DVLOdfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-CKcOfbb',
     // Machina
-    '6526;6;uncraftable;kt-1;td-526':
+    '6526;6;uncraftable;kt-3;td-526':
         'y1FSLzrHznpkdeB-KsLAzADEreOfG3G5bTSVf3PbHlxuSrtaN2ra-jL2sbvAFD6aFb55QA4EK_ZWpzBLaMqAawx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umV-LcGha',
     // Widowmaker
-    '6526;6;uncraftable;kt-1;td-527':
+    '6526;6;uncraftable;kt-3;td-527':
         'y1FSLzrHznxiceJ5NvTKwRf8pKzYGiLzMG-cLHmASQk_HLoNZjuLqGDw5--dSjqaQ-gqEQFRdPcE9jFAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFbx-E1-4',
     // Short Circuit
-    '6526;6;uncraftable;kt-1;td-528':
+    '6526;6;uncraftable;kt-3;td-528':
         'y1FSLzrH3GZgWultKszDjlSroOeLGHKuOGGReCDbRVw4G7JWYG-N-jWj5b-cFz7PRekkFwkAe_casjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7ikNTXbd_w',
     // Unarmed Combat
-    '6526;6;uncraftable;kt-1;td-572':
+    '6526;6;uncraftable;kt-3;td-572':
         'y1FDJCPq0HFpWuZjNcnH1Dr3oPCKGTqgPmCQe3SLRFxrH7FeYW2I_Tqn4eucET2YRO8tF19QevQDoDVAPMmIIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnMbGeTr8',
     // Wanga Prick
-    '6526;6;uncraftable;kt-1;td-574':
+    '6526;6;uncraftable;kt-3;td-574':
         'y1FAJS380ntSdexiB8fH0gL-77PYTSX2bG_HKnmJSgs5RLcKZ2Hf-zCj5bzBETrLF7wkFQxQevYF8GZXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPVZ9yhlEg',
     // Apoco-Fists
-    '6526;6;uncraftable;kt-1;td-587':
+    '6526;6;uncraftable;kt-3;td-587':
         'y1FFOHHHzWFjZu1TNMrUxwC1pLqLTSL1OGfCf3fYGQdsHLEPNj2N9jPztruTSzHOFex6RAkEeqcE93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pVSoNj-P',
     // Pomson 6000
-    '6526;6;uncraftable;kt-1;td-588':
+    '6526;6;uncraftable;kt-3;td-588':
         'y1FSOCXHzXtgdupiB8fH0gL-7-fUGCymOWLCdiSOHQowTbFdPGver2bxse6QETzLELt_Sw0DeaEA9TJXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPVK4PwXSQ',
     // Eureka Effect
-    '6526;6;uncraftable;kt-1;td-589':
+    '6526;6;uncraftable;kt-3;td-589':
         'y1FSOCXHymZoa-ZkNcTS0gr1nu6MDnPyJmDFLCPcSww9SLRXMDnfr2Ws4rnBQzybSbwuEQkGevEE9zVMOc3YbRIjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVJo8CVsjHbg8MjyfV_3kl3rKXuS0PegO5slRVloeSEa5ySYvCE547v_fYgoRsS0np6PG-9PwkIIm1q97ww',
     // Third Degree
-    '6526;6;uncraftable;kt-1;td-593':
+    '6526;6;uncraftable;kt-3;td-593':
         'y1FSOCXHyXxkd-FoPczUxQDEreOfG3G5PWeUenaKRQ49SeVWZ2yI_2Cs5OSdFGzMFekoQ19ReqNS9GZPOpvcPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umeNw5uez',
     // Phlogistinator
-    '6526;6;uncraftable;kt-1;td-594':
+    '6526;6;uncraftable;kt-3;td-594':
         'y1FSOCXHzXxhauJlK9_PzgTvrvCyEHXlbzKKKieMTgk7SOEMN26N-jv35biWFmrNQLsqEglRfasCoG1OOpuAOBU10plLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEYAQMcZTY43xJFHt6H1qQhCeI0CCV8OFIYiNCvWAefkx33MWrGyOOcL7MZTX1gbSUu_knApXR0u76jfbAtIty8noaPHrpnk0JWxGBQRhZZm',
     // Manmelter
-    '6526;6;uncraftable;kt-1;td-595':
+    '6526;6;uncraftable;kt-3;td-595':
         'y1FSOCXH0HVjaOBgLM7U_wn6s-WIUnbxO2GQfCLaGAtrG7JYNm7Z_jb37OSQET7LRu16RF9QfqoN-2RNaJ-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8Zpzg5Nmyg',
     // Scottish Handshake
-    '6526;6;uncraftable;kt-1;td-609':
+    '6526;6;uncraftable;kt-3;td-609':
         'y1FFKS3s0XVjYdp_MMrUxDr3oPCKGTryPDOTeieNSV09HrpeMDzd_juh4OyURW2bQuEoQw0MefNR8W1IbMDYIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnEfue1z8',
     // Sharp Dresser
-    '6526;6;uncraftable;kt-1;td-638':
+    '6526;6;uncraftable;kt-3;td-638':
         'y1FXKTDH1XtibudgOc_D_wn6s-WIUnXxbmGReHeLHgY6SbJdZGnf_Drws76cQz-cROwrEAwEf_FSpjcdO8uXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZpvXRonPg',
     // Wrap Assassin
-    '6526;6;uncraftable;kt-1;td-648':
+    '6526;6;uncraftable;kt-3;td-648':
         'y1FOJzHH2n1rcfJ-Odv5zATppufDTiakbWeULSWPSlhsT7ZYNTzf9jb37L6cETjPEuElQgkCeKMG9jBLbtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-OoSaEeN',
     // Spy-cicle
-    '6526;6;uncraftable;kt-1;td-649':
+    '6526;6;uncraftable;kt-3;td-649':
         'y1FOJzHH3nthYdp_MMTTzAH-s92BHWbwbXnGKnaJHgk-ROVaMWCL9jL0s--WEDDKQO9-RgAHf_RV92dINc2NPRY_ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIx0QdScQPTZQxxZ5KhJngvgxQbrcvGkwZLrUvJz7USvrjwCqcDOO1OeMA4sJYVlgZTk20nyYpW04uuf_fbAVH4X918_eT-5mujou4Xl5HQsg',
     // Holiday Punch
-    '6526;6;uncraftable;kt-1;td-656':
+    '6526;6;uncraftable;kt-3;td-656':
         'y1FOJzHH2nhic-B_B8fH0gL-77HeSHKvbTXFKXeBGAwxS7cMNDne-Dqi4unCEz2cQugvFg4DffAF-m1XfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPUjxu7GAQ',
     // Black Rose
-    '6526;6;uncraftable;kt-1;td-727':
+    '6526;6;uncraftable;kt-3;td-727':
         'y1FXPCPHz3t-YO5iMc3D_xPEreOfG3G5bW6TfnndSAk_H7oKPGDdqjf2seqdQjzPFLx4QQkDfKANoTUfOp2OOgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umR3Tip1v',
     // Beggar's Bazooka
-    '6526;6;uncraftable;kt-1;td-730':
+    '6526;6;uncraftable;kt-3;td-730':
         'y1FSPy_ozmBod9poPd3PwwDEreOfG3G5aWHFeyOMGQZpSeJXMGCMqGX0t7icRGvJSOEtQwpSdPAB8WNIP8vbbQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umdbfRHGu',
     // Lollichop
-    '6526;6;uncraftable;kt-1;td-739':
+    '6526;6;uncraftable;kt-3;td-739':
         'y1FaJS701HdlavVTNMrUxwC187CITXenPmGVLHaPRVo9T-ZcNjuMqjDxsOTFFD6YSboqFwoEdfYC93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pQp9qJhg',
     // Scorch Shot
-    '6526;6;uncraftable;kt-1;td-740':
+    '6526;6;uncraftable;kt-3;td-740':
         'y1FFKS3q3nxSdu1jLPTKwRf8pKzbHnWgbjSRdnaNRQpqTrNXPDvb-DP25b-URT3NQL0qRAwEf6QApmIfI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFDqrUiQI',
     // Rainblower
-    '6526;6;uncraftable;kt-1;td-741':
+    '6526;6;uncraftable;kt-3;td-741':
         'y1FEKyv233hicuB-B8fH0gL-77bYHXGhO2aWf3CMTA06H-VePW6Krzus5buVSzvIELwqEV0BeaFS9TdXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPV707Tl_g',
     // Cleaner's Carbine
-    '6526;6;uncraftable;kt-1;td-751':
+    '6526;6;uncraftable;kt-3;td-751':
         'y1FGOC3HznlqWultKszDjgb987WMRHDyOWeSe3aJTg5sSrMPNWja-DX24unCF2maSeEvFw0EK_YasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7inM1lajDw',
     // Hitman's Heatmaker
-    '6526;6;uncraftable;kt-1;td-752':
+    '6526;6;uncraftable;kt-3;td-752':
         'y1FGOC3Hz31raeBTNMrUxwC1o7LaRXHyOWfGLSfbRVxrG7pZNGzf-zumtL7HFD_ISb4pSwkMeKtV9HoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pfNzAvT9',
     // Baby Face's Blaster
-    '6526;6;uncraftable;kt-1;td-772':
+    '6526;6;uncraftable;kt-3;td-772':
         'y1FGLzLHzndscfFpKszTzjr3oPCKGTqmMGTHfiXbGgc-G7ULNmjbq2as7OWUQz7BSLl4EF8GKfMN9TBPOMiJIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnaZFmhlQ',
     // Pretty Boy's Pocket Pistol
-    '6526;6;uncraftable;kt-1;td-773':
+    '6526;6;uncraftable;kt-3;td-773':
         'y1FGLzLHzX1-cepgB8fH0gL-77vfHy30OTPCLnmIHws_HLoPZzra9zek57nHFjmaR-p5RAhRdPcA8WNXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPVLzZoIpA',
     // Escape Plan
-    '6526;6;uncraftable;kt-1;td-775':
+    '6526;6;uncraftable;kt-3;td-775':
         'y1FGIyHz3GxoWultKszDjlSs8ObYTC2mMTKWeiXbTgprGOEPMmzb_GCn4OmRFDHIQLx-S1gEKfEasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejGb6dhMbJ09sqJ1lotSNMZX4479I1HqZvNtwxRbI1zSApPFe0sZW6HVvDgwHaZX-C2PegNt5MEUF5LTEm7k3MqDhoovfiNPhMA7ilzbWBdKA',
     // Huo-Long Heater
-    '6526;6;uncraftable;kt-1;td-811':
+    '6526;6;uncraftable;kt-3;td-811':
         'y1FVKyzs0npSaeR-P86IwVH_pOTaRSSvOmaTenmBTF85TbtYYz3frzX0tOSXFD3KF-oqSw4Hf7xErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgB2Z5UvqH-uh9EbsZuTw0YRbt-Ym-DXf7ky3-ZXeewNuVbt5VXUAgcTEm1nCV6XEh86a2NdE0e51wE5y3Q',
-    '6526;6;uncraftable;kt-1;td-832':
+    '6526;6;uncraftable;kt-3;td-832':
         'y1FVKyzs0npSaeR-P86IwVH_pOTaRSSvOmaTenmBTF85TbtYYz3frzX0tOSXFD3KF-oqSw4Hf7xErDNfZJTePn111IoL5TfgwgJ0ExF5Td0XLV_1nCdGd7Qoz3AtPJtfmTr0JZTP3AI1aSkjW7XnSLvKb5f00G99CRdjG6AMPdbCtXy_p8mydbfEcq5iJ7Ju8MuG22kVXcQdTZgB2Z5UvqH-uh9EbsZuTw0YRbt-Ym-DXf7ky3-ZXeewNuVbt5VXUAgcTEm1nCV6XEh86a2NdE0e51wE5y3Q',
     // Flying Guillotine
-    '6526;6;uncraftable;kt-1;td-812':
+    '6526;6;uncraftable;kt-3;td-812':
         'y1FFLh370XFsc-B-B8fH0gL-77GLRXKibmHFfyCBH1w4SbcIYGvQ9zPx7bmcR2vMRet9EgsBfapXo2JXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPUTTXP_dA',
-    '6526;6;uncraftable;kt-1;td-833':
+    '6526;6;uncraftable;kt-3;td-833':
         'y1FFLh370XFsc-B-B8fH0gL-77GLRXKibmHFfyCBH1w4SbcIYGvQ9zPx7bmcR2vMRet9EgsBfapXo2JXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud3Jq5h-taU3lkcTs0jWY87yoxDhIzzqQh8Z4kvHFtSQu19MW3TVP7hwXefXeuzPuIN58hUBQtOTUjsnXJ9B0546arYPwwU5GBmrPUTTXP_dA',
     // Neon Annihilator
-    '6526;6;uncraftable;kt-1;td-813':
+    '6526;6;uncraftable;kt-3;td-813':
         'y1FFLh322HtjduxrNvTKwRf8pKyISnKvO2WSenffTg49HrsKYzyM9jussOWUEzDPR70rEAsHK6pX-mZAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFkqomn9Q',
-    '6526;6;uncraftable;kt-1;td-834':
+    '6526;6;uncraftable;kt-3;td-834':
         'y1FFLh322HtjduxrNvTKwRf8pKyISnKvO2WSenffTg49HrsKYzyM9jussOWUEzDPR70rEAsHK6pX-mZAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFkqomn9Q',
     // AWPer Hand
-    '6526;6;uncraftable;kt-1;td-851':
+    '6526;6;uncraftable;kt-3;td-851':
         'y1FVOSX34nV6ddpgOdnBxUv5-LPUGHWkMWWTKSWNSQ89TeBWY2GL-Gfws-zFRj3KRr15EA9VKPAC7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxEWVeYJA',
     // Freedom Staff
-    '6526;6;uncraftable;kt-1;td-880':
+    '6526;6;uncraftable;kt-3;td-880':
         'y1FCPR393HNhYNpgOdnBxUv_pbGJTiKiMGeTf3GLGQ44RbYPNWve-Dr2sbidRzHBQ7woRAkFfPZW7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBxumNLUTw',
     // Bat Outta Hell
-    '6526;6;uncraftable;kt-1;td-939':
+    '6526;6;uncraftable;kt-3;td-939':
         'y1FFITf00XZscdpgOdnBxUv4oLfYHnL0MWWReXjbSgw7GeVdMmrbrTOltOSVRD7JQ-96SgEMfvFV7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBKuoz1vkNFOIs-SAoeRroqZW7XUvm2xS-bX7a2O-Fd4MQCAw9PHEvsyXR9C0ot9rmHPexBMvvm',
     // Loose Cannon
-    '6526;6;uncraftable;kt-1;td-996':
+    '6526;6;uncraftable;kt-3;td-996':
         'y1FSLy_34ndsa-tjNvTKwRf8pKyPHi3yam_GeiXaHl9qHrJYZmHYrDGj4-SQS27IEuwkEg8AK_QNoTYdI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFmJmvrfc',
     // Rescue Ranger
-    '6526;6;uncraftable;kt-1;td-997':
+    '6526;6;uncraftable;kt-3;td-997':
         'y1FCLy794mdlavFrLcX5zATppufDTifxajaRfnmATwg8H7VfN2nf_TKj7O2XFzzLErl6QwsCL_cG8TdJPdfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-KUffWrz',
     // Vaccinator
-    '6526;6;uncraftable;kt-1;td-998':
+    '6526;6;uncraftable;kt-3;td-998':
         'y1FbLybx2mFjWuFpPs7I0wDEreOfG3G5OmXCdnSMSVtrTroIMjnZ-Dqs5uWTF27AQrokEg8MeaYD8WJJaMDdPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umVZwoIXY',
     // Ham Shank
-    '6526;6;uncraftable;kt-1;td-1013':
+    '6526;6;uncraftable;kt-3;td-1013':
         'y1FeKy_H0XV_YuAiYJKfwlOv9bOMGiDxPTKReXmAGls7TeVZMmmK_DWisOrHQDCdSO8rShdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59ezNaHTbrtuO69m8_qAxVMTXMQjTJwszqBKuoz1vkMQP9s5T1xMRu98bG6CXPjmwHqaV-fgbbUO4pBWUV8STR68yHUuDh199rmHPfptlhnK',
     // Fortified Compound
-    '6526;6;uncraftable;kt-1;td-1092':
+    '6526;6;uncraftable;kt-3;td-1092':
         'y1FUJTXHyXxkYONTNMrUxwC18-PVTHKlOWaSeXSPRV0xSLsLZmGN9jantOqTFjjPSb5-Fg9SKaQH93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pSwUaXjd',
     // Classic
-    '6526;6;uncraftable;kt-1;td-1098':
+    '6526;6;uncraftable;kt-3;td-1098':
         'y1FCLCHHznpkdeB-KsLAzADEreOfG3G5PGeQdnaAGQ9tROFbPWHY_TemtLnBR27PROAtR1pXKacN8zBPP8zYbQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umQTLeqEM',
     // Tide Turner
-    '6526;6;uncraftable;kt-1;td-1099':
+    '6526;6;uncraftable;kt-3;td-1099':
         'y1FBIif90Ut-bexpNM_5zATppufDTyylamaTLXbaGlg-S7FZNGDaqDCj4rmXSjnBR70rElgDeqBW92cfOtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-DdxU-IK',
     // Bread Bite
-    '6526;6;uncraftable;kt-1;td-1100':
+    '6526;6;uncraftable;kt-3;td-1100':
         'y1FUOCf52Xlia_Z4Pdn5xwn0t-eeI3j2ejDBYXDbGAg9H-JWMW3bqzL34ezGETHBFL19F10BKaYHozYaOsDcbRtu3dEVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkCXc4aW44twpBIupLNvB9Gaps4JEwdA7wROTjDA6z5wHqbCufgP-YP58hXVFEbS0y5mX1_XRt97_6IbAtGuHl38_GT-szkmsuvERedU7PA4g',
     // Back Scatter
-    '6526;6;uncraftable;kt-1;td-1103':
+    '6526;6;uncraftable;kt-3;td-1103':
         'y1FFKSPsyXF_Yfd5NfTKwRf8pKzYSyOiOWOcKXKIH1ttTrpdYWGN_Teh5L6SRW3BFe0lQg0MKfQCpGFLI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJLNo-cCUxF8dQcAQYZoszp5VvqHguh9GVIQ8CVkZX-p6Zj2FBvngxXyRWeC6PuAK4cNZUwtIHki6ynJ9CUEuufiKa1hB5Co4svzFQ3jy-aE',
     // Air Strike
-    '6526;6;uncraftable;kt-1;td-1104':
+    '6526;6;uncraftable;kt-3;td-1104':
         'y1FXPi314nhscOtvMM7U_wn6s-WIUiz2PzLCd3eKTgk5HLcLPGHQrDLz5OjGRjubRbx-EQsNevEDoTYfPs2Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-537cqB0kUBRs4SX5EBzI1Duo33hB9CeY0CF18OFrxgZm2CAP21w3meXOq1POkI5MJUVVAeGB3pnHMqCU8v4P6Ia15B5X9yprzS8ZqlfadugQ',
     // Necro Smasher
-    '6526;6;uncraftable;kt-1;td-1123':
+    '6526;6;uncraftable;kt-3;td-1123':
         'y1FVKzD21GJsadphOcfKxRHEreOfG3G5OGWWf3HbHwdtG7dfZGzf_zSssO6RRjDPRO4rSgwHK6UBo2cYOZ3baQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umTtoKE-c',
     // Quickiebomb Launcher
-    '6526;6;uncraftable;kt-1;td-1150':
+    '6526;6;uncraftable;kt-3;td-1150':
         'y1FdIyz_0HVmYPdTK9_Pww7inu6MDnPyJmCVLHWKRAxrRbpWNzvYqjWgseTCQzvBQLwrSwhRe6RV8GxObsvYPEMjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqXxVkUStIPV5IwypN5vIz3uh5GVJo8CVsjHbg8MjyfV_3kl3rKXuS0PegO5slRVloeSEa5ySYvCE547v_fYgoRsS0np6PG-9PwkIIl2pwhXA',
     // Iron Bomber
-    '6526;6;uncraftable;kt-1;td-1151':
+    '6526;6;uncraftable;kt-3;td-1151':
         'y1FHPyP833VhadpgOdnBxUv997bYRHCkamCQLHWBTl1uGLRfNzuN-2ah4-nGSmuYF7p6QwkFdaMF7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbbpoMqR07MyI2VcecMYOW5wtzqBUuoz3hAFCeY84VQ1IQr16N2mGUvvuxH2QX-KxO-MA4ZMCA14dG0m7nXx8Xkh66azYPlle8CBx9b4fDTk',
     // Panic Attack
-    '6526;6;uncraftable;kt-1;td-1153':
+    '6526;6;uncraftable;kt-3;td-1153':
         'y1FCOCf23nxqcOtTNMrUxwC19OaOGS2hOWaXfHLdSQc_SbBYYTrYqDX0t-iUET-fR-5-FQ9Re6YCpnoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pXrf_kIk',
     // Dragon's Fury
-    '6526;6;uncraftable;kt-1;td-1178':
+    '6526;6;uncraftable;kt-3;td-1178':
         'y1FQJiP12HZsaelTNMrUxwC19uaMTCyhPTaRLnSKTQ9rSLMKNWDdqGemsLjHRDCfFLokQg8HfKUF9HoJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrh1O6di7NaO2FgTQ_4bTJg_2Jp5qZ_gvjJPapo6HhBPReoqYTuBU__lynmbVuKzPOUL7MUCBQ0dTR67nXJzCBgou_iMa1kUrj54pThvjhGr',
     // Hot Hand
-    '6526;6;uncraftable;kt-1;td-1181':
+    '6526;6;uncraftable;kt-3;td-1181':
         '31FFJiPozX1jYtprNMTQxTr3oPCKGTr0ODbFdySASl9rG7JcMGzZq2eituTFRGmYQOouRQ1WfacC9TZJPJ-KIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo79eI0VMBXMgTUJwy9JhUvp_hvjJRapo4JFIdA74re2qFV63jkX6fWOG7OOIB5MBTU1sTTh3vz3N8Xk8v7vHeOwwTsSsnpvaM75PnVlSzHbE',
     // Shooting Star
-    '6526;6;uncraftable;kt-1;td-30665':
+    '6526;6;uncraftable;kt-3;td-30665':
         'y1FfJDT5zn1ia9p_NsLWxRfpqOSBGUv7aSXDKm_YH1s5SuELZmuMrzrzsL_CFGvLF-p5Sg4NdaQApmBJPJ_caho80NEC5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdX9MTWJgt2JZJtZ_-hApRbokuHmEOEKsrCjXQFq6y3X2cXbe2beEO48NZUFoSS06-n3ZyCxt7vP7eOwtGtnYho6PBrpixmoHxDx5w6AhlCnM',
     // C.A.P.P.E.R
-    '6526;6;uncraftable;kt-1;td-30666':
+    '6526;6;uncraftable;kt-3;td-30666':
         'y1FfJDT5zn1ia9p8MdjSzwnEreOfG3G5OTLFfieAGgcwSrddZ22I_2Ggt7vFFj-aQrsrFQ4Ce6sN92VBNMrabgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNWV2FAXXNIVUZM_x6BBqZvzqAh8eYkvHmEQEKspMHeCUPqzxyyYWeWwNuYK7cBRVF0YQ0vvySB8CBgv7v_RbVxB439z8_bGsY3umeDq3Fn-',
     // Batsaber
-    '6526;6;uncraftable;kt-1;td-30667':
+    '6526;6;uncraftable;kt-3;td-30667':
         'y1FfJDT5zn1ia9puOd_5zATppufDHyL0amWReniJSFg_HrYINT7Q_jH34L-QFDufRbssElgCf6MG-zAaOtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-CRiV0it'
 };
 
