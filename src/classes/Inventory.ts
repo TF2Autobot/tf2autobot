@@ -243,7 +243,9 @@ export default class Inventory {
                     normStrangeParts.amountIncludeNoParts &&
                     !normStrangeParts.our
                 ) {
-                    const strangePartIds = Object.values(this.strangeParts).sort();
+                    const strangePartIds = Object.values(this.strangeParts)
+                        .map(part => +part.replace('sp', ''))
+                        .sort();
                     const idsCount = strangePartIds.length;
 
                     for (let i = 0; i < idsCount; i++) {
