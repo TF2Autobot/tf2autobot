@@ -3,6 +3,8 @@ import processReview from './process-review';
 import Bot from '../../../Bot';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import * as t from '../../../../lib/tools/export';
+import { KeyPrices } from 'src/classes/Pricelist';
+import { Links } from '../../../../lib/tools/export';
 
 export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
     const opt = bot.options;
@@ -20,7 +22,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
         opt.manualReview.dupedCheckFailed.note !== ''
     );
 
-    const reasons = meta.uniqueReasons;
+    const reasons = meta.uniqueReasons.join(', ');
     const isWebhookEnabled = opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '';
 
     // Notify partner and admin that the offer is waiting for manual review
@@ -44,7 +46,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     } else {
         bot.sendMessage(
             offer.partner,
-            `⚠️ Your offer is pending review.\nReasons: ${reasons.join(', ')}` +
+            `⚠️ Your offer is pending review.\nReasons: ${reasons}` +
                 (opt.manualReview.showOfferSummary
                     ? t
                           .summarizeToChat(offer, bot, 'review-partner', false, content.value, keyPrices, true)
@@ -100,7 +102,7 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     };
 
     if (isWebhookEnabled) {
-        sendOfferReview(offer, reasons.join(', '), time.time, keyPrices, content.value, links, items, bot);
+        sendOfferReview(offer, reasons, time.time, keyPrices, content.value, links, items, bot);
         //
     } else {
         const currentItems = bot.inventoryManager.getInventory.getTotalItems;
@@ -116,27 +118,63 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
 
         const customInitializer = bot.options.steamChat.customInitializer.review;
 
-        bot.messageAdmins(
-            `${customInitializer ? customInitializer + ' ' : ''}⚠️ Offer #${
-                offer.id
-            } from ${offer.partner.toString()} is pending review.` +
-                `\nReasons: ${reasons.join(', ')}` +
-                (reasons.includes('⬜_BANNED_CHECK_FAILED')
-                    ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
-                    : reasons.includes('⬜_ESCROW_CHECK_FAILED')
-                    ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
-                    : '') +
-                t.summarizeToChat(offer, bot, 'review-admin', false, content.value, keyPrices, true) +
-                (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
-                (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
-                `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
-                `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-                ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
-                `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
-                `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
-                `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
-                `\n\nVersion ${process.env.BOT_VERSION}`,
-            []
+        sendToAdmin(
+            bot,
+            offer,
+            customInitializer,
+            isCustomPricer,
+            reasons,
+            content.value,
+            keyPrices,
+            offerMessage,
+            list,
+            links,
+            currentItems,
+            slots,
+            cTKeyRate,
+            cTTotalItems,
+            cTPureStock
         );
     }
+}
+
+export function sendToAdmin(
+    bot: Bot,
+    offer: TradeOffer,
+    customInitializer: string,
+    isCustomPricer: boolean,
+    reasons: string,
+    value: t.ValueDiff,
+    keyPrices: KeyPrices,
+    offerMessage: string,
+    list: string,
+    links: Links,
+    currentItems: number,
+    slots: number,
+    cTKeyRate: string,
+    cTTotalItems: string,
+    cTPureStock: string
+): void {
+    bot.messageAdmins(
+        `${customInitializer ? customInitializer + ' ' : ''}⚠️ Offer #${
+            offer.id
+        } from ${offer.partner.toString()} is pending review.` +
+            `\nReasons: ${reasons}` +
+            (reasons.includes('⬜_BANNED_CHECK_FAILED')
+                ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
+                : reasons.includes('⬜_ESCROW_CHECK_FAILED')
+                ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
+                : '') +
+            t.summarizeToChat(offer, bot, 'review-admin', false, value, keyPrices, true) +
+            (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
+            (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
+            `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
+            `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
+            ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
+            `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
+            `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
+            `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
+            `\n\nVersion ${process.env.BOT_VERSION}`,
+        []
+    );
 }

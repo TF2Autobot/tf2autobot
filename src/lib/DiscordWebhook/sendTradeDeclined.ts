@@ -1,113 +1,63 @@
-import { TradeOffer, ItemsDict } from '@tf2autobot/tradeoffer-manager';
-import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies-2';
+import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
-import { Webhook } from './interfaces';
-import log from '../logger';
-import * as t from '../tools/export';
 import Bot from '../../classes/Bot';
-import { sendToAdmin } from '../../classes/MyHandler/offer/accepted/processAccepted';
+import * as t from '../tools/export';
+import log from '../logger';
+import { Webhook } from './export';
+import { sendToAdmin } from '../../classes/MyHandler/offer/processDeclined';
 
-export default async function sendTradeSummary(
+export default async function sendTradeDeclined(
     offer: TradeOffer,
-    accepted: Accepted,
+    declined: Declined,
     bot: Bot,
-    timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
     isTradingKeys: boolean,
-    isOfferSent: boolean | undefined
+    isOfferSent: boolean
 ): Promise<void> {
     const optBot = bot.options;
     const optDW = optBot.discordWebhook;
 
     const properName = bot.options.tradeSummary.showProperName;
 
+    //Unsure if highValue will work or not
     const itemsName = properName
         ? {
-              invalid: accepted.invalidItems,
-              disabled: accepted.disabledItems,
-              overstock: accepted.overstocked,
-              understock: accepted.understocked,
-              duped: [],
+              invalid: declined.invalidItems,
+              disabled: declined.disabledItems,
+              overstock: declined.overstocked,
+              understock: declined.understocked,
+              duped: declined.dupedItems,
               dupedFailed: [],
-              highValue: accepted.highValue
+              highValue: declined.highNotSellingItems
           }
         : {
-              invalid: accepted.invalidItems.map(name => t.replace.itemName(name)), // 🟨_INVALID_ITEMS
-              disabled: accepted.disabledItems.map(name => t.replace.itemName(name)), // 🟧_DISABLED_ITEMS
-              overstock: accepted.overstocked.map(name => t.replace.itemName(name)), // 🟦_OVERSTOCKED
-              understock: accepted.understocked.map(name => t.replace.itemName(name)), // 🟩_UNDERSTOCKED
-              duped: [],
+              invalid: declined.invalidItems.map(name => t.replace.itemName(name)), // 🟨_INVALID_ITEMS
+              disabled: declined.disabledItems.map(name => t.replace.itemName(name)), // 🟧_DISABLED_ITEMS
+              overstock: declined.overstocked.map(name => t.replace.itemName(name)), // 🟦_OVERSTOCKED
+              understock: declined.understocked.map(name => t.replace.itemName(name)), // 🟩_UNDERSTOCKED
+              duped: declined.dupedItems.map(name => t.replace.itemName(name)), // '🟫_DUPED_ITEMS'
               dupedFailed: [],
-              highValue: accepted.highValue.map(name => t.replace.itemName(name)) // 🔶_HIGH_VALUE_ITEMS
+              highValue: declined.highNotSellingItems.map(name => t.replace.itemName(name))
           };
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);
-    const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, keyPrices, false, isOfferSent);
-
-    // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
-    const enableMentionOnSpecificSKU = optDW.tradeSummary.mentionOwner.enable;
-    const skuToMention = optDW.tradeSummary.mentionOwner.itemSkus;
-
-    const dict = offer.data('dict') as ItemsDict;
-
-    let isMentionOurItems = false;
-    let isMentionTheirItems = false;
-
-    if (skuToMention.length > 0 && enableMentionOnSpecificSKU) {
-        const ourItems = Object.keys(dict.our);
-        isMentionOurItems = skuToMention.some(sku => {
-            return ourItems.some(ourItemSKU => {
-                return ourItemSKU.includes(sku);
-            });
-        });
-
-        const theirItems = Object.keys(dict.their);
-        isMentionTheirItems = skuToMention.some(sku => {
-            return theirItems.some(theirItemSKU => {
-                return theirItemSKU.includes(sku);
-            });
-        });
-    }
-
-    const valueToMention = optDW.tradeSummary.mentionOwner.tradeValueInRef;
-    const isMentionOnGreaterValue = valueToMention > 0 ? value.ourValue >= Currencies.toScrap(valueToMention) : false;
-
-    const IVAmount = itemsName.invalid.length;
-    const HVAmount = itemsName.highValue.length;
-    const isMentionHV = accepted.isMention;
-
-    const mentionOwner =
-        IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
-            ? `<@!${optDW.ownerID}> - Accepted ${
-                  IVAmount > 0 && isMentionHV
-                      ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
-                      : IVAmount > 0 && !isMentionHV
-                      ? `INVALID_ITEMS ${pluralize('item', IVAmount)}`
-                      : IVAmount === 0 && isMentionHV
-                      ? `High Value ${pluralize('item', HVAmount)}`
-                      : ''
-              } trade here!`
-            : optDW.tradeSummary.mentionOwner.enable &&
-              (isMentionOurItems || isMentionTheirItems || isMentionOnGreaterValue)
-            ? `<@!${optDW.ownerID}>`
-            : '';
+    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, isOfferSent);
 
     log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
 
     const botInfo = bot.handler.getBotInfo;
     const links = t.generateLinks(offer.partner.toString());
-    const misc = optDW.tradeSummary.misc;
+    const misc = optDW.declinedTrade.misc;
 
     const itemList = t.listItems(offer, bot, itemsName, false);
     const slots = bot.tf2.backpackSlots;
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
 
-    const tSum = optBot.tradeSummary;
-    const cT = tSum.customText;
+    const tDec = optBot.tradeSummary;
+    const cT = tDec.customText;
     const cTTimeTaken = cT.timeTaken.discordWebhook ? cT.timeTaken.discordWebhook : '⏱ **Time taken:**';
     const cTKeyRate = cT.keyRate.discordWebhook ? cT.keyRate.discordWebhook : '🔑 Key rate:';
     const cTPureStock = cT.pureStock.discordWebhook ? cT.pureStock.discordWebhook : '💰 Pure stock:';
@@ -115,10 +65,13 @@ export default async function sendTradeSummary(
 
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
-    const acceptedTradeSummary: Webhook = {
-        username: optDW.displayName ? optDW.displayName : botInfo.name,
-        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
-        content: mentionOwner,
+    const partnerNameNoFormat = t.replace.specialChar(details.personaName);
+
+    const declinedDescription = declined.reasonDescription;
+    const declinedTradeSummary: Webhook = {
+        username: optDW.displayName ?? botInfo.name,
+        avatar_url: optDW.avatarURL ?? optDW.avatarURL,
+        content: '',
         embeds: [
             {
                 color: optDW.embedColor,
@@ -128,15 +81,18 @@ export default async function sendTradeSummary(
                     icon_url: details.avatarFull as string
                 },
                 description:
+                    `⛔ An offer sent by ${declinedDescription ? partnerNameNoFormat : 'us'} is declined.${
+                        declinedDescription ? '\nReason: ' + declinedDescription : ''
+                    }` +
                     summary +
                     `\n${cTTimeTaken} ${t.convertTime(
-                        timeTakenToComplete,
+                        null,
                         timeTakenToProcessOrConstruct,
                         isOfferSent,
-                        tSum.showDetailedTimeTaken,
-                        tSum.showTimeTakenInMS
+                        tDec.showDetailedTimeTaken,
+                        tDec.showTimeTakenInMS
                     )}\n\n` +
-                    (misc.showQuickLinks ? `${quickLinks(t.replace.specialChar(details.personaName), links)}\n` : '\n'),
+                    (misc.showQuickLinks ? `${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                 fields: [
                     {
                         name: '__Item list__',
@@ -188,14 +144,15 @@ export default async function sendTradeSummary(
         ]
     };
 
-    if (itemList === '-' || itemList === '') {
-        acceptedTradeSummary.embeds[0].fields.shift();
+    if (itemList === '-' || itemList == '') {
+        // just remove the first element of the fields array (__Item list__)
+        declinedTradeSummary.embeds[0].fields.shift();
     } else if (itemList.length >= 1024) {
         // first get __Status__ element
-        const statusElement = acceptedTradeSummary.embeds[0].fields.pop();
+        const statusElement = declinedTradeSummary.embeds[0].fields.pop();
 
         // now remove __Item list__, so now it should be empty
-        acceptedTradeSummary.embeds[0].fields.length = 0;
+        declinedTradeSummary.embeds[0].fields.length = 0;
 
         const separate = itemList.split('@');
         const separateCount = separate.length;
@@ -204,30 +161,29 @@ export default async function sendTradeSummary(
         let j = 1;
         separate.forEach((sentence, i) => {
             if ((newSentences.length >= 800 || i === separateCount - 1) && !(j > 4)) {
-                acceptedTradeSummary.embeds[0].fields.push({
+                declinedTradeSummary.embeds[0].fields.push({
                     name: `__Item list ${j}__`,
                     value: newSentences.replace(/@/g, '')
                 });
 
                 if (i === separateCount - 1 || j > 4) {
-                    acceptedTradeSummary.embeds[0].fields.push(statusElement);
+                    declinedTradeSummary.embeds[0].fields.push(statusElement);
                 }
 
                 newSentences = '';
                 j++;
-                //
             } else newSentences += sentence;
         });
     }
 
-    const url = optDW.tradeSummary.url;
+    const url = optDW.declinedTrade.url;
 
     url.forEach((link, i) => {
-        sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
+        sendWebhook(link, declinedTradeSummary, 'trade-declined', i)
             .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
             .catch(err => {
                 log.debug(
-                    `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
+                    `❌ Failed to send trade-declined webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? `(${i + 1})` : ''
                     }: `,
                     err
@@ -241,10 +197,11 @@ export default async function sendTradeSummary(
                 const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
                 const cTxTimeTaken = chatOpt.timeTaken.steamChat ? chatOpt.timeTaken.steamChat : '⏱ Time taken:';
 
+                //Not so sure about this if something goes wrong with discord and we get a lot of trades it'll be un🐻able
                 sendToAdmin(
                     bot,
                     offer,
-                    optBot.steamChat.customInitializer.acceptedTradeSummary,
+                    optBot.steamChat.customInitializer.declinedTradeSummary,
                     value,
                     itemListx,
                     keyPrices,
@@ -257,24 +214,20 @@ export default async function sendTradeSummary(
                     cTxPureStock,
                     cTxTotalItems,
                     cTxTimeTaken,
-                    timeTakenToComplete,
                     timeTakenToProcessOrConstruct,
-                    tSum
+                    tDec
                 );
             });
     });
 }
 
-interface Accepted {
-    invalidItems: string[];
-    disabledItems: string[];
+interface Declined {
+    //nonTf2Items: string[];
+    highNotSellingItems: string[];
     overstocked: string[];
     understocked: string[];
-    highValue: string[];
-    isMention: boolean;
-}
-
-export interface ItemSKUList {
-    their: string[];
-    our: string[];
+    invalidItems: string[];
+    disabledItems: string[];
+    dupedItems: string[];
+    reasonDescription: string;
 }

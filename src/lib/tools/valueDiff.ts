@@ -55,7 +55,7 @@ export default function valueDiff(
     }
 }
 
-interface ValueDiff {
+export interface ValueDiff {
     ourValue: number;
     theirValue: number;
     diff: number;

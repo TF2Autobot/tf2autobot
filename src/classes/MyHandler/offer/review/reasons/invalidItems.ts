@@ -2,6 +2,7 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import { Meta, InvalidItems } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../../../Bot';
+import { testSKU } from '../../../../../lib/tools/export';
 
 export default function invalidItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;
@@ -9,7 +10,7 @@ export default function invalidItems(meta: Meta, bot: Bot): { note: string; name
     const invalidForOur: string[] = []; // Display for owner
 
     (meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as InvalidItems[]).forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
+        const name = testSKU(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
 
         if (opt.enable && opt.url !== '') {
             // show both item name and prices.tf price

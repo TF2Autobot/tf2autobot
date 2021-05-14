@@ -4,7 +4,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
-import { Item } from '../../../types/TeamFortress2';
+import { MinimumItem } from '../../../types/TeamFortress2';
 import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
@@ -62,6 +62,7 @@ export function getItemAndAmount(
                 steamID,
                 custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`
             );
+
             return null;
         }
     }
@@ -74,7 +75,13 @@ export function getItemAndAmount(
         let closestUnusualMatch: Entry = null;
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
         const genericEffect = genericNameAndMatch(name, bot.effects);
-        for (const pricedItem of bot.pricelist.getPrices) {
+        const pricelist = bot.pricelist.getPrices;
+        for (const sku in pricelist) {
+            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                continue;
+            }
+
+            const pricedItem = pricelist[sku];
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {
@@ -192,7 +199,7 @@ export function getItemFromParams(
     steamID: SteamID | string,
     params: UnknownDictionaryKnownValues,
     bot: Bot
-): Item | null {
+): MinimumItem | null {
     const item = SKU.fromString('');
     delete item.craftnumber;
 
@@ -277,6 +284,43 @@ export function getItemFromParams(
         if (item.quality === 0) {
             item.quality = schemaItem.item_quality;
         }
+    }
+
+    if (
+        [
+            5726, // Rocket Launcher
+            5727, // Scattergun
+            5728, // Sniper Rifle
+            5729, // Shotgun
+            5730, // Ubersaw
+            5731, // GRU
+            5732, // Spy-cicle
+            5733, // Axtinguisher
+            5743, // Sticky Launcher
+            5744, // Minigun
+            5745, // Direct Hit
+            5746, // Huntsman
+            5747, // Backburner
+            5748, // Backscatter
+            5749, // Kritzkrieg
+            5750, // Ambassador
+            5751, // Frontier Justice
+            5793, // Flaregun
+            5794, // Wrench
+            5795, // Revolver
+            5796, // Machina
+            5797, // Baby Face Blaster
+            5798, // Huo Long Heatmaker
+            5799, // Loose Cannon
+            5800, // Vaccinator
+            5801 // Air Strike
+        ].includes(item.defindex)
+    ) {
+        // Standardize all specific Basic Killstreak Kit
+        item.defindex = 6527;
+    } else if (item.defindex === 5738) {
+        // Standardize different versions of Mann Co. Stockpile Crate
+        item.defindex = 5737;
     }
 
     if (typeof params.quality === 'number') {
@@ -592,10 +636,4 @@ export function fixSKU(sku: string): string {
 
 export function removeLinkProtocol(message: string): string {
     return message.replace(/(\w+:|^)\/\//g, '');
-}
-
-export function testSKU(sku: string): boolean {
-    return /^(\d+);([0-9]|[1][0-5])(;((uncraftable)|(untrad(e)?able)|(australium)|(festive)|(strange)|((u|pk|td-|c|od-|oq-|p)\d+)|(w[1-5])|(kt-[1-3])|(n((100)|[1-9]\d?))))*?$/.test(
-        sku
-    );
 }

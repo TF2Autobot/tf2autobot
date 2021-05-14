@@ -3,6 +3,7 @@ import { EconItem } from '@tf2autobot/tradeoffer-manager';
 import SchemaManager, { Paints } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import url from 'url';
+import { MinimumItem } from '../../../types/TeamFortress2';
 import { fixItem } from '../../items';
 
 let isCrate = false;
@@ -18,6 +19,10 @@ export = function (
     const self = this as EconItem;
 
     if (self.appid != 440) {
+        if (self.type && self.market_name) {
+            return `${self.type}: ${self.market_name}`;
+        }
+
         return 'unknown';
     }
 
@@ -37,7 +42,7 @@ export = function (
             paint: getPainted(self, normalizePainted, paints, paintsInOptions)
         },
         getOutput(self, schema)
-    );
+    ) as MinimumItem;
 
     if (item.target === null) {
         item.target = getTarget(self, schema);
@@ -509,6 +514,10 @@ function getPainted(
                 return paintDecimal;
             }
         }
+    }
+
+    if (paintsInOptions.includes('legacy paint') && item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')) {
+        return 5801378;
     }
 
     return null;

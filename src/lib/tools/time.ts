@@ -95,11 +95,40 @@ export function timeNow(opt: Options): { timeUnix: number; time: string; emoji: 
     };
 }
 
-export function convertTime(time: number, showInMS: boolean): string {
+export function convertTime(
+    completeTime: number | null,
+    processOrConstructTime: number,
+    isOfferSent: boolean,
+    showDetailedTimeTaken: boolean,
+    showInMS: boolean
+): string {
     const now = dayjs();
-    const timeText = `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}${
-        showInMS ? ` (${time} ms)` : ''
-    }`;
+    const timePC = dayjs.unix(Math.round((now.valueOf() - processOrConstructTime) / 1000)).fromNow(true);
+    const timeComp =
+        completeTime === null ? null : dayjs.unix(Math.round((now.valueOf() - completeTime) / 1000)).fromNow(true);
+
+    const is0secondPC = timePC === '0 second';
+    const is0secondComp = timeComp === '0 second';
+
+    const timeText = showDetailedTimeTaken
+        ? `\n- ${isOfferSent ? 'To construct offer' : 'To process offer'}: ${
+              is0secondPC
+                  ? `${processOrConstructTime} ms`
+                  : `${timePC}${showInMS ? ` (${processOrConstructTime} ms)` : ''}`
+          }${
+              timeComp === null
+                  ? ''
+                  : `\n- To complete: ${
+                        is0secondComp ? `${timeComp} ms` : `${timeComp}${showInMS ? ` (${completeTime} ms)` : ''}`
+                    }`
+          }`
+        : timeComp === null
+        ? is0secondPC
+            ? `${timePC} ms`
+            : `${timePC}${showInMS ? ` (${processOrConstructTime} ms)` : ''}`
+        : is0secondComp
+        ? `${timeComp} ms`
+        : `${timeComp}${showInMS ? ` (${completeTime} ms)` : ''}`;
     return timeText;
 }
 

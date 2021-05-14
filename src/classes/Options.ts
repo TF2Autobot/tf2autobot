@@ -6,7 +6,7 @@ import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
 import { Currency } from '../types/TeamFortress2';
 
-export const DEFAULTS = {
+export const DEFAULTS: JsonOptions = {
     miscSettings: {
         showOnlyMetal: {
             enable: true
@@ -65,7 +65,9 @@ export const DEFAULTS = {
         partialPrice: {
             onUpdate: true,
             onSuccessUpdatePartialPriced: true,
-            onFailedUpdatePartialPriced: true
+            onFailedUpdatePartialPriced: true,
+            onBulkUpdatePartialPriced: true,
+            onResetAfterThreshold: true
         },
         receivedUnusualNotInPricelist: true,
         failedToUpdateOldPrices: true
@@ -113,8 +115,10 @@ export const DEFAULTS = {
     },
 
     tradeSummary: {
+        declinedTrade: { enable: false },
         showStockChanges: false,
         showTimeTakenInMS: false,
+        showDetailedTimeTaken: true,
         showItemPrices: true,
         showPureInEmoji: false,
         showProperName: false,
@@ -166,6 +170,7 @@ export const DEFAULTS = {
     steamChat: {
         customInitializer: {
             acceptedTradeSummary: '/me',
+            declinedTradeSummary: '/me',
             review: '',
             message: {
                 onReceive: '/quote',
@@ -187,15 +192,18 @@ export const DEFAULTS = {
     normalize: {
         festivized: {
             our: false,
-            their: false
+            their: false,
+            amountIncludeNonFestivized: false
         },
         strangeAsSecondQuality: {
             our: false,
-            their: false
+            their: false,
+            amountIncludeNonStrange: false
         },
         painted: {
             our: true,
-            their: true
+            their: true,
+            amountIncludeNonPainted: false
         }
     },
 
@@ -270,6 +278,7 @@ export const DEFAULTS = {
         sendPreAcceptMessage: {
             enable: true
         },
+        alwaysDeclineNonTF2Items: true,
         // 🟥_INVALID_VALUE
         invalidValue: {
             autoDecline: {
@@ -399,6 +408,17 @@ export const DEFAULTS = {
                 tradeValueInRef: 0
             }
         },
+        declinedTrade: {
+            enable: true,
+            url: [],
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true,
+                showInventory: true,
+                note: ''
+            }
+        },
         offerReview: {
             enable: true,
             url: '',
@@ -443,6 +463,7 @@ export const DEFAULTS = {
         successEscrow: '',
         decline: {
             general: '',
+            hasNonTF2Items: '',
             giftNoNote: '',
             crimeAttempt: '',
             onlyMetal: '',
@@ -916,6 +937,13 @@ export const DEFAULTS = {
                     keys: 0,
                     metal: 30
                 }
+            },
+            'Legacy Paint': {
+                stringNote: '🔵⛔',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
             }
         },
         /**
@@ -1039,9 +1067,11 @@ interface SendAlert extends OnlyEnable {
 }
 
 interface PartialPrice {
-    onUpdate: boolean;
-    onSuccessUpdatePartialPriced: boolean;
-    onFailedUpdatePartialPriced: boolean;
+    onUpdate?: boolean;
+    onSuccessUpdatePartialPriced?: boolean;
+    onFailedUpdatePartialPriced?: boolean;
+    onBulkUpdatePartialPriced?: boolean;
+    onResetAfterThreshold?: boolean;
 }
 
 interface AutokeysAlert {
@@ -1093,9 +1123,11 @@ interface OnlyAllow {
 
 // ------------ TradeSummary ------------
 
-interface TradeSummary {
+export interface TradeSummary {
+    declinedTrade?: OnlyEnable;
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
+    showDetailedTimeTaken?: boolean;
     showItemPrices?: boolean;
     showPureInEmoji?: boolean;
     showProperName?: boolean;
@@ -1132,6 +1164,7 @@ interface SteamChat {
 
 interface CustomInitializer {
     acceptedTradeSummary?: string;
+    declinedTradeSummary?: string;
     review?: string;
     message?: CustomInitializerMessage;
 }
@@ -1155,14 +1188,26 @@ interface HighValue {
 // ------------ Normalize ------------
 
 interface Normalize {
-    festivized?: NormalizeOurOrTheir;
-    strangeAsSecondQuality?: NormalizeOurOrTheir;
-    painted?: NormalizeOurOrTheir;
+    festivized?: NormalizeFestivized;
+    strangeAsSecondQuality?: NormalizeStrange;
+    painted?: NormalizePainted;
 }
 
 interface NormalizeOurOrTheir {
     our?: boolean;
     their?: boolean;
+}
+
+interface NormalizeFestivized extends NormalizeOurOrTheir {
+    amountIncludeNonFestivized?: boolean;
+}
+
+interface NormalizeStrange extends NormalizeOurOrTheir {
+    amountIncludeNonStrange?: boolean;
+}
+
+interface NormalizePainted extends NormalizeOurOrTheir {
+    amountIncludeNonPainted?: boolean;
 }
 
 // ------------ Details ------------
@@ -1256,6 +1301,7 @@ interface Metals extends OnlyEnable {
 
 interface OfferReceived {
     sendPreAcceptMessage?: OnlyEnable;
+    alwaysDeclineNonTF2Items?: boolean;
     invalidValue?: InvalidValue;
     invalidItems?: InvalidItems;
     disabledItems?: AutoAcceptOverpayAndAutoDecline;
@@ -1326,6 +1372,7 @@ interface DiscordWebhook {
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
+    declinedTrade?: DeclinedTradeDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
@@ -1337,6 +1384,11 @@ interface TradeSummaryDW extends OnlyEnable {
     url?: string[];
     misc?: MiscTradeSummary;
     mentionOwner?: MentionOwner;
+}
+
+interface DeclinedTradeDW extends OnlyEnable {
+    url?: string[];
+    misc?: MiscTradeSummary;
 }
 
 interface OnlyNote {
@@ -1408,6 +1460,7 @@ interface CustomMessage {
 
 interface DeclineNote {
     general?: string;
+    hasNonTF2Items?: string;
     giftNoNote?: string;
     crimeAttempt?: string;
     onlyMetal?: string;
@@ -1687,6 +1740,7 @@ interface Painted {
     'Team Spirit'?: PaintedProperties;
     'The Value of Teamwork'?: PaintedProperties;
     'Waterlogged Lab Coat'?: PaintedProperties;
+    'Legacy Paint'?: PaintedProperties;
 }
 
 export type PaintedNames =
@@ -1718,7 +1772,8 @@ export type PaintedNames =
     | 'Cream Spirit'
     | 'Team Spirit'
     | 'The Value of Teamwork'
-    | 'Waterlogged Lab Coat';
+    | 'Waterlogged Lab Coat'
+    | 'Legacy Paint';
 
 interface StrangeParts {
     'Robots Destroyed'?: string;

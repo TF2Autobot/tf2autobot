@@ -6,7 +6,7 @@ import log from '../../lib/logger';
 import { currPure } from '../../lib/tools/pure';
 import sendAlert from '../../lib/DiscordWebhook/sendAlert';
 
-interface OverallStatus {
+export interface OverallStatus {
     isBuyingKeys: boolean;
     isBankingKeys: boolean;
     checkAlertOnLowPure: boolean;

@@ -21,6 +21,7 @@ import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
 import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
+import processDeclined from './offer/processDeclined';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
@@ -28,7 +29,7 @@ import { BPTFGetUserInfo } from './interfaces';
 
 import Handler from '../Handler';
 import Bot from '../Bot';
-import { Entry, EntryData } from '../Pricelist';
+import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
 import Inventory from '../Inventory';
@@ -42,7 +43,7 @@ import { exponentialBackoff } from '../../lib/helpers';
 
 import { noiseMakers } from '../../lib/data';
 import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
-import { summarize, uptime, getHighValueItems } from '../../lib/tools/export';
+import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
 import Pricer, { RequestCheckFn } from '../Pricer';
@@ -239,7 +240,7 @@ export default class MyHandler extends Handler {
             files.readFile(this.paths.files.pricelist, true),
             files.readFile(this.paths.files.loginAttempts, true),
             files.readFile(this.paths.files.pollData, true)
-        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, Entry[], number[], PollData]) => {
+        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, PricesDataObject, number[], PollData]) => {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
@@ -320,6 +321,54 @@ export default class MyHandler extends Handler {
             }
 
             this.bot.pricelist.resetFailedUpdateOldPrices = 0;
+        }
+
+        // Send notification to admin/Discord Webhook if there's any partially priced item got reset on updateOldPrices
+        const bulkUpdatedPartiallyPriced = this.bot.pricelist.partialPricedUpdateBulk;
+
+        if (bulkUpdatedPartiallyPriced.length > 0) {
+            const dw = this.opt.discordWebhook.sendAlert;
+            const isDwEnabled = dw.enable && dw.url !== '';
+
+            const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced
+                .map(sku => {
+                    const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
+                    return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
+                })
+                .join('\n\n• ')}`;
+
+            if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onBulkUpdatePartialPriced) {
+                if (isDwEnabled) {
+                    sendAlert('onBulkUpdatePartialPriced', this.bot, msg);
+                } else {
+                    this.bot.messageAdmins(msg, []);
+                }
+            }
+        }
+
+        // Send notification to admin/Discord Webhook if there's any partially priced item got reset on updateOldPrices
+        const bulkPartiallyPriced = this.bot.pricelist.autoResetPartialPriceBulk;
+
+        if (bulkPartiallyPriced.length > 0) {
+            const dw = this.opt.discordWebhook.sendAlert;
+            const isDwEnabled = dw.enable && dw.url !== '';
+
+            const msg =
+                `All partially priced items below has been reset to use the current prices ` +
+                `because no longer in stock or exceed the threshold:\n\n• ${bulkPartiallyPriced
+                    .map(sku => {
+                        const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
+                        return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
+                    })
+                    .join('\n• ')}`;
+
+            if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onResetAfterThreshold) {
+                if (isDwEnabled) {
+                    sendAlert('autoResetPartialPriceBulk', this.bot, msg);
+                } else {
+                    this.bot.messageAdmins(msg, []);
+                }
+            }
         }
     }
 
@@ -506,7 +555,8 @@ export default class MyHandler extends Handler {
                         return;
                     }
 
-                    const inventory = this.bot.inventoryManager;
+                    const inventoryManager = this.bot.inventoryManager;
+                    const inventory = inventoryManager.getInventory;
                     const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
 
                     this.bot.listingManager.listings.forEach(listing => {
@@ -532,7 +582,7 @@ export default class MyHandler extends Handler {
                         const match = this.bot.pricelist.getPrice(listingSKU);
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                            const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
+                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
                             if (!canAffordToBuy) {
                                 // Listing for buying exist but we can't afford to buy, remove.
                                 log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
@@ -544,50 +594,44 @@ export default class MyHandler extends Handler {
                     });
 
                     // Remove duplicate elements
-                    const newlistingsSKUs = new Set(listingsSKUs);
-                    const uniqueSKUs = [...newlistingsSKUs];
+                    const uniqueSKUs = [...new Set(listingsSKUs)];
+                    const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
 
-                    const pricelist = this.bot.pricelist.getPrices.filter(entry => {
-                        // First find out if lising for this item from bptf already exist.
-                        const isExist = uniqueSKUs.find(sku => entry.sku === sku);
-
-                        if (!isExist) {
-                            // undefined - listing does not exist but item is in the pricelist
-
-                            // Get amountCanBuy and amountCanSell (already cover intent and so on)
-                            const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
-                            const amountCanSell = inventory.amountCanTrade(entry.sku, false);
-
-                            if (
-                                (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
-                                amountCanSell > 0
-                            ) {
-                                // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
-                                // return this entry
-                                log.debug(
-                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${entry.sku}`
-                                );
-                                return true;
-                            }
-
-                            // Else ignore
-                            return false;
+                    for (const sku in pricelist) {
+                        if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                            continue;
                         }
 
-                        // Else if listing already exist on backpack.tf, ignore
-                        return false;
-                    });
+                        if (uniqueSKUs.includes(sku)) {
+                            delete pricelist[sku];
+                            continue;
+                        }
 
-                    const pricelistCount = pricelist.length;
+                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+
+                        if (
+                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
+                            inventory.getAmount(sku, false, true) > 0
+                        ) {
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // return this entry
+                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
+                        } else {
+                            delete pricelist[sku];
+                        }
+                    }
+
+                    const pricelistCount = Object.keys(pricelist).length;
 
                     if (pricelistCount > 0) {
                         log.debug(
                             'Checking listings for ' +
                                 pluralize('item', pricelistCount, true) +
-                                ` [${pricelist.map(entry => entry.sku).join(', ')}]...`
+                                ` [${Object.keys(pricelist).join(', ')}]...`
                         );
 
                         await this.bot.listings.recursiveCheckPricelist(
+                            Object.keys(pricelist),
                             pricelist,
                             true,
                             pricelistCount > 4000 ? 400 : 200,
@@ -642,7 +686,7 @@ export default class MyHandler extends Handler {
                         });
                     }
                 }
-            }, 1 * 60 * 1000);
+            }, 60 * 1000);
         }
     }
 
@@ -708,7 +752,7 @@ export default class MyHandler extends Handler {
         let isNoiseMakerNotFullUses = false;
         const noiseMakerNotFullSKUs: string[] = [];
 
-        let hasInvalidItems = false;
+        let hasNonTF2Items = false;
 
         const states = [false, true];
         for (let i = 0; i < states.length; i++) {
@@ -720,9 +764,9 @@ export default class MyHandler extends Handler {
                     continue;
                 }
 
-                if (sku === 'unknown') {
+                if (!testSKU(sku)) {
                     // Offer contains an item that is not from TF2
-                    hasInvalidItems = true;
+                    hasNonTF2Items = true;
                 }
 
                 if (sku === '5000;6') {
@@ -857,10 +901,10 @@ export default class MyHandler extends Handler {
             return;
         }
 
-        if (hasInvalidItems) {
+        if (hasNonTF2Items && opt.offerReceived.alwaysDeclineNonTF2Items) {
             // Using boolean because items dict always needs to be saved
             offer.log('info', 'contains items not from TF2, declining...');
-            return { action: 'decline', reason: '🟨_INVALID_ITEMS_CONTAINS_NON_TF2' };
+            return { action: 'decline', reason: '🟨_CONTAINS_NON_TF2' };
         }
 
         const offerMessage = offer.message.toLowerCase();
@@ -1011,6 +1055,7 @@ export default class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
         let hasOverstock = false;
+        let hasOverstockAndIsPartialPriced = false;
         let hasUnderstock = false;
 
         // A list of things that is wrong about the offer and other information
@@ -1038,6 +1083,8 @@ export default class MyHandler extends Handler {
 
                 const amount = items[which][sku].length;
 
+                let isNonTF2Items = false;
+
                 if (sku === '5000;6') {
                     exchange[which].value += amount;
                     exchange[which].scrap += amount;
@@ -1058,10 +1105,23 @@ export default class MyHandler extends Handler {
                     exchange[which].value += value;
                     exchange[which].scrap += value;
                 } else {
-                    const match =
-                        which === 'our'
-                            ? this.bot.pricelist.getPrice(sku)
-                            : this.bot.pricelist.getPrice(sku, false, true);
+                    let match: Entry | null = null;
+
+                    if (hasNonTF2Items) {
+                        if (testSKU(sku)) {
+                            match =
+                                which === 'our'
+                                    ? this.bot.pricelist.getPrice(sku)
+                                    : this.bot.pricelist.getPrice(sku, false, true);
+                        } else {
+                            isNonTF2Items = true;
+                        }
+                    } else {
+                        match =
+                            which === 'our'
+                                ? this.bot.pricelist.getPrice(sku)
+                                : this.bot.pricelist.getPrice(sku, false, true);
+                    }
 
                     const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
                         ? !(
@@ -1100,6 +1160,10 @@ export default class MyHandler extends Handler {
                             if (match.enabled) {
                                 // User is offering too many
                                 hasOverstock = true;
+
+                                if (match.isPartialPriced) {
+                                    hasOverstockAndIsPartialPriced = true;
+                                }
 
                                 wrongAboutOffer.push({
                                     reason: '🟦_OVERSTOCKED',
@@ -1172,54 +1236,61 @@ export default class MyHandler extends Handler {
                         (match !== null && match.intent === (buying ? 1 : 0))
                     ) {
                         // Offer contains an item that we are not trading
-                        hasInvalidItems = true;
+                        // hasInvalidItems = true;
 
                         // If that particular item is on our side, then put to review
                         if (which === 'our') {
                             hasInvalidItemsOur = true;
                         }
 
-                        // await sleepasync().Promise.sleep(1 * 1000);
-                        const price = await this.bot.pricelist.getItemPrices(sku);
-                        const item = SKU.fromString(sku);
+                        let itemSuggestedValue = 'No price';
 
-                        const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
-                        // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
+                        if (!isNonTF2Items) {
+                            // await sleepasync().Promise.sleep(1 * 1000);
+                            const price = await this.bot.pricelist.getItemPrices(sku);
+                            const item = SKU.fromString(sku);
 
-                        const isWinterNoiseMaker = ['673;6'].includes(sku);
+                            const isCrateOrCases = item.crateseries !== null || ['5737;6', '5738;6'].includes(sku);
+                            // 5737;6 and 5738;6 - Mann Co. Stockpile Crate
 
-                        const isSkinsOrWarPaints = item.wear !== null;
+                            const isWinterNoiseMaker = ['673;6'].includes(sku);
 
-                        let itemSuggestedValue: string;
-                        if (price === null) {
-                            itemSuggestedValue = 'No price';
-                            hasNoPrice = true;
-                        } else {
-                            price.buy = new Currencies(price.buy);
-                            price.sell = new Currencies(price.sell);
+                            const isSkinsOrWarPaints = item.wear !== null;
 
-                            if (
-                                opt.offerReceived.invalidItems.givePrice &&
-                                !isSkinsOrWarPaints &&
-                                !isCrateOrCases &&
-                                !isWinterNoiseMaker // all of these (with !) should be false in order to be true
-                            ) {
-                                // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
-                                // then give that item price and include in exchange
-                                exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
-                                exchange[which].keys += price[intentString].keys * amount;
-                                exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
+                            if (price === null) {
+                                hasNoPrice = true;
+                            } else {
+                                price.buy = new Currencies(price.buy);
+                                price.sell = new Currencies(price.sell);
+
+                                itemPrices[sku] = {
+                                    buy: price.buy,
+                                    sell: price.sell
+                                };
+
+                                if (
+                                    opt.offerReceived.invalidItems.givePrice &&
+                                    !isSkinsOrWarPaints &&
+                                    !isCrateOrCases &&
+                                    !isWinterNoiseMaker // all of these (with !) should be false in order to be true
+                                ) {
+                                    // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
+                                    // then give that item price and include in exchange
+                                    exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
+                                    exchange[which].keys += price[intentString].keys * amount;
+                                    exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
+                                }
+                                const valueInRef = {
+                                    buy: Currencies.toRefined(price.buy.toValue(keyPrice.metal)),
+                                    sell: Currencies.toRefined(price.sell.toValue(keyPrice.metal))
+                                };
+
+                                itemSuggestedValue =
+                                    (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
+                                        ? `${valueInRef.buy.toString()} ref (${price.buy.toString()})` +
+                                          ` / ${valueInRef.sell.toString()} ref (${price.sell.toString()})`
+                                        : `${price.buy.toString()} / ${price.sell.toString()}`;
                             }
-                            const valueInRef = {
-                                buy: Currencies.toRefined(price.buy.toValue(keyPrice.metal)),
-                                sell: Currencies.toRefined(price.sell.toValue(keyPrice.metal))
-                            };
-
-                            itemSuggestedValue =
-                                (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
-                                    ? `${valueInRef.buy.toString()} ref (${price.buy.toString()})` +
-                                      ` / ${valueInRef.sell.toString()} ref (${price.sell.toString()})`
-                                    : `${price.buy.toString()} / ${price.sell.toString()}`;
                         }
 
                         wrongAboutOffer.push({
@@ -1609,6 +1680,7 @@ export default class MyHandler extends Handler {
             const isAcceptOverstocked =
                 isOverstocked &&
                 canAcceptOverstockedOverpay &&
+                !hasOverstockAndIsPartialPriced && // because partial priced will use old buying prices
                 exchange.our.value < exchange.their.value &&
                 (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
                 (isUnderstocked ? canAcceptUnderstockedOverpay : true) &&
@@ -1802,7 +1874,7 @@ export default class MyHandler extends Handler {
         };
     }
 
-    onTradeOfferChanged(offer: TradeOffer, oldState: number, processTime?: number): void {
+    onTradeOfferChanged(offer: TradeOffer, oldState: number, timeTakenToComplete?: number): void {
         // Not sure if it can go from other states to active
         if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
             offer.data('switchedState', oldState);
@@ -1833,13 +1905,13 @@ export default class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
                     declined(offer, this.bot, this.isTradingKeys);
                     this.isTradingKeys = false; // reset
-                    this.removePolldataKeys(offer);
+                    MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     cancelled(offer, oldState, this.bot);
-                    this.removePolldataKeys(offer);
+                    MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
                     invalid(offer, this.bot);
-                    this.removePolldataKeys(offer);
+                    MyHandler.removePolldataKeys(offer);
                 }
             }
 
@@ -1856,12 +1928,22 @@ export default class MyHandler extends Handler {
 
                 this.autokeys.check();
 
-                const result = processAccepted(offer, this.bot, this.isTradingKeys, processTime);
+                const result = processAccepted(offer, this.bot, this.isTradingKeys, timeTakenToComplete);
                 this.isTradingKeys = false; // reset
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
                 highValue.items = result.items;
+            } else if (
+                offer.state === TradeOfferManager.ETradeOfferState['Declined'] &&
+                this.bot.options.tradeSummary.declinedTrade.enable &&
+                !this.sentSummary[offer.id]
+            ) {
+                //No need to create a new timeout cause a trade can't be accepted after getting declined or cant be declined after being accepted.
+                clearTimeout(this.resetSentSummaryTimeout);
+                this.sentSummary[offer.id] = true;
+
+                processDeclined(offer, this.bot, this.isTradingKeys);
             }
         }
 
@@ -1892,7 +1974,7 @@ export default class MyHandler extends Handler {
             this.inviteToGroups(offer.partner);
 
             // delete notify and meta keys from polldata after each successful trades
-            this.removePolldataKeys(offer);
+            MyHandler.removePolldataKeys(offer);
 
             this.resetSentSummaryTimeout = setTimeout(() => {
                 this.sentSummary = {};
@@ -1900,7 +1982,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    private removePolldataKeys(offer: TradeOffer): void {
+    private static removePolldataKeys(offer: TradeOffer): void {
         offer.data('notify', undefined);
         offer.data('meta', undefined);
     }
@@ -2169,21 +2251,21 @@ export default class MyHandler extends Handler {
         });
     }
 
-    async onPricelist(pricelist: Entry[]): Promise<void> {
-        if (pricelist.length === 0) {
+    async onPricelist(pricelist: PricesObject): Promise<void> {
+        if (Object.keys(pricelist).length === 0) {
             // Ignore errors
             await this.bot.listings.removeAll();
         }
 
-        files
-            .writeFile(
-                this.paths.files.pricelist,
-                pricelist.map(entry => entry.getJSON()),
-                true
-            )
-            .catch(err => {
-                log.warn('Failed to save pricelist: ', err);
-            });
+        /*
+         * was: Failed to save pricelist:  The "data" argument must be of type string or an instance of Buffer, TypedArray, or
+         * DataView. Received undefined {"code":"ERR_INVALID_ARG_TYPE"}
+         *
+         * This will also save the "name" property. I think it's okay.
+         */
+        files.writeFile(this.paths.files.pricelist, pricelist, true).catch(err => {
+            log.warn('Failed to save pricelist: ', err);
+        });
     }
 
     onPriceChange(sku: string, entry: Entry): void {
@@ -2191,6 +2273,10 @@ export default class MyHandler extends Handler {
             log.debug(`${sku} updated`);
         }
         this.bot.listings.checkBySKU(sku, entry, false, true);
+    }
+
+    onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
+        log.debug('user-agent', pulse);
     }
 
     onLoginThrottle(wait: number): void {
@@ -2201,11 +2287,19 @@ export default class MyHandler extends Handler {
         log.debug('Queue finished');
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
+
+    onCreateListingsError(err: Error): void {
+        log.error('Error on create listings:', err);
+    }
+
+    onDeleteListingsError(err: Error): void {
+        log.error('Error on delete listings:', err);
+    }
 }
 
 interface OnRun {
     loginAttempts?: number[];
-    pricelist?: EntryData[];
+    pricelist?: PricesDataObject;
     loginKey?: string;
     pollData?: PollData;
 }

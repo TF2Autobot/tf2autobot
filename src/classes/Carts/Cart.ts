@@ -126,7 +126,7 @@ export default abstract class Cart {
             ? this.craftAll.concat(this.uncraftAll)
             : this.craftAll;
 
-        const skusFromPricelist = this.bot.pricelist.getPrices.map(entry => entry.sku);
+        const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
 
         // return filtered weapons
         const filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));

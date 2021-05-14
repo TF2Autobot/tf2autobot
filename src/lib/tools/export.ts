@@ -1,28 +1,32 @@
 import getHighValueItems from './getHighValue';
-import generateLinks from './links';
+import generateLinks, { Links } from './links';
 import * as pure from './pure';
 import * as replace from './replace';
 import stats from './stats';
 import { timeNow, convertTime, uptime } from './time';
-import valueDiff from './valueDiff';
+import valueDiff, { ValueDiff } from './valueDiff';
 import listItems from './summarizeItems';
 import summarize, { summarizeToChat } from './summarizeOffer';
 import profit from './profit';
 import itemStats from './itemStats';
+import testSKU from './testSKU';
 
 export {
     getHighValueItems,
     generateLinks,
+    Links,
     pure,
     replace,
     stats,
     timeNow,
     valueDiff,
+    ValueDiff,
     listItems,
     summarize,
     summarizeToChat,
     uptime,
     convertTime,
     profit,
-    itemStats
+    itemStats,
+    testSKU
 };

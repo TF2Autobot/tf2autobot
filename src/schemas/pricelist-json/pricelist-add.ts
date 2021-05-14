@@ -22,16 +22,16 @@ export const addSchema: jsonschema.Schema = {
             // if the item is autopriced or not
             type: 'boolean'
         },
+        min: {
+            // minimum stock
+            type: 'integer',
+            minimum: 0
+        },
         max: {
             // maximum stock
             type: 'integer',
             // -1 is infinite
             minimum: -1
-        },
-        min: {
-            // minimum stock
-            type: 'integer',
-            minimum: 0
         },
         buy: {
             // buy price
@@ -59,6 +59,10 @@ export const addSchema: jsonschema.Schema = {
         },
         note: {
             $ref: 'listing-note'
+        },
+        isPartialPriced: {
+            // partialPrice feature: https://github.com/TF2Autobot/tf2autobot/pull/520
+            type: 'boolean'
         }
     },
     additionalProperties: false,

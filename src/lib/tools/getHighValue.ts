@@ -3,6 +3,7 @@ import { Items } from '@tf2autobot/tradeoffer-manager';
 import { spellsData, killstreakersData, sheensData } from '../data';
 import Bot from '../../classes/Bot';
 import { Paints, StrangeParts } from 'tf2-schema-2';
+import { testSKU } from '../tools/export';
 
 export default function getHighValueItems(
     items: Items,
@@ -19,6 +20,10 @@ export default function getHighValueItems(
 
     for (const sku in items) {
         if (!Object.prototype.hasOwnProperty.call(items, sku)) {
+            continue;
+        }
+
+        if (!testSKU(sku)) {
             continue;
         }
 

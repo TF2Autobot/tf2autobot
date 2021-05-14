@@ -2,10 +2,11 @@ import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
-import { pure, summarizeToChat, listItems, replace } from '../tools/export';
+import { pure, summarizeToChat, listItems, replace, ValueDiff } from '../tools/export';
 
 import Bot from '../../classes/Bot';
 import { KeyPrices } from '../../classes/Pricelist';
+import { sendToAdmin } from '../../classes/MyHandler/offer/review/send-review';
 
 export default function sendOfferReview(
     offer: TradeOffer,
@@ -189,7 +190,34 @@ export default function sendOfferReview(
 
         sendWebhook(opt.offerReview.url, webhookReview, 'offer-review')
             .then(() => log.debug(`✅ Sent offer-review webhook (#${offer.id}) to Discord.`))
-            .catch(err => log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err));
+            .catch(err => {
+                log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
+
+                const itemListx = listItems(offer, bot, itemsName, true);
+
+                const chatOpt = bot.options.tradeSummary.customText;
+                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
+                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
+                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
+
+                sendToAdmin(
+                    bot,
+                    offer,
+                    bot.options.steamChat.customInitializer.review,
+                    isCustomPricer,
+                    reasons,
+                    value,
+                    keyPrices,
+                    offer.message,
+                    itemListx,
+                    links,
+                    currentItems,
+                    slots,
+                    cTxKeyRate,
+                    cTxTotalItems,
+                    cTxPureStock
+                );
+            });
     });
 }
 
@@ -201,12 +229,6 @@ interface Review {
     duped: string[];
     dupedFailed: string[];
     highValue: string[];
-}
-
-interface ValueDiff {
-    diff: number;
-    diffRef: number;
-    diffKey: string;
 }
 
 interface Links {

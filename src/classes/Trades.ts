@@ -288,7 +288,10 @@ export default class Trades {
             }
 
             offer.data('handledByUs', true);
-            offer.data('handleTime', dayjs().valueOf() - start);
+            const timeTaken = dayjs().valueOf() - start;
+
+            offer.data('processOfferTime', timeTaken);
+            log.debug(`Processing offer #${offer.id} took ${timeTaken} ms`);
 
             offer.log('debug', 'handler is done with offer', {
                 response: response
@@ -1065,7 +1068,7 @@ export default class Trades {
 
         const finishTimestamp = dayjs().valueOf();
 
-        const processTime = finishTimestamp - offer.data('handleTimestamp');
+        const timeTakenToComplete = finishTimestamp - offer.data('handleTimestamp');
 
         if (
             offer.state === TradeOfferManager.ETradeOfferState['Active'] ||
@@ -1096,10 +1099,10 @@ export default class Trades {
 
             offer.data('finishTimestamp', finishTimestamp);
 
-            log.debug(`Took ${isNaN(processTime) ? 'unknown' : processTime} ms to process offer`, {
+            log.debug(`Took ${isNaN(timeTakenToComplete) ? 'unknown' : timeTakenToComplete} ms to complete the offer`, {
                 offerId: offer.id,
                 state: offer.state,
-                finishTime: processTime
+                finishTime: timeTakenToComplete
             });
         }
 
@@ -1121,7 +1124,7 @@ export default class Trades {
         this.bot.client.gamesPlayed([]);
 
         void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
-            this.bot.handler.onTradeOfferChanged(offer, oldState, processTime);
+            this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
         });
     }
 

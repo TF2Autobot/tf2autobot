@@ -96,7 +96,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             value?: ItemsValue;
             prices?: Prices;
             handledByUs?: boolean;
-            handleTime?: number;
+            processOfferTime?: number;
+            constructOfferTime?: number;
             actionTimestamp?: number;
             confirmationTime?: number;
             finishTimestamp?: number;

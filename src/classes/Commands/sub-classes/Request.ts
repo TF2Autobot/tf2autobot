@@ -4,11 +4,12 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 import Currencies from 'tf2-currencies-2';
-import { removeLinkProtocol, getItemFromParams, testSKU, fixSKU } from '../functions/utils';
+import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
+import { testSKU } from '../../../lib/tools/export';
 import { UnknownDictionary } from '../../../types/common';
 import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
@@ -161,13 +162,13 @@ export default class RequestCommands {
         }
 
         const pricelist = this.bot.pricelist.getPrices;
-        const skus = pricelist.filter(entry => entry.sku !== '5021;6').map(entry => entry.sku);
+        const skus = Object.keys(pricelist).filter(sku => sku !== '5021;6');
 
         const total = skus.length;
         const totalTime = total * 2 * 1000;
-        const aSecond = 1 * 1000;
-        const aMin = 1 * 60 * 1000;
-        const anHour = 1 * 60 * 60 * 1000;
+        const aSecond = 1000;
+        const aMin = 60 * 1000;
+        const anHour = 60 * 60 * 1000;
         this.bot.sendMessage(
             steamID,
             `⌛ Price check requested for ${total} items. It will be completed in approximately ${
