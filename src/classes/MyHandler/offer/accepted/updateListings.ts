@@ -2,6 +2,7 @@ import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
+import dayjs from 'dayjs';
 
 import PriceCheckQueue from './requestPriceCheck';
 import Bot from '../../../Bot';
@@ -9,6 +10,7 @@ import { EntryData } from '../../../Pricelist';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';
+import { testSKU } from '../../../../lib/tools/export';
 
 let itemsFromPreviousTrades: string[] = [];
 
@@ -36,20 +38,26 @@ export default function updateListings(
     const hv = highValue.items;
     const normalizePainted = opt.normalize.painted;
     const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
+    const pure = ['5000;6', '5001;6', '5002;6'];
 
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
             continue;
         }
 
+        if (!testSKU(sku)) {
+            continue;
+        }
+
         const item = SKU.fromString(sku);
         const name = bot.schema.getName(item, false);
-        const pure = ['5000;6', '5001;6', '5002;6'];
+
         const isNotPure = !pure.includes(sku);
         const isNotPureOrWeapons = !pure.concat(weapons).includes(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
-
         const existInPricelist = inPrice !== null;
+        const amount = inventory.getAmount(sku, false, true);
+
         const isDisabledHV = highValue.isDisableSKU.includes(sku);
         const isAdmin = bot.isAdmin(offer.partner);
         const isNotSkinsOrWarPaint = item.wear === null;
@@ -66,7 +74,7 @@ export default function updateListings(
             hv[sku]?.s === undefined && // make sure spelled is undefined
             inPrice !== null && // base items must already in pricelist
             bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null && // painted items must not in pricelist
-            inventory.getAmount(`${sku};${Object.keys(hv[sku].p)[0]}`, true) > 0 &&
+            inventory.getAmount(`${sku};${Object.keys(hv[sku].p)[0]}`, false, true) > 0 &&
             opt.pricelist.autoAddPaintedItems.enable; // autoAddPaintedItems must enabled
 
         const isAutoaddInvalidItems =
@@ -95,37 +103,21 @@ export default function updateListings(
             !isAdmin;
 
         const isAutoDisableHighValueItems =
-            existInPricelist &&
-            isDisabledHV &&
-            (normalizePainted.our === false
-                ? !highValue.theirItems.some(
-                      str =>
-                          str.includes(name) &&
-                          str.includes('🎨 Painted') &&
-                          !(
-                              str.includes('🎰 Parts') ||
-                              str.includes('🔥 Killstreaker') ||
-                              str.includes('✨ Sheen') ||
-                              str.includes('🎃 Spells')
-                          )
-                  )
-                : true) &&
-            isNotPureOrWeapons &&
-            opt.highValue.enableHold;
+            existInPricelist && isDisabledHV && isNotPureOrWeapons && opt.highValue.enableHold;
 
         const isAutoRemoveIntentSell =
             opt.pricelist.autoRemoveIntentSell.enable &&
             existInPricelist &&
             inPrice.intent === 1 &&
             (opt.autokeys.enable ? sku !== '5021;6' : true) && // not Mann Co. Supply Crate Key if Autokeys enabled
-            inventory.getAmount(sku, true) < 1 && // current stock
+            amount < 1 && // current stock
             isNotPureOrWeapons;
 
         const isUpdatePartialPricedItem =
             inPrice !== null &&
             inPrice.autoprice &&
-            inPrice.group === 'isPartialPriced' &&
-            bot.inventoryManager.getInventory.getAmount(sku, true) < 1 && // current stock
+            inPrice.isPartialPriced &&
+            amount < 1 && // current stock
             isNotPureOrWeapons;
 
         //
@@ -271,6 +263,8 @@ export default function updateListings(
             }
         } else if (isAutoDisableHighValueItems) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
+            const oldGroup = inPrice.group;
+
             const entry: EntryData = {
                 sku: sku, // required
                 enabled: false, // required
@@ -302,7 +296,7 @@ export default function updateListings(
                     let msg =
                         `I have temporarily disabled ${name} (${sku}) because it contains some high value spells/parts.` +
                         `\nYou can manually price it with "!update sku=${sku}&enabled=true&<buy and sell price>"` +
-                        ` or just re-enable it with "!update sku=${sku}&enabled=true".` +
+                        ` or just re-enable it with "!update sku=${sku}&enabled=true&group=${oldGroup}".` +
                         '\n\nItem information:\n\n- ';
 
                     const theirCount = highValue.theirItems.length;
@@ -342,13 +336,15 @@ export default function updateListings(
                     }
                 });
         } else if (isUpdatePartialPricedItem) {
-            // If item exist in pricelist with group "isPartialPriced" and we no longer have that in stock,
+            // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
             // then update entry with the latest prices.
 
             const oldPrice = {
                 buy: new Currencies(inPrice.buy),
                 sell: new Currencies(inPrice.sell)
             };
+
+            const oldTime = inPrice.time;
 
             const entry = {
                 sku: sku,
@@ -357,18 +353,21 @@ export default function updateListings(
                 min: inPrice.min,
                 max: inPrice.max,
                 intent: inPrice.intent,
-                group: 'all'
+                group: inPrice.group,
+                isPartialPriced: false
             } as EntryData;
 
             bot.pricelist
                 .updatePrice(entry, true)
                 .then(data => {
                     const msg =
-                        `${name} (${sku})\n▸ ` +
+                        `${dwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})\n▸ ` +
                         [
                             `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
                             `new: ${data.buy.toString()}/${data.sell.toString()}`
-                        ].join('\n▸ ');
+                        ].join('\n▸ ') +
+                        `\n - Partial priced since ${dayjs.unix(oldTime).fromNow()}` +
+                        `\n - Current prices last update: ${dayjs.unix(data.time).fromNow()}`;
 
                     log.debug(msg);
 

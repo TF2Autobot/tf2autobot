@@ -9,6 +9,7 @@ v.addSchema(pl.currenciesSchema);
 v.addSchema(pl.pricelistSchema);
 v.addSchema(pl.addSchema);
 v.addSchema(pl.listingSchema);
+v.addSchema(pl.pricesDataObject);
 
 import { stringArrayURLSchema } from '../schemas/options-json/array-string-url';
 v.addSchema(stringArrayURLSchema);
@@ -25,6 +26,8 @@ export = function (data: EntryData | Options, schema: string): string[] | null {
             ? pl.addSchema
             : schema === 'pricelist'
             ? pl.pricelistSchema
+            : schema === 'prices-data-object'
+            ? pl.pricesDataObject
             : schema === 'options'
             ? optionsSchema
             : {};

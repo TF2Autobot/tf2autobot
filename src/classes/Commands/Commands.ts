@@ -200,14 +200,14 @@ export default class Commands {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
             void this.pManager.getAllCommand(steamID, message);
+        } else if (command === 'ppu' && isAdmin) {
+            void this.pManager.partialPriceUpdateCommand(steamID, message);
         } else if (['getslots', 'listings'].includes(command) && isAdmin) {
             void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
             void this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
             this.pManager.stopAutoAddCommand();
-        } else if (command === 'shuffle' && isAdmin) {
-            void this.pManager.shuffleCommand(steamID);
         } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
             this.manager.TF2GCCommand(steamID, message, command as TF2GC);
         } else if (['name', 'avatar'].includes(command) && isAdmin) {
@@ -249,7 +249,7 @@ export default class Commands {
         } else if (command === 'pricecheck' && isAdmin) {
             this.request.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
-            this.request.pricecheckAllCommand(steamID);
+            void this.request.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
             void this.request.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
@@ -359,7 +359,7 @@ export default class Commands {
             }
         }
 
-        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, true)}`;
+        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true)}`;
 
         if (match.max !== -1 && isBuying) {
             reply += ` / ${match.max}`;
@@ -452,10 +452,10 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(info.match.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, false, true);
         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.match.sku, false) - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(info.match.sku), false);
+        const name = info.match.name;
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -912,7 +912,7 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
         const amountCanTrade = ourAmount - cartAmount;
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
@@ -1004,7 +1004,7 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
         const amountCanTrade = ourAmount - cart.getOurCount(params.sku) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
@@ -1114,7 +1114,7 @@ export default class Commands {
         const numEvens = numMonths - numOdds;
         const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
 
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', false, true);
 
         if (ourAmount < amountKeys) {
             return this.bot.sendMessage(

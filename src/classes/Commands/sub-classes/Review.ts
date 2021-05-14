@@ -7,7 +7,7 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { generateLinks } from '../../../lib/tools/export';
+import { generateLinks, testSKU } from '../../../lib/tools/export';
 
 // Manual review commands
 
@@ -73,10 +73,9 @@ export default class ReviewCommands {
             const offer = offers[i];
 
             reply +=
-                `\n- Offer #${offer.id as string} from ${
-                    (offer.data as OfferData).partner
-                } (reason: ${(offer.data as OfferData).meta.uniqueReasons.join(', ')})` +
-                `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
+                `\n- Offer #${offer.id as string} from ${(offer.data as OfferData).partner} (reason: ${(
+                    offer.data as OfferData
+                ).meta.uniqueReasons.join(', ')})` + `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
         }
 
         return reply;
@@ -146,7 +145,9 @@ export default class ReviewCommands {
                     continue;
                 }
 
-                summary.push(schema.getName(SKU.fromString(sku), false) + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
+                const name = testSKU(sku) ? schema.getName(SKU.fromString(sku), false) : sku;
+
+                summary.push(name + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
             }
 
             if (summary.length === 0) {

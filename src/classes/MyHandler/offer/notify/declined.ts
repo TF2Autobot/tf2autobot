@@ -20,6 +20,11 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     if (!offerReason) {
         const custom = opt.customMessage.decline.general;
         reply = custom ? custom : declined + '.';
+    } else if (offerReason.reason === '🟨_CONTAINS_NON_TF2') {
+        //
+        const custom = opt.customMessage.decline.hasNonTF2Items;
+        reply = custom ? custom : declined + ` because the offer you've sent contains Non-TF2 items.`;
+        //
     } else if (offerReason.reason === 'GIFT_NO_NOTE') {
         //
         const custom = opt.customMessage.decline.giftNoNote;

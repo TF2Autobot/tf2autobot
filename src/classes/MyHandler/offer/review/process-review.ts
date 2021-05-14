@@ -1,26 +1,9 @@
 import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import * as re from './reasons/export-reasons';
 import Bot from '../../../Bot';
-import { valueDiff } from '../../../../lib/tools/export';
+import { ValueDiff, valueDiff } from '../../../../lib/tools/export';
 
-export default function processReview(
-    offer: TradeOffer,
-    meta: Meta,
-    bot: Bot,
-    isTradingKeys: boolean
-): {
-    notes: string[];
-    itemNames: {
-        invalidItems: string[];
-        disabledItems: string[];
-        overstocked: string[];
-        understocked: string[];
-        duped: string[];
-        dupedCheckFailed: string[];
-    };
-    missing: string;
-    value: { diff: number; diffRef: number; diffKey: string };
-} {
+export default function processReview(offer: TradeOffer, meta: Meta, bot: Bot, isTradingKeys: boolean): Content {
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.miscSettings.showOnlyMetal.enable);
     const reasons = meta.uniqueReasons;
@@ -105,4 +88,18 @@ export default function processReview(
         missing: missingPureNote,
         value: value
     };
+}
+
+interface Content {
+    notes: string[];
+    itemNames: {
+        invalidItems: string[];
+        disabledItems: string[];
+        overstocked: string[];
+        understocked: string[];
+        duped: string[];
+        dupedCheckFailed: string[];
+    };
+    missing: string;
+    value: ValueDiff;
 }
