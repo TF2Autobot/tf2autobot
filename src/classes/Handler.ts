@@ -49,7 +49,9 @@ export default abstract class Handler {
      * Called when a new trade offer is being processed
      * @param offer - The new trade offer
      */
-    abstract onNewTradeOffer(offer: TradeOfferManager.TradeOffer): Promise<null | {
+    abstract onNewTradeOffer(
+        offer: TradeOfferManager.TradeOffer
+    ): Promise<null | {
         action: 'accept' | 'decline' | 'skip' | 'counter';
         reason: string;
         meta?: Meta;
