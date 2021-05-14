@@ -251,9 +251,9 @@ export default class MyHandler extends Handler {
                 'item',
                 this.bot.pricelist.getLength,
                 true
-            )} in pricelist | Listings cap: ${String(
-                this.bot.listingManager.cap
-            )} | Startup time: ${process.uptime().toFixed(0)} s`
+            )} in pricelist | Listings cap: ${String(this.bot.listingManager.cap)} | Startup time: ${process
+                .uptime()
+                .toFixed(0)} s`
         );
 
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
@@ -400,23 +400,41 @@ export default class MyHandler extends Handler {
         this.bot.listings.disableAutorelistOption();
 
         return new Promise(resolve => {
-            if (this.opt.autokeys.enable && this.autokeys.getActiveStatus) {
+            if (this.opt.autokeys.enable) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
-                this.autokeys.disable(this.bot.pricelist.getKeyPrices);
-            }
+                this.autokeys
+                    .disable(this.bot.pricelist.getKeyPrices)
+                    .catch(() => {
+                        log.warn('Unable to disable Mann Co. Supply Crate Key...');
+                    })
+                    .finally(() => {
+                        if (this.bot.listingManager.ready !== true) {
+                            // We have not set up the listing manager, don't try and remove listings
+                            return resolve();
+                        }
 
-            if (this.bot.listingManager.ready !== true) {
-                // We have not set up the listing manager, don't try and remove listings
-                return resolve();
-            }
+                        void this.bot.listings.removeAll().asCallback(err => {
+                            if (err) {
+                                log.warn('Failed to remove all listings: ', err);
+                            }
 
-            void this.bot.listings.removeAll().asCallback(err => {
-                if (err) {
-                    log.warn('Failed to remove all listings: ', err);
+                            resolve();
+                        });
+                    });
+            } else {
+                if (this.bot.listingManager.ready !== true) {
+                    // We have not set up the listing manager, don't try and remove listings
+                    return resolve();
                 }
 
-                resolve();
-            });
+                void this.bot.listings.removeAll().asCallback(err => {
+                    if (err) {
+                        log.warn('Failed to remove all listings: ', err);
+                    }
+
+                    resolve();
+                });
+            }
         });
     }
 

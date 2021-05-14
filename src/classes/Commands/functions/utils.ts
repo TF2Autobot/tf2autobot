@@ -321,6 +321,38 @@ export function getItemFromParams(
     } else if (item.defindex === 5738) {
         // Standardize different versions of Mann Co. Stockpile Crate
         item.defindex = 5737;
+    } else if (
+        [
+            5661, // Pomson 6000 Strangifier
+            5721, // Pretty Boy's Pocket Pistol Strangifier
+            5722, // Phlogistinator Strangifier
+            5723, // Cleaner's Carbine Strangifier
+            5724, // Private Eye Strangifier
+            5725, // Big Chief Strangifier
+            5753, // Air Strike Strangifier
+            5754, // Classic Strangifier
+            5755, // Manmelter Strangifier
+            5756, // Vaccinator Strangifier
+            5757, // Widowmaker Strangifier
+            5758, // Anger Strangifier
+            5759, // Apparition's Aspect Strangifier
+            5783, // Cow Mangler 5000 Strangifier
+            5784, // Third Degree Strangifier
+            5804 // Righteous Bison Strangifier
+        ].includes(item.defindex)
+    ) {
+        // Standardize defindex for Strangifier
+        item.defindex = 6522;
+    } else if (
+        [
+            20001, // Cosmetic Strangifier Recipe 1 Rare
+            20005, // Cosmetic Strangifier Recipe 2
+            20008, // Rebuild Strange Weapon Recipe
+            20009 // Cosmetic Strangifier Recipe 3
+        ].includes(item.defindex)
+    ) {
+        // Standardize defindex for Strangifier Chemistry Set
+        item.defindex = 20000;
     }
 
     if (typeof params.quality === 'number') {
