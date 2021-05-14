@@ -847,7 +847,7 @@ export default class Trades {
 
                     //Filter our trade items
                     Object.keys(ourInvItems).forEach(sku => {
-                        ourInvItems[sku] = ourInvItems[sku].filter(i => !ourInvItems[sku].find(i2 => i2.id === i.id));
+                        ourInvItems[sku] = ourInvItems[sku].filter(i => !ourItems[sku].find(i2 => i2.id === i.id));
                     });
                     const ItemsThatCanBeAddedOur = {
                         ['5002;6']: calculate('5002;6', 9, ourInvItems),
