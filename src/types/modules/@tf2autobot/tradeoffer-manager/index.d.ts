@@ -428,6 +428,14 @@ declare module '@tf2autobot/tradeoffer-manager' {
 
             addTheirItems(items: TradeOfferItem[]): number;
 
+            removeMyItem(item: TradeOfferItem): boolean;
+
+            removeMyItems(items: TradeOfferItem[]): number;
+
+            removeTheirItem(item: TradeOfferItem): boolean;
+
+            removeTheirItems(items: TradeOfferItem[]): number;
+
             setToken(token: string): void;
 
             setMessage(message: string): void;

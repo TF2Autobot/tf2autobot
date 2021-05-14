@@ -1775,7 +1775,7 @@ export default class MyHandler extends Handler {
                     }
                 };
             } else if (
-                opt.offerReceived.invalidValue.autoDecline.enable && // ( || opt.miscSettings.counterOffer.enable)
+                (opt.offerReceived.invalidValue.autoDecline.enable || opt.miscSettings.counterOffer.enable) &&
                 isInvalidValue &&
                 !(
                     isUnderstocked ||
@@ -1787,18 +1787,17 @@ export default class MyHandler extends Handler {
                 ) &&
                 this.hasInvalidValueException === false
             ) {
+                if (opt.miscSettings.counterOffer.enable)
+                    return {
+                        action: 'counter',
+                        reason: 'COUNTER_INVALID_VALUE',
+                        meta: {
+                            uniqueReasons: uniqueReasons,
+                            reasons: wrongAboutOffer
+                        }
+                    };
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
-                /*
-                return {
-                    action: 'counter',
-                    reason: 'COUNTER_INVALID_VALUE',
-                    meta: {
-                        uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer
-                    }
-                };
-                */
             } else if (
                 opt.offerReceived.invalidItems.autoDecline.enable &&
                 isInvalidItem &&

@@ -342,6 +342,9 @@ export const optionsSchema: jsonschema.Schema = {
                 autobump: {
                     $ref: '#/definitions/only-enable'
                 },
+                counterOffer: {
+                    $ref: '#/definitions/only-enable'
+                },
                 skipItemsInTrade: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -392,6 +395,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'addFriends',
                 'sendGroupInvite',
                 'autobump',
+                'counterOffer',
                 'skipItemsInTrade',
                 'weaponsAsCurrency',
                 'checkUses',
