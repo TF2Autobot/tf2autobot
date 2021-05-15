@@ -27,6 +27,9 @@ export const DEFAULTS: JsonOptions = {
         autobump: {
             enable: true
         },
+        counterOffer: {
+            enable: false
+        },
         skipItemsInTrade: {
             enable: true
         },
@@ -1042,6 +1045,7 @@ interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
+    counterOffer?: OnlyEnable;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
     autobump?: OnlyEnable;

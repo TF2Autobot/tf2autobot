@@ -4,7 +4,7 @@ import TradeOfferManager, {
     CustomError,
     Meta,
     Action,
-    InvalidValue
+    ItemsValue
 } from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
@@ -12,7 +12,7 @@ import retry from 'retry';
 import SteamID from 'steamid';
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import Bot from './Bot';
-import Inventory from './Inventory';
+import Inventory, { Dict } from './Inventory';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
@@ -316,10 +316,17 @@ export default class Trades {
 
         let actionFunc: () => Promise<any>;
 
-        if (action === 'accept') {
-            actionFunc = this.acceptOffer.bind(this, offer);
-        } else if (action === 'decline') {
-            actionFunc = this.declineOffer.bind(this, offer);
+        //Switch cases are superior (ﾉ´･ω･)ﾉ ﾐ ┸━┸. Change my mind.
+        switch (action) {
+            case 'accept':
+                actionFunc = this.acceptOffer.bind(this, offer);
+                break;
+            case 'decline':
+                actionFunc = this.declineOffer.bind(this, offer);
+                break;
+            case 'counter':
+                actionFunc = this.counterOffer.bind(this, offer);
+                break;
         }
 
         offer.data('action', {
@@ -336,33 +343,6 @@ export default class Trades {
         if (action === 'skip') {
             offer.itemsToGive.forEach(item => {
                 this.unsetItemInTrade = item.assetid;
-            });
-        }
-
-        if (action === 'counter') {
-            const counter = offer.counter();
-            let missing = 0;
-            (meta.reasons.filter(el => el.reason === '🟥_INVALID_VALUE') as InvalidValue[]).forEach(el => {
-                missing = el.missing;
-            });
-
-            const theirInventory = new Inventory(
-                offer.partner,
-                this.bot.manager,
-                this.bot.schema,
-                this.bot.options,
-                this.bot.effects,
-                this.bot.paints,
-                this.bot.strangeParts,
-                'their'
-            );
-
-            void theirInventory.fetch().asCallback(err => {
-                if (err) {
-                    // return reject('Failed to load inventories (Steam might be down)');
-                }
-
-                const theirItems = theirInventory.getItems;
             });
         }
 
@@ -671,6 +651,291 @@ export default class Trades {
                 }
 
                 return resolve(status);
+            });
+        });
+    }
+
+    private counterOffer(offer: TradeOffer): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const counter = offer.counter();
+            // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
+            counter.setMessage(
+                "Oni-chan. I'm not a dummie (thicc) offer contains wrong value.\nYou've probably made a few mistakes here's the correct offer."
+            );
+            function calculate(
+                sku: '5021;6' | '5002;6' | '5001;6' | '5000;6',
+                value: number,
+                side: Dict | number,
+                overpay?: boolean
+            ) {
+                if (value === 0) return 0;
+                const floorCeil = Math[overpay ? 'floor' : 'ceil'];
+                const length = typeof side === 'number' ? side : side[sku]?.length || 0;
+
+                const amount = Math.min(0, length, floorCeil(difference / value)) || 0;
+                difference -= amount * value;
+                return amount;
+            }
+            const values = offer.data('value') as ItemsValue;
+            const keyPriceScrap = Math.floor(values.rate) * 9 + Math.round((values.rate % 1) / 0.11);
+
+            const ourItems = Inventory.fromItems(
+                this.bot.client.steamID || this.bot.community.steamID,
+                offer.itemsToGive,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.effects,
+                this.bot.paints,
+                this.bot.strangeParts,
+                'our'
+            ).getItems;
+
+            const theirItems = Inventory.fromItems(
+                offer.partner,
+                offer.itemsToReceive,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.effects,
+                this.bot.paints,
+                this.bot.strangeParts,
+                'their'
+            ).getItems;
+
+            //Difference in metal if its higher than 0 that means we are overpaying
+
+            let difference = values.our.total - values.their.total;
+
+            // Don't remove the craft weapon from our side cause maybe they want our second banana (If you know what I mean OwO)
+            // Rather add one and take a scrap from them ?
+
+            //const needToGiveWeapon = difference - Math.trunc(difference) !== 0;
+            /*
+            if (this.bot.options.miscSettings.weaponsAsCurrency.enable && needToGiveWeapon) {
+                const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                    ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                    : this.bot.craftWeapons;
+
+                const skusFromPricelist = this.bot.pricelist.getPrices.map(entry => entry.sku);
+
+                // return filtered weapons
+                const filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+
+                const item = ourItems[filtered.find(sku => ourItems[sku])];
+                if (item) {
+                    const isAdded = offer.addMyItem({
+                        appid: 440,
+                        contextid: '2',
+                        assetid: item[0].id
+                    });
+                    if (isAdded) {
+                        // Round floating point errors that might occur
+                        difference = Math.round(difference + 0.5);
+                    }
+                }
+            }
+            */
+
+            const ItemsThatCanBeRemovedOur = {
+                ['5021;6']: calculate('5021;6', keyPriceScrap, ourItems),
+                ['5002;6']: calculate('5002;6', 9, ourItems),
+                ['5001;6']: calculate('5001;6', 3, ourItems),
+                ['5000;6']: calculate('5000;6', 1, ourItems)
+            };
+            if (difference === 0) {
+                //We did it remove the said items by said amount and sent the counterOffer
+                const items = [];
+                Object.keys(ItemsThatCanBeRemovedOur).forEach(key => {
+                    const amount = ItemsThatCanBeRemovedOur[key as '5021;6'] || 0;
+                    ourItems[key].splice(0, amount).forEach(item => {
+                        items.push({
+                            appid: 440,
+                            contextid: '2',
+                            assetid: item.id
+                        });
+                    });
+                });
+                if (counter.removeMyItems(items) !== items.length) {
+                    reject(new Error("Couldn't remove Items from a counter offer"));
+                    return;
+                } else {
+                    // If sendOffer sends message to the user I might need to change how it.
+                    resolve(this.sendOffer(counter));
+                    return;
+                }
+            }
+
+            // add items from their side now
+            // baseDifference is still kept because of
+            // if baseDifference was a 20 refined
+            // and It couldn't be removed from our side
+            // we can make them give us a key and close the gap with refs from our side ?
+            const theirInventory = new Inventory(
+                offer.partner,
+                this.bot.manager,
+                this.bot.schema,
+                this.bot.options,
+                this.bot.effects,
+                this.bot.paints,
+                this.bot.strangeParts,
+                'their'
+            );
+
+            void theirInventory.fetch().asCallback(err => {
+                if (err) {
+                    return reject(new Error('Failed to load inventories (Steam might be down)'));
+                }
+
+                const theirInvItems = theirInventory.getItems;
+                //Filter their trade items
+                Object.keys(theirItems).forEach(sku => {
+                    theirInvItems[sku] = theirInvItems[sku].filter(i => !theirItems[sku].find(i2 => i2.id === i.id));
+                });
+
+                //First try to make them pay with allowing overpay on everything other than keys
+                const ItemsThatCanBeAddedTheir = {
+                    ['5021;6']: calculate('5021;6', keyPriceScrap, theirInvItems),
+                    ['5002;6']: calculate('5002;6', 9, theirInvItems, true),
+                    ['5001;6']: calculate('5001;6', 3, theirInvItems, true),
+                    ['5000;6']: calculate('5000;6', 1, theirInvItems)
+                };
+
+                // if the difference is still big then take one more key if they have it obv.
+                if (difference > 0) {
+                    ItemsThatCanBeAddedTheir['5021;6'] += calculate('5021;6', keyPriceScrap, theirInvItems, true);
+                }
+                // Smaller than 0 they are overpaying
+
+                difference *= -1;
+                Object.keys(ItemsThatCanBeAddedTheir).forEach((sku, ind) => {
+                    ItemsThatCanBeAddedTheir[sku] -= calculate(
+                        sku as '5002;6',
+                        Math.floor(ind === 0 ? keyPriceScrap : Math.pow(3, 3 - ind)),
+                        ItemsThatCanBeAddedTheir[sku]
+                    );
+                });
+
+                const ItemsThatCanBeRemovedTheir = {
+                    ['5021;6']: calculate('5021;6', keyPriceScrap, theirItems),
+                    ['5002;6']: calculate('5002;6', 9, theirItems),
+                    ['5001;6']: calculate('5001;6', 3, theirItems),
+                    ['5000;6']: calculate('5000;6', 1, theirItems)
+                };
+                if (difference === 0) {
+                    //Add the items but we might need to sanitize
+                    const sanitized = sanitizer(counter);
+                    if (sanitized) resolve(this.sendOffer(counter));
+                    return;
+                }
+                const ourInventory = new Inventory(
+                    this.bot.client.steamID || this.bot.community.steamID,
+                    this.bot.manager,
+                    this.bot.schema,
+                    this.bot.options,
+                    this.bot.effects,
+                    this.bot.paints,
+                    this.bot.strangeParts,
+                    'our'
+                );
+                void ourInventory.fetch().asCallback(err => {
+                    if (err) {
+                        return reject(new Error('Failed to load inventories (Steam might be down)'));
+                    }
+
+                    const ourInvItems = ourInventory.getItems;
+
+                    //Filter our trade items
+                    Object.keys(ourInvItems).forEach(sku => {
+                        ourInvItems[sku] = ourInvItems[sku].filter(i => !ourItems[sku].find(i2 => i2.id === i.id));
+                    });
+                    const ItemsThatCanBeAddedOur = {
+                        ['5002;6']: calculate('5002;6', 9, ourInvItems),
+                        ['5001;6']: calculate('5001;6', 3, ourInvItems),
+                        ['5000;6']: calculate('5000;6', 1, ourInvItems),
+                        ['5021;6']: calculate('5021;6', keyPriceScrap, ourInvItems)
+                    };
+
+                    if (difference === 0) {
+                        //Add the items but we might need to sanitize
+                        const sanitized = sanitizer(counter, ItemsThatCanBeAddedOur, ourInvItems);
+                        if (sanitized) resolve(this.sendOffer(counter));
+                        return;
+                    }
+                    reject(new Error(`Couldn't counter an offer value mismatch: ${difference}`));
+                });
+
+                function sanitizer(
+                    offer: TradeOffer,
+                    ItemsThatCanBeAddedOur?: typeof ItemsThatCanBeAddedTheir,
+                    myInvItems?: Dict
+                ) {
+                    // Removes extra metal/key
+                    // IE. if one side has two keys
+                    // and the other 1
+                    // should stop us from unnecessary keys
+                    for (const sku of ['5021;6', '5002;6', '5001;6', '5000;6']) {
+                        const addAmount = (ItemsThatCanBeAddedOur?.[sku] || 0) - (ItemsThatCanBeAddedTheir[sku] || 0);
+                        const removeAmount =
+                            (ItemsThatCanBeRemovedOur[sku] || 0) - (ItemsThatCanBeRemovedTheir?.[sku] || 0);
+
+                        if (addAmount > 0) {
+                            if (!ItemsThatCanBeAddedOur)
+                                return reject(new Error("Can't add our Items before our inventory loads."));
+                            // We Add undefined rn
+                            const amount = offer.addMyItems(
+                                Array.from(
+                                    myInvItems[sku].splice(0, addAmount).map(item => {
+                                        return {
+                                            appid: 440,
+                                            contextid: '2',
+                                            assetid: item.id
+                                        };
+                                    })
+                                )
+                            );
+                            if (amount !== addAmount) return reject(new Error("Couldn't add our items."));
+                        } else if (addAmount < 0) {
+                            // They Add
+                            const amount = offer.addTheirItems(
+                                theirInvItems[sku].splice(0, addAmount * -1).map(item => {
+                                    return {
+                                        appid: 440,
+                                        contextid: '2',
+                                        assetid: item.id
+                                    };
+                                })
+                            );
+                            if (amount !== addAmount * -1) return reject(new Error("Couldn't add their items."));
+                        }
+                        if (removeAmount > 0) {
+                            // We Remove
+                            const amount = offer.removeMyItems(
+                                ourItems[sku].splice(0, removeAmount).map(item => {
+                                    return {
+                                        appid: 440,
+                                        contextid: '2',
+                                        assetid: item.id
+                                    };
+                                })
+                            );
+                            if (amount !== removeAmount) return reject(new Error("Couldn't remove our items."));
+                        } else if (removeAmount < 0) {
+                            // They Remove
+                            const amount = offer.removeTheirItems(
+                                theirItems[sku].splice(0, removeAmount * -1).map(item => {
+                                    return {
+                                        appid: 440,
+                                        contextid: '2',
+                                        assetid: item.id
+                                    };
+                                })
+                            );
+                            if (amount !== removeAmount * -1) return reject(new Error("Couldn't remove their items."));
+                        }
+                    }
+                    return true;
+                }
             });
         });
     }
