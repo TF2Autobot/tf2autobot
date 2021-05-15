@@ -10,6 +10,8 @@ import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
+import Currencies from 'tf2-currencies-2';
+
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import Bot from './Bot';
 import Inventory, { Dict } from './Inventory';
@@ -19,6 +21,8 @@ import { exponentialBackoff } from '../lib/helpers';
 import { sendAlert } from '../lib/DiscordWebhook/export';
 import { isBptfBanned } from '../lib/bans';
 import * as t from '../lib/tools/export';
+
+type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
 
 export default class Trades {
     private itemsInTrade: string[] = [];
@@ -660,14 +664,10 @@ export default class Trades {
             const counter = offer.counter();
             // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
             counter.setMessage(
-                "Oni-chan. I'm not a dummie (thicc) offer contains wrong value.\nYou've probably made a few mistakes here's the correct offer."
+                "Oni-chan. I'm not a dummie (thicc) offer contains wrong value.\nYou've probably made a few mistakes, here's the correct offer."
             );
-            function calculate(
-                sku: '5021;6' | '5002;6' | '5001;6' | '5000;6',
-                value: number,
-                side: Dict | number,
-                overpay?: boolean
-            ) {
+
+            function calculate(sku: PureSKU, value: number, side: Dict | number, overpay?: boolean) {
                 if (value === 0) return 0;
                 const floorCeil = Math[overpay ? 'floor' : 'ceil'];
                 const length = typeof side === 'number' ? side : side[sku]?.length || 0;
@@ -676,8 +676,9 @@ export default class Trades {
                 difference -= amount * value;
                 return amount;
             }
+
             const values = offer.data('value') as ItemsValue;
-            const keyPriceScrap = Math.floor(values.rate) * 9 + Math.round((values.rate % 1) / 0.11);
+            const keyPriceScrap = Currencies.toScrap(values.rate);
 
             const ourItems = Inventory.fromItems(
                 this.bot.client.steamID || this.bot.community.steamID,
@@ -737,17 +738,18 @@ export default class Trades {
             }
             */
 
-            const ItemsThatCanBeRemovedOur = {
-                ['5021;6']: calculate('5021;6', keyPriceScrap, ourItems),
-                ['5002;6']: calculate('5002;6', 9, ourItems),
-                ['5001;6']: calculate('5001;6', 3, ourItems),
-                ['5000;6']: calculate('5000;6', 1, ourItems)
+            const ItemsThatCanBeRemovedOur: Record<PureSKU, number> = {
+                '5021;6': calculate('5021;6', keyPriceScrap, ourItems),
+                '5002;6': calculate('5002;6', 9, ourItems),
+                '5001;6': calculate('5001;6', 3, ourItems),
+                '5000;6': calculate('5000;6', 1, ourItems)
             };
+
             if (difference === 0) {
                 //We did it remove the said items by said amount and sent the counterOffer
                 const items = [];
                 Object.keys(ItemsThatCanBeRemovedOur).forEach(key => {
-                    const amount = ItemsThatCanBeRemovedOur[key as '5021;6'] || 0;
+                    const amount = ItemsThatCanBeRemovedOur[key as PureSKU] || 0;
                     ourItems[key].splice(0, amount).forEach(item => {
                         items.push({
                             appid: 440,
@@ -756,6 +758,7 @@ export default class Trades {
                         });
                     });
                 });
+
                 if (counter.removeMyItems(items) !== items.length) {
                     reject(new Error("Couldn't remove Items from a counter offer"));
                     return;
@@ -794,40 +797,46 @@ export default class Trades {
                 });
 
                 //First try to make them pay with allowing overpay on everything other than keys
-                const ItemsThatCanBeAddedTheir = {
-                    ['5021;6']: calculate('5021;6', keyPriceScrap, theirInvItems),
-                    ['5002;6']: calculate('5002;6', 9, theirInvItems, true),
-                    ['5001;6']: calculate('5001;6', 3, theirInvItems, true),
-                    ['5000;6']: calculate('5000;6', 1, theirInvItems)
+                const ItemsThatCanBeAddedTheir: Record<PureSKU, number> = {
+                    '5021;6': calculate('5021;6', keyPriceScrap, theirInvItems),
+                    '5002;6': calculate('5002;6', 9, theirInvItems, true),
+                    '5001;6': calculate('5001;6', 3, theirInvItems, true),
+                    '5000;6': calculate('5000;6', 1, theirInvItems)
                 };
 
                 // if the difference is still big then take one more key if they have it obv.
                 if (difference > 0) {
                     ItemsThatCanBeAddedTheir['5021;6'] += calculate('5021;6', keyPriceScrap, theirInvItems, true);
                 }
-                // Smaller than 0 they are overpaying
 
+                // Smaller than 0 they are overpaying
                 difference *= -1;
+
                 Object.keys(ItemsThatCanBeAddedTheir).forEach((sku, ind) => {
                     ItemsThatCanBeAddedTheir[sku] -= calculate(
-                        sku as '5002;6',
+                        sku as PureSKU,
                         Math.floor(ind === 0 ? keyPriceScrap : Math.pow(3, 3 - ind)),
                         ItemsThatCanBeAddedTheir[sku]
                     );
                 });
 
-                const ItemsThatCanBeRemovedTheir = {
-                    ['5021;6']: calculate('5021;6', keyPriceScrap, theirItems),
-                    ['5002;6']: calculate('5002;6', 9, theirItems),
-                    ['5001;6']: calculate('5001;6', 3, theirItems),
-                    ['5000;6']: calculate('5000;6', 1, theirItems)
+                const ItemsThatCanBeRemovedTheir: Record<PureSKU, number> = {
+                    '5021;6': calculate('5021;6', keyPriceScrap, theirItems),
+                    '5002;6': calculate('5002;6', 9, theirItems),
+                    '5001;6': calculate('5001;6', 3, theirItems),
+                    '5000;6': calculate('5000;6', 1, theirItems)
                 };
+
                 if (difference === 0) {
                     //Add the items but we might need to sanitize
                     const sanitized = sanitizer(counter);
-                    if (sanitized) resolve(this.sendOffer(counter));
+                    if (sanitized) {
+                        resolve(this.sendOffer(counter));
+                    }
+
                     return;
                 }
+
                 const ourInventory = new Inventory(
                     this.bot.client.steamID || this.bot.community.steamID,
                     this.bot.manager,
@@ -838,6 +847,7 @@ export default class Trades {
                     this.bot.strangeParts,
                     'our'
                 );
+
                 void ourInventory.fetch().asCallback(err => {
                     if (err) {
                         return reject(new Error('Failed to load inventories (Steam might be down)'));
@@ -849,25 +859,30 @@ export default class Trades {
                     Object.keys(ourInvItems).forEach(sku => {
                         ourInvItems[sku] = ourInvItems[sku].filter(i => !ourItems[sku].find(i2 => i2.id === i.id));
                     });
-                    const ItemsThatCanBeAddedOur = {
-                        ['5002;6']: calculate('5002;6', 9, ourInvItems),
-                        ['5001;6']: calculate('5001;6', 3, ourInvItems),
-                        ['5000;6']: calculate('5000;6', 1, ourInvItems),
-                        ['5021;6']: calculate('5021;6', keyPriceScrap, ourInvItems)
+
+                    const ItemsThatCanBeAddedOur: Record<PureSKU, number> = {
+                        '5002;6': calculate('5002;6', 9, ourInvItems),
+                        '5001;6': calculate('5001;6', 3, ourInvItems),
+                        '5000;6': calculate('5000;6', 1, ourInvItems),
+                        '5021;6': calculate('5021;6', keyPriceScrap, ourInvItems)
                     };
 
                     if (difference === 0) {
                         //Add the items but we might need to sanitize
                         const sanitized = sanitizer(counter, ItemsThatCanBeAddedOur, ourInvItems);
-                        if (sanitized) resolve(this.sendOffer(counter));
+                        if (sanitized) {
+                            resolve(this.sendOffer(counter));
+                        }
+
                         return;
                     }
+
                     reject(new Error(`Couldn't counter an offer value mismatch: ${difference}`));
                 });
 
                 function sanitizer(
                     offer: TradeOffer,
-                    ItemsThatCanBeAddedOur?: typeof ItemsThatCanBeAddedTheir,
+                    ItemsThatCanBeAddedOur?: Record<PureSKU, number>,
                     myInvItems?: Dict
                 ) {
                     // Removes extra metal/key
@@ -880,8 +895,9 @@ export default class Trades {
                             (ItemsThatCanBeRemovedOur[sku] || 0) - (ItemsThatCanBeRemovedTheir?.[sku] || 0);
 
                         if (addAmount > 0) {
-                            if (!ItemsThatCanBeAddedOur)
+                            if (!ItemsThatCanBeAddedOur) {
                                 return reject(new Error("Can't add our Items before our inventory loads."));
+                            }
                             // We Add undefined rn
                             const amount = offer.addMyItems(
                                 Array.from(
@@ -894,7 +910,10 @@ export default class Trades {
                                     })
                                 )
                             );
-                            if (amount !== addAmount) return reject(new Error("Couldn't add our items."));
+
+                            if (amount !== addAmount) {
+                                return reject(new Error("Couldn't add our items."));
+                            }
                         } else if (addAmount < 0) {
                             // They Add
                             const amount = offer.addTheirItems(
@@ -906,8 +925,12 @@ export default class Trades {
                                     };
                                 })
                             );
-                            if (amount !== addAmount * -1) return reject(new Error("Couldn't add their items."));
+
+                            if (amount !== addAmount * -1) {
+                                return reject(new Error("Couldn't add their items."));
+                            }
                         }
+
                         if (removeAmount > 0) {
                             // We Remove
                             const amount = offer.removeMyItems(
@@ -919,7 +942,10 @@ export default class Trades {
                                     };
                                 })
                             );
-                            if (amount !== removeAmount) return reject(new Error("Couldn't remove our items."));
+
+                            if (amount !== removeAmount) {
+                                return reject(new Error("Couldn't remove our items."));
+                            }
                         } else if (removeAmount < 0) {
                             // They Remove
                             const amount = offer.removeTheirItems(
@@ -931,9 +957,13 @@ export default class Trades {
                                     };
                                 })
                             );
-                            if (amount !== removeAmount * -1) return reject(new Error("Couldn't remove their items."));
+
+                            if (amount !== removeAmount * -1) {
+                                return reject(new Error("Couldn't remove their items."));
+                            }
                         }
                     }
+
                     return true;
                 }
             });
