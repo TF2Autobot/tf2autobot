@@ -4,6 +4,7 @@ import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import Options from './Options';
 import Bot from './Bot';
+import log from '../lib/logger';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 
 export default class Inventory {
@@ -77,37 +78,60 @@ export default class Inventory {
     }
 
     addItem(sku: string, assetid: string): void {
-        const items = this.tradable;
-        (items[sku] = items[sku] || []).push({ id: assetid });
+        (this.tradable[sku] = this.tradable[sku] || []).push({ id: assetid });
     }
 
     addNonTradableItem(sku: string, assetid: string): void {
-        const items = this.nonTradable;
-        (items[sku] = items[sku] || []).push({ id: assetid });
+        (this.nonTradable[sku] = this.nonTradable[sku] || []).push({ id: assetid });
     }
 
-    removeItem(assetid: string): void;
+    removeItem(assetid: string, tradable: boolean): void;
 
     removeItem(item: EconItem): void;
 
-    removeItem(...args: [string] | [EconItem]): void {
+    removeItem(...args: [string, boolean] | [EconItem]): void {
         const assetid = typeof args[0] === 'string' ? args[0] : args[0].id;
+        const isTradable = typeof args[0] === 'string' ? args[1] : args[0].tradable;
 
-        const items = this.tradable;
+        log.debug('', {
+            assetid,
+            isTradable
+        });
+
+        const items = isTradable ? this.tradable : this.nonTradable;
+
+        log.debug('before', {
+            tradable: this.tradable,
+            untradable: this.nonTradable
+        });
+
         for (const sku in items) {
             if (Object.prototype.hasOwnProperty.call(items, sku)) {
                 const assetids = items[sku].map(item => item.id);
                 const index = assetids.indexOf(assetid);
 
+                log.debug('', {
+                    assetids,
+                    index
+                });
+
                 if (index !== -1) {
-                    items[sku].splice(index, 1);
+                    log.debug('is not -1');
+                    isTradable ? this.tradable[sku].splice(index, 1) : this.nonTradable[sku].splice(index, 1);
                     if (assetids.length === 0) {
-                        delete items[sku];
+                        log.debug('is length === 0');
+                        isTradable ? delete this.tradable[sku] : delete this.nonTradable[sku];
                     }
+
                     break;
                 }
             }
         }
+
+        log.debug('after', {
+            tradable: this.tradable,
+            untradable: this.nonTradable
+        });
     }
 
     fetch(): Promise<void> {
