@@ -174,7 +174,7 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid));
+                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid, true));
 
                 // Add items gained
                 itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
@@ -205,7 +205,7 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid));
+                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid, true));
 
                 // Add items gained
                 itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
@@ -237,8 +237,8 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                this.bot.inventoryManager.getInventory.removeItem(id1);
-                this.bot.inventoryManager.getInventory.removeItem(id2);
+                this.bot.inventoryManager.getInventory.removeItem(id1, true);
+                this.bot.inventoryManager.getInventory.removeItem(id2, true);
 
                 // Add items gained
                 itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
@@ -260,32 +260,48 @@ export default class TF2GC {
             this.bot.tf2.deleteItem(job.assetid);
         }
 
-        this.listenForEvent(
+        let timeout: NodeJS.Timeout;
+
+        const cancelDelete = this.listenForEvent(
             'itemRemoved',
             (item: TF2GCItem) => {
-                log.debug('itemRemoved - item', item);
-                return { success: item.id.includes(job.assetid) };
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    // 1 second after the last item removed, we will mark the job as finished
+                    cancelDelete();
+                    this.finishedProcessingJob();
+                }, 1000);
+
+                log.debug('itemRemoved', item);
+
+                const isNotTradable = item.attribute.some(attr => attr.def_index === 153);
+                this.bot.inventoryManager.getInventory.removeItem(item.id, !isNotTradable);
+
+                // Clear fail timeout
+                return { success: false, clearTimeout: true };
             },
             () => {
-                this.bot.inventoryManager.getInventory.removeItem(job.assetid);
-
                 this.finishedProcessingJob();
             },
             err => {
-                this.finishedProcessingJob(err);
+                if (err.message === 'Canceled') {
+                    // Was canceled because of timeout
+                    this.finishedProcessingJob();
+                } else {
+                    // Job failed
+                    this.finishedProcessingJob(err);
+                }
             }
         );
 
         if (job.type === 'use') {
-            let timeout: NodeJS.Timeout;
-
-            const cancel = this.listenForEvent(
+            const cancelUse = this.listenForEvent(
                 'itemAcquired',
                 (item: TF2GCItem) => {
                     clearTimeout(timeout);
                     timeout = setTimeout(() => {
                         // 1 second after the last item acquired, we will mark the job as finished
-                        cancel();
+                        cancelUse();
                         this.finishedProcessingJob();
                     }, 1000);
 
