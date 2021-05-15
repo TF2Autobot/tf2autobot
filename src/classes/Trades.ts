@@ -138,8 +138,9 @@ export default class Trades {
                 offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow']
             ).length;
 
-            const sentOnHold = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow'])
-                .length;
+            const sentOnHold = sent.filter(
+                offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow']
+            ).length;
 
             log.verbose(
                 `${activeReceivedCount} incoming ${pluralize('offer', activeReceivedCount)}${
@@ -211,9 +212,7 @@ export default class Trades {
         return tradesBySteamID;
     }
 
-    getOffers(
-        includeInactive = false
-    ): Promise<{
+    getOffers(includeInactive = false): Promise<{
         sent: TradeOffer[];
         received: TradeOffer[];
     }> {
