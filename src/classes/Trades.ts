@@ -710,6 +710,7 @@ export default class Trades {
                 } else {
                     tradeValues[autobotSide].scrap += amount * getPriceOfSKU(sku);
                 }
+                dataDict[autobotSide][sku] ??= 0;
                 dataDict[autobotSide][sku] += amount;
             }
             const setOfferDataAndSend = () => {
