@@ -43,6 +43,7 @@
         "graceful-fs": "^4.2.6",
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",
+        "json-schema": "^0.3.0",
         "jsonlint": "^1.6.3",
         "jsonschema": "^1.4.0",
         "module-alias": "^2.2.2",
