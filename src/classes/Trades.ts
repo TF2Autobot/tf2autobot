@@ -334,12 +334,12 @@ export default class Trades {
                 break;
         }
 
-        if (action !== 'counter') {
-            offer.data('action', {
-                action: action,
-                reason: reason
-            } as Action);
+        offer.data('action', {
+            action: action,
+            reason: reason
+        } as Action);
 
+        if (action !== 'counter') {
             offer.data('meta', meta);
 
             if (meta.highValue) {
