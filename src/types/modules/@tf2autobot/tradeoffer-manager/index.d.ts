@@ -98,6 +98,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             handledByUs?: boolean;
             processOfferTime?: number;
             constructOfferTime?: number;
+            processCounterTime?: number;
             actionTimestamp?: number;
             confirmationTime?: number;
             finishTimestamp?: number;

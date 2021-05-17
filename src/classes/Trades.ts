@@ -664,6 +664,8 @@ export default class Trades {
 
     private counterOffer(offer: TradeOffer, meta: Meta): Promise<string> {
         return new Promise((resolve, reject) => {
+            const start = dayjs().valueOf();
+
             const counter = offer.counter();
             const showOnlyMetal = this.bot.options.miscSettings.showOnlyMetal.enable;
             // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
@@ -747,6 +749,9 @@ export default class Trades {
                 if (meta.highValue) {
                     counter.data('highValue', meta.highValue);
                 }
+
+                const processCounterTime = dayjs().valueOf() - start;
+                counter.data('processCounterTime', processCounterTime);
 
                 return resolve(this.sendOffer(counter));
             };
