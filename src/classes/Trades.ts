@@ -330,19 +330,21 @@ export default class Trades {
                 actionFunc = this.declineOffer.bind(this, offer);
                 break;
             case 'counter':
-                actionFunc = this.counterOffer.bind(this, offer);
+                actionFunc = this.counterOffer.bind(this, offer, meta);
                 break;
         }
 
-        offer.data('action', {
-            action: action,
-            reason: reason
-        } as Action);
+        if (action !== 'counter') {
+            offer.data('action', {
+                action: action,
+                reason: reason
+            } as Action);
 
-        offer.data('meta', meta);
+            offer.data('meta', meta);
 
-        if (meta.highValue) {
-            offer.data('highValue', meta.highValue);
+            if (meta.highValue) {
+                offer.data('highValue', meta.highValue);
+            }
         }
 
         if (action === 'skip') {
@@ -660,14 +662,14 @@ export default class Trades {
         });
     }
 
-    private counterOffer(offer: TradeOffer): Promise<string> {
+    private counterOffer(offer: TradeOffer, meta: Meta): Promise<string> {
         return new Promise((resolve, reject) => {
             const counter = offer.counter();
             const showOnlyMetal = this.bot.options.miscSettings.showOnlyMetal.enable;
             // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
             // Extensive tutorial if you want to update this function https://www.youtube.com/watch?v=dQw4w9WgXcQ.
             counter.setMessage(
-                "Oni-chan. I'm not a dummie (thicc) offer contains wrong value.\nYou've probably made a few mistakes, here's the correct offer."
+                "Oni-chan. I'm not a dummie (thicc) offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
             );
 
             function getPriceOfSKU(sku: PureSKU) {
@@ -714,6 +716,9 @@ export default class Trades {
                 dataDict[autobotSide][sku] += amount;
             }
             const setOfferDataAndSend = () => {
+                const handleTimestamp = offer.data('handleTimestamp') as number;
+                counter.data('handleTimestamp', handleTimestamp);
+
                 counter.data('value', {
                     our: {
                         total: tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap,
@@ -725,9 +730,24 @@ export default class Trades {
                         keys: tradeValues.their.keys,
                         metal: Currencies.toRefined(tradeValues.their.scrap)
                     },
-                    rate: keyPriceScrap
+                    rate: values.rate
                 });
                 counter.data('dict', dataDict);
+
+                const processTime = offer.data('processOfferTime') as number;
+                counter.data('processOfferTime', processTime);
+
+                counter.data('action', {
+                    action: 'counter',
+                    reason: 'COUNTERED'
+                } as Action);
+
+                counter.data('meta', meta);
+
+                if (meta.highValue) {
+                    counter.data('highValue', meta.highValue);
+                }
+
                 return resolve(this.sendOffer(counter));
             };
 
