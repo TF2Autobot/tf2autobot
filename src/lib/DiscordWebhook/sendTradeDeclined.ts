@@ -88,6 +88,7 @@ export default async function sendTradeDeclined(
                     `\n${cTTimeTaken} ${t.convertTime(
                         null,
                         timeTakenToProcessOrConstruct,
+                        undefined,
                         isOfferSent,
                         tDec.showDetailedTimeTaken,
                         tDec.showTimeTakenInMS

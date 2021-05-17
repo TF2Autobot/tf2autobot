@@ -261,6 +261,7 @@ export function sendToAdmin(
             `\n${cTTimeTaken} ${t.convertTime(
                 null,
                 timeTakenToProcessOrConstruct,
+                undefined,
                 isOfferSent,
                 tSum.showDetailedTimeTaken,
                 tSum.showTimeTakenInMS

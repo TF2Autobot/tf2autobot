@@ -174,6 +174,7 @@ export default function processAccepted(
     const isOfferSent = offer.data('action') === undefined;
     const timeTakenToProcessOrConstruct = (offer.data('constructOfferTime') ||
         offer.data('processOfferTime')) as number;
+    const timeTakenToCounterOffer = offer.data('processCounterTime') as number | undefined;
 
     if (isWebhookEnabled) {
         void sendTradeSummary(
@@ -182,6 +183,7 @@ export default function processAccepted(
             bot,
             timeTakenToComplete,
             timeTakenToProcessOrConstruct,
+            timeTakenToCounterOffer,
             isTradingKeys,
             isOfferSent
         );
@@ -232,6 +234,7 @@ export default function processAccepted(
             cTTimeTaken,
             timeTakenToComplete,
             timeTakenToProcessOrConstruct,
+            timeTakenToCounterOffer,
             tSum
         );
     }
@@ -261,6 +264,7 @@ export function sendToAdmin(
     cTTimeTaken: string,
     timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
+    timeTakenToCounterOffer: number | undefined,
     tSum: TradeSummary
 ): void {
     bot.messageAdmins(
@@ -288,6 +292,7 @@ export function sendToAdmin(
             `\n${cTTimeTaken} ${t.convertTime(
                 timeTakenToComplete,
                 timeTakenToProcessOrConstruct,
+                timeTakenToCounterOffer,
                 isOfferSent,
                 tSum.showDetailedTimeTaken,
                 tSum.showTimeTakenInMS
