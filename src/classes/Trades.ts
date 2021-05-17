@@ -720,6 +720,7 @@ export default class Trades {
             const setOfferDataAndSend = () => {
                 const handleTimestamp = offer.data('handleTimestamp') as number;
                 counter.data('handleTimestamp', handleTimestamp);
+                counter.data('notify', true);
 
                 counter.data('value', {
                     our: {
