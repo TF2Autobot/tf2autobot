@@ -68,8 +68,11 @@ export function summarizeToChat(
         ? cT.lossFromUnderpay.discordWebhook
         : '📉 ***Loss from underpay:***';
 
+    const isCountered = offer.data('processCounterTime') !== undefined;
     const reply =
-        `\n\n${cTSummary}${isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''}\n` +
+        `\n\n${cTSummary}${
+            isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : `offer${isCountered ? ' - countered' : ''}`})` : ''
+        }\n` +
         `${cTAsked} ${generatedSummary.asked}` +
         `\n${cTOffered} ${generatedSummary.offered}` +
         '\n──────────────────────' +
