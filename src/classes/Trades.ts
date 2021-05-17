@@ -753,7 +753,13 @@ export default class Trades {
                 const processCounterTime = dayjs().valueOf() - start;
                 counter.data('processCounterTime', processCounterTime);
 
-                return resolve(this.sendOffer(counter));
+                void this.sendOffer(counter).then(status => {
+                    if (status === 'pending') {
+                        void this.acceptConfirmation(counter).reflect();
+                    }
+
+                    return resolve();
+                });
             };
 
             const values = offer.data('value') as ItemsValue;
