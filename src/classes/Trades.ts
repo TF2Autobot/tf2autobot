@@ -683,10 +683,9 @@ export default class Trades {
             function calculate(sku: PureSKU, side: Dict | number, overpay?: boolean) {
                 const value = getPriceOfSKU(sku);
                 if (value === 0) return 0;
-                const floorCeil = Math[overpay ? 'floor' : 'ceil'];
+                const floorCeil = Math[overpay ? 'ceil' : 'floor'];
                 const length = typeof side === 'number' ? side : side[sku]?.length || 0;
-
-                const amount = Math.min(0, length, floorCeil(difference / value)) || 0;
+                const amount = Math.min(length, Math.max(floorCeil(difference / value), 0)) || 0;
                 difference -= amount * value;
                 return amount;
             }
@@ -694,7 +693,7 @@ export default class Trades {
             function changeItems(side: 'My' | 'Their', Dict: Dict, amount: number, sku: PureSKU) {
                 const intent = amount >= 0 ? 'add' : 'remove';
                 const tradeAmount = Math.abs(amount);
-
+                if (!amount) return;
                 const arr = Dict[sku];
                 const autobotSide = side == 'My' ? 'our' : 'their';
                 const changedAmount = counter[(intent + side + 'Items') as 'addMyItems'](
@@ -707,7 +706,7 @@ export default class Trades {
                     })
                 );
                 if (changedAmount !== tradeAmount) {
-                    return reject(new Error(`Couldn't ${intent} ${autobotSide} items`));
+                    return reject(new Error(`Couldn't ${intent} ${autobotSide} ${tradeAmount} ${sku}'s to Trade`));
                 }
                 if (!showOnlyMetal && sku === '5021;6') {
                     tradeValues[autobotSide].keys += amount;
@@ -734,6 +733,14 @@ export default class Trades {
                     },
                     rate: values.rate
                 });
+                /*
+                // For removing 0's from the Dict
+                for (const side of ['our', 'their'] as ['our', 'their']) {
+                    Object.keys(dataDict[side]).forEach(sku => {
+                        if (dataDict[side][sku] === 0) delete dataDict[side][sku];
+                    });
+                }
+                */
                 counter.data('dict', dataDict);
 
                 const processTime = offer.data('processOfferTime') as number;
@@ -802,7 +809,6 @@ export default class Trades {
             ).getItems;
 
             //Difference in metal if its higher than 0 that means we are overpaying
-
             let difference = values.our.total - values.their.total;
 
             // Don't remove the craft weapon from our side cause maybe they want our second banana (If you know what I mean OwO)
@@ -876,19 +882,24 @@ export default class Trades {
                 const theirInvItems = theirInventory.getItems;
                 //Filter their trade items
                 Object.keys(theirItems).forEach(sku => {
-                    theirInvItems[sku] = theirInvItems[sku].filter(i => !theirItems[sku].find(i2 => i2.id === i.id));
+                    theirInvItems[sku] = theirInvItems[sku].filter(
+                        i => !theirItems[sku]?.find(i2 => i2.id === i.id) ?? true
+                    );
                 });
 
-                //First try to make them pay with allowing overpay on everything other than keys
+                //Add their items
                 const ItemsThatCanBeAddedTheir: Record<PureSKU, number> = {
                     '5021;6': calculate('5021;6', theirInvItems),
-                    '5002;6': calculate('5002;6', theirInvItems, true),
-                    '5001;6': calculate('5001;6', theirInvItems, true),
+                    '5002;6': calculate('5002;6', theirInvItems),
+                    '5001;6': calculate('5001;6', theirInvItems),
                     '5000;6': calculate('5000;6', theirInvItems)
                 };
-
-                // if the difference is still big then take one more key if they have it obv.
+                // if the difference is still bigger than 0 make them overpay.
                 if (difference > 0) {
+                    ItemsThatCanBeAddedTheir['5002;6'] += calculate('5002;6', theirInvItems, true);
+
+                    ItemsThatCanBeAddedTheir['5001;6'] += calculate('5001;6', theirInvItems, true);
+
                     ItemsThatCanBeAddedTheir['5021;6'] += calculate('5021;6', theirInvItems, true);
                 }
 
@@ -910,7 +921,6 @@ export default class Trades {
                     //Add the items but we might need to sanitize
                     return sanitizer();
                 }
-
                 const ourInventory = new Inventory(
                     this.bot.client.steamID || this.bot.community.steamID,
                     this.bot.manager,
@@ -931,7 +941,9 @@ export default class Trades {
 
                     //Filter our trade items
                     Object.keys(ourInvItems).forEach(sku => {
-                        ourInvItems[sku] = ourInvItems[sku].filter(i => !ourItems[sku].find(i2 => i2.id === i.id));
+                        ourInvItems[sku] = ourInvItems[sku].filter(
+                            i => !ourItems[sku]?.find(i2 => i2.id === i.id) ?? true
+                        );
                     });
 
                     const ItemsThatCanBeAddedOur: Record<PureSKU, number> = {
@@ -953,7 +965,7 @@ export default class Trades {
                     // Removes extra metal/key
                     // IE. if one side has two keys
                     // and the other 1
-                    // should stop us from unnecessary keys
+                    // should stop us from trading metal/key for a metal/key :)
                     for (const sku of ['5021;6', '5002;6', '5001;6', '5000;6'] as PureSKU[]) {
                         const addAmount = (ItemsThatCanBeAddedOur?.[sku] || 0) - (ItemsThatCanBeAddedTheir[sku] || 0);
                         const removeAmount =
@@ -972,10 +984,10 @@ export default class Trades {
 
                         if (removeAmount > 0) {
                             // We Remove
-                            changeItems('My', ourItems, addAmount * -1, sku);
+                            changeItems('My', ourItems, removeAmount * -1, sku);
                         } else if (removeAmount < 0) {
                             // They Remove
-                            changeItems('Their', theirItems, addAmount, sku);
+                            changeItems('Their', theirItems, removeAmount, sku);
                         }
                     }
                     return setOfferDataAndSend();
