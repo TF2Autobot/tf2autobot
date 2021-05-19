@@ -361,75 +361,21 @@ export default class Trades {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return actionFunc()
             .catch(err => {
-                log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
+                this.onFailedAction(offer, action, reason, err);
 
-                /* Ignore notifying admin if eresult is "AlreadyRedeemed" or "InvalidState", or if the message includes that */
-                const isNotInvalidStates = (err as CustomError).eresult
-                    ? ![11, 28].includes((err as CustomError).eresult)
-                    : !(err as CustomError).message.includes('is not active, so it may not be accepted');
+                if (action === 'counter') {
+                    action = 'decline';
 
-                if (isNotInvalidStates) {
-                    const opt = this.bot.options;
+                    offer.data('action', {
+                        action: action,
+                        reason: reason
+                    } as Action);
 
-                    if (opt.sendAlert.failedAccept) {
-                        const keyPrices = this.bot.pricelist.getKeyPrices;
-                        const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+                    actionFunc = this.declineOffer.bind(this, offer);
 
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            const summary = t.summarizeToChat(
-                                offer,
-                                this.bot,
-                                'summary-accepting',
-                                true,
-                                value,
-                                keyPrices,
-                                false,
-                                false
-                            );
-                            sendAlert(
-                                `failed-${action}` as 'failed-accept' | 'failed-decline',
-                                this.bot,
-                                `Failed to ${action} on the offer #${offer.id}` +
-                                    summary +
-                                    `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
-                                null,
-                                err,
-                                [offer.id]
-                            );
-                        } else {
-                            const summary = t.summarizeToChat(
-                                offer,
-                                this.bot,
-                                'summary-accepting',
-                                false,
-                                value,
-                                keyPrices,
-                                true,
-                                false
-                            );
-
-                            this.bot.messageAdmins(
-                                `Failed to ${action} on the offer #${offer.id}:` +
-                                    summary +
-                                    `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
-                                    `\n\nError: ${
-                                        (err as CustomError).eresult
-                                            ? `${
-                                                  TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                              } - https://steamerrors.com/${(err as CustomError).eresult}`
-                                            : (err as Error).message
-                                    }`,
-                                []
-                            );
-                        }
-                    }
-                }
-
-                if (!['MANUAL-FORCE', 'AUTO-RETRY'].includes(reason) && ['accept', 'decline'].includes(action)) {
-                    setTimeout(() => {
-                        // Auto-retry after 30 seconds
-                        void this.retryActionAfterFailure(offer.id, action as 'accept' | 'decline');
-                    }, 30 * 1000);
+                    return actionFunc().catch(err => {
+                        this.onFailedAction(offer, action, reason, err);
+                    });
                 }
             })
             .finally(() => {
@@ -437,6 +383,84 @@ export default class Trades {
                     action: action
                 });
             });
+    }
+
+    private onFailedAction(
+        offer: TradeOffer,
+        action: 'accept' | 'decline' | 'skip' | 'counter',
+        reason: string,
+        err: any
+    ): void {
+        log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
+
+        /* Ignore notifying admin if eresult is "AlreadyRedeemed" or "InvalidState", or if the message includes that */
+        const isNotInvalidStates = (err as CustomError).eresult
+            ? ![11, 28].includes((err as CustomError).eresult)
+            : !(err as CustomError).message.includes('is not active, so it may not be accepted');
+
+        if (isNotInvalidStates) {
+            const opt = this.bot.options;
+
+            if (opt.sendAlert.failedAccept) {
+                const keyPrices = this.bot.pricelist.getKeyPrices;
+                const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                    const summary = t.summarizeToChat(
+                        offer,
+                        this.bot,
+                        'summary-accepting',
+                        true,
+                        value,
+                        keyPrices,
+                        false,
+                        false
+                    );
+                    sendAlert(
+                        `failed-${action}` as 'failed-accept' | 'failed-decline',
+                        this.bot,
+                        `Failed to ${action} on the offer #${offer.id}` +
+                            summary +
+                            `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
+                        null,
+                        err,
+                        [offer.id]
+                    );
+                } else {
+                    const summary = t.summarizeToChat(
+                        offer,
+                        this.bot,
+                        'summary-accepting',
+                        false,
+                        value,
+                        keyPrices,
+                        true,
+                        false
+                    );
+
+                    this.bot.messageAdmins(
+                        `Failed to ${action} on the offer #${offer.id}:` +
+                            summary +
+                            `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
+                            `\n\nError: ${
+                                (err as CustomError).eresult
+                                    ? `${
+                                          TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                      } - https://steamerrors.com/${(err as CustomError).eresult}`
+                                    : (err as Error).message
+                            }`,
+                        []
+                    );
+                }
+            }
+        }
+
+        if (!['MANUAL-FORCE', 'AUTO-RETRY'].includes(reason) && ['accept', 'decline'].includes(action)) {
+            setTimeout(() => {
+                // Auto-retry after 30 seconds
+                void this.retryActionAfterFailure(offer.id, action as 'accept' | 'decline');
+            }, 30 * 1000);
+        }
     }
 
     private async retryActionAfterFailure(offerID: string, action: 'accept' | 'decline'): Promise<void> {
