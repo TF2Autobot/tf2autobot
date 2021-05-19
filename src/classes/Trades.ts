@@ -25,6 +25,7 @@ import * as t from '../lib/tools/export';
 
 type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
 type AddOrRemoveMyOrTheirItems = 'addMyItems' | 'removeMyItems' | 'addTheirItems' | 'removeTheirItems';
+type FailedActions = 'failed-accept' | 'failed-decline' | 'failed-counter';
 
 export default class Trades {
     private itemsInTrade: string[] = [];
@@ -418,11 +419,13 @@ export default class Trades {
                         false
                     );
                     sendAlert(
-                        `failed-${action}` as 'failed-accept' | 'failed-decline',
+                        `failed-${action}` as FailedActions,
                         this.bot,
                         `Failed to ${action} on the offer #${offer.id}` +
                             summary +
-                            `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
+                            (action === 'counter'
+                                ? '\n\nThe offer has been automatically declined.'
+                                : `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`),
                         null,
                         err,
                         [offer.id]
@@ -442,7 +445,9 @@ export default class Trades {
                     this.bot.messageAdmins(
                         `Failed to ${action} on the offer #${offer.id}:` +
                             summary +
-                            `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
+                            (action === 'counter'
+                                ? '\n\nThe offer has been automatically declined.'
+                                : `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.`) +
                             `\n\nError: ${
                                 (err as CustomError).eresult
                                     ? `${
