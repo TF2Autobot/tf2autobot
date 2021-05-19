@@ -24,6 +24,7 @@ import { isBptfBanned } from '../lib/bans';
 import * as t from '../lib/tools/export';
 
 type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
+type AddOrRemoveMyOrTheirItems = 'addMyItems' | 'removeMyItems' | 'addTheirItems' | 'removeTheirItems';
 
 export default class Trades {
     private itemsInTrade: string[] = [];
@@ -696,7 +697,7 @@ export default class Trades {
                 const tradeAmount = Math.abs(amount);
                 const arr = Dict[sku];
                 const autobotSide = side == 'My' ? 'our' : 'their';
-                const changedAmount = counter[(intent + side + 'Items') as 'addMyItems'](
+                const changedAmount = counter[(intent + side + 'Items') as AddOrRemoveMyOrTheirItems](
                     arr.splice(0, tradeAmount).map(item => {
                         return {
                             appid: 440,
