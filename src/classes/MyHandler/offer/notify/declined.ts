@@ -113,6 +113,12 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.customMessage.decline.manual;
         reply = custom ? custom : declined + ' by the owner.';
         //
+    } else if (offerReason.reason === 'COUNTER_INVALID_VALUE_FAILED') {
+        //
+        const custom = opt.customMessage.decline.failedToCounter;
+        reply = custom
+            ? custom
+            : declined + '. Counter offer is not possible because either one of us do not have enough pure.';
     } else if (
         offerReason.reason === 'ONLY_INVALID_VALUE' ||
         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)

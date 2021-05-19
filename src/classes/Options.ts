@@ -478,7 +478,8 @@ export const DEFAULTS: JsonOptions = {
             notBuyingKeys: '',
             banned: '',
             escrow: '',
-            manual: ''
+            manual: '',
+            failedToCounter: ''
         },
         accepted: {
             automatic: {
@@ -1477,6 +1478,7 @@ interface DeclineNote {
     banned?: string;
     escrow?: string;
     manual?: string;
+    failedToCounter?: string;
 }
 
 interface AcceptedNote {

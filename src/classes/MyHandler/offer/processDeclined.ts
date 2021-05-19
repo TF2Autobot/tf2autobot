@@ -74,6 +74,10 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case '🟥_INVALID_VALUE':
                 declined.reasonDescription = offerReceived.reason + ': We are paying more than them.';
                 break;
+            case 'COUNTER_INVALID_VALUE_FAILED':
+                declined.reasonDescription =
+                    offerReceived.reason + ': We are paying more than them and we failed to counter the offer.';
+                break;
             case '🟫_DUPED_ITEMS':
                 declined.reasonDescription = offerReceived.reason + ': Offer contains duped items.';
                 break;

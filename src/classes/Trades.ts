@@ -365,6 +365,7 @@ export default class Trades {
 
                 if (action === 'counter') {
                     action = 'decline';
+                    reason = 'COUNTER_INVALID_VALUE_FAILED';
 
                     offer.data('action', {
                         action: action,

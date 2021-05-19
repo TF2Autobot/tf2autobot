@@ -1472,6 +1472,9 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         manual: {
                             type: 'string'
+                        },
+                        failedToCounter: {
+                            type: 'string'
                         }
                     },
                     required: [
@@ -1487,7 +1490,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'notBuyingKeys',
                         'banned',
                         'escrow',
-                        'manual'
+                        'manual',
+                        'failedToCounter'
                     ],
                     additionalProperties: false
                 },
