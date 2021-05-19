@@ -160,41 +160,17 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'failed-accept') {
         title = 'Failed to accept trade';
-        description =
-            msg +
-            `\n\nError: ${
-                (err as CustomError).eresult
-                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
-                          (err as CustomError).eresult
-                      })`
-                    : (err as Error).message
-            }`;
+        description = msg + generateError(err);
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-decline') {
         title = 'Failed to decline trade';
-        description =
-            msg +
-            `\n\nError: ${
-                (err as CustomError).eresult
-                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
-                          (err as CustomError).eresult
-                      })`
-                    : (err as Error).message
-            }`;
+        description = msg + generateError(err);
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'error-accept') {
         title = 'Error while trying to accept mobile confirmation';
-        description =
-            msg +
-            `\n\nError: ${
-                (err as CustomError).eresult
-                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
-                          (err as CustomError).eresult
-                      })`
-                    : (err as Error).message
-            }`;
+        description = msg + generateError(err);
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-processing-offer') {
@@ -207,15 +183,7 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'failed-counter') {
         title = 'Failed to counter an offer';
-        description =
-            msg +
-            `\n\nError: ${
-                (err as CustomError).eresult
-                    ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
-                          (err as CustomError).eresult
-                      })`
-                    : (err as Error).message
-            }`;
+        description = msg + generateError(err);
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'isPartialPriced') {
@@ -278,4 +246,14 @@ export default function sendAlert(
     sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert')
         .then(() => log.debug(`✅ Sent alert webhook (${type}) to Discord.`))
         .catch(err => log.debug(`❌ Failed to send alert webhook (${type}) to Discord: `, err));
+}
+
+function generateError(err: any): string {
+    return `\n\nError: ${
+        (err as CustomError).eresult
+            ? `[${TradeOfferManager.EResult[(err as CustomError).eresult] as string}](https://steamerrors.com/${
+                  (err as CustomError).eresult
+              })`
+            : (err as Error).message
+    }`;
 }
