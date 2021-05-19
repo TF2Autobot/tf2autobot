@@ -19,7 +19,8 @@ export default async function sendTradeDeclined(
 
     const properName = bot.options.tradeSummary.showProperName;
 
-    const isCountered = (offer.data('action') as Action)?.action === 'counter';
+    const isCountered: boolean = (offer.data('action') as Action)?.action === 'counter';
+    const processCounterTime: number | undefined = offer.data('processCounterTime') as number;
 
     //Unsure if highValue will work or not
     const itemsName = properName
@@ -44,7 +45,7 @@ export default async function sendTradeDeclined(
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);
-    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, isOfferSent);
+    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, false, isOfferSent);
 
     log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
@@ -90,7 +91,7 @@ export default async function sendTradeDeclined(
                     `\n${cTTimeTaken} ${t.convertTime(
                         null,
                         timeTakenToProcessOrConstruct,
-                        undefined,
+                        processCounterTime,
                         isOfferSent,
                         tDec.showDetailedTimeTaken,
                         tDec.showTimeTakenInMS
