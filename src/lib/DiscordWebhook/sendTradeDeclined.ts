@@ -1,4 +1,4 @@
-import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
+import { Action, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 import Bot from '../../classes/Bot';
 import * as t from '../tools/export';
@@ -18,6 +18,8 @@ export default async function sendTradeDeclined(
     const optDW = optBot.discordWebhook;
 
     const properName = bot.options.tradeSummary.showProperName;
+
+    const isCountered = (offer.data('action') as Action)?.action === 'counter';
 
     //Unsure if highValue will work or not
     const itemsName = properName
@@ -81,9 +83,9 @@ export default async function sendTradeDeclined(
                     icon_url: details.avatarFull as string
                 },
                 description:
-                    `⛔ An offer sent by ${declinedDescription ? partnerNameNoFormat : 'us'} is declined.${
-                        declinedDescription ? '\nReason: ' + declinedDescription : ''
-                    }` +
+                    `⛔ An offer sent by ${declinedDescription ? partnerNameNoFormat : 'us'} was declined ${
+                        isCountered ? ' (countered)' : ''
+                    }${declinedDescription ? '\nReason: ' + declinedDescription : ''}` +
                     summary +
                     `\n${cTTimeTaken} ${t.convertTime(
                         null,
