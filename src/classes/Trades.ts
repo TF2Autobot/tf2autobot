@@ -680,20 +680,20 @@ export default class Trades {
                 return index !== -1 ? Math.pow(3, index) : keyPriceScrap;
             }
 
-            function calculate(sku: PureSKU, side: Dict | number, overpay?: boolean) {
+            function calculate(sku: PureSKU, side: Dict | number, increaseDifference: boolean, overpay?: boolean) {
                 const value = getPriceOfSKU(sku);
-                if (value === 0) return 0;
                 const floorCeil = Math[overpay ? 'ceil' : 'floor'];
                 const length = typeof side === 'number' ? side : side[sku]?.length || 0;
-                const amount = Math.min(length, Math.max(floorCeil(difference / value), 0)) || 0;
-                difference -= amount * value;
+                const amount =
+                    Math.min(length, Math.max(floorCeil((difference * (increaseDifference ? -1 : 1)) / value), 0)) || 0;
+                difference += amount * value * (increaseDifference ? 1 : -1);
                 return amount;
             }
             // + for add - for remove
             function changeItems(side: 'My' | 'Their', Dict: Dict, amount: number, sku: PureSKU) {
+                if (!amount) return;
                 const intent = amount >= 0 ? 'add' : 'remove';
                 const tradeAmount = Math.abs(amount);
-                if (!amount) return;
                 const arr = Dict[sku];
                 const autobotSide = side == 'My' ? 'our' : 'their';
                 const changedAmount = counter[(intent + side + 'Items') as 'addMyItems'](
@@ -734,6 +734,15 @@ export default class Trades {
                     },
                     rate: values.rate
                 });
+                //Backup it should never make it to here as an error
+                if (
+                    tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
+                    tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
+                ) {
+                    throw new Error("Couldn't counter an offer value mismatch critical!");
+                    //Maybe add some info that they can provide us so we can fix it if it happens again?
+                }
+
                 /*
                 // For removing 0's from the Dict
                 for (const side of ['our', 'their'] as ['our', 'their']) {
@@ -843,10 +852,10 @@ export default class Trades {
             */
 
             const ItemsThatCanBeRemovedOur: Record<PureSKU, number> = {
-                '5021;6': calculate('5021;6', ourItems),
-                '5002;6': calculate('5002;6', ourItems),
-                '5001;6': calculate('5001;6', ourItems),
-                '5000;6': calculate('5000;6', ourItems)
+                '5021;6': calculate('5021;6', ourItems, false, true),
+                '5002;6': calculate('5002;6', ourItems, false),
+                '5001;6': calculate('5001;6', ourItems, false),
+                '5000;6': calculate('5000;6', ourItems, false)
             };
 
             if (difference === 0) {
@@ -890,32 +899,46 @@ export default class Trades {
 
                 //Add their items
                 const ItemsThatCanBeAddedTheir: Record<PureSKU, number> = {
-                    '5021;6': calculate('5021;6', theirInvItems),
-                    '5002;6': calculate('5002;6', theirInvItems),
-                    '5001;6': calculate('5001;6', theirInvItems),
-                    '5000;6': calculate('5000;6', theirInvItems)
+                    '5021;6': calculate('5021;6', theirInvItems, false),
+                    '5002;6': calculate('5002;6', theirInvItems, false),
+                    '5001;6': calculate('5001;6', theirInvItems, false),
+                    '5000;6': calculate('5000;6', theirInvItems, false)
                 };
                 // if the difference is still bigger than 0 make them overpay.
                 if (difference > 0) {
-                    ItemsThatCanBeAddedTheir['5002;6'] += calculate('5002;6', theirInvItems, true);
+                    ItemsThatCanBeAddedTheir['5002;6'] += calculate(
+                        '5002;6',
+                        theirInvItems['5002;6']?.length - ItemsThatCanBeAddedTheir['5002;6'],
+                        false,
+                        true
+                    );
 
-                    ItemsThatCanBeAddedTheir['5001;6'] += calculate('5001;6', theirInvItems, true);
+                    ItemsThatCanBeAddedTheir['5001;6'] += calculate(
+                        '5001;6',
+                        theirInvItems['5001;6']?.length - ItemsThatCanBeAddedTheir['5001;6'],
+                        false,
+                        true
+                    );
 
-                    ItemsThatCanBeAddedTheir['5021;6'] += calculate('5021;6', theirInvItems, true);
+                    ItemsThatCanBeAddedTheir['5021;6'] += calculate(
+                        '5021;6',
+                        theirInvItems['5021;6']?.length - ItemsThatCanBeAddedTheir['5021;6'],
+                        false,
+                        true
+                    );
                 }
 
                 // Smaller than 0 they are overpaying
-                difference *= -1;
 
                 Object.keys(ItemsThatCanBeAddedTheir).forEach(sku => {
-                    ItemsThatCanBeAddedTheir[sku] -= calculate(sku as PureSKU, ItemsThatCanBeAddedTheir[sku]);
+                    ItemsThatCanBeAddedTheir[sku] -= calculate(sku as PureSKU, ItemsThatCanBeAddedTheir[sku], true);
                 });
 
                 const ItemsThatCanBeRemovedTheir: Record<PureSKU, number> = {
-                    '5021;6': calculate('5021;6', theirItems),
-                    '5002;6': calculate('5002;6', theirItems),
-                    '5001;6': calculate('5001;6', theirItems),
-                    '5000;6': calculate('5000;6', theirItems)
+                    '5021;6': calculate('5021;6', theirItems, true),
+                    '5002;6': calculate('5002;6', theirItems, true),
+                    '5001;6': calculate('5001;6', theirItems, true),
+                    '5000;6': calculate('5000;6', theirItems, true)
                 };
 
                 if (difference === 0) {
@@ -948,10 +971,10 @@ export default class Trades {
                     });
 
                     const ItemsThatCanBeAddedOur: Record<PureSKU, number> = {
-                        '5002;6': calculate('5002;6', ourInvItems),
-                        '5001;6': calculate('5001;6', ourInvItems),
-                        '5000;6': calculate('5000;6', ourInvItems),
-                        '5021;6': calculate('5021;6', ourInvItems)
+                        '5021;6': calculate('5021;6', ourInvItems, true),
+                        '5002;6': calculate('5002;6', ourInvItems, true),
+                        '5001;6': calculate('5001;6', ourInvItems, true),
+                        '5000;6': calculate('5000;6', ourInvItems, true)
                     };
 
                     if (difference === 0) {
@@ -968,9 +991,22 @@ export default class Trades {
                     // and the other 1
                     // should stop us from trading metal/key for a metal/key :)
                     for (const sku of ['5021;6', '5002;6', '5001;6', '5000;6'] as PureSKU[]) {
-                        const addAmount = (ItemsThatCanBeAddedOur?.[sku] || 0) - (ItemsThatCanBeAddedTheir[sku] || 0);
-                        const removeAmount =
-                            (ItemsThatCanBeRemovedOur[sku] || 0) - (ItemsThatCanBeRemovedTheir?.[sku] || 0);
+                        const maxRemOur = ourItems[sku]?.length || 0;
+                        const ourRemoveAmount = ItemsThatCanBeRemovedOur[sku] || 0;
+                        const ourGiveOrTake = Math.min(maxRemOur - ourRemoveAmount, ItemsThatCanBeAddedTheir[sku] || 0);
+
+                        const maxRemTheir = theirItems[sku]?.length || 0;
+                        const theirRemoveAmount = ItemsThatCanBeRemovedTheir?.[sku] || 0;
+                        const theirGiveOrTake = Math.min(
+                            maxRemTheir - theirRemoveAmount,
+                            ItemsThatCanBeAddedOur?.[sku] || 0
+                        );
+
+                        const addAmount =
+                            (ItemsThatCanBeAddedOur?.[sku] || 0) -
+                            (ItemsThatCanBeAddedTheir[sku] || 0) +
+                            ourGiveOrTake -
+                            theirGiveOrTake;
 
                         if (addAmount > 0) {
                             if (!ItemsThatCanBeAddedOur) {
@@ -983,12 +1019,12 @@ export default class Trades {
                             changeItems('Their', theirInvItems, addAmount * -1, sku);
                         }
 
-                        if (removeAmount > 0) {
+                        if (ourRemoveAmount > 0) {
                             // We Remove
-                            changeItems('My', ourItems, removeAmount * -1, sku);
-                        } else if (removeAmount < 0) {
+                            changeItems('My', ourItems, (ourRemoveAmount + ourGiveOrTake) * -1, sku);
+                        } else if (theirRemoveAmount > 0) {
                             // They Remove
-                            changeItems('Their', theirItems, removeAmount, sku);
+                            changeItems('Their', theirItems, (theirRemoveAmount + theirGiveOrTake) * -1, sku);
                         }
                     }
                     return setOfferDataAndSend();
