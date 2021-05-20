@@ -1008,45 +1008,27 @@ export default class Trades {
                     return sanitizer();
                 }
 
-                const ourInventory = new Inventory(
-                    this.bot.client.steamID || this.bot.community.steamID,
-                    this.bot.manager,
-                    this.bot.schema,
-                    this.bot.options,
-                    this.bot.effects,
-                    this.bot.paints,
-                    this.bot.strangeParts,
-                    'our'
-                );
+                // If difference still not 0, try add something from our inventory
+                const ourInvItems = this.bot.inventoryManager.getInventory.getItems;
 
-                void ourInventory.fetch().asCallback(err => {
-                    if (err) {
-                        return reject(new Error('Failed to load inventories (Steam might be down)'));
-                    }
-
-                    const ourInvItems = ourInventory.getItems;
-
-                    // Filter our trade items
-                    Object.keys(ourInvItems).forEach(sku => {
-                        ourInvItems[sku] = ourInvItems[sku].filter(
-                            i => !ourItems[sku]?.find(i2 => i2.id === i.id) ?? true
-                        );
-                    });
-
-                    const ItemsThatCanBeAddedOur: Record<PureSKU, number> = {
-                        '5021;6': calculate('5021;6', ourInvItems, true),
-                        '5002;6': calculate('5002;6', ourInvItems, true),
-                        '5001;6': calculate('5001;6', ourInvItems, true),
-                        '5000;6': calculate('5000;6', ourInvItems, true)
-                    };
-
-                    if (difference === 0) {
-                        // Add the items but we might need to sanitize
-                        return sanitizer(ItemsThatCanBeAddedOur, ourInvItems);
-                    }
-
-                    reject(new Error(`Couldn't counter an offer value mismatch: ${difference}`));
+                // Filter our trade items
+                Object.keys(ourInvItems).forEach(sku => {
+                    ourInvItems[sku] = ourInvItems[sku].filter(i => !ourItems[sku]?.find(i2 => i2.id === i.id) ?? true);
                 });
+
+                const ItemsThatCanBeAddedOur: Record<PureSKU, number> = {
+                    '5021;6': calculate('5021;6', ourInvItems, true),
+                    '5002;6': calculate('5002;6', ourInvItems, true),
+                    '5001;6': calculate('5001;6', ourInvItems, true),
+                    '5000;6': calculate('5000;6', ourInvItems, true)
+                };
+
+                if (difference === 0) {
+                    // Add the items but we might need to sanitize
+                    return sanitizer(ItemsThatCanBeAddedOur, ourInvItems);
+                }
+
+                reject(new Error(`Couldn't counter an offer value mismatch: ${difference}`));
 
                 function sanitizer(ItemsThatCanBeAddedOur?: Record<PureSKU, number>, myInvItems?: Dict) {
                     /*
