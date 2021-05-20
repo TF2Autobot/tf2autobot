@@ -788,7 +788,7 @@ export default class Trades {
                 });
 
                 counter.data('dict', dataDict);
-                const prices = offer.data('prices') as Prices;
+
                 counter.data('prices', prices);
 
                 counter.data('action', {
@@ -819,6 +819,7 @@ export default class Trades {
 
             const values = offer.data('value') as ItemsValue;
             const dataDict = offer.data('dict') as ItemsDict;
+            const prices = offer.data('prices') as Prices;
 
             const keyPriceScrap = Currencies.toScrap(values.rate);
             const tradeValues = {
@@ -859,35 +860,8 @@ export default class Trades {
             // Difference in metal if its higher than 0 that means we are overpaying
             let difference = values.our.total - values.their.total;
 
-            // Don't remove the craft weapon from our side cause maybe they want our second banana (If you know what I mean OwO)
-            // Rather add one and take a scrap from them ?
-
-            //const needToGiveWeapon = difference - Math.trunc(difference) !== 0;
-            /*
-            if (this.bot.options.miscSettings.weaponsAsCurrency.enable && needToGiveWeapon) {
-                const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
-                    ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
-                    : this.bot.craftWeapons;
-
-                const skusFromPricelist = this.bot.pricelist.getPrices.map(entry => entry.sku);
-
-                // return filtered weapons
-                const filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
-
-                const item = ourItems[filtered.find(sku => ourItems[sku])];
-                if (item) {
-                    const isAdded = offer.addMyItem({
-                        appid: 440,
-                        contextid: '2',
-                        assetid: item[0].id
-                    });
-                    if (isAdded) {
-                        // Round floating point errors that might occur
-                        difference = Math.round(difference + 0.5);
-                    }
-                }
-            }
-            */
+            // Determine if we need to take a weapon from them
+            const needToTakeWeapon = difference - Math.trunc(difference) !== 0;
 
             const ItemsThatCanBeRemovedOur: Record<PureSKU, number> = {
                 '5021;6': calculate('5021;6', ourItems, false, true),
@@ -936,6 +910,53 @@ export default class Trades {
                         i => !theirItems[sku]?.find(i2 => i2.id === i.id) ?? true
                     );
                 });
+
+                if (needToTakeWeapon) {
+                    const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                        ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                        : this.bot.craftWeapons;
+
+                    const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
+
+                    // return filtered weapons
+                    let filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+
+                    if (filtered.length === 0) {
+                        // but if nothing left, then just use all
+                        filtered = allWeapons;
+                    }
+
+                    const chosenOne = filtered
+                        .filter(sku => theirItems[sku] === undefined) // filter weapons that are not in their offer
+                        .find(sku => theirInvItems[sku]); // find one that is in their inventory
+
+                    log.debug('weaponOfChoice', chosenOne);
+
+                    const item = theirInvItems[chosenOne];
+                    log.debug('item', item);
+                    if (item) {
+                        const isAdded = counter.addTheirItem({
+                            appid: 440,
+                            contextid: '2',
+                            assetid: item[0].id
+                        });
+                        if (isAdded) {
+                            difference -= 0.5;
+                            tradeValues['their'].scrap += 0.5;
+                            dataDict['their'][chosenOne] ??= 0;
+                            dataDict['their'][chosenOne] += 1;
+
+                            const isInPricelist = this.bot.pricelist.getPrice(chosenOne, false);
+
+                            if (isInPricelist !== null) {
+                                prices[chosenOne] = {
+                                    buy: isInPricelist.buy,
+                                    sell: isInPricelist.sell
+                                };
+                            }
+                        }
+                    }
+                }
 
                 // Add their items
                 const ItemsThatCanBeAddedTheir: Record<PureSKU, number> = {
