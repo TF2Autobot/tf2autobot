@@ -28,7 +28,7 @@ export const DEFAULTS: JsonOptions = {
             enable: true
         },
         counterOffer: {
-            enable: false
+            enable: true
         },
         skipItemsInTrade: {
             enable: true
