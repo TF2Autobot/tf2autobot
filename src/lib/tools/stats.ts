@@ -78,11 +78,13 @@ export default function stats(bot: Bot): Stats {
 
                     if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
                         // Within the last 24 hours
+                        acceptedOfferTrades24Hours++;
                         acceptedCountered24Hours++;
                     }
 
                     if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
                         // All trades since 0:00 in the morning.
+                        acceptedOfferTradesToday++;
                         acceptedCounteredToday++;
                     }
                 }
@@ -104,11 +106,13 @@ export default function stats(bot: Bot): Stats {
                 if (offerData[offerID].isDeclined === true) {
                     if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
                         // Within the last 24 hours
+                        declineOffer24Hours++;
                         declinedCounter24Hours++;
                     }
 
                     if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
                         // All trades since 0:00 in the morning.
+                        declineOfferToday++;
                         declinedCounterToday++;
                     }
                 }
