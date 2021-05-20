@@ -5,7 +5,8 @@ import TradeOfferManager, {
     Meta,
     Action,
     ItemsValue,
-    ItemsDict
+    ItemsDict,
+    Prices
 } from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
@@ -765,6 +766,9 @@ export default class Trades {
                     },
                     rate: values.rate
                 });
+
+                const prices = offer.data('prices') as Prices;
+                counter.data('prices', prices);
                 //Backup it should never make it to here as an error
                 if (
                     tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
