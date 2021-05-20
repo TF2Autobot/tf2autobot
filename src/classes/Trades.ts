@@ -863,9 +863,10 @@ export default class Trades {
             // Determine if we need to take a weapon from them
             const needToTakeWeapon = difference - Math.trunc(difference) !== 0;
 
+            const refinedAmount = dataDict['our']['5002;6'];
             const ItemsThatCanBeRemovedOur: Record<PureSKU, number> = {
                 '5021;6': calculate('5021;6', ourItems, false, true),
-                '5002;6': calculate('5002;6', ourItems, false, true),
+                '5002;6': calculate('5002;6', ourItems, false, refinedAmount > 1),
                 '5001;6': calculate('5001;6', ourItems, false),
                 '5000;6': calculate('5000;6', ourItems, false)
             };
