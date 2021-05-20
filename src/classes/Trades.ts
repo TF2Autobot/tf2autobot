@@ -747,6 +747,10 @@ export default class Trades {
                 }
                 dataDict[autobotSide][sku] ??= 0;
                 dataDict[autobotSide][sku] += amount;
+
+                if (dataDict[autobotSide][sku] === 0) {
+                    delete dataDict[autobotSide][sku];
+                }
             }
             const setOfferDataAndSend = () => {
                 const handleTimestamp = offer.data('handleTimestamp') as number;
