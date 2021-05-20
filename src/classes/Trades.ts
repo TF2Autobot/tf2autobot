@@ -764,7 +764,7 @@ export default class Trades {
                     tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
                     tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
                 ) {
-                    throw new Error("Couldn't counter an offer value mismatch critical!");
+                    return reject(new Error("Couldn't counter an offer - value mismatch"));
                     // Maybe add some info that they can provide us so we can fix it if it happens again?
                 }
 
