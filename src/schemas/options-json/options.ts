@@ -240,7 +240,7 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['donation', 'isBuyingPremium', 'offer'],
             additionalProperties: false
         },
-        'painted-properties': {
+        'string-price-properties': {
             type: 'object',
             properties: {
                 stringNote: {
@@ -2001,94 +2001,94 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'object',
                     properties: {
                         'A Color Similar to Slate': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'A Deep Commitment to Purple': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'A Distinctive Lack of Hue': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         "A Mann's Mint": {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'After Eight': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Aged Moustache Grey': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'An Extraordinary Abundance of Tinge': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Australium Gold': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Color No. 216-190-216': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Dark Salmon Injustice': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Drably Olive': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Indubitably Green': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Mann Co. Orange': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         Muskelmannbraun: {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         "Noble Hatter's Violet": {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Peculiarly Drab Tincture': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Pink as Hell': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Radigan Conagher Brown': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'The Bitter Taste of Defeat and Lime': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         "The Color of a Gentlemann's Business Pants": {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Ye Olde Rustic Colour': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         "Zepheniah's Greed": {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'An Air of Debonair': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Balaclavas Are Forever': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         "Operator's Overalls": {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Cream Spirit': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Team Spirit': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'The Value of Teamwork': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Waterlogged Lab Coat': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Legacy Paint': {
-                            $ref: '#/definitions/painted-properties'
+                            $ref: '#/definitions/string-price-properties'
                         }
                     },
                     required: [
@@ -2129,160 +2129,160 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'object',
                     properties: {
                         'Robots Destroyed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         Kills: {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Airborne Enemy Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Damage Dealt': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         Dominations: {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Snipers Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Buildings Destroyed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Projectiles Reflected': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Headshot Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Medics Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Fires Survived': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Teammates Extinguished': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Freezecam Taunt Appearances': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Spies Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Allied Healing Done': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Sappers Removed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Players Hit': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Gib Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Scouts Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Taunt Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Point Blank Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Soldiers Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Long-Distance Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Giant Robots Destroyed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Critical Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Demomen Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Unusual-Wearing Player Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         Assists: {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Medics Killed That Have Full ÜberCharge': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Cloaked Spies Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Engineers Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Kills While Explosive-Jumping': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Kills While Low Health': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Burning Player Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Kills While Invuln ÜberCharged': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Posthumous Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Not Crit nor MiniCrit Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Full Health Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Killstreaks Ended': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Defenders Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         Revenges: {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Robot Scouts Destroyed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Heavies Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Tanks Destroyed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Kills During Halloween': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Pyros Killed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Submerged Enemy Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Kills During Victory Time': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Taunting Player Kills': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Robot Spies Destroyed': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Kills Under A Full Moon': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         },
                         'Robots Killed During Halloween': {
-                            type: 'string'
+                            $ref: '#/definitions/string-price-properties'
                         }
                     },
                     required: [
