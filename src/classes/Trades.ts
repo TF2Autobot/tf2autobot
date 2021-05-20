@@ -706,14 +706,14 @@ export default class Trades {
                 "Oni-chan. I'm not a dummie (thicc) offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
             );
 
-            function getPriceOfSKU(sku: PureSKU) {
+            function getPureValue(sku: PureSKU) {
                 const pures: PureSKU[] = ['5000;6', '5001;6', '5002;6'];
                 const index = pures.indexOf(sku);
                 return index !== -1 ? Math.pow(3, index) : keyPriceScrap;
             }
 
             function calculate(sku: PureSKU, side: Dict | number, increaseDifference: boolean, overpay?: boolean) {
-                const value = getPriceOfSKU(sku);
+                const value = getPureValue(sku);
                 const floorCeil = Math[overpay ? 'ceil' : 'floor'];
                 const length = typeof side === 'number' ? side : side[sku]?.length || 0;
                 const amount =
@@ -721,13 +721,14 @@ export default class Trades {
                 difference += amount * value * (increaseDifference ? 1 : -1);
                 return amount;
             }
+
             // + for add - for remove
-            function changeItems(side: 'My' | 'Their', Dict: Dict, amount: number, sku: PureSKU) {
+            function changeItems(side: 'My' | 'Their', dict: Dict, amount: number, sku: PureSKU) {
                 if (!amount) return;
                 const intent = amount >= 0 ? 'add' : 'remove';
                 const tradeAmount = Math.abs(amount);
-                const arr = Dict[sku];
-                const autobotSide = side == 'My' ? 'our' : 'their';
+                const arr = dict[sku];
+                const whichSide = side == 'My' ? 'our' : 'their';
                 const changedAmount = counter[(intent + side + 'Items') as AddOrRemoveMyOrTheirItems](
                     arr.splice(0, tradeAmount).map(item => {
                         return {
@@ -737,22 +738,37 @@ export default class Trades {
                         };
                     })
                 );
-                if (changedAmount !== tradeAmount) {
-                    return reject(new Error(`Couldn't ${intent} ${autobotSide} ${tradeAmount} ${sku}'s to Trade`));
-                }
-                if (!showOnlyMetal && sku === '5021;6') {
-                    tradeValues[autobotSide].keys += amount;
-                } else {
-                    tradeValues[autobotSide].scrap += amount * getPriceOfSKU(sku);
-                }
-                dataDict[autobotSide][sku] ??= 0;
-                dataDict[autobotSide][sku] += amount;
 
-                if (dataDict[autobotSide][sku] === 0) {
-                    delete dataDict[autobotSide][sku];
+                if (changedAmount !== tradeAmount) {
+                    return reject(new Error(`Couldn't ${intent} ${whichSide} ${tradeAmount} ${sku}'s to Trade`));
+                }
+
+                if (!showOnlyMetal && sku === '5021;6') {
+                    tradeValues[whichSide].keys += amount;
+                } else {
+                    tradeValues[whichSide].scrap += amount * getPureValue(sku);
+                }
+
+                dataDict[whichSide][sku] ??= 0;
+                dataDict[whichSide][sku] += amount;
+
+                // For removing 0's from the dict
+                if (dataDict[whichSide][sku] === 0) {
+                    delete dataDict[whichSide][sku];
                 }
             }
+
             const setOfferDataAndSend = () => {
+                // Backup it should never make it to here as an error
+                if (
+                    tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
+                    tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
+                ) {
+                    throw new Error("Couldn't counter an offer value mismatch critical!");
+                    // Maybe add some info that they can provide us so we can fix it if it happens again?
+                }
+
+                // Set polldata datas
                 const handleTimestamp = offer.data('handleTimestamp') as number;
                 counter.data('handleTimestamp', handleTimestamp);
                 counter.data('notify', true);
@@ -771,29 +787,9 @@ export default class Trades {
                     rate: values.rate
                 });
 
+                counter.data('dict', dataDict);
                 const prices = offer.data('prices') as Prices;
                 counter.data('prices', prices);
-                //Backup it should never make it to here as an error
-                if (
-                    tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
-                    tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
-                ) {
-                    throw new Error("Couldn't counter an offer value mismatch critical!");
-                    //Maybe add some info that they can provide us so we can fix it if it happens again?
-                }
-
-                /*
-                // For removing 0's from the Dict
-                for (const side of ['our', 'their'] as ['our', 'their']) {
-                    Object.keys(dataDict[side]).forEach(sku => {
-                        if (dataDict[side][sku] === 0) delete dataDict[side][sku];
-                    });
-                }
-                */
-                counter.data('dict', dataDict);
-
-                const processTime = offer.data('processOfferTime') as number;
-                counter.data('processOfferTime', processTime);
 
                 counter.data('action', {
                     action: 'counter',
@@ -806,9 +802,12 @@ export default class Trades {
                     counter.data('highValue', meta.highValue);
                 }
 
+                const processTime = offer.data('processOfferTime') as number;
+                counter.data('processOfferTime', processTime);
                 const processCounterTime = dayjs().valueOf() - start;
                 counter.data('processCounterTime', processCounterTime);
 
+                // Send countered offer
                 void this.sendOffer(counter).then(status => {
                     if (status === 'pending') {
                         void this.acceptConfirmation(counter).reflect();
@@ -823,7 +822,6 @@ export default class Trades {
 
             const keyPriceScrap = Currencies.toScrap(values.rate);
             const tradeValues = {
-                // Currencies.toScrap() could be used as well
                 our: {
                     scrap: values.our.total - values.our.keys * keyPriceScrap,
                     keys: values.our.keys
@@ -833,6 +831,7 @@ export default class Trades {
                     keys: values.their.keys
                 }
             };
+
             const ourItems = Inventory.fromItems(
                 this.bot.client.steamID || this.bot.community.steamID,
                 offer.itemsToGive,
@@ -857,7 +856,7 @@ export default class Trades {
                 'their'
             ).getItems;
 
-            //Difference in metal if its higher than 0 that means we are overpaying
+            // Difference in metal if its higher than 0 that means we are overpaying
             let difference = values.our.total - values.their.total;
 
             // Don't remove the craft weapon from our side cause maybe they want our second banana (If you know what I mean OwO)
@@ -898,7 +897,7 @@ export default class Trades {
             };
 
             if (difference === 0) {
-                //We did it remove the said items by said amount and sent the counterOffer
+                // We did it remove the said items by said amount and sent the counterOffer
                 Object.keys(ItemsThatCanBeRemovedOur).forEach(key => {
                     const amount = -1 * ItemsThatCanBeRemovedOur[key as PureSKU] || 0;
                     changeItems('My', ourItems, amount, key as PureSKU);
@@ -907,11 +906,13 @@ export default class Trades {
                 return setOfferDataAndSend();
             }
 
-            // add items from their side now
-            // baseDifference is still kept because of
-            // if baseDifference was a 20 refined
-            // and It couldn't be removed from our side
-            // we can make them give us a key and close the gap with refs from our side ?
+            /*
+             * add items from their side now
+             * baseDifference is still kept because of
+             * if baseDifference was a 20 refined
+             * and It couldn't be removed from our side
+             * we can make them give us a key and close the gap with refs from our side ?
+             */
             const theirInventory = new Inventory(
                 offer.partner,
                 this.bot.manager,
@@ -929,20 +930,21 @@ export default class Trades {
                 }
 
                 const theirInvItems = theirInventory.getItems;
-                //Filter their trade items
+                // Filter their trade items
                 Object.keys(theirItems).forEach(sku => {
                     theirInvItems[sku] = theirInvItems[sku].filter(
                         i => !theirItems[sku]?.find(i2 => i2.id === i.id) ?? true
                     );
                 });
 
-                //Add their items
+                // Add their items
                 const ItemsThatCanBeAddedTheir: Record<PureSKU, number> = {
                     '5021;6': calculate('5021;6', theirInvItems, false),
                     '5002;6': calculate('5002;6', theirInvItems, false),
                     '5001;6': calculate('5001;6', theirInvItems, false),
                     '5000;6': calculate('5000;6', theirInvItems, false)
                 };
+
                 // if the difference is still bigger than 0 make them overpay.
                 if (difference > 0) {
                     ItemsThatCanBeAddedTheir['5002;6'] += calculate(
@@ -981,9 +983,10 @@ export default class Trades {
                 };
 
                 if (difference === 0) {
-                    //Add the items but we might need to sanitize
+                    // Add the items but we might need to sanitize
                     return sanitizer();
                 }
+
                 const ourInventory = new Inventory(
                     this.bot.client.steamID || this.bot.community.steamID,
                     this.bot.manager,
@@ -1002,7 +1005,7 @@ export default class Trades {
 
                     const ourInvItems = ourInventory.getItems;
 
-                    //Filter our trade items
+                    // Filter our trade items
                     Object.keys(ourInvItems).forEach(sku => {
                         ourInvItems[sku] = ourInvItems[sku].filter(
                             i => !ourItems[sku]?.find(i2 => i2.id === i.id) ?? true
@@ -1017,7 +1020,7 @@ export default class Trades {
                     };
 
                     if (difference === 0) {
-                        //Add the items but we might need to sanitize
+                        // Add the items but we might need to sanitize
                         return sanitizer(ItemsThatCanBeAddedOur, ourInvItems);
                     }
 
@@ -1025,10 +1028,12 @@ export default class Trades {
                 });
 
                 function sanitizer(ItemsThatCanBeAddedOur?: Record<PureSKU, number>, myInvItems?: Dict) {
-                    // Removes extra metal/key
-                    // IE. if one side has two keys
-                    // and the other 1
-                    // should stop us from trading metal/key for a metal/key :)
+                    /*
+                     * Removes extra metal/key
+                     * i.e. if one side has two keys
+                     * and the other 1
+                     * should stop us from trading metal/key for a metal/key :)
+                     */
                     for (const sku of ['5021;6', '5002;6', '5001;6', '5000;6'] as PureSKU[]) {
                         const maxRemOur = ourItems[sku]?.length || 0;
                         const ourRemoveAmount = ItemsThatCanBeRemovedOur[sku] || 0;
@@ -1051,6 +1056,7 @@ export default class Trades {
                             if (!ItemsThatCanBeAddedOur) {
                                 return reject(new Error("Can't add our Items before our inventory loads."));
                             }
+
                             // We Add
                             changeItems('My', myInvItems, addAmount, sku);
                         } else if (addAmount < 0) {
@@ -1066,6 +1072,7 @@ export default class Trades {
                             changeItems('Their', theirItems, (theirRemoveAmount + theirGiveOrTake) * -1, sku);
                         }
                     }
+
                     return setOfferDataAndSend();
                 }
             });
