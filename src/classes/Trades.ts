@@ -891,7 +891,7 @@ export default class Trades {
 
             const ItemsThatCanBeRemovedOur: Record<PureSKU, number> = {
                 '5021;6': calculate('5021;6', ourItems, false, true),
-                '5002;6': calculate('5002;6', ourItems, false),
+                '5002;6': calculate('5002;6', ourItems, false, true),
                 '5001;6': calculate('5001;6', ourItems, false),
                 '5000;6': calculate('5000;6', ourItems, false)
             };
