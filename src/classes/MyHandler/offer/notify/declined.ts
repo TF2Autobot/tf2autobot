@@ -118,7 +118,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.customMessage.decline.failedToCounter;
         reply = custom
             ? custom
-            : declined + '. Counter offer is not possible because either one of us do not have enough pure.';
+            : declined + '. Counteroffer is not possible because either one of us does not have enough pure.';
     } else if (
         offerReason.reason === 'ONLY_INVALID_VALUE' ||
         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
