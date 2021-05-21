@@ -28,7 +28,7 @@ type BlockUnblock = 'block' | 'unblock';
 type NameAvatar = 'name' | 'avatar';
 type TF2GC = 'expand' | 'use' | 'delete';
 type ActionOnTrade = 'accept' | 'accepttrade' | 'decline' | 'declinetrade';
-type ForceAction = 'faccept' | 'fdecline' | 'fcounter';
+type ForceAction = 'faccept' | 'fdecline';
 
 export default class Commands {
     private isDonating = false;
@@ -242,7 +242,7 @@ export default class Commands {
             this.review.tradeCommand(steamID, message);
         } else if (['accepttrade', 'accept', 'declinetrade', 'decline'].includes(command) && isAdmin) {
             void this.review.actionOnTradeCommand(steamID, message, command as ActionOnTrade);
-        } else if (['faccept', 'fdecline', 'fcounter'].includes(command) && isAdmin) {
+        } else if (['faccept', 'fdecline'].includes(command) && isAdmin) {
             void this.review.forceAction(steamID, message, command as ForceAction);
         } else if (command === 'offerinfo' && isAdmin) {
             this.review.offerInfo(steamID, message);

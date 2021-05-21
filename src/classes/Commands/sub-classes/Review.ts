@@ -12,7 +12,7 @@ import { generateLinks, testSKU } from '../../../lib/tools/export';
 // Manual review commands
 
 type ActionOnTrade = 'accept' | 'accepttrade' | 'decline' | 'declinetrade';
-type ForceAction = 'faccept' | 'fdecline' | 'fcounter';
+type ForceAction = 'faccept' | 'fdecline';
 
 export default class ReviewCommands {
     constructor(private readonly bot: Bot) {
