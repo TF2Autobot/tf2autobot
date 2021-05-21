@@ -1016,9 +1016,21 @@ export default class Trades {
                     theirBestWay['5000;6'] -= calculate('5000;6', theirBestWay['5000;6'], true);
 
                     // Add some of our items if they are still overpaying
-                    ourBestWay['5002;6'] += calculate('5002;6', ourBestWay['5002;6'], true);
-                    ourBestWay['5001;6'] += calculate('5001;6', ourBestWay['5001;6'], true);
-                    ourBestWay['5000;6'] += calculate('5000;6', ourBestWay['5000;6'], true);
+                    ourBestWay['5002;6'] += calculate(
+                        '5002;6',
+                        (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
+                        true
+                    );
+                    ourBestWay['5001;6'] += calculate(
+                        '5001;6',
+                        (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
+                        true
+                    );
+                    ourBestWay['5000;6'] += calculate(
+                        '5000;6',
+                        (ourInventoryItems['5000;6']?.length || 0) - ourBestWay['5000;6'],
+                        true
+                    );
                 }
 
                 if (NonPureWorth !== 0)
