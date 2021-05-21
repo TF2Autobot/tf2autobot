@@ -960,22 +960,22 @@ export default class Trades {
                     '5001;6': calculate('5001;6', ourInventoryItems, true),
                     '5000;6': calculate('5000;6', ourInventoryItems, true)
                 };
-                if (NonPureWorth > 0) {
+                if (NonPureWorth < 0) {
                     ourBestWay['5002;6'] += calculate(
                         '5002;6',
-                        ourInventoryItems['5002;6'].length - ourBestWay['5002;6'],
+                        (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
                         true,
                         true
                     );
                     ourBestWay['5001;6'] += calculate(
                         '5001;6',
-                        ourInventoryItems['5001;6'].length - ourBestWay['5001;6'],
+                        (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
                         true,
                         true
                     );
                     ourBestWay['5021;6'] += calculate(
                         '5021;6',
-                        ourInventoryItems['5021;6'].length - ourBestWay['5021;6'],
+                        (ourInventoryItems['5021;6']?.length || 0) - ourBestWay['5021;6'],
                         true,
                         true
                     );
@@ -991,22 +991,22 @@ export default class Trades {
                     '5001;6': calculate('5001;6', theirInventoryItems, false),
                     '5000;6': calculate('5000;6', theirInventoryItems, false)
                 };
-                if (NonPureWorth < 0) {
+                if (NonPureWorth > 0) {
                     theirBestWay['5002;6'] += calculate(
                         '5002;6',
-                        theirInventoryItems['5002;6'].length - theirBestWay['5002;6'],
+                        (theirInventoryItems['5002;6']?.length || 0) - theirBestWay['5002;6'],
                         false,
                         true
                     );
                     theirBestWay['5001;6'] += calculate(
                         '5001;6',
-                        theirInventoryItems['5001;6'].length - theirBestWay['5001;6'],
+                        (theirInventoryItems['5001;6']?.length || 0) - theirBestWay['5001;6'],
                         false,
                         true
                     );
                     theirBestWay['5021;6'] += calculate(
                         '5021;6',
-                        theirInventoryItems['5021;6'].length - theirBestWay['5021;6'],
+                        (theirInventoryItems['5021;6']?.length || 0) - theirBestWay['5021;6'],
                         false,
                         true
                     );
@@ -1014,11 +1014,11 @@ export default class Trades {
                     theirBestWay['5002;6'] -= calculate('5002;6', theirBestWay['5002;6'], true);
                     theirBestWay['5001;6'] -= calculate('5001;6', theirBestWay['5001;6'], true);
                     theirBestWay['5000;6'] -= calculate('5000;6', theirBestWay['5000;6'], true);
-                }
-                if (NonPureWorth > 0) {
-                    ourBestWay['5002;6'] -= calculate('5002;6', ourBestWay['5002;6'], false);
-                    ourBestWay['5001;6'] -= calculate('5001;6', ourBestWay['5001;6'], false);
-                    ourBestWay['5000;6'] -= calculate('5000;6', ourBestWay['5000;6'], false);
+
+                    // Add some of our items if they are still overpaying
+                    ourBestWay['5002;6'] += calculate('5002;6', ourBestWay['5002;6'], true);
+                    ourBestWay['5001;6'] += calculate('5001;6', ourBestWay['5001;6'], true);
+                    ourBestWay['5000;6'] += calculate('5000;6', ourBestWay['5000;6'], true);
                 }
 
                 if (NonPureWorth !== 0)
