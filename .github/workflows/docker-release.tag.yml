@@ -27,12 +27,12 @@ jobs:
 
       - name: Docker meta
         id: docker_meta
-        uses: crazy-max/ghaction-docker-meta@v2.5.0
+        uses: docker/metadata-action@v3
         with:
           images: tf2autobot/tf2autobot
-          tag-semver: |
-            {{version}}-${{ matrix.node }}
-            {{major}}.{{minor}}-${{ matrix.node }}
+          tags: |
+            type=semver,pattern={{version}}-${{ matrix.node }}
+            type=semver,pattern={{major}}.{{minor}}-${{ matrix.node }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1.1.0
 
