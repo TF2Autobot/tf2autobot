@@ -713,7 +713,7 @@ export default class Trades {
 
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
-                    return reject(new Error('Failed to load inventories (Steam might be down)'));
+                    return reject(new Error('Failed to load inventories (Steam might be down, or private inventory)'));
                 }
 
                 const ourItems = Inventory.fromItems(

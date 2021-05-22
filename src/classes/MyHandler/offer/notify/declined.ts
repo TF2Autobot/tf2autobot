@@ -120,7 +120,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
             ? custom
             : declined +
               '. Counteroffer is not possible because either one of us does not have enough pure,' +
-              ' OR Steam might be down (failed to load your inventory).';
+              ' or Steam might be down, or your inventory is private (failed to load your inventory).';
     } else if (
         offerReason.reason === 'ONLY_INVALID_VALUE' ||
         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
