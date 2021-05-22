@@ -872,16 +872,20 @@ export default class Trades {
 
                     // Send countered offer
                     log.debug('Sending countered offer...');
-                    void this.sendOffer(counter).then(status => {
-                        log.debug('Countered offer sent.');
-                        if (status === 'pending') {
-                            log.debug('Accepting mobile confirmation...');
-                            void this.acceptConfirmation(counter).reflect();
-                        }
+                    void this.sendOffer(counter)
+                        .then(status => {
+                            log.debug('Countered offer sent.');
+                            if (status === 'pending') {
+                                log.debug('Accepting mobile confirmation...');
+                                void this.acceptConfirmation(counter).reflect();
+                            }
 
-                        log.debug(`Done counteroffer for offer #${offer.id}`);
-                        return resolve();
-                    });
+                            log.debug(`Done counteroffer for offer #${offer.id}`);
+                            return resolve();
+                        })
+                        .catch(err =>
+                            reject(new Error(`Something wrong while sending countered offer: ${JSON.stringify(err)}`))
+                        );
                 };
 
                 const values = offer.data('value') as ItemsValue;
