@@ -28,6 +28,9 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
 
     if (offerReceived) {
         switch (offerReceived.reason) {
+            case 'MANUAL':
+                declined.reasonDescription = offerReceived.reason + ': Manually declined by the owner.';
+                break;
             case 'ESCROW':
                 declined.reasonDescription = offerReceived.reason + ': Partner has trade hold.';
                 break;
