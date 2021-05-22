@@ -1,8 +1,8 @@
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import log from '../../lib/logger';
 
 export default class SocketManager {
-    private socket: SocketIOClient.Socket;
+    private socket: Socket;
 
     constructor(public url: string, public key?: string) {}
 
@@ -70,7 +70,7 @@ export default class SocketManager {
 
     shutDown(): void {
         if (this.socket) {
-            this.socket.removeAllListeners();
+            this.socket.offAny();
             this.socket.disconnect();
             this.socket = undefined;
         }
