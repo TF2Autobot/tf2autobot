@@ -118,7 +118,9 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.customMessage.decline.failedToCounter;
         reply = custom
             ? custom
-            : declined + '. Counteroffer is not possible because either one of us does not have enough pure.';
+            : declined +
+              '. Counteroffer is not possible because either one of us does not have enough pure,' +
+              ' OR Steam might be down (failed to load your inventory).';
     } else if (
         offerReason.reason === 'ONLY_INVALID_VALUE' ||
         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)
