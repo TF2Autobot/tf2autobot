@@ -28,7 +28,8 @@ export const DEFAULTS: JsonOptions = {
             enable: true
         },
         counterOffer: {
-            enable: true
+            enable: true,
+            skipIncludeMessage: false
         },
         skipItemsInTrade: {
             enable: true
@@ -1040,13 +1041,19 @@ interface Game {
     customName?: string;
 }
 
+// ------------ Counteroffer ------------
+
+interface Counteroffer extends OnlyEnable {
+    skipIncludeMessage?: boolean;
+}
+
 // --------- Misc Settings ----------
 
 interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
-    counterOffer?: OnlyEnable;
+    counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
     autobump?: OnlyEnable;

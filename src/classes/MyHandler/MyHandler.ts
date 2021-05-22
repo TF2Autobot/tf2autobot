@@ -1787,7 +1787,21 @@ export default class MyHandler extends Handler {
                 ) &&
                 this.hasInvalidValueException === false
             ) {
-                if (opt.miscSettings.counterOffer.enable)
+                if (opt.miscSettings.counterOffer.enable) {
+                    // if counteroffer enabled
+                    if (opt.miscSettings.counterOffer.skipIncludeMessage && offerMessage) {
+                        // if skipIncludeMessage is set to true and offer contains message, skip for review
+                        return {
+                            action: 'skip',
+                            reason: 'REVIEW',
+                            meta: {
+                                uniqueReasons: uniqueReasons,
+                                reasons: wrongAboutOffer,
+                                highValue: isContainsHighValue ? highValueMeta : undefined
+                            }
+                        };
+                    }
+
                     return {
                         action: 'counter',
                         reason: 'COUNTER_INVALID_VALUE',
@@ -1796,6 +1810,7 @@ export default class MyHandler extends Handler {
                             reasons: wrongAboutOffer
                         }
                     };
+                }
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (

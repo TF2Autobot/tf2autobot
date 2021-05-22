@@ -343,7 +343,14 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 counterOffer: {
-                    $ref: '#/definitions/only-enable'
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        skipIncludeMessage: {
+                            type: 'boolean'
+                        }
+                    }
                 },
                 skipItemsInTrade: {
                     $ref: '#/definitions/only-enable'
