@@ -116,6 +116,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     } else if (offerReason.reason === 'COUNTER_INVALID_VALUE_FAILED') {
         //
         const custom = opt.customMessage.decline.failedToCounter;
+        reasonForInvalidValue = true;
         reply = custom
             ? custom
             : declined +
