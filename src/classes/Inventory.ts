@@ -77,33 +77,34 @@ export default class Inventory {
     }
 
     addItem(sku: string, assetid: string): void {
-        const items = this.tradable;
-        (items[sku] = items[sku] || []).push({ id: assetid });
+        (this.tradable[sku] = this.tradable[sku] || []).push({ id: assetid });
     }
 
     addNonTradableItem(sku: string, assetid: string): void {
-        const items = this.nonTradable;
-        (items[sku] = items[sku] || []).push({ id: assetid });
+        (this.nonTradable[sku] = this.nonTradable[sku] || []).push({ id: assetid });
     }
 
-    removeItem(assetid: string): void;
+    removeItem(assetid: string, tradable: boolean): void;
 
     removeItem(item: EconItem): void;
 
-    removeItem(...args: [string] | [EconItem]): void {
+    removeItem(...args: [string, boolean] | [EconItem]): void {
         const assetid = typeof args[0] === 'string' ? args[0] : args[0].id;
+        const isTradable = typeof args[0] === 'string' ? args[1] : args[0].tradable;
 
-        const items = this.tradable;
+        const items = isTradable ? this.tradable : this.nonTradable;
+
         for (const sku in items) {
             if (Object.prototype.hasOwnProperty.call(items, sku)) {
                 const assetids = items[sku].map(item => item.id);
                 const index = assetids.indexOf(assetid);
 
                 if (index !== -1) {
-                    items[sku].splice(index, 1);
+                    isTradable ? this.tradable[sku].splice(index, 1) : this.nonTradable[sku].splice(index, 1);
                     if (assetids.length === 0) {
-                        delete items[sku];
+                        isTradable ? delete this.tradable[sku] : delete this.nonTradable[sku];
                     }
+
                     break;
                 }
             }

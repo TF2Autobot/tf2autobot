@@ -93,13 +93,13 @@ export default class MiscCommands {
             let reply: string;
             if (custom) {
                 reply =
-                    'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\n\n' +
+                    'TF2Autobot Discord Server: https://discord.gg/4k5tmMkXjB\n\n' +
                     custom.replace(/%discordurl%/g, inviteURL);
             } else {
                 if (inviteURL) {
-                    reply = `TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8\nOwner's Discord Server: ${inviteURL}`;
+                    reply = `TF2Autobot Discord Server: https://discord.gg/4k5tmMkXjB\nOwner's Discord Server: ${inviteURL}`;
                     //
-                } else reply = 'TF2Autobot Discord Server: https://discord.gg/D2GNnp7tv8';
+                } else reply = 'TF2Autobot Discord Server: https://discord.gg/4k5tmMkXjB';
             }
             this.bot.sendMessage(steamID, reply);
         } else {
