@@ -1791,6 +1791,8 @@ export default class MyHandler extends Handler {
                     // if counteroffer enabled
                     if (opt.miscSettings.counterOffer.skipIncludeMessage && offerMessage) {
                         // if skipIncludeMessage is set to true and offer contains message, skip for review
+                        offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+
                         return {
                             action: 'skip',
                             reason: 'REVIEW',
@@ -1801,6 +1803,15 @@ export default class MyHandler extends Handler {
                             }
                         };
                     }
+
+                    offer.log(
+                        'info',
+                        `offer need to counter.\nSummary:\n${JSON.stringify(
+                            summarize(offer, this.bot, 'summary-countering', false),
+                            null,
+                            4
+                        )}`
+                    );
 
                     return {
                         action: 'counter',

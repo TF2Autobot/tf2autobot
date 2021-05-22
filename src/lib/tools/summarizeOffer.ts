@@ -89,7 +89,13 @@ export function summarizeToChat(
     return reply;
 }
 
-type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting';
+type SummarizeType =
+    | 'summary-accepted'
+    | 'declined'
+    | 'review-partner'
+    | 'review-admin'
+    | 'summary-accepting'
+    | 'summary-countering';
 
 import Currencies from 'tf2-currencies-2';
 
@@ -184,7 +190,7 @@ function getSummary(
             const maxStock = bot.pricelist.getPrice(sku, false);
 
             const summaryAccepted = ['summary-accepted'].includes(type);
-            const summaryInProcess = ['review-admin', 'summary-accepting'].includes(type);
+            const summaryInProcess = ['review-admin', 'summary-accepting', 'summary-countering'].includes(type);
 
             if (summaryAccepted || summaryInProcess) {
                 oldStock =

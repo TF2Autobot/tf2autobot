@@ -711,9 +711,16 @@ export default class Trades {
 
             const ourInventoryItems = this.bot.inventoryManager.getInventory.getItems;
 
+            log.debug('Fetching their inventory...');
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
-                    return reject(new Error('Failed to load inventories (Steam might be down, or private inventory)'));
+                    return reject(
+                        new Error(
+                            `Failed to load inventories (Steam might be down, or private inventory): ${JSON.stringify(
+                                err
+                            )}`
+                        )
+                    );
                 }
 
                 const ourItems = Inventory.fromItems(
@@ -742,12 +749,14 @@ export default class Trades {
 
                 const theirInventoryItems = theirInventory.getItems;
 
+                log.debug('Set counteroffer...');
                 const counter = offer.counter();
 
                 const showOnlyMetal = this.bot.options.miscSettings.showOnlyMetal.enable;
                 // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
                 // Extensive tutorial if you want to update this function https://www.youtube.com/watch?v=dQw4w9WgXcQ.
 
+                log.debug('Set counteroffer message...');
                 counter.setMessage(
                     "Oni-chan. I'm not a dummie (thicc) offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
                 );
@@ -812,6 +821,7 @@ export default class Trades {
 
                 const setOfferDataAndSend = () => {
                     // Backup it should never make it to here as an error
+                    log.debug('Checking final mismatch...');
                     if (
                         tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
                         tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
@@ -821,6 +831,7 @@ export default class Trades {
                     }
 
                     // Set polldata datas
+                    log.debug('Setting counter polldata...');
                     const handleTimestamp = offer.data('handleTimestamp') as number;
                     counter.data('handleTimestamp', handleTimestamp);
                     counter.data('notify', true);
@@ -860,11 +871,15 @@ export default class Trades {
                     counter.data('processCounterTime', processCounterTime);
 
                     // Send countered offer
+                    log.debug('Sending countered offer...');
                     void this.sendOffer(counter).then(status => {
+                        log.debug('Countered offer sent.');
                         if (status === 'pending') {
+                            log.debug('Accepting mobile confirmation...');
                             void this.acceptConfirmation(counter).reflect();
                         }
 
+                        log.debug(`Done counteroffer for offer #${offer.id}`);
                         return resolve();
                     });
                 };
@@ -908,6 +923,7 @@ export default class Trades {
                 const needToTakeWeapon = NonPureWorth - Math.trunc(NonPureWorth) !== 0;
 
                 if (needToTakeWeapon) {
+                    log.debug('needToTakeWeapon:', needToTakeWeapon);
                     const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
                         ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
                         : this.bot.craftWeapons;
@@ -926,10 +942,10 @@ export default class Trades {
                         .filter(sku => theirItems[sku] === undefined) // filter weapons that are not in their offer
                         .find(sku => theirInventoryItems[sku]); // find one that is in their inventory
 
-                    log.debug('weaponOfChoice', chosenOne);
+                    log.debug('weaponOfChoice:', chosenOne);
 
                     const item = theirInventoryItems[chosenOne];
-                    log.debug('item', item);
+                    log.debug('item:', item);
                     if (item) {
                         const isAdded = counter.addTheirItem({
                             appid: 440,
@@ -961,6 +977,10 @@ export default class Trades {
                     '5000;6': calculate('5000;6', ourInventoryItems, true)
                 };
                 if (NonPureWorth < 0) {
+                    log.debug('NonPureWorth < 0 - ourBestWay before', {
+                        ourBestWay
+                    });
+
                     ourBestWay['5002;6'] += calculate(
                         '5002;6',
                         (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
@@ -983,6 +1003,10 @@ export default class Trades {
                     ourBestWay['5002;6'] -= calculate('5002;6', ourBestWay['5002;6'], false);
                     ourBestWay['5001;6'] -= calculate('5001;6', ourBestWay['5001;6'], false);
                     ourBestWay['5000;6'] -= calculate('5000;6', ourBestWay['5000;6'], false);
+
+                    log.debug('NonPureWorth < 0 - ourBestWay after', {
+                        ourBestWay
+                    });
                 }
 
                 const theirBestWay: Record<PureSKU, number> = {
@@ -992,6 +1016,9 @@ export default class Trades {
                     '5000;6': calculate('5000;6', theirInventoryItems, false)
                 };
                 if (NonPureWorth > 0) {
+                    log.debug('NonPureWorth > 0 - theirBestWay before', {
+                        theirBestWay
+                    });
                     theirBestWay['5002;6'] += calculate(
                         '5002;6',
                         (theirInventoryItems['5002;6']?.length || 0) - theirBestWay['5002;6'],
@@ -1015,6 +1042,13 @@ export default class Trades {
                     theirBestWay['5001;6'] -= calculate('5001;6', theirBestWay['5001;6'], true);
                     theirBestWay['5000;6'] -= calculate('5000;6', theirBestWay['5000;6'], true);
 
+                    log.debug('NonPureWorth > 0 - theirBestWay after', {
+                        theirBestWay
+                    });
+
+                    log.debug('Add some of our items if they are still overpaying - before', {
+                        ourBestWay
+                    });
                     // Add some of our items if they are still overpaying
                     ourBestWay['5002;6'] += calculate(
                         '5002;6',
@@ -1031,10 +1065,15 @@ export default class Trades {
                         (ourInventoryItems['5000;6']?.length || 0) - ourBestWay['5000;6'],
                         true
                     );
+
+                    log.debug('Add some of our items if they are still overpaying - after', {
+                        ourBestWay
+                    });
                 }
 
-                if (NonPureWorth !== 0)
+                if (NonPureWorth !== 0) {
                     return reject(new Error(`Couldn't counter an offer value mismatch: ${NonPureWorth}`));
+                }
 
                 // Filter out trade items from inventories
                 // Now try to match this on the trade offer
@@ -1060,6 +1099,7 @@ export default class Trades {
                     });
                 });
 
+                log.debug('Set counteroffer and sending...');
                 setOfferDataAndSend();
             });
         });
