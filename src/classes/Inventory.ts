@@ -77,33 +77,34 @@ export default class Inventory {
     }
 
     addItem(sku: string, assetid: string): void {
-        const items = this.tradable;
-        (items[sku] = items[sku] || []).push({ id: assetid });
+        (this.tradable[sku] = this.tradable[sku] || []).push({ id: assetid });
     }
 
     addNonTradableItem(sku: string, assetid: string): void {
-        const items = this.nonTradable;
-        (items[sku] = items[sku] || []).push({ id: assetid });
+        (this.nonTradable[sku] = this.nonTradable[sku] || []).push({ id: assetid });
     }
 
-    removeItem(assetid: string): void;
+    removeItem(assetid: string, tradable: boolean): void;
 
     removeItem(item: EconItem): void;
 
-    removeItem(...args: [string] | [EconItem]): void {
+    removeItem(...args: [string, boolean] | [EconItem]): void {
         const assetid = typeof args[0] === 'string' ? args[0] : args[0].id;
+        const isTradable = typeof args[0] === 'string' ? args[1] : args[0].tradable;
 
-        const items = this.tradable;
+        const items = isTradable ? this.tradable : this.nonTradable;
+
         for (const sku in items) {
             if (Object.prototype.hasOwnProperty.call(items, sku)) {
                 const assetids = items[sku].map(item => item.id);
                 const index = assetids.indexOf(assetid);
 
                 if (index !== -1) {
-                    items[sku].splice(index, 1);
+                    isTradable ? this.tradable[sku].splice(index, 1) : this.nonTradable[sku].splice(index, 1);
                     if (assetids.length === 0) {
-                        delete items[sku];
+                        isTradable ? delete this.tradable[sku] : delete this.nonTradable[sku];
                     }
+
                     break;
                 }
             }
@@ -171,13 +172,13 @@ export default class Inventory {
     }
 
     findBySKU(sku: string, tradableOnly = true): string[] {
-        const tradable = (this.tradable[sku] || []).map(item => (item ? item.id : undefined));
+        const tradable = (this.tradable[sku] || []).map(item => item?.id);
         if (tradableOnly) {
             // Copies the array
             return tradable.slice(0);
         }
 
-        const nonTradable = (this.nonTradable[sku] || []).map(item => (item ? item.id : undefined));
+        const nonTradable = (this.nonTradable[sku] || []).map(item => item?.id);
 
         return nonTradable.concat(tradable).slice(0);
     }
@@ -247,15 +248,14 @@ export default class Inventory {
         const s = SKU.fromString(sku);
 
         if (s.quality === 5) {
-            // generic getAmount so return total that match the generic sku type
-            const reduced = this.effects
-                .map(e => {
-                    s.effect = e.id;
-                    return this.getAmount(SKU.fromObject(s), false, tradableOnly);
-                })
-                // add up total found; total is undefined to being with
-                .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
-            return reduced;
+            const all = tradableOnly
+                ? Object.keys(this.tradable)
+                : Object.keys(this.tradable).concat(Object.keys(this.nonTradable));
+            return all
+                .filter(e => e.startsWith(sku))
+                .reduce((sum, s) => {
+                    return sum + this.getAmount(s, false, tradableOnly);
+                }, 0);
         } else {
             return this.getAmount(sku, false, tradableOnly);
         }

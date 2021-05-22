@@ -73,10 +73,9 @@ export default class ReviewCommands {
             const offer = offers[i];
 
             reply +=
-                `\n- Offer #${offer.id as string} from ${
-                    (offer.data as OfferData).partner
-                } (reason: ${(offer.data as OfferData).meta.uniqueReasons.join(', ')})` +
-                `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
+                `\n- Offer #${offer.id as string} from ${(offer.data as OfferData).partner} (reason: ${(
+                    offer.data as OfferData
+                ).meta.uniqueReasons.join(', ')})` + `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
         }
 
         return reply;

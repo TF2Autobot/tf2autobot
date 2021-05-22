@@ -124,8 +124,9 @@ export default class Trades {
                 offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow']
             ).length;
 
-            const sentOnHold = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow'])
-                .length;
+            const sentOnHold = sent.filter(
+                offer => offer.state === TradeOfferManager.ETradeOfferState['InEscrow']
+            ).length;
 
             log.verbose(
                 `${activeReceivedCount} incoming ${pluralize('offer', activeReceivedCount)}${
@@ -197,9 +198,7 @@ export default class Trades {
         return tradesBySteamID;
     }
 
-    getOffers(
-        includeInactive = false
-    ): Promise<{
+    getOffers(includeInactive = false): Promise<{
         sent: TradeOffer[];
         received: TradeOffer[];
     }> {
@@ -1080,7 +1079,7 @@ export default class Trades {
 
         offer.data('isAccepted', true);
 
-        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
+        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid, true));
 
         // Exit all running apps ("TF2Autobot v#" or custom, and Team Fortress 2)
         // Will play again after craft/smelt/sort inventory job

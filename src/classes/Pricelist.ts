@@ -34,7 +34,7 @@ export interface EntryData {
     time?: number | null;
 }
 
-export class Entry {
+export class Entry implements EntryData {
     sku: string;
 
     name: string;
@@ -71,8 +71,6 @@ export class Entry {
         this.min = entry.min;
         this.max = entry.max;
         this.intent = entry.intent;
-
-        // TODO: Validate entry
 
         if (entry.buy && entry.sell) {
             // Added both buy and sell
@@ -156,15 +154,23 @@ export class Entry {
     }
 }
 
+export interface PricesObject {
+    [id: string]: Entry;
+}
+
+export interface PricesDataObject {
+    [id: string]: EntryData;
+}
+
 export default class Pricelist extends EventEmitter {
-    private prices: Entry[] = [];
+    private prices: PricesObject = {};
 
     get getLength(): number {
-        return this.prices.length;
+        return Object.keys(this.prices).length;
     }
 
-    get getPrices(): Entry[] {
-        return this.prices.slice(0);
+    get getPrices(): PricesObject {
+        return this.prices;
     }
 
     /**
@@ -178,11 +184,6 @@ export default class Pricelist extends EventEmitter {
 
     get getKeyPrice(): Currencies {
         return this.globalKeyPrices.sell;
-    }
-
-    get isDwAlertEnabled(): boolean {
-        const opt = this.bot.options.discordWebhook.sendAlert;
-        return opt.enable && opt.url !== '';
     }
 
     /**
@@ -225,60 +226,55 @@ export default class Pricelist extends EventEmitter {
         return this.options.customPricerUrl !== '' && this.options.customPricerApiToken !== '';
     }
 
+    get isDwAlertEnabled(): boolean {
+        const opt = this.bot.options.discordWebhook.sendAlert;
+        return opt.enable && opt.url !== '';
+    }
+
     init(): void {
         this.socketManager.on('price', this.boundHandlePriceChange);
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {
-        const index = this.getIndex(sku);
-        if (index === -1) {
+        if (!this.prices[sku]) {
             return false;
         }
 
-        const match = this.prices[index];
-        return !onlyEnabled || match.enabled;
+        return this.prices[sku].enabled || !onlyEnabled;
     }
 
     getPrice(sku: string, onlyEnabled = false, generics = false): Entry | null {
-        const pSku = SKU.fromString(sku);
-        // Index of of item in pricelist
-        const index = this.getIndex(null, pSku);
-        const gindex = index === -1 && generics ? this.getIndexWithGenerics(null, pSku) : -1;
-
-        if (index === -1 && (!generics || (generics && gindex === -1))) {
-            // Did not find a match
-            return null;
+        if (this.hasPrice(sku, onlyEnabled)) {
+            return this.prices[sku];
         }
 
-        let match = index !== -1 ? this.prices[index] : this.prices[gindex];
-        if (gindex !== -1) {
-            // we found a generic match for a specific sku so we are going to clone the generic entry
-            // otherwise we would mutate the existing generic entry
-            match = match.clone();
-
-            const effectMatch = this.bot.effects.find(e => pSku.effect === e.id);
-            match.name = match.name.replace('Unusual', effectMatch.name);
-            match.sku = sku;
-
-            // change any other options if needed here (possible spot for config)
+        if (generics) {
+            const gSku = generics ? sku.replace(/;u\d+/, '') : null;
+            if (this.hasPrice(gSku, onlyEnabled)) {
+                return this.prices[gSku];
+            }
         }
 
-        if (onlyEnabled && !match.enabled) {
-            // Item is not enabled
-            return null;
-        }
-
-        return match;
+        return null;
     }
 
     searchByName(search: string, enabledOnly = true): Entry | string[] | null {
+        const sku = this.schema.getSkuFromName(search);
+
+        if (this.hasPrice(sku, enabledOnly)) {
+            return this.prices[sku];
+        }
+
+        // If unable to find by SKU, we iterate pricelist and search with name
+
         search = search.toLowerCase();
 
         const match: Entry[] = [];
-        const pricesCount = this.prices.length;
+        const ArraySKU = Object.keys(this.prices);
+        const pricesCount = ArraySKU.length;
 
         for (let i = 0; i < pricesCount; i++) {
-            const entry = this.prices[i];
+            const entry = this.prices[ArraySKU[i]];
 
             if (enabledOnly && entry.enabled === false) {
                 continue;
@@ -348,7 +344,7 @@ export default class Pricelist extends EventEmitter {
                 if (entry.sku === '5021;6') {
                     clearTimeout(this.retryGetKeyPrices);
 
-                    const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
+                    const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
 
                     if (!canUseKeyPricesFromSource) {
                         throw new Error(
@@ -444,11 +440,12 @@ export default class Pricelist extends EventEmitter {
 
         await this.validateEntry(entry, src);
         // Add new price
-        this.prices.push(entry);
+        this.prices[entry.sku] = entry;
 
         if (emitChange) {
             this.priceChanged(entry.sku, entry);
         }
+
         return entry;
     }
 
@@ -484,7 +481,7 @@ export default class Pricelist extends EventEmitter {
         await this.removePrice(entry.sku, false);
 
         // Add new price
-        this.prices.push(entry);
+        this.prices[entry.sku] = entry;
 
         if (emitChange) {
             this.priceChanged(entry.sku, entry);
@@ -492,16 +489,7 @@ export default class Pricelist extends EventEmitter {
         return entry;
     }
 
-    shufflePricelist(newEntry: Entry[]): Promise<any> {
-        return new Promise(resolve => {
-            this.prices = newEntry;
-            this.emit('pricelist', newEntry);
-
-            return resolve();
-        });
-    }
-
-    removeByGroup(newEntry: Entry[]): Promise<any> {
+    setNewPricelist(newEntry: PricesObject): Promise<any> {
         return new Promise(resolve => {
             this.prices = newEntry;
             this.emit('pricelist', newEntry);
@@ -513,7 +501,7 @@ export default class Pricelist extends EventEmitter {
     removeAll(): Promise<any> {
         return new Promise(resolve => {
             if (this.getLength !== 0) {
-                this.prices = [];
+                this.prices = {};
                 this.emit('pricelist', []);
             }
 
@@ -523,13 +511,13 @@ export default class Pricelist extends EventEmitter {
 
     removePrice(sku: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
-            const index = this.getIndex(sku);
-            if (index === -1) {
+            if (!this.hasPrice(sku)) {
                 return reject(new Error('Item is not priced'));
             }
 
-            // Found match, remove it
-            const entry = this.prices.splice(index, 1)[0];
+            const entry = Object.assign({}, this.prices[sku]); //TODO: do we need to copy it ?
+            delete this.prices[sku];
+
             if (emitChange) {
                 this.priceChanged(sku, entry);
             }
@@ -538,67 +526,32 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    getIndex(sku: string, parsedSku?: SchemaManager.Item): number {
-        sku = sku ? sku : SKU.fromObject(parsedSku);
-        const findIndex = this.prices.findIndex(entry => entry.sku === sku);
-        return findIndex;
-    }
+    setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
+        let errors = validator(prices, 'prices-data-object');
 
-    /** returns index of sku's generic match otherwise returns -1 */
-    getIndexWithGenerics(sku: string, parsedSku?: SchemaManager.Item): number {
-        // Get name of item
-        const pSku = parsedSku ? parsedSku : SKU.fromString(sku);
-        if (pSku.quality === 5) {
-            // try to find a generic price
-            const name = this.schema.getName(pSku, false);
-
-            const effectMatch = this.bot.effects.find(e => pSku.effect === e.id);
-            if (effectMatch) {
-                // this means the sku given had a matching effect so we are going from a specific to generic
-                const replacedName = name.replace(effectMatch.name, 'Unusual');
-                const index = this.prices.findIndex(entry => entry.name === replacedName);
-                return index;
-            } else {
-                // this means the sku given was already generic so we just return the index of the generic
-                return this.getIndex(null, pSku);
-            }
-        } else {
-            return -1;
-        }
-    }
-
-    setPricelist(prices: EntryData[], bot: Bot): Promise<void> {
-        if (prices.length !== 0) {
-            const errors = validator(
-                {
-                    sku: prices[0].sku,
-                    enabled: prices[0].enabled,
-                    intent: prices[0].intent,
-                    min: prices[0].min,
-                    max: prices[0].max,
-                    autoprice: prices[0].autoprice,
-                    buy: prices[0].buy,
-                    sell: prices[0].sell,
-                    promoted: prices[0].promoted,
-                    group: prices[0].group,
-                    note: prices[0].note,
-                    time: prices[0].time
-                },
-                'pricelist'
-            );
-
-            if (errors !== null) {
-                throw new Error(errors.join(', '));
-            }
+        if (errors !== null) {
+            throw new Error(errors.join(', '));
         }
 
         this.bot = bot;
 
-        this.prices = prices.map(entry => Entry.fromData(entry, this.schema));
+        for (const sku in prices) {
+            if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
+                continue;
+            }
+
+            this.prices[sku] = Entry.fromData(prices[sku], this.schema);
+        }
+
+        errors = validator(this.prices, 'pricelist');
+        if (errors !== null) {
+            throw new Error(errors.join(', '));
+        }
+
         return this.setupPricelist();
     }
 
-    private verifyKeyPrices(prices: { buy: Currencies; sell: Currencies } | Entry): boolean {
+    private static verifyKeyPrices(prices: { buy: Currencies; sell: Currencies } | Entry): boolean {
         return prices.buy.keys === 0 && prices.sell.keys === 0 && prices.buy.metal > 0 && prices.sell.metal > 0;
     }
 
@@ -620,7 +573,7 @@ export default class Pricelist extends EventEmitter {
 
                 this.currentKeyPrices = newPrices;
 
-                const canUseManuallyPriced = entryKey !== null ? this.verifyKeyPrices(entryKey) : false;
+                const canUseManuallyPriced = entryKey !== null ? Pricelist.verifyKeyPrices(entryKey) : false;
 
                 if (entryKey !== null && !entryKey.autoprice && canUseManuallyPriced) {
                     // Here we just check the value for selling price for the Mann Co. Supply Crate Key must always more than 0
@@ -634,7 +587,7 @@ export default class Pricelist extends EventEmitter {
                     };
                     log.debug('Key rate is set based on current key prices in the pricelist.', this.globalKeyPrices);
                 } else {
-                    const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
+                    const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
 
                     if (!canUseKeyPricesFromSource) {
                         log.error(
@@ -658,7 +611,7 @@ export default class Pricelist extends EventEmitter {
                             entryKey.sell = newPrices.sell;
                             entryKey.time = keyPrices.time;
 
-                            if (this.verifyKeyPrices(entryKey) === false) {
+                            if (Pricelist.verifyKeyPrices(entryKey) === false) {
                                 log.warn(
                                     `Price for Mann Co. Supply Crate Key in your pricelist in not valid and has been reset to use current prices.`,
                                     this.globalKeyPrices
@@ -669,7 +622,7 @@ export default class Pricelist extends EventEmitter {
                 }
 
                 const old = this.getOld;
-                if (old.length === 0) {
+                if (Object.keys(old).length === 0) {
                     return;
                 }
 
@@ -691,7 +644,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     private useTemporaryKeyPrices(entryKey: Entry): void {
-        const canUseManuallyPriced = entryKey !== null ? this.verifyKeyPrices(entryKey) : false;
+        const canUseManuallyPriced = entryKey !== null ? Pricelist.verifyKeyPrices(entryKey) : false;
 
         if (canUseManuallyPriced) {
             log.debug('✅ Key entry exist, setting current and global key rate as is');
@@ -746,7 +699,7 @@ export default class Pricelist extends EventEmitter {
                     sell: new Currencies(keyPrices.sell)
                 };
 
-                const canUseKeyPricesFromSource = this.verifyKeyPrices(updatedKeyPrices);
+                const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(updatedKeyPrices);
 
                 if (!canUseKeyPricesFromSource) {
                     log.debug('❌ Broken keyPrices, retrying in 15 minutes...');
@@ -758,6 +711,7 @@ export default class Pricelist extends EventEmitter {
                         'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
                             'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
                     );
+
                     return;
                 }
 
@@ -779,131 +733,107 @@ export default class Pricelist extends EventEmitter {
             });
     }
 
-    private updateOldPrices(old: Entry[]): Promise<void> {
+    private updateOldPrices(old: PricesObject): Promise<void> {
         log.debug('Getting pricelist...');
 
         return this.priceSource.getPricelist('bptf').then(pricelist => {
             log.debug('Got pricelist');
 
-            const groupedPrices = Pricelist.groupPrices(pricelist.items);
+            const transformedPrices = Pricelist.transformPricesFromPricer(pricelist.items);
 
             let pricesChanged = false;
 
             const inventory = this.bot.inventoryManager.getInventory;
 
             // Go through our pricelist
-            const oldCount = old.length;
             const ppu = this.options.pricelist.partialPriceUpdate;
             const excludedSKU = ['5021;6'].concat(ppu.excludeSKU);
-
             const keyPrice = this.getKeyPrice.metal;
 
-            for (let i = 0; i < oldCount; i++) {
-                const currPrice = old[i];
+            for (const sku in old) {
+                if (!Object.prototype.hasOwnProperty.call(old, sku)) {
+                    continue;
+                }
+
+                const currPrice = old[sku];
                 if (currPrice.autoprice !== true) {
                     continue;
                 }
 
-                const sku = currPrice.sku;
-                const isInStock = inventory.getAmount(sku, false, true) > 0;
-                const maxIsOne = currPrice.max === 1;
-                const isNotExcluded = !excludedSKU.includes(sku);
-
-                const item = SKU.fromString(sku);
-
-                // Go through pricestf/custom pricer prices
-                let grouped: Item[];
-
-                try {
-                    grouped = groupedPrices[item.quality][item.killstreak];
-                } catch (err) {
-                    if (currPrice.group !== 'failed-updateOldPrices') {
-                        currPrice.enabled = false;
-                        currPrice.group = 'failed-updateOldPrices';
-                        this.failedUpdateOldPrices.push(sku);
-                        log.error(`updateOldPrices failed for ${sku}`, err);
-                        pricesChanged = true;
+                if (transformedPrices[sku]) {
+                    const newestPrice = transformedPrices[sku];
+                    // Found matching items
+                    if (currPrice.time >= newestPrice.time) {
+                        continue;
                     }
 
-                    continue;
-                }
+                    //TODO: CONTINUE / FINISH
 
-                const groupedCount = grouped.length;
+                    // We received a newer price, update our price
+                    const oldPrices = {
+                        buy: new Currencies(currPrice.buy),
+                        sell: new Currencies(currPrice.sell)
+                    };
 
-                for (let j = 0; j < groupedCount; j++) {
-                    const newestPrice = grouped[j];
+                    const newPrices = {
+                        buy: new Currencies(newestPrice.buy),
+                        sell: new Currencies(newestPrice.sell)
+                    };
 
-                    if (sku === newestPrice.sku) {
-                        // Found matching items
-                        if (currPrice.time < newestPrice.time) {
-                            // Times don't match, update our price
-                            const oldPrices = {
-                                buy: new Currencies(currPrice.buy),
-                                sell: new Currencies(currPrice.sell)
-                            };
+                    const newBuyValue = newPrices.buy.toValue(keyPrice);
+                    const newSellValue = newPrices.sell.toValue(keyPrice);
 
-                            const newPrices = {
-                                buy: new Currencies(newestPrice.buy),
-                                sell: new Currencies(newestPrice.sell)
-                            };
+                    // TODO: Use last bought prices instead of current buying prices
+                    const currBuyingValue = currPrice.buy.toValue(keyPrice);
+                    const currSellingValue = currPrice.sell.toValue(keyPrice);
 
-                            const newBuyValue = newPrices.buy.toValue(keyPrice);
-                            const newSellValue = newPrices.sell.toValue(keyPrice);
+                    const isInStock = inventory.getAmount(sku, false, true) > 0;
+                    const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
+                    const isNotExcluded = !excludedSKU.includes(sku);
+                    const maxIsOne = currPrice.max === 1;
 
-                            // TODO: Use last bought prices instead of current buying prices
-                            const currBuyingValue = currPrice.buy.toValue(keyPrice);
-                            const currSellingValue = currPrice.sell.toValue(keyPrice);
+                    // https://github.com/TF2Autobot/tf2autobot/issues/506
+                    // https://github.com/TF2Autobot/tf2autobot/pull/520
 
-                            const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
+                    if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
+                        const isNegativeDiff = newSellValue - currBuyingValue <= 0;
+                        const isBuyingChanged = currBuyingValue !== newBuyValue;
 
-                            // https://github.com/TF2Autobot/tf2autobot/issues/506
-                            // https://github.com/TF2Autobot/tf2autobot/pull/520
-
-                            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
-                                const isNegativeDiff = newSellValue - currBuyingValue <= 0;
-                                const isBuyingChanged = currBuyingValue !== newBuyValue;
-
-                                if (isNegativeDiff || isBuyingChanged || currPrice.isPartialPriced) {
-                                    if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
-                                        currPrice.sell = newPrices.sell;
-                                    } else {
-                                        currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
-                                    }
-
-                                    const msg = this.generatePartialPriceUpdateMsg(oldPrices, currPrice, newPrices);
-                                    this.partialPricedUpdateBulk.push(msg);
-                                    pricesChanged = true;
-                                } else {
-                                    if (!currPrice.isPartialPriced) {
-                                        currPrice.buy = newPrices.buy;
-                                        currPrice.sell = newPrices.sell;
-                                        currPrice.time = newestPrice.time;
-
-                                        pricesChanged = true;
-                                    }
-                                }
+                        if (isNegativeDiff || isBuyingChanged || currPrice.isPartialPriced) {
+                            if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
+                                currPrice.sell = newPrices.sell;
                             } else {
-                                if (
-                                    !currPrice.isPartialPriced ||
-                                    (currPrice.isPartialPriced && !(isNotExceedThreshold || isInStock))
-                                ) {
-                                    currPrice.buy = newPrices.buy;
-                                    currPrice.sell = newPrices.sell;
-                                    currPrice.time = newestPrice.time;
+                                currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
+                            }
 
-                                    if (currPrice.isPartialPriced) {
-                                        currPrice.isPartialPriced = false; // reset to default
-                                        this.autoResetPartialPriceBulk.push(sku);
-                                    }
+                            const msg = this.generatePartialPriceUpdateMsg(oldPrices, currPrice, newPrices);
+                            this.partialPricedUpdateBulk.push(msg);
+                            pricesChanged = true;
+                        } else {
+                            if (!currPrice.isPartialPriced) {
+                                currPrice.buy = newPrices.buy;
+                                currPrice.sell = newPrices.sell;
+                                currPrice.time = newestPrice.time;
 
-                                    pricesChanged = true;
-                                }
+                                pricesChanged = true;
                             }
                         }
+                    } else {
+                        if (
+                            !currPrice.isPartialPriced ||
+                            (currPrice.isPartialPriced && !(isNotExceedThreshold || isInStock))
+                        ) {
+                            currPrice.buy = newPrices.buy;
+                            currPrice.sell = newPrices.sell;
+                            currPrice.time = newestPrice.time;
 
-                        // When a match is found remove it from the ptf/other source pricelist
-                        groupedPrices[item.quality][item.killstreak].splice(j, 1);
-                        break;
+                            if (currPrice.isPartialPriced) {
+                                currPrice.isPartialPriced = false; // reset to default
+                                this.autoResetPartialPriceBulk.push(sku);
+                            }
+
+                            pricesChanged = true;
+                        }
                     }
                 }
             }
@@ -977,13 +907,14 @@ export default class Pricelist extends EventEmitter {
         if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
 
-            const canUseKeyPricesFromSource = this.verifyKeyPrices(newPrices);
+            const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
 
             if (!canUseKeyPricesFromSource) {
                 log.error(
                     'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
                         'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
                 );
+
                 return;
             }
 
@@ -1158,40 +1089,32 @@ export default class Pricelist extends EventEmitter {
         this.emit('pricelist', this.prices);
     }
 
-    private get getOld(): Entry[] {
+    private get getOld(): PricesObject {
         if (this.maxAge <= 0) {
             return this.prices;
         }
+
         const now = dayjs().unix();
+        const prices = Object.assign({}, this.prices); //TODO: better way to copy ?
 
-        const filtered = this.prices.filter(entry => entry.time + this.maxAge <= now);
-        return filtered;
-    }
-
-    static groupPrices(prices: Item[]): Group {
-        const sorted: Group = {};
-
-        const pricesCount = prices.length;
-
-        for (let i = 0; i < pricesCount; i++) {
-            if (prices[i].buy === null) {
+        for (const sku in prices) {
+            if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
                 continue;
             }
 
-            const item = SKU.fromString(prices[i].sku);
-            if (!sorted[item.quality]) {
-                // Group is not defined yet
-                sorted[item.quality] = {};
-            }
-
-            if (sorted[item.quality][item.killstreak] !== undefined) {
-                sorted[item.quality][item.killstreak].push(prices[i]);
-            } else {
-                sorted[item.quality][item.killstreak] = [prices[i]];
+            if (this.prices[sku].time + this.maxAge > now) {
+                delete prices[sku];
             }
         }
 
-        return sorted;
+        return prices;
+    }
+
+    static transformPricesFromPricer(prices: Item[]): { [p: string]: Item } {
+        return prices.reduce((obj, i) => {
+            obj[i.sku] = i;
+            return obj;
+        }, {});
     }
 }
 
@@ -1231,10 +1154,6 @@ export class ParsedPrice {
         this.buy = new Currencies(priceResponse.buy);
         this.sell = new Currencies(priceResponse.sell);
     }
-}
-
-interface Group {
-    [quality: string]: { [killstreak: string]: Item[] };
 }
 
 interface ErrorRequest {
