@@ -248,7 +248,7 @@ export function sendToAdmin(
         'trade',
         `${customInitializer ? customInitializer : '/me'} Trade #${
             offer.id
-        } with ${offer.partner.getSteamID64()} is declined. ❌` +
+        } with ${offer.partner.getSteamID64()} was declined. ❌` +
             t.summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true, isOfferSent) +
             (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
             `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +

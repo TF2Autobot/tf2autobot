@@ -517,7 +517,7 @@ function getPainted(
     }
 
     if (
-        !item.type.includes('Tool') && // Not a Paint Can
+        !item.type.includes('Tool') &&
         paintsInOptions.includes('legacy paint') &&
         item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
     ) {
