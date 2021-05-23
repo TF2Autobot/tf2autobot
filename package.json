@@ -22,7 +22,7 @@
     "bugs": {
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
-    "updateMessage": "• <=v3.7.7 - Manual update recommended. Please create a backup of your pricelist.json file.\n• >=v3.8.0 - Clear to update with !updaterepo command.",
+    "updateMessage": "• <=v3.8.3 - Manual update recommended: https://github.com/TF2Autobot/tf2autobot/wiki/Updating-the-bot",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
