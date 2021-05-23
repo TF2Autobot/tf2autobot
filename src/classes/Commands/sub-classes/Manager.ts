@@ -3,12 +3,8 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
 import validUrl from 'valid-url';
-import child from 'child_process';
-import fs from 'graceful-fs';
 import sleepasync from 'sleep-async';
-import path from 'path';
 import dayjs from 'dayjs';
-import { EPersonaState } from 'steam-user';
 import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -394,116 +390,6 @@ export default class ManagerCommands {
             });
     }
 
-    updaterepoCommand(steamID: SteamID): void {
-        if (!fs.existsSync(path.resolve(__dirname, '..', '..', '..', '..', '.git'))) {
-            return this.bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
-        }
-
-        if (process.env.pm_id === undefined) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ You're not running the bot with PM2!` +
-                    `\n\nNavigate to your bot folder and run ` +
-                    `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
-                    `and then restart your bot.`
-            );
-        }
-
-        this.bot.checkForUpdates
-            .then(({ hasNewVersion, latestVersion }) => {
-                if (!hasNewVersion) {
-                    return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
-                } else if (this.bot.lastNotifiedVersion === latestVersion) {
-                    this.bot.sendMessage(steamID, '⌛ Updating...');
-                    // Make the bot snooze on Steam, that way people will know it is not running
-                    this.bot.client.setPersona(EPersonaState.Snooze);
-
-                    // Set isUpdating status, so any command will not be processed
-                    this.bot.handler.isUpdatingStatus = true;
-
-                    // Stop polling offers
-                    this.bot.manager.pollInterval = -1;
-
-                    // Callback hell 😈
-
-                    // git reset HEAD --hard
-                    child.exec(
-                        'git reset HEAD --hard',
-                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                        () => {
-                            // ignore err
-
-                            // git checkout master
-                            child.exec(
-                                'git checkout master',
-                                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                () => {
-                                    // ignore err
-
-                                    this.bot.sendMessage(steamID, '⌛ Pulling changes...');
-
-                                    // git pull
-                                    child.exec(
-                                        'git pull --prune',
-                                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                        () => {
-                                            // ignore err
-
-                                            void promiseDelay(3 * 1000);
-
-                                            this.bot.sendMessage(steamID, '⌛ Installing packages...');
-
-                                            // npm install
-                                            child.exec(
-                                                'npm install',
-                                                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                                () => {
-                                                    // ignore err
-
-                                                    // 10 seconds delay, because idk why this always cause some problem
-                                                    void promiseDelay(10 * 1000);
-
-                                                    this.bot.sendMessage(
-                                                        steamID,
-                                                        '⌛ Compiling TypeScript codes into JavaScript...'
-                                                    );
-
-                                                    // tsc -p .
-                                                    child.exec(
-                                                        'npm run build',
-                                                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                                        () => {
-                                                            // ignore err
-
-                                                            // 5 seconds delay?
-                                                            void promiseDelay(5 * 1000);
-
-                                                            this.bot.sendMessage(steamID, '⌛ Restarting...');
-
-                                                            child.exec(
-                                                                'pm2 restart ecosystem.json',
-                                                                {
-                                                                    cwd: path.resolve(__dirname, '..', '..', '..', '..')
-                                                                },
-                                                                () => {
-                                                                    // ignore err
-                                                                }
-                                                            );
-                                                        }
-                                                    );
-                                                }
-                                            );
-                                        }
-                                    );
-                                }
-                            );
-                        }
-                    );
-                }
-            })
-            .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));
-    }
-
     autokeysCommand(steamID: SteamID): void {
         const opt = this.bot.options.commands.autokeys;
         if (!opt.enable) {
@@ -770,8 +656,4 @@ export default class ManagerCommands {
 
         return reply;
     }
-}
-
-function promiseDelay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(() => resolve(), ms));
 }

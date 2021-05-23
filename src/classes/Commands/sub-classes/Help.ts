@@ -45,7 +45,6 @@ export default class HelpCommands {
                           '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
                           '!stop - Stop the bot 🔴',
                           '!restart - Restart the bot 🔄',
-                          '!updaterepo - Update your bot to the latest version (only if cloned and running with PM2)',
                           "!refreshautokeys - Refresh the bot's autokeys settings.",
                           '!refreshlist - Refresh sell listings 🔄',
                           "!name <new_name> - Change the bot's name",
