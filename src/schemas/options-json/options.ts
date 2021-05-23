@@ -657,7 +657,6 @@ export const optionsSchema: jsonschema.Schema = {
                         }
                     },
                     required: [
-                        'declinedTrade',
                         'summary',
                         'asked',
                         'offered',
@@ -677,6 +676,7 @@ export const optionsSchema: jsonschema.Schema = {
                 }
             },
             required: [
+                'declinedTrade',
                 'showStockChanges',
                 'showTimeTakenInMS',
                 'showDetailedTimeTaken',
