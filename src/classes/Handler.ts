@@ -49,9 +49,7 @@ export default abstract class Handler {
      * Called when a new trade offer is being processed
      * @param offer - The new trade offer
      */
-    abstract onNewTradeOffer(
-        offer: TradeOfferManager.TradeOffer
-    ): Promise<null | {
+    abstract onNewTradeOffer(offer: TradeOfferManager.TradeOffer): Promise<null | {
         action: 'accept' | 'decline' | 'skip';
         reason: string;
         meta?: Meta;
@@ -184,10 +182,9 @@ export default abstract class Handler {
     }
 
     /**
-     * Called when a heartbeat has been sent to bptf
-     * @param bumped - How many listings were bumped as the result of the heartbeat
+     * Called when a bptf user-agent renewed
      */
-    onHeartbeat(bumped: number): void {
+    onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
         // empty function
     }
 

@@ -257,10 +257,9 @@ export default class Bot {
         }, 10 * 60 * 1000);
     }
 
-    get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string; updateMessage: string }> {
+    get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string }> {
         return this.getLatestVersion.then(content => {
             const latestVersion = content.version;
-            const updateMessage = content.message;
 
             const hasNewVersion = semver.lt(process.env.BOT_VERSION, latestVersion);
 
@@ -270,22 +269,16 @@ export default class Bot {
                 this.messageAdmins(
                     'version',
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                        `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
-                        (process.env.pm_id !== undefined
-                            ? `\n\nYou're running the bot with PM2!\n\n🔄 Update message:\n${updateMessage}`
-                            : `\n\nNavigate to your bot folder and run ` +
-                              `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
-                              `and then restart your bot.`) +
-                        '\n\nContact IdiNium if you have any other problem. Thank you.',
+                        `Release note: https://github.com/TF2Autobot/tf2autobot/releases`,
                     []
                 );
             }
 
-            return { hasNewVersion, latestVersion, updateMessage };
+            return { hasNewVersion, latestVersion };
         });
     }
 
-    private get getLatestVersion(): Promise<{ version: string; message: string }> {
+    private get getLatestVersion(): Promise<{ version: string }> {
         return new Promise((resolve, reject) => {
             void request(
                 {
@@ -299,7 +292,7 @@ export default class Bot {
                     }
 
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-                    return resolve({ version: body.version, message: body.updateMessage });
+                    return resolve({ version: body.version });
                 }
             );
         });
@@ -332,7 +325,7 @@ export default class Bot {
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
+        this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
         this.addListener(
             this.listingManager,
             'createListingsError',
@@ -822,7 +815,7 @@ export default class Bot {
     private onSessionExpired(): void {
         log.debug('Web session has expired');
 
-        this.client.webLogOn();
+        if (this.client.steamID) this.client.webLogOn();
     }
 
     private onConfKeyNeeded(tag: string, callback: (err: Error | null, time: number, confKey: string) => void): void {

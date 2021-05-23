@@ -191,7 +191,7 @@ export default class PricelistManagerCommands {
     }
 
     private generateAddedReply(isPremium: boolean, entry: Entry): string {
-        const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku);
+        const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false);
         const reply =
             `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
             `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
@@ -951,7 +951,7 @@ export default class PricelistManagerCommands {
 
     private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
         const keyPrice = this.bot.pricelist.getKeyPrice;
-        const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku);
+        const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku, false);
 
         const reply =
             `\n💲 Buy: ${
@@ -1260,7 +1260,7 @@ export default class PricelistManagerCommands {
     }
 
     private generateOutput(filtered: Entry): string {
-        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, true);
+        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, false, true);
         filtered['stock'] = currentStock;
 
         return JSON.stringify(filtered, null, 4);
@@ -1278,7 +1278,7 @@ export default class PricelistManagerCommands {
 
         const list = pricelist.map((entry, i) => {
             const name = this.bot.schema.getName(SKU.fromString(entry.sku));
-            const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
+            const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
 
             return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
@@ -1303,6 +1303,73 @@ export default class PricelistManagerCommands {
                       }.`
             }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", "group", "isPartialPriced", *"promoted")\n\n` +
                 '* - Only shown if your account is Backpack.tf Premium\n\n.'
+        );
+
+        const applyLimit = limit === -1 ? listCount : limit;
+        const loops = Math.ceil(applyLimit / 50);
+
+        for (let i = 0; i < loops; i++) {
+            const last = loops - i === 1;
+            const i50 = i * 50;
+
+            const firstOrLast = i < 1 && limit > 0 && limit < 50 ? limit : i50 + (applyLimit - i50);
+
+            this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
+
+            await sleepasync().Promise.sleep(1 * 1000);
+        }
+    }
+
+    async partialPriceUpdateCommand(steamID: SteamID, message: string): Promise<void> {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        const pricelist = this.bot.pricelist.getPrices;
+        if (pricelist.length === 0) {
+            return this.bot.sendMessage(steamID, '❌ Your pricelist is empty.');
+        }
+
+        const isPpuEnabled = this.bot.options.pricelist.partialPriceUpdate.enable;
+
+        const ppuEd = pricelist.filter(entry => entry.isPartialPriced);
+        if (ppuEd.length === 0) {
+            if (!isPpuEnabled) {
+                return this.bot.sendMessage(
+                    steamID,
+                    '❌ This feature is disabled. Read more: ' +
+                        'https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file#--partial-price-update--'
+                );
+            }
+
+            return this.bot.sendMessage(steamID, '❌ No items with ppu enabled found.');
+        }
+
+        const list = ppuEd.map((entry, i) => {
+            const name = this.bot.schema.getName(SKU.fromString(entry.sku));
+            const time = dayjs.unix(entry.time).fromNow();
+
+            return `${i + 1}. ${entry.sku} - ${name} (since ${time})`;
+        });
+
+        const listCount = list.length;
+
+        const limit = params.limit === undefined ? 50 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+
+        this.bot.sendMessage(
+            steamID,
+            (!isPpuEnabled ? '⚠️ Partial Price Update disabled, but found ' : 'Found ') +
+                `${pluralize('item', listCount, true)} in your pricelist that ${pluralize(
+                    'is',
+                    listCount,
+                    true
+                )} currently being partial priced${
+                    limit !== -1 && params.limit === undefined && listCount > 50
+                        ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
+                        : `${
+                              limit < listCount && limit > 0 && params.limit !== undefined
+                                  ? ` (limit set to ${limit})`
+                                  : ''
+                          }.`
+                }`
         );
 
         const applyLimit = limit === -1 ? listCount : limit;
@@ -1454,7 +1521,7 @@ export default class PricelistManagerCommands {
 
             const list = filter.map((entry, i) => {
                 const name = this.bot.schema.getName(SKU.fromString(entry.sku));
-                const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, true);
+                const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max

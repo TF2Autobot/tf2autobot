@@ -370,13 +370,13 @@ export default class Autokeys {
                 // disable keys banking - if to conditions to disable banking matched and banking is enabled
                 this.setOverallStatus = [false, false, false, false, false, false];
                 this.setActiveStatus = false;
-                this.disable(currKeyPrice);
+                void this.disable(currKeyPrice);
                 //
             } else if (isRemoveAutoKeys && !isEnableKeyBanking) {
                 // disable Autokeys when conditions to disable Autokeys matched
                 this.setOverallStatus = [false, false, false, false, false, false];
                 this.setActiveStatus = false;
-                this.disable(currKeyPrice);
+                void this.disable(currKeyPrice);
                 //
             } else if (isAlertAdmins && !this.status.checkAlertOnLowPure) {
                 // alert admins when low pure
@@ -681,31 +681,41 @@ export default class Autokeys {
             });
     }
 
-    disable(keyPrices: KeyPrices): void {
-        const match = this.bot.pricelist.getPrice('5021;6', false);
-        if (match === null) {
-            return;
-        }
+    disable(keyPrices: KeyPrices): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const match = this.bot.pricelist.getPrice('5021;6', false);
+            if (match === null) {
+                return resolve();
+            }
 
-        let entry = this.generateEntry(false, 0, 1, 2);
+            if (!match.enabled) {
+                return resolve();
+            }
 
-        if (keyPrices.src === 'manual') {
-            entry = this.setManual(entry, keyPrices);
-        }
+            let entry = this.generateEntry(false, 0, 1, 2);
 
-        this.bot.pricelist
-            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
-            .then(() => log.debug('✅ Automatically disabled Autokeys.'))
-            .catch(err => {
-                const opt2 = this.bot.options;
-                this.onError(
-                    true,
-                    `❌ Failed to disable Autokeys: ${(err as Error).message}`,
-                    opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToDisable,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
-                    'autokeys-failedToDisable'
-                );
-            });
+            if (keyPrices.src === 'manual') {
+                entry = this.setManual(entry, keyPrices);
+            }
+
+            this.bot.pricelist
+                .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+                .then(() => {
+                    log.debug('✅ Automatically disabled Autokeys.');
+                    resolve();
+                })
+                .catch(err => {
+                    const opt2 = this.bot.options;
+                    this.onError(
+                        true,
+                        `❌ Failed to disable Autokeys: ${(err as Error).message}`,
+                        opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToDisable,
+                        opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                        'autokeys-failedToDisable'
+                    );
+                    reject();
+                });
+        });
     }
 
     refresh(): void {

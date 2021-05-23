@@ -58,15 +58,15 @@ export default class Listings {
 
         // Autobump is enabled, add heartbeat listener
 
-        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
-        this.bot.listingManager.on('heartbeat', this.checkFn);
+        this.bot.listingManager.removeListener('pulse', this.checkFn);
+        this.bot.listingManager.on('pulse', this.checkFn);
 
         // Get account info
         this.checkAccountInfo();
     }
 
     disableAutorelistOption(): void {
-        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
+        this.bot.listingManager.removeListener('pulse', this.checkFn);
         this.disableAutoRelist(false, 'permanent');
     }
 
@@ -350,14 +350,13 @@ export default class Listings {
                         // Filter pricelist to only items we can sell and we can afford to buy
 
                         const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
-                        const amountCanSell = inventoryManager.amountCanTrade(entry.sku, false);
 
                         if (
                             (amountCanBuy > 0 &&
                                 inventoryManager.isCanAffordToBuy(entry.buy, inventoryManager.getInventory)) ||
-                            amountCanSell > 0
+                            inventory.getAmount(entry.sku, false, true) > 0
                         ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
                             return true;
                         }
@@ -635,7 +634,7 @@ export default class Listings {
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-                .replace(/%current_stock%/g, inventory.getAmount(entry.sku, true).toString())
+                .replace(/%current_stock%/g, inventory.getAmount(entry.sku, false, true).toString())
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
             return newDetail;
         };

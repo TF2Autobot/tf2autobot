@@ -21,6 +21,7 @@ import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
 import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
+import processDeclined from './offer/processDeclined';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
@@ -250,9 +251,9 @@ export default class MyHandler extends Handler {
                 'item',
                 this.bot.pricelist.getLength,
                 true
-            )} in pricelist | Listings cap: ${String(
-                this.bot.listingManager.cap
-            )} | Startup time: ${process.uptime().toFixed(0)} s`
+            )} in pricelist | Listings cap: ${String(this.bot.listingManager.cap)} | Startup time: ${process
+                .uptime()
+                .toFixed(0)} s`
         );
 
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
@@ -401,23 +402,41 @@ export default class MyHandler extends Handler {
         this.bot.listings.disableAutorelistOption();
 
         return new Promise(resolve => {
-            if (this.opt.autokeys.enable && this.autokeys.getActiveStatus) {
+            if (this.opt.autokeys.enable) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
-                this.autokeys.disable(this.bot.pricelist.getKeyPrices);
-            }
+                this.autokeys
+                    .disable(this.bot.pricelist.getKeyPrices)
+                    .catch(() => {
+                        log.warn('Unable to disable Mann Co. Supply Crate Key...');
+                    })
+                    .finally(() => {
+                        if (this.bot.listingManager.ready !== true) {
+                            // We have not set up the listing manager, don't try and remove listings
+                            return resolve();
+                        }
 
-            if (this.bot.listingManager.ready !== true) {
-                // We have not set up the listing manager, don't try and remove listings
-                return resolve();
-            }
+                        void this.bot.listings.removeAll().asCallback(err => {
+                            if (err) {
+                                log.warn('Failed to remove all listings: ', err);
+                            }
 
-            void this.bot.listings.removeAll().asCallback(err => {
-                if (err) {
-                    log.warn('Failed to remove all listings: ', err);
+                            resolve();
+                        });
+                    });
+            } else {
+                if (this.bot.listingManager.ready !== true) {
+                    // We have not set up the listing manager, don't try and remove listings
+                    return resolve();
                 }
 
-                resolve();
-            });
+                void this.bot.listings.removeAll().asCallback(err => {
+                    if (err) {
+                        log.warn('Failed to remove all listings: ', err);
+                    }
+
+                    resolve();
+                });
+            }
         });
     }
 
@@ -556,7 +575,8 @@ export default class MyHandler extends Handler {
                         return;
                     }
 
-                    const inventory = this.bot.inventoryManager;
+                    const inventoryManager = this.bot.inventoryManager;
+                    const inventory = inventoryManager.getInventory;
                     const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
 
                     this.bot.listingManager.listings.forEach(listing => {
@@ -582,7 +602,7 @@ export default class MyHandler extends Handler {
                         const match = this.bot.pricelist.getPrice(listingSKU);
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                            const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
+                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
                             if (!canAffordToBuy) {
                                 // Listing for buying exist but we can't afford to buy, remove.
                                 log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
@@ -604,15 +624,14 @@ export default class MyHandler extends Handler {
                         if (!isExist) {
                             // undefined - listing does not exist but item is in the pricelist
 
-                            // Get amountCanBuy and amountCanSell (already cover intent and so on)
-                            const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
-                            const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+                            // Get amountCanBuy (already cover intent and so on)
+                            const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
 
                             if (
-                                (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
-                                amountCanSell > 0
+                                (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
+                                inventory.getAmount(entry.sku, false, true) > 0
                             ) {
-                                // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                                // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                                 // return this entry
                                 log.debug(
                                     `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${entry.sku}`
@@ -1929,6 +1948,16 @@ export default class MyHandler extends Handler {
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
                 highValue.items = result.items;
+            } else if (
+                offer.state === TradeOfferManager.ETradeOfferState['Declined'] &&
+                this.bot.options.tradeSummary.declinedTrade.enable &&
+                !this.sentSummary[offer.id]
+            ) {
+                //No need to create a new timeout cause a trade can't be accepted after getting declined or cant be declined after being accepted.
+                clearTimeout(this.resetSentSummaryTimeout);
+                this.sentSummary[offer.id] = true;
+
+                processDeclined(offer, this.bot, this.isTradingKeys);
             }
         }
 
@@ -2253,6 +2282,13 @@ export default class MyHandler extends Handler {
             log.debug(`${sku} updated`);
         }
         this.bot.listings.checkBySKU(sku, entry, false, true);
+    }
+
+    onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
+        if (pulse.client) {
+            delete pulse.client;
+        }
+        log.debug('user-agent', pulse);
     }
 
     onLoginThrottle(wait: number): void {

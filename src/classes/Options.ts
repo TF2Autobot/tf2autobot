@@ -6,7 +6,7 @@ import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
 import { Currency } from '../types/TeamFortress2';
 
-export const DEFAULTS = {
+export const DEFAULTS: JsonOptions = {
     miscSettings: {
         showOnlyMetal: {
             enable: true
@@ -115,6 +115,7 @@ export const DEFAULTS = {
     },
 
     tradeSummary: {
+        declinedTrade: { enable: false },
         showStockChanges: false,
         showTimeTakenInMS: false,
         showDetailedTimeTaken: true,
@@ -169,6 +170,7 @@ export const DEFAULTS = {
     steamChat: {
         customInitializer: {
             acceptedTradeSummary: '/me',
+            declinedTradeSummary: '/me',
             review: '',
             message: {
                 onReceive: '/quote',
@@ -190,15 +192,18 @@ export const DEFAULTS = {
     normalize: {
         festivized: {
             our: false,
-            their: false
+            their: false,
+            amountIncludeNonFestivized: false
         },
         strangeAsSecondQuality: {
             our: false,
-            their: false
+            their: false,
+            amountIncludeNonStrange: false
         },
         painted: {
             our: true,
-            their: true
+            their: true,
+            amountIncludeNonPainted: false
         }
     },
 
@@ -401,6 +406,17 @@ export const DEFAULTS = {
                 enable: false,
                 itemSkus: [],
                 tradeValueInRef: 0
+            }
+        },
+        declinedTrade: {
+            enable: true,
+            url: [],
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true,
+                showInventory: true,
+                note: ''
             }
         },
         offerReview: {
@@ -1108,6 +1124,7 @@ interface OnlyAllow {
 // ------------ TradeSummary ------------
 
 export interface TradeSummary {
+    declinedTrade?: OnlyEnable;
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
     showDetailedTimeTaken?: boolean;
@@ -1147,6 +1164,7 @@ interface SteamChat {
 
 interface CustomInitializer {
     acceptedTradeSummary?: string;
+    declinedTradeSummary?: string;
     review?: string;
     message?: CustomInitializerMessage;
 }
@@ -1170,14 +1188,26 @@ interface HighValue {
 // ------------ Normalize ------------
 
 interface Normalize {
-    festivized?: NormalizeOurOrTheir;
-    strangeAsSecondQuality?: NormalizeOurOrTheir;
-    painted?: NormalizeOurOrTheir;
+    festivized?: NormalizeFestivized;
+    strangeAsSecondQuality?: NormalizeStrange;
+    painted?: NormalizePainted;
 }
 
 interface NormalizeOurOrTheir {
     our?: boolean;
     their?: boolean;
+}
+
+interface NormalizeFestivized extends NormalizeOurOrTheir {
+    amountIncludeNonFestivized?: boolean;
+}
+
+interface NormalizeStrange extends NormalizeOurOrTheir {
+    amountIncludeNonStrange?: boolean;
+}
+
+interface NormalizePainted extends NormalizeOurOrTheir {
+    amountIncludeNonPainted?: boolean;
 }
 
 // ------------ Details ------------
@@ -1342,6 +1372,7 @@ interface DiscordWebhook {
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
+    declinedTrade?: DeclinedTradeDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
@@ -1353,6 +1384,11 @@ interface TradeSummaryDW extends OnlyEnable {
     url?: string[];
     misc?: MiscTradeSummary;
     mentionOwner?: MentionOwner;
+}
+
+interface DeclinedTradeDW extends OnlyEnable {
+    url?: string[];
+    misc?: MiscTradeSummary;
 }
 
 interface OnlyNote {
@@ -1944,9 +1980,9 @@ export function loadOptions(options?: Options): Options {
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
     lintAllTheThings(getFilesPath(steamAccountName)); // you shall not pass
 
-    const jsonParseArray = (jsonString: string): string[] => (JSON.parse(jsonString) as unknown) as string[];
-    const jsonParseBoolean = (jsonString: string): boolean => (JSON.parse(jsonString) as unknown) as boolean;
-    const jsonParseNumber = (jsonString: string): number => (JSON.parse(jsonString) as unknown) as number;
+    const jsonParseArray = (jsonString: string): string[] => JSON.parse(jsonString) as unknown as string[];
+    const jsonParseBoolean = (jsonString: string): boolean => JSON.parse(jsonString) as unknown as boolean;
+    const jsonParseNumber = (jsonString: string): number => JSON.parse(jsonString) as unknown as number;
 
     const envOptions = {
         steamAccountName: steamAccountName,

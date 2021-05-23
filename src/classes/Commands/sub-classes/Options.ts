@@ -1,6 +1,7 @@
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
 import sleepasync from 'sleep-async';
+import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
@@ -159,6 +160,14 @@ export default class OptionsCommands {
 
     updateOptionsCommand(steamID: SteamID, message: string): void {
         const opt = this.bot.options;
+        if (
+            message.includes('painted.An Extraordinary Abundance of Tinge') ||
+            message.includes('painted.Ye Olde Rustic Colour') ||
+            message.includes('painted.An Air of Debonair')
+        ) {
+            message = removeLinkProtocol(message);
+        }
+
         const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as unknown;
 
         const optionsPath = getOptionsPath(opt.steamAccountName);
@@ -253,7 +262,7 @@ export default class OptionsCommands {
 
                 if (typeof knownParams.autokeys === 'object') {
                     if (knownParams.autokeys.enable !== undefined && !knownParams.autokeys.enable) {
-                        this.bot.handler.autokeys.disable(this.bot.pricelist.getKeyPrices);
+                        void this.bot.handler.autokeys.disable(this.bot.pricelist.getKeyPrices);
                     }
                     this.bot.handler.autokeys.check();
                 }
