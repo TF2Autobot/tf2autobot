@@ -515,7 +515,11 @@ function getPainted(
         }
     }
 
-    if (paintsInOptions.includes('legacy paint') && item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')) {
+    if (
+        !item.type.includes('Tool') &&
+        paintsInOptions.includes('legacy paint') &&
+        item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
+    ) {
         return 5801378;
     }
 
