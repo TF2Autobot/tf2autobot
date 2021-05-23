@@ -177,7 +177,7 @@ function getSummary(
 
         if (showStockChanges) {
             let oldStock: number | null = 0;
-            const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
+            const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true, true);
             const maxStock = bot.pricelist.getPrice(sku, false);
 
             const summaryAccepted = ['summary-accepted'].includes(type);

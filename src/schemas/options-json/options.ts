@@ -22,19 +22,6 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['enable'],
             additionalProperties: false
         },
-        'normalize-which': {
-            type: 'object',
-            properties: {
-                our: {
-                    type: 'boolean'
-                },
-                their: {
-                    type: 'boolean'
-                }
-            },
-            required: ['our', 'their'],
-            additionalProperties: false
-        },
         'only-allow': {
             type: 'object',
             properties: {
@@ -769,13 +756,52 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 festivized: {
-                    $ref: '#/definitions/normalize-which'
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        },
+                        amountIncludeNonFestivized: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their', 'amountIncludeNonFestivized'],
+                    additionalProperties: false
                 },
                 strangeAsSecondQuality: {
-                    $ref: '#/definitions/normalize-which'
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        },
+                        amountIncludeNonStrange: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their', 'amountIncludeNonStrange'],
+                    additionalProperties: false
                 },
                 painted: {
-                    $ref: '#/definitions/normalize-which'
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        },
+                        amountIncludeNonPainted: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their', 'amountIncludeNonPainted'],
+                    additionalProperties: false
                 }
             },
             required: ['festivized', 'strangeAsSecondQuality', 'painted'],

@@ -575,7 +575,8 @@ export default class MyHandler extends Handler {
                         return;
                     }
 
-                    const inventory = this.bot.inventoryManager;
+                    const inventoryManager = this.bot.inventoryManager;
+                    const inventory = inventoryManager.getInventory;
                     const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
 
                     this.bot.listingManager.listings.forEach(listing => {
@@ -601,7 +602,7 @@ export default class MyHandler extends Handler {
                         const match = this.bot.pricelist.getPrice(listingSKU);
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                            const canAffordToBuy = inventory.isCanAffordToBuy(match.buy, inventory.getInventory);
+                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
                             if (!canAffordToBuy) {
                                 // Listing for buying exist but we can't afford to buy, remove.
                                 log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
@@ -623,15 +624,14 @@ export default class MyHandler extends Handler {
                         if (!isExist) {
                             // undefined - listing does not exist but item is in the pricelist
 
-                            // Get amountCanBuy and amountCanSell (already cover intent and so on)
-                            const amountCanBuy = inventory.amountCanTrade(entry.sku, true);
-                            const amountCanSell = inventory.amountCanTrade(entry.sku, false);
+                            // Get amountCanBuy (already cover intent and so on)
+                            const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
 
                             if (
-                                (amountCanBuy > 0 && inventory.isCanAffordToBuy(entry.buy, inventory.getInventory)) ||
-                                amountCanSell > 0
+                                (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
+                                inventory.getAmount(entry.sku, false, true) > 0
                             ) {
-                                // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                                // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                                 // return this entry
                                 log.debug(
                                     `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${entry.sku}`
