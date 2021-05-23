@@ -336,6 +336,16 @@ export function getItemFromParams(
     ) {
         // Standardize defindex for Strangifier
         item.defindex = 6522;
+    } else if (
+        [
+            20001, // Cosmetic Strangifier Recipe 1 Rare
+            20005, // Cosmetic Strangifier Recipe 2
+            20008, // Rebuild Strange Weapon Recipe
+            20009 // Cosmetic Strangifier Recipe 3
+        ].includes(item.defindex)
+    ) {
+        // Standardize defindex for Strangifier Chemistry Set
+        item.defindex = 20000;
     }
 
     if (typeof params.quality === 'number') {
