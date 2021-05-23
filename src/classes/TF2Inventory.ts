@@ -129,9 +129,7 @@ export default class TF2Inventory {
         });
     }
 
-    private static getItemHistory(
-        assetid: string
-    ): Promise<{
+    private static getItemHistory(assetid: string): Promise<{
         recorded: boolean;
         isDuped?: boolean;
         history?: [];
