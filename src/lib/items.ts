@@ -61,6 +61,9 @@ export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
     ) {
         // Standardize all specific Basic Killstreak Kit
         item.defindex = 6527;
+    } else if (item.defindex === 5738) {
+        // Standardize different versions of Mann Co. Stockpile Crate
+        item.defindex = 5737;
     }
 
     const isPromo = isPromoItem(schemaItem);
