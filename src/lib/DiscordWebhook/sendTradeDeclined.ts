@@ -42,7 +42,7 @@ export default async function sendTradeDeclined(
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);
-    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, isOfferSent);
+    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, false, isOfferSent);
 
     log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
@@ -81,7 +81,7 @@ export default async function sendTradeDeclined(
                     icon_url: details.avatarFull as string
                 },
                 description:
-                    `⛔ An offer sent by ${declinedDescription ? partnerNameNoFormat : 'us'} is declined.${
+                    `⛔ An offer sent by ${declinedDescription ? partnerNameNoFormat : 'us'} was declined.${
                         declinedDescription ? '\nReason: ' + declinedDescription : ''
                     }` +
                     summary +

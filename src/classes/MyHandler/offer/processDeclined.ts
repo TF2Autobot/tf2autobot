@@ -28,6 +28,9 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
 
     if (offerReceived) {
         switch (offerReceived.reason) {
+            case 'MANUAL':
+                declined.reasonDescription = offerReceived.reason + ': Manually declined by the owner.';
+                break;
             case 'ESCROW':
                 declined.reasonDescription = offerReceived.reason + ': Partner has trade hold.';
                 break;
@@ -240,7 +243,7 @@ export function sendToAdmin(
         'trade',
         `${customInitializer ? customInitializer : '/me'} Trade #${
             offer.id
-        } with ${offer.partner.getSteamID64()} is declined. ❌` +
+        } with ${offer.partner.getSteamID64()} was declined. ❌` +
             t.summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true, isOfferSent) +
             (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
             `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +

@@ -2278,6 +2278,9 @@ export default class MyHandler extends Handler {
     }
 
     onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
+        if (pulse.client) {
+            delete pulse.client;
+        }
         log.debug('user-agent', pulse);
     }
 
