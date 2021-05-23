@@ -1836,6 +1836,330 @@ const ks3Images: { [sku: string]: string } = {
         'y1FfJDT5zn1ia9puOd_5zATppufDHyL0amWReniJSFg_HrYINT7Q_jH34L-QFDufRbssElgCf6MG-zAaOtfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7F18MOCxEUbQM8dUqI52ZpHqJvNqQxRbrcxGkwbFPd9YWrVUKvnxHiaV-SxN-AI5sVSXl1IGBu6nCV9CU8h76jYOQwVsSpy7OLM-CRiV0it'
 };
 
+const strangifierImages: { [sku: string]: string } = {
+    // Reference: https://wiki.teamfortress.com/wiki/Template:Strangifiers_table & tf2 schema
+    // Pomson 6000 Strangifier
+    '6522;6;td-588':
+        'y1FSOCXHzXtgdupiB8fH0gL-7-fUGCymOWLCdiSOHQowTbFdPGver2bxse6QETzLELt_Sw0DeaEA9TJXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq71lTT6Gg',
+    '5661;6;td-588':
+        'y1FSOCXHzXtgdupiB8fH0gL-7-fUGCymOWLCdiSOHQowTbFdPGver2bxse6QETzLELt_Sw0DeaEA9TJXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq71lTT6Gg',
+    // Pretty Boy's Pocket Pistol Strangifier
+    '6522;6;td-773':
+        'y1FGLzLHzX1-cepgB8fH0gL-77vfHy30OTPCLnmIHws_HLoPZzra9zek57nHFjmaR-p5RAhRdPcA8WNXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq5kc-XNmA',
+    '5721;6;td-773':
+        'y1FGLzLHzX1-cepgB8fH0gL-77vfHy30OTPCLnmIHws_HLoPZzra9zek57nHFjmaR-p5RAhRdPcA8WNXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq5kc-XNmA',
+    // Phlogistinator Strangifier
+    '6522;6;td-594':
+        'y1FSOCXHzXxhauJlK9_PzgTvrvCyEHXlbzKKKieMTgk7SOEMN26N-jv35biWFmrNQLsqEglRfasCoG1OOpuAOBU10plLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54pY2xSYgx',
+    '5722;6;td-594':
+        'y1FSOCXHzXxhauJlK9_PzgTvrvCyEHXlbzKKKieMTgk7SOEMN26N-jv35biWFmrNQLsqEglRfasCoG1OOpuAOBU10plLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54pY2xSYgx',
+    // Cleaner's Carbine Strangifier
+    '6522;6;td-751':
+        'y1FGOC3HznlqWultKszDjgb987WMRHDyOWeSe3aJTg5sSrMPNWja-DX24unCF2maSeEvFw0EK_YasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejFabpmOqZiwMKC2VMARsIjUpwszJoI682n61tBOtlrHw9NRrt9MG-IVfHmwHnNWObgaeBc5sIEV19ISBq-ymo7UR5df1B87w',
+    '5723;6;td-751':
+        'y1FGOC3HznlqWultKszDjgb987WMRHDyOWeSe3aJTg5sSrMPNWja-DX24unCF2maSeEvFw0EK_YasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejFabpmOqZiwMKC2VMARsIjUpwszJoI682n61tBOtlrHw9NRrt9MG-IVfHmwHnNWObgaeBc5sIEV19ISBq-ymo7UR5df1B87w',
+    // Private Eye Strangifier
+    '6522;6;td-388':
+        '235PFTLq1GJsceBTPdLD_wn6s-WIUiXzPTWWf3OJSws-GOUMPWHYrWXx4OyXFjCaFel5EQEAeatW-2NMaZqXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFo4dWLn1Q',
+    '5724;6;td-388':
+        '235PFTLq1GJsceBTPdLD_wn6s-WIUiXzPTWWf3OJSws-GOUMPWHYrWXx4OyXFjCaFel5EQEAeatW-2NMaZqXf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFo4dWLn1Q',
+    // Big Chief Strangifier
+    '6522;6;td-309':
+        'wGtXPDvH331qWuZkMc7A_wn6s-WIUiamMTHFfnCATA5uHOBbZ2_c_mak5-jAR27OFO14RgkBK6sA-jdJaZ-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFqXGUWhig',
+    '5725;6;td-309':
+        'wGtXPDvH331qWuZkMc7A_wn6s-WIUiamMTHFfnCATA5uHOBbZ2_c_mak5-jAR27OFO14RgkBK6sA-jdJaZ-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFqXGUWhig',
+    // Air Strike Strangifier
+    '6522;6;td-1104':
+        'y1FXPi314nhscOtvMM7U_wn6s-WIUiz2PzLCd3eKTgk5HLcLPGHQrDLz5OjGRjubRbx-EQsNevEDoTYfPs2Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFryVcUbRQ',
+    '5753;6;td-1104':
+        'y1FXPi314nhscOtvMM7U_wn6s-WIUiz2PzLCd3eKTgk5HLcLPGHQrDLz5OjGRjubRbx-EQsNevEDoTYfPs2Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFryVcUbRQ',
+    // Classic Strangifier
+    '6522;6;td-1098':
+        'y1FCLCHHznpkdeB-KsLAzADEreOfG3G5PGeQdnaAGQ9tROFbPWHY_TemtLnBR27PROAtR1pXKacN8zBPP8zYbQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e5-cVmfXp',
+    '5754;6;td-1098':
+        'y1FCLCHHznpkdeB-KsLAzADEreOfG3G5PGeQdnaAGQ9tROFbPWHY_TemtLnBR27PROAtR1pXKacN8zBPP8zYbQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e5-cVmfXp',
+    // Manmelter Strangifier
+    '6522;6;td-595':
+        'y1FSOCXH0HVjaOBgLM7U_wn6s-WIUnbxO2GQfCLaGAtrG7JYNm7Z_jb37OSQET7LRu16RF9QfqoN-2RNaJ-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFoNLjGUwg',
+    '5755;6;td-595':
+        'y1FSOCXH0HVjaOBgLM7U_wn6s-WIUnbxO2GQfCLaGAtrG7JYNm7Z_jb37OSQET7LRu16RF9QfqoN-2RNaJ-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFoNLjGUwg',
+    // Vaccinator Strangifier
+    '6522;6;td-998':
+        'y1FbLybx2mFjWuFpPs7I0wDEreOfG3G5OmXCdnSMSVtrTroIMjnZ-Dqs5uWTF27AQrokEg8MeaYD8WJJaMDdPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e5w1n3f2Q',
+    '5756;6;td-998':
+        'y1FbLybx2mFjWuFpPs7I0wDEreOfG3G5OmXCdnSMSVtrTroIMjnZ-Dqs5uWTF27AQrokEg8MeaYD8WJJaMDdPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e5w1n3f2Q',
+    // Widowmaker Strangifier
+    '6522;6;td-527':
+        'y1FSLzrHznxiceJ5NvTKwRf8pKzYGiLzMG-cLHmASQk_HLoNZjuLqGDw5--dSjqaQ-gqEQFRdPcE9jFAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJ7V1_suA0mkVSs8ZTJQ99JNHqZn39V0QPthrGQ9NR71_ZG7TV6zhyn-QX-C1aucMt5dRAloZHk-7yXYuDBg3qKeO4nSV3sk',
+    '5757;6;td-527':
+        'y1FSLzrHznxiceJ5NvTKwRf8pKzYGiLzMG-cLHmASQk_HLoNZjuLqGDw5--dSjqaQ-gqEQFRdPcE9jFAI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJ7V1_suA0mkVSs8ZTJQ99JNHqZn39V0QPthrGQ9NR71_ZG7TV6zhyn-QX-C1aucMt5dRAloZHk-7yXYuDBg3qKeO4nSV3sk',
+    // Anger Strangifier
+    '6522;6;td-518':
+        'y1FULzbH32Zka-5kN8TC_wn6s-WIUiyva27Be3XYSVw6ReZaMWCMqmfztuSTFDnIRr0tRggCLqEApzIaa5-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFohYLRXUQ',
+    '5758;6;td-518':
+        'y1FULzbH32Zka-5kN8TC_wn6s-WIUiyva27Be3XYSVw6ReZaMWCMqmfztuSTFDnIRr0tRggCLqEApzIaa5-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFohYLRXUQ',
+    // Apparition's Aspect Strangifier
+    '6522;6;td-571':
+        'z2ZZOTbH3Gd9YOZ4B8fH0gL-7-HeGXeiOG-Te3PaHwkwSLYPPDne_2f04--VSjDBR-95Fl8GK6VXozdXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq6EC8Dtxg',
+    '5759;6;td-571':
+        'z2ZZOTbH3Gd9YOZ4B8fH0gL-7-HeGXeiOG-Te3PaHwkwSLYPPDne_2f04--VSjDBR-95Fl8GK6VXozdXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq6EC8Dtxg',
+    // Cow Mangler 5000 Strangifier
+    '6522;6;td-441':
+        'y1FSOCXH3nt6aORiP8fD0jr3oPCKGTqhPDGdeHKIHg1uROZWPDqK-TvztujGQjnOEOh6Rg1QeaoH8jdBaZjYIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo7NGV1lgVSv4bW5M72ZZFhJLzqQpGJdhuTg5KE-h_Yz2AVf61wCueV-K6PuIOsMdVBQ8bH0y-z3R9XUt866jHKlMXjPy0Lr4',
+    '5783;6;td-441':
+        'y1FSOCXH3nt6aORiP8fD0jr3oPCKGTqhPDGdeHKIHg1uROZWPDqK-TvztujGQjnOEOh6Rg1QeaoH8jdBaZjYIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo7NGV1lgVSv4bW5M72ZZFhJLzqQpGJdhuTg5KE-h_Yz2AVf61wCueV-K6PuIOsMdVBQ8bH0y-z3R9XUt866jHKlMXjPy0Lr4',
+    // Third Degree Strangifier
+    '6522;6;td-593':
+        'y1FSOCXHyXxkd-FoPczUxQDEreOfG3G5PWeUenaKRQ49SeVWZ2yI_2Cs5OSdFGzMFekoQ19ReqNS9GZPOpvcPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e53GjJztD',
+    '5784;6;td-593':
+        'y1FSOCXHyXxkd-FoPczUxQDEreOfG3G5PWeUenaKRQ49SeVWZ2yI_2Cs5OSdFGzMFekoQ19ReqNS9GZPOpvcPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e53GjJztD',
+    // Righteous Bison Strangifier
+    '6522;6;td-442':
+        'y1FSOCXHz31qbfFpN97VwgzoruyyEHXlbzKKfnOLHgw7G7oNZmDf-zei4-nCRD2YEO59Q1sBf6RQoDZLbMCJNkdphZlLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54pS_Iw4mp',
+    '5804;6;td-442':
+        'y1FSOCXHz31qbfFpN97VwgzoruyyEHXlbzKKfnOLHgw7G7oNZmDf-zei4-nCRD2YEO59Q1sBf6RQoDZLbMCJNkdphZlLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54pS_Iw4mp',
+    // ---
+    // Bonk Boy
+    '6522;6;td-451':
+        'ymFYIR313GdmWultKszDjgSv9rCJTyD1O2eXeHWKTwk5GbFXNWna9mast-SdRz_KE-glQwoEevYasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejFabpmOqZiwMKC2VMARsIjUpwszJoI682n61tBOtlrHw9NRrt9MG-IVfHmwHnNWObgaeBc5sIEV19ISBq-ymo7UR4svlK1Ew',
+    // Boston Boom-Bringer
+    '6522;6;td-707':
+        'ymFZJyD3xUthZPdrPYXFwlD4-brVTXKnMG-ceiePSgg8T-EKZmjfrzak5OvGQG3LQbp-SlwAY-JapXIQYJ6IUFo92YcV-T3t0U1wGUcXapQbIEHtmSFVOLAimR4LdZZShyDzJoKA2AhjBw9rV7j5UbTCedDl0HZwUB5jH7ZDOdyY4XazptTuKbPEfKZgMZ5g-suCxV8RcM0dTJo7hc8V7s6kuVwSPYxsSgkeQrx4bGiJVfrglnidDLWzauIKscFWBVtPSR6j2yosDrnqyY0',
+    // Sole Saviors
+    '6522;6;td-30358':
+        '22xZMnCojCBSZPdhN9n50w30pPGyEHXlbzKKfCeMTgowTLMNZmjd-TX3sezBFm6dELx4RAgAeqQD8G1BPMrdbhJo0plLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54pS4sWWFK',
+    // Ticket Boy
+    '6522;6;td-30376':
+        '22xZMnCojCBScexvM87S_wf0uN2BHWbwbXmWeyOASw0wGOJdMGvb-2Wh5enAE2vBF-klQVxXdPZR9GxMPZyBOhppysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIxEIATs8bW6I5zpFDqZfxhAFCeY84VQ5PROl4N2iAUq3mwnnKXba0NuAB5MJXAl8fGBm8znd4W0kvuvuMaVxe8CBxp1vheNc',
+    // Fancy Dress Uniform
+    '6522;6;td-446':
+        'zmpDFS75z3NoK7VvbciekAf5-bXeSnenbGOcLCLcGgtpRLVYMW3erzCi4LnGFz_JRe4yA1dTa_tZpWUmdcmEPww_3IIdomi_xntlT0t4PJMVJUmyx3NCDqR1lXFccZhSj32tcZW2zF5vaFhtUrjxB_yCNtWolCskS0M6SK1DN9TL-zqvvNWgNKDTQq9iOqR19sa421cASMRSDs5rm8lE6s-kv1wSPIpuHghFQOF_Zm7UUvy1lX_NXeDmP-db55RTBkdaFBhIUBdMEQ',
+    // Lord Cockswain's Novelty Mutton Chops and Pipe
+    '6522;6;td-440':
+        'zHxRFSr51GZSZ-BtKs_5yQb0r92BHWbwbXmWdnSKHwsxGbsPZzrY_2LztL_GRTiYSOEoRQkBdKFR8GEaP8HaOxQ_ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIxEIATs8bW6I5zpFDqZfxhAFCeY84VQ5PROl4N2iAUq3mwnnKXba0NuAB5MJXAl8fGBm8znd4W0kvuvuMaVxe8CBxoK33u5w',
+    // All-Father
+    '6522;6;td-647':
+        '0GNFFSD93GZpWultKszDjgGj97fUTHWnOGOXeCXdHl1sGLdePTrb-mWts7ycRDvAQbopRV8AL6sasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejFabpmOqZiwMKC2VMARsIjUpwszJoI682n61tBOtlrHw9NRrt9MG-IVfHmwHnNWObgaeBc5sIEV19ISBq-ymo7UR4SkHgL8Q',
+    // Killer's Kit
+    '6522;6;td-30339':
+        '22xZMnCojCBSbuxgNM7U0zrwqPayEHXlbzKKe3DfTAYwT7RWMDvd-mGl5--dQD2dEL14QggFf_cCoDYcb8CBPUZu3ZlLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54pR8THNYv',
+    // Ground Control
+    '6522;6;td-30338':
+        '22xZMnCojCBSdupgPMLD0jr2oOiCDkv7aSXDKm-JH1xuHOFcYTnZr2ek4ruTEDCcRu55FwxVfPYN8jdNPsqPORs91YML5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdXNUOX5M5zqBBvpD3qQRAVIQ8CVkZX-l9YGmHBvjmxSqZX-TgPLQP7MBYVlodH0m4ySJ6WkoqvPnfOA8Vsy84svzFQO9HCAo',
+    // Stockbroker's Scarf
+    '6522;6;td-336':
+        '2HdEJR3sz319cux-PfTSyQDEreOfG3G5am-VKiTdSl8_TOIPM2mMrWajtO6RFzzPF7kvFglVLPYC8DBOPc7dPwx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e5xtR8z-a',
+    // Sight for Sore Eyes
+    '6522;6;td-387':
+        '22FELx39xHF-WultKszDjlOrp7rZGCyvazXAKiKKTAZqSLsNYWuL-mf24LiXF27ORbwlR1pRe6UasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejFabpmOqZiwMKC2VMARsIjUpwszJoI682n61tBOtlrHw9NRrt9MG-IVfHmwHnNWObgaeBc5sIEV19ISBq-ymo7UR5Est7Iig',
+    // Cute Suit
+    '6522;6;td-30367':
+        '22xZMnCojCBSf-x8KM7U_xbuqPayEHXlbzKKKySBRQZpSLcLMWHc_TehtuWcFzqaRLx9RwBVe6MG-m1KaJiIbkE0h5lLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54pfbOlLVG',
+    // Sole Mate
+    '6522;6;td-30355':
+        '22xZMnCojCBSdupgPfTLwRH-nu6MDnPyJjWdeXiOS1swSLFWPGDQqGKntOyQSmyYEOt5QAkCeacB8GZNbM6PO0EjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqUw0QTQcYZYZo7xZpUsp3NtwxRbI1zSw1JQe8sZGiHAPjmxCybC-W7PukI5sYFUVxIHE7omHcvD0976qzaOxMA7ilw2qtZLQ',
+    // Horseless Headless Horsemann's Headtaker
+    '6522;6;td-266':
+        'y1FeLyP8yXVmYPdTNMrUxwC1-LvaHiGvam7Ge3XfRQkwTrINZGGNqjL05rjFRWzIErx6EQoHK6ME83oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrtzJqBp-MC40FMcStMVXaIyyo1BvtCi6FgTPYpsSggYQOh5N2rUUvDmy3-bWba0OrNf5JRTVA0aTB2_zncqEQl3v3kBkZBA',
+    // Bird-Man of Aberdeen
+    '6522;6;td-776':
+        'zGtbJR3o3GZ_avFTNMrUxwC18rXVGCWuaTKcLnSPSQgxHrpcNmuKqDHwsOrBFDHBQ-ouFVgGKKQF93oJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrtzJqBp-MC40FMcStMVXaIyyo1BvtCi6FgTPYpsSggYQOh5N2rUUvDmy3-bWba0OrNf5JRTVA0aTB2_zncqEQl3v3HOBRPu',
+    // Dark Age Defender
+    '6522;6;td-30073':
+        'xW9fJh360nlvYPdTNMrUxwC19LaOSCGmOjSSfSKKGQ1qGbZXZGuK-TWiseyUETufSO0vQQEFe_QH8noJY56fZk9q1ehD-zjo2RYlS1Ahf8IXTxfqlyRdZ-5wjigfIpo90CT9Jordhl90MRs9W9euV7HCcYatkDl1HVo-S60eYIuD4Xi79c6iNanFMrtzJqBp-MC40FMcStMVXaIyyo1BvtCi6FgTPYpsSggYQOh5N2rUUvDmy3-bWba0OrNf5JRTVA0aTB2_zncqEQl3v_qHNRj4',
+    // Bushi-Dou
+    '6522;6;td-30348':
+        '22xZMnCojCBSYeBhN_TVwQjus-OEI3XlZTjRPR7VHUxvGK0NZG3Q_jas4rnFEGyaEu59FwpWf6VV-2RKPsDaO0E40IIC_mfqlBEsUAYmdYNPfQjq9WxDbO1rmnlHY8IPziWfbpXUhUFka0N8A-WwV9OLb4yljisnXQw-QvcbC8KUtSXy_5_xfKbGbaFjafUzr4OO2lFPRsITUI5x2ItUupD1vjJEboY4CVcfLrUvJz7USvnkxn6eDOKzObUI5MYCVAwcQ061mnd8Wk8suq_YPw5D5H4goKDHrJyujou4OnEXFCo',
+    // Juggernaut Jacket
+    '6522;6;td-30363':
+        '22xZMnCojCBSb_BrP87UzgTutd2HHXf8bSP7IyDLG1smG7tfYWnb-Tujt-jCE22cRb4pQAxRdfFSpjdIacHYbkc_hYFY8jXslQptEBFue8hBITCjmilDf-99nWcbKMxT9mzxK5THg1xnfh83DbmIH7zPb5-hky8yBEcwHs9TZYaVpiLk-IGgKrffefUzYPEh9siAil8RQM8PEY4q2Z5IvJvNvAhNbpo0GGEQEKspMHeBV_znxSyZX-XmPuAOt8IFUVAbQk6-nCF9Cht_6azaaVlAtiwkp6HDsY3umYWIGPD9',
+    // Sangu Sleeves
+    '6522;6;td-30366':
+        '22xZMnCojCBSYeBhN_TVwQjus-OEI2f7bTLSKjLmEF96GuZANzra_Gaj7e6cSjHIF-x_Sg8MLqdRpjAaPMGBakM_h4QKqWe7xxAtTFg4fMIAeQK8m0sLYeB1hnNKcI0LxHPxSdzYiF98bkVvTOG6Ab2tJoGokDEgXhpxRv1NZeTcuSjs5pD5auHXbbhuMPwzq5XB3lsVEsgfUZMthIxSqZ_8vAh8bI0zHkwVEoYiNCvWAefnwHuYWLGzPudd5MBXBVpPTEa8k3V4CBwv7auPa1hDsyom9PCQ-s7h0JWxGGUifx33',
+    // Stylish DeGroot
+    '6522;6;td-30340':
+        '22xZMnCojCBSdvF1NMLVyDr_pOWfE3vjVzvFPSbcUlptRbYINGHZ-2bw4-6XEGvBE-8pFQ4Mf_BXoWYdO8uNPxY4hdZZqTb2h0p6WB8ldZR5aF_mmjpBaehjwSwVdPQamCnwOJLagEk7NRFrNfHnW7zca4KlhnZ5ChsIVqEXZJWSsCX6qdexM6OLKfw3cqhq-JiO1FkcXI4PSo8_xZhDhJn3tQhRYosCF18OFrxgZWqEVP-1wn-eCuKzOLMKsMdZVlEbSUjonXEpWUh86_qNagsSsislo7zS8ZqQWzLM0A',
+    // Toowoomba Tunic
+    '6522;6;td-30373':
+        '22xZMnCojCBScepjL8TJzQf6nvaYEn30VzvFPSbcUghrT-VfPWGP_jKjsOidSjmfQe0tFwkEfaUMoTFLbsuINhs70IMM_TL2h0p6WB8ldZR5aF_mmjpBaehjwSwVdPQamCnwOJLagEk7NRFrNfHnW7zca4KlhnZ5ChsIVqEXZJWSsCX6qdexM6OLKfw3cqhq-JiO1FkcXI4PSo8_xZhDhJn3tQhRYosCF18OFrxgZWqEVP-1wn-eCuKzOLMKsMdZVlEbSUjonXEpWUh86_qNagsSsislo7zS8Zr3_CJiKg',
+    // Sandvich Safe
+    '6522;6;td-643':
+        '0GNFFSr93GJ0WvZtNs_QyQbzsuOLGUv7aSXDKm-OGgYwSOEMYT7a-jP0triSRjycRO0kQwEFdKEG9jZJbsmPNxY8gIYI5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdXNUOX5M5zqBBvpD3qQRAVIQ8CVkZX-l9YGmHBvjmxSqZX-TgPLQP7MBYVlodH0m4ySJ6WkoqvPnfOA8Vsy84svzFQaSB4gs',
+    // Toss-Proof Towel
+    '6522;6;td-757':
+        'wGtXPDvH33t1bOtrLMTRxQnEreOfG3G5OG_BKnXaRQcwS-YNNmDa-2L37O2WQjmfErspFglRdfZSp2JOOpuKPgx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e5zuA4tei',
+    // Bullet Buzz
+    '6522;6;td-30344':
+        '22xZMnCojCBSbeBtLtL5whDhu-GYCEv7aSXDKm_bHQhsT-BbYWqLr2Ks4OWdS2yYRuEpF1wMeaUDoDFOa8zYbUFp0dYI5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdXNUOX5M5zqBBvpD3qQRAVIQ8CVkZX-l9YGmHBvjmxSqZX-TgPLQP7MBYVlodH0m4ySJ6WkoqvPnfOA8Vsy84svzFpGvf-1A',
+    // Combat Slacks
+    '6522;6;td-30372':
+        '22xZMnCojCBScuR-B9vHzhHonu6MDnPyJjGSfnbdHQlsTbUMZGHf9zGh5O_ARmzAF-5-RVsAe6oB-m1AaciOO0cjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqUw0QTQcYZYZo7xZpUsp3NtwxRbI1zSw1JQe8sZGiHAPjmxCybC-W7PukI5sYFUVxIHE7omHcvD0976qzaOxMA7ikRknV1HQ',
+    // Eliminator's Safeguard
+    '6522;6;td-30369':
+        '22xZMnCojCBScuR-B8PDzAj-td2BHWbwbXmVLXOMRQoxRbNdN23dqzOt4u2QS27IRut_ElwFL6oAo2YcPsGKNhQ7ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIxEIATs8bW6I5zpFDqZfxhAFCeY84VQ5PROl4N2iAUq3mwnnKXba0NuAB5MJXAl8fGBm8znd4W0kvuvuMaVxe8CBxcfr_jqQ',
+    // Gone Commando
+    '6522;6;td-30343':
+        '22xZMnCojCBSbeBtLtL5wwT2rvKMEmDkVzvFPSbcUgtsSLUKZzmK9jb2sLjFQj-cFe19QwoGdKBW9WwcPJ-AaUE90NJaqjD2h0p6WB8ldZR5aF_mmjpBaehjwSwVdPQamCnwOJLagEk7NRFrNfHnW7zca4KlhnZ5ChsIVqEXZJWSsCX6qdexM6OLKfw3cqhq-JiO1FkcXI4PSo8_xZhDhJn3tQhRYosCF18OFrxgZWqEVP-1wn-eCuKzOLMKsMdZVlEbSUjonXEpWUh86_qNagsSsislo7zS8ZqNKY7i3A',
+    // Heavy Lifter
+    '6522;6;td-30342':
+        '22xZMnCojCBSbeBtLtL5xxD1suqCC0v7aSXDKm-BH1xqHucLPGGL_DKjsLnBRDnPELwuFQEBKaAB9GUYOcqPbho0gtMP5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdXNUOX5M5zqBBvpD3qQRAVIQ8CVkZX-l9YGmHBvjmxSqZX-TgPLQP7MBYVlodH0m4ySJ6WkoqvPnfOA8Vsy84svzFM1L5zgk',
+    // Leftover Trap
+    '6522;6;td-30345':
+        '22xZMnCojCBSaeBqLMTQxRfEtfCMDEv7aSXDKm-KSwg4G7dfMW3drGf057_BQm2aQr0lRVwCLKMMpzAbPs-LaUc-hYVY5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdXNUOX5M5zqBBvpD3qQRAVIQ8CVkZX-l9YGmHBvjmxSqZX-TgPLQP7MBYVlodH0m4ySJ6WkoqvPnfOA8Vsy84svzFTkJSPwI',
+    // Rat Stompers
+    '6522;6;td-30354':
+        '22xZMnCojCBSd-R4B9jSzwjrpPCeI3j2ejDBYXHbTV9uG7pePGnQ_mes5ejHEGnKQL0vQwsEdKQBp2VMbMyPPxY5htUVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkBW9MdUJo79JhDtZvgsg58Z4kvHFtSQep7ZW_TVfjhl3-ZWbGxaucA5MlRVF5PTErvzXUuDEp96P-LaFhD4WBmrPV9mZZfCg',
+    // Sammy Cap
+    '6522;6;td-30374':
+        '22xZMnCojCBSduRhNdL5wwTrnu6MDnPyJmfAKyXaHgZsSroPZzzb_zuk4LmVQ2ycSewtS1oFLqVVpGUYO86LPREjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqUw0QTQcYZYZo7xZpUsp3NtwxRbI1zSw1JQe8sZGiHAPjmxCybC-W7PukI5sYFUVxIHE7omHcvD0976qzaOxMA7imCnlZQYg',
+    // Trash Man
+    '6522;6;td-30346':
+        '22xZMnCojCBScfdtK8P5zQT1nu6MDnPyJjKdLHHaTwxtS-UIMmqP9zCt57vARTrMQL56Rw8HffEF9WYYPpuMbUEjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqUw0QTQcYZYZo7xZpUsp3NtwxRbI1zSw1JQe8sZGiHAPjmxCybC-W7PukI5sYFUVxIHE7omHcvD0976qzaOxMA7imUppVoqw',
+    // War Goggles
+    '6522;6;td-30368':
+        '22xZMnCojCBScuR-B8zJxwL3pPGyEHXlbzKKdnfYTw05S7VcN2uPqjLz4-nAEG2fF70uQwlQK6YE-zFBO8_abRc-0plLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54peiDCfSB',
+    // Warmth Preserver
+    '6522;6;td-30364':
+        '22xZMnCojCBScuR-Nd_O_xXppPGIDmLyegjILjPeGRBqTuENZz6Pr2Dws-nHR2zJSbt_FgxXLKEC8zJBPc_aOUA13NUO-2G82VRzGVAhf8IXTxfrlyRdY-VwjigfIpo90SX9Jorfhlp0MRs9W9euVrHCcYWmkDl9AE1mcOkbaYuLvy3s7saxKq7SIPwzZOdu8sLa3lUdQdJTTYksypFBvqH1vgNGeYE-JFIdA74re2mCUfnhkX-ZWLezPuZb5pRWXlgSS0y6znJ-XR8ovfraPg1G4nxz8fOM75Pn-hcSMHs',
+    // Teddy Roosebelt
+    '6522;6;td-386':
+        '3GtSLjvHz3tiduBuPcfS_wn6s-WIUnf2bWfGfiPcGg1sHLRWYGyNqDX25eqdRD2aROgvQAxSKKEM8mMfbM-Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFo8tsdOIA',
+    // Antarctic Researcher
+    '6522;6;td-30377':
+        '22xZMnCojCBSZOt4OdnF1Az4nvCID3H2ejTMKjPmEF96GuZANG3Zr2Hw5OrFRG6cSb4kFQANL_BX8GFOa8GMNhE809RerT3okxMsTVg4fMIAeQK8m0sLYeB1hnNKcI0LxHPxSdzYiF98bkVvTOG6Ab2tJoGokDEgXhpxRv1NZeTcuSjs5pD5auHXbbhuMPwzq5XB3lsVEsgfUZMthIxSqZ_8vAh8bI0zHkwVEoYiNCvWAefnwHuYWLGzPudd5MBXBVpPTEa8k3V4CBwv7auPa1hDsyom9PCQ-s7h0JWxGHnuBQJO',
+    // Ein
+    '6522;6;td-30341':
+        '22xZMnCojCBSYOxiK9_DyQvEreOfG3G5P2WRdiWLSFxqRLpWNW2LrzKjsL6dQW2dFe15QVwBdKQN8TFMPc3dPAx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e5y6a1-8v',
+    // Scotch Saver
+    '6522;6;td-30347':
+        '22xZMnCojCBSduZjLMjO_xb6t-efI3j2ejDBYXfcGFhsT7QNZGHd_zKn5b6XS2zKQuApQF0HKKoDp2FLPMHfORM7048Vu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkBW9MdUJo79JhDtZvgsg58Z4kvHFtSQep7ZW_TVfjhl3-ZWbGxaucA5MlRVF5PTErvzXUuDEp96P-LaFhD4WBmrPVTOVgKkw',
+    // Trencher's Topper
+    '6522;6;td-30336':
+        '22xZMnCojCBScfdpNsjOxRfonvaCDGTyegjILjPeGRA_H7dXPGDa_zuksLiWSj3BEOl-FVxQffBSp2BONczYOkM03YIC-GPu2VRzGVAhf8IXTxfrlyRdY-VwjigfIpo90SX9Jorfhlp0MRs9W9euVrHCcYWmkDl9AE1mcOkbaYuLvy3s7saxKq7SIPwzZOdu8sLa3lUdQdJTTYksypFBvqH1vgNGeYE-JFIdA74re2mCUfnhkX-ZWLezPuZb5pRWXlgSS0y6znJ-XR8ovfraPg1G4nxz8fOM75PnSjWl0v8',
+    // Trencher's Tunic
+    '6522;6;td-30337':
+        '22xZMnCojCBScfdpNsjOxRfonvaYEn30VzvFPSbcUg4xGbNaNW3b_mWt7buWEW3NF-AvEV8Nf6EEo21BbMiNPxM1145e8jP2h0p6WB8ldZR5aF_mmjpBaehjwSwVdPQamCnwOJLagEk7NRFrNfHnW7zca4KlhnZ5ChsIVqEXZJWSsCX6qdexM6OLKfw3cqhq-JiO1FkcXI4PSo8_xZhDhJn3tQhRYosCF18OFrxgZWqEVP-1wn-eCuKzOLMKsMdZVlEbSUjonXEpWUh86_qNagsSsislo7zS8ZqeI29CvQ',
+    // Archimedes
+    '6522;6;td-828':
+        'yXxVIiv12HBodtpgOdnBxUuup7GOGHb0MGeXfXGKTAY-S-EIZmGP_DCm5-rHRjjLRO0sQggCfPZQ7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbrx1Na9g-vqA0lgXXcgfYZE_2ZhD9c6h7l0VadlsTVpNQO4sZjyHXfjvwn2fC-W3bbcIsMJTA1kcGE3omCVlTxd-z0EZecM',
+    '6522;6;td-2061':
+        'yXxVIiv12HBodtpgOdnBxUuup7GOGHb0MGeXfXGKTAY-S-EIZmGP_DCm5-rHRjjLRO0sQggCfPZQ7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbrx1Na9g-vqA0lgXXcgfYZE_2ZhD9c6h7l0VadlsTVpNQO4sZjyHXfjvwn2fC-W3bbcIsMJTA1kcGE3omCVlTxd-z0EZecM',
+    // Foppish Physician
+    '6522;6;td-878':
+        '3HlpKS35yUtgYOFlO_TIxQbwteuII3j2ejDBYSWMTA8wTOdWMD7YrDuk4-uQSzvPSbl4QwwBefMM9zVNaMyLbhc7hoMVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkBW9MdUJo79JhDtZvgsg58Z4kvHFtSQep7ZW_TVfjhl3-ZWbGxaucA5MlRVF5PTErvzXUuDEp96P-LaFhD4WBmrPVOiaSNMA',
+    // Colonel's Coat
+    '6522;6;td-30361':
+        '22xZMnCojCBSaOBoMcj5wwr3ruyIEEv0ZzbQEC3YDlltU-dXYWyP92L35L-SSz3IRrwkS19WKaINpjJBOZ-LbBtv0tUI-DK8k0AzDhgvNMxLd16E0iROYfN3kHRULMYFmEu4J5nZm1lhbVAzB-_mOfXCYoG7lCwkS0M6SKF1LYqYuDvr8JfnO7fGdKw6YPU3ucyK0AsbTM4STdIt341HtZn3hApGZY0vEl0jHbg8MjyfVPriw3jKX-K0a-AI4pNTAl8TS0e8mHMuCUx7vviMaQ4UsHh08PeR_tPwkIIfBRYatQ',
+    // Dough Puncher
+    '6522;6;td-30350':
+        '22xZMnCojCBSZu1pPtj5wwr6td2BHWbwbXmTKnGLRQswH-IPYGHZ-GHz7LvHQD6aFbotEQ8Ne_QC8GYYb53YPUQ_ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIxEIATs8bW6I5zpFDqZfxhAFCeY84VQ5PROl4N2iAUq3mwnnKXba0NuAB5MJXAl8fGBm8znd4W0kvuvuMaVxe8CBx6Q1GjYY',
+    // Fashionable Megalomaniac
+    '6522;6;td-30349':
+        '22xZMnCojCBSY-R_MMLJzgT5reeyEXHwaTvLIiDXFV9rIu8Pdz-M4DOg7LycSj6YQux6RQ0GeqYG9WUYb52MPBI-1IEPqjHskkItTE94J5IIYAG8jH0eNuwa0HFPdYVQkSHmf8mOhDAqaUtqRL7kU6qbMtak_2YkUBp5G6MactLI7ySDsZb8aumBJfghNbF39sHagwJCCcgRWcA3yJBIqNHhrx9CZY84JFkZH7w8PDruCKillCuGXuC3P-db5MBWA1gbTR2-znJyDkEo6_6MbAgS5n9z8aHGr8vizIDsHl5nzroaFHMaWQ',
+    // Gaiter Guards
+    '6522;6;td-30379':
+        '22xZMnCojCBSaOBoMcj51wz1teefG3XlagjDLijNGUxXEeIcYj3HrDCtsOuXEDDBE7l-RQ0CeKZXpGcbO86Ba0RpgNYMqTK-wEEoSEQrcItWfgj9w3kUYII9mHxCa5lanDKpe8PY6hdjZUZ0XLviQOWfOIDK2S8pXQRjHKAMPdbCuUql-ZrxdPCOLe5mJLFu-5jTgwZURswbA5Q9xJFV9I3mqQxNbI0CHFsSFKsnNgbdBbuwlmCYXeayObMI5McEVlgdGEzonX16B0gq76zfb18WsSsl8faSqZ-ym9a-UQB5x8GZeNbs',
+    // Heat of Winter
+    '6522;6;td-30356':
+        '22xOJXCojCBSaOBoMcj51wz1teefG3XlagjHICDNI1JpD-QLKz2NqDPz4-qRRjjNSep-RglWf6UAoTBJP5uPbUFvgoADqWfhlEErGBVmYstBNga2zSUsKe14mG9AfZ5EwHmnJ_uRhFJidkBpX66-C-vDAMilnS86WRlnCflHM4r68STh-In2YveQfLh3PaU6q5HXkV8fSJwVXZIw2NBVr4zztQpGVI84FVsOGLoROTjDA6z5w32dXuXgPuAPscBRUAsZH0m0mnx6DE587vyLPAwVs31y8qTArZizn8uvERfJadovYA',
+    // Heer's Helmet
+    '6522;6;td-30378':
+        '22xZMnCojCBSaOBoMcj51wz1teefG3XlagjMKi3UGUpXEeIcYj3H_DGl4-_GQDyYQOl_QAwEeaUG9zYcOsHYOEQ9goEJ-DfokhwtH057JYtWfgj9w3kUYII9mHxCa5lanDKpe8PY6hdjZUZ0XLviQOWfOIDK2S8pXQRjHKAMPdbCuUql-ZrxdPCOLe5mJLFu-5jTgwZURswbA5Q9xJFV9I3mqQxNbI0CHFsSFKsnNgbdBbuwlmCYXeayObMI5McEVlgdGEzonX16B0gq76zfb18WsSsl8faSqZ-ym9a-UQB5x4v0gCtw',
+    // Smock Surgeon
+    '6522;6;td-30365':
+        '22xZMnCojCBSaOBoMcj5wRXpruyyEHXlbzKKK3mLSAc-TOdeZDze-mH35eTFE23LQ7t-FwgFeqQD8mcaNZ2Pa0Q11plLpWL-nkl6TykwIpgWPl3jnzIaPLp09zlDeJtMnyf1MM2E0l4NIUZnWqbjVbzUNtzykUBtXBdnAacSZJ3E-GW1rJr1bveQdKVgaahk8MuUmEUGXcASWZgBzJpIvoz7uDJPapo6HhBMQux-YzuAVf-zwn-fDODnOegI7cBTUAwcTx3rmiF4DB0p7qvbPw4Rrj54pSLLSrNE',
+    // Teutonic Toque
+    '6522;6;td-30351':
+        '22xZMnCojCBSceB5LMTIyQbEte2cCXHIZDbWKCSXHg4-TrFdMTyLrzCl5eiWQW7OQuwsRQEAKaFR8GJNOMvYPBtohdMJriuomUM7FxsvI_peIFLrhCZLZPssxSZDGtNTlCTuIJfckwY_P0cFE7jqVqLGbIGzyXJzXHUuHq0aeoyduDO9uNeoPvqCKfghPaxgosyE2FgBANIITJwwzJp5vJv8vh9KaLcxGkwbFPd-ZmyBUqvmwnjMX-K1beJc48hRX1gZTRq7niYtDhwq663ZbF9C5X137OLM-JbSmsh5',
+    // Villain's Veil
+    '6522;6;td-393':
+        'w2tEKSrH0XV_YuAiPZ3CkFSpoLPeSXGuOzGRKSKITAg8SrcPZm7d_GHx4rvFQWzOQu0tRBdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59S1KKbYeq1YM6Rp-teO1GkeTtMbW9NumMoW7Zyj6ltHOtlqGQ0ZR-B_bWiCU6zhxizOX7axPLUJ45NSAlpLVA_jzE3xbz6R',
+    // Outback Intellectual
+    '6522;6;td-645':
+        '0GNFFTH21GRod9p_L87H1ADpnvSID2DIZDbWKCSXS1ttGLILZ2GM-2amt-ucSzudROAvRAhXfKsGpzBKOcuAOEE5gdYI-iuomUM7FxsvI_peIFLrhCZLZPssxSZDGtNTlCTuIJfckwY_P0cFE7jqVqLGbIGzyXJzXHUuHq0aeoyduDO9uNeoPvqCKfghPaxgosyE2FgBANIITJwwzJp5vJv8vh9KaLcxGkwbFPd-ZmyBUqvmwnjMX-K1beJc48hRX1gZTRq7niYtDhwq663ZbF9C5X137OLM-BQ4s6CY',
+    // Archer's Groundings
+    '6522;6;td-30371':
+        '22xZMnCojCBSZPdvMM7U0zr8s-2YEnD-ZjDXEC3YDlltU7AMZ2CL_zHx5O3FS2uYSLl4SgpWKfACp2xKbsyMbEc-19NY-T3hzhYzDhgvNMxLd16E0iROYfN3kHRULMYFmEu4J5nZm1lhbVAzB-_mOfXCYoG7lCwkS0M6SKF1LYqYuDvr8JfnO7fGdKw6YPU3ucyK0AsbTM4STdIt341HtZn3hApGZY0vEl0jHbg8MjyfVPriw3jKX-K0a-AI4pNTAl8TS0e8mHMuCUx7vviMaQ4UsHh08PeR_tPwkILXjqlZuw',
+    // Huntsman's Essentials
+    '6522;6;td-30359':
+        '22xZMnCojCBSdutlKM7U_xTuqPSIDkv7aSXDKm_dTwkwRLNWMzyL-GKt5ryQQ2nKFeooRVsFLKpWpmFAa5-OaRA40I9Z5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdXNUOX5M5zqBBvpD3qQRAVIQ8CVkZX-l9YGmHBvjmxSqZX-TgPLQP7MBYVlodH0m4ySJ6WkoqvPnfOA8Vsy84svzFXQ_7dQk',
+    // Deep Cover Operator
+    '6522;6;td-30375':
+        '22xZMnCojCBSZuRhN_TOxQT_o-ODGEv7aSXDKm_fGgYwTboKPGmLr2Wh5r7CFjHNQux6F1oBeqsN8mEYOMDabRJrhY8C5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdXNUOX5M5zqBBvpD3qQRAVIQ8CVkZX-l9YGmHBvjmxSqZX-TgPLQP7MBYVlodH0m4ySJ6WkoqvPnfOA8Vsy84svzFmcnYGh0',
+    // Camera Beard
+    '6522;6;td-103':
+        '235PFSH50HF_ZNpuPcrUxDr3oPCKGTrxPTKUd3KMHgkwGeJXPDvfqjr25u2SR2nPQLsqRQ1QKPEB9TAbbs2IIVJjg5FSpmLpqFwtQ0ZmIJ0TNga2zSUsKex4mG9Edp5EwHmnJ_uQhVJidkJpWq6-C-vDAMiknS86WhJnCfFaJNLBtSHo-IGoN6CLdKtoOrIo7NGV1lgVSv4bW5M72ZZFhJLzqQpGJdhuTg5KE-h_Yz2AVf61wCueV-K6PuIOsMdVBQ8bH0y-z3R9XUt866jHKlMX9G4NsWo',
+    // Blood Banker
+    '6522;6;td-30132':
+        'wntae3HH33hiauFTOsrIywDpnu6MDnPyJmHCf3jYTQ47ROVYPG7dqDag5u2TRGzAF7t4Q10EdKpS-2JLa8_daUcjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqUw0QTQcYZYZo7xZpUsp3NtwxRbI1zSw1JQe8sZGiHAPjmxCybC-W7PukI5sYFUVxIHE7omHcvD0976qzaOxMA7inPI11IOA',
+    // Backstabber's Boomslang
+    '6522;6;td-30353':
+        '22xZMnCojCBSdvV1B9jIwQ7-nu6MDnPyJmaceiKNGglqH7ZWYG6Kr2at4OmQSj2dSL4uRVwDdKpV8zZBbM-IakAjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqUw0QTQcYZYZo7xZpUsp3NtwxRbI1zSw1JQe8sZGiHAPjmxCybC-W7PukI5sYFUVxIHE7omHcvD0976qzaOxMA7ikac6QkFA',
+    // Napoleon Complex
+    '6522;6;td-30360':
+        '22xZMnCojCBSa-R8N8fDwQvEou2ADHjycAjILjPeGRBrTuALPDrQqDLxsOSUQmzJRb4oQw8FeKUB8DdKbpvcbhY4048C-WPr2VRzGVAhf8IXTxfrlyRdY-VwjigfIpo90SX9Jorfhlp0MRs9W9euVrHCcYWmkDl9AE1mcOkbaYuLvy3s7saxKq7SIPwzZOdu8sLa3lUdQdJTTYksypFBvqH1vgNGeYE-JFIdA74re2mCUfnhkX-ZWLezPuZb5pRWXlgSS0y6znJ-XR8ovfraPg1G4nxz8fOM75PnX6vKDKw',
+    // Necro Smasher
+    '6522;6;td-1123':
+        'y1FVKzD21GJsadphOcfKxRHEreOfG3G5OGWWf3HbHwdtG7dfZGzf_zSssO6RRjDPRO4rSgwHK6UBo2cYOZ3baQx9itAdomi_xntlTkt4PJceJUmyx3NCDqV0lXFcc5hXj32tcZW2zF9vaFhuWbjxD-GVbu7skSIkQx1vH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNaTxVccSMQjWZgwzo1PuKH-uh9EbsZtSAtMR7t_ZG_VVfjgkX3NWOqzN-AK4pRWUgtMSxq-mCB7CRsrvfqIdE0e52WIPwBz',
+    // Ghastly Gibus
+    '6522;6;td-584':
+        'yWJaFSb30H1jZPFlN8X5zATppufDHXGjbG6TdneKTAxqTOJcZjuN-zLzs7ySQjuaQesrFQ0NLqRVoTcba9fJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7Jz7cSJ0FMtSMQSW483yKBKuoz1vkMTON1tTVxNQO8qZGiGBvqyxXeZVuKxOLQP4JMGVgwZSRu9nSZ5Wkp49rmHPXEvtbEE',
+    // Mildly Disturbing Halloween Mask
+    '6522;6;td-115':
+        'yWJaFSr50XhicuBpNvTKwRf8pKzdHSGhP2HBeCWBTwtqTroPNGGI-mamsO2SQjCdSLouRA4De6ANpjJII4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJ7V1_suA0mkVSs8ZTJQ99JNHqZn39V0QPthrGQ9NR71_ZG7TV6zhyn-QX-C1aucMt5dRAloZHk-7yXYuDBg3qKeOBfVZUNk',
+    // Ghastlier Gibus
+    '6522;6;td-279':
+        'yWJaFSb30H1jZPFlN8X5klWr-N2BHWbwbXnGeSSNGg4-TLZfMDre_DWitrydSmvBR-56QF0NKaYC8jJMbp3dOEY_ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIxEIATs8bW6I5zpFDqZfxhAFCeY84VQ5PROl4N2iAUq3mwnnKXba0NuAB5MJXAl8fGBm8znd4W0kvuvuMaVxe8CBx2hhiK40',
+    // Horseless Headless Horsemann's Head
+    '6522;6;td-278':
+        '2HtbISv24nxscdpgOdnBxUv-9rGITSDxPGeVd3GIGg4-H-cIZGmI_DX0sLiQED6bSOspRFtSfvcH7CQXat_QYkU8u88L9jX2xRwoWB8ldZR5aF7mmjpFYuhjwSwVdPQbmSnwOJDahUk7NRFrNfHmW7zcaImlhn5kHUMzEqQeZJ3M5XLhocSuNLSZbrx1Na9g-vqA0lgXXcgfYZE_2ZhD9c6h7l0VadlsTVpNQO4sZjyHXfjvwn2fC-W3bbcIsMJTA1kcGE3omCVlTxd-qcMet7U',
+    // Spine-Chilling Skull
+    '6522;6;td-287':
+        '22VDJi7H0XV_YuAiYJmQlFz5o-TVTSzybWaTe3DbSQZqTLALYT7d-2ag7LvFSmzIFOx_EhdEI_USqzkePKbBPx89yoUD_iOxmkMsIQ55L5UIJlzujH0eNuwa0XFPdYVWmiTmf8mOhDAraUtqRL_vVqqTL8H8xCIgWRpxRv1NadLG53uv59S1KKbYeq1YM6Rp-teO1GkeTtMbW9NumMoW7Zyj6ltHOtlqGQ0ZR-B_bWiCU6zhxizOX7axPLUJ45NSAlpLVA_jzMzdnSGY',
+    // Voodoo Juju
+    '6522;6;td-289':
+        '3mFZLi3312FncNpkOd_5zATppufDHnGjOGGUdiSJGVo8TbJZZmqK9zOk5r-VSzvOR7t6RAxVK_cM-mdIbNfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7Jz7cSJ0FMtSMQSW483yKBKuoz1vkMTON1tTVxNQO8qZGiGBvqyxXeZVuKxOLQP4JMGVgwZSRu9nSZ5Wkp49rmHPXXKaNh9',
+    // Professor Speks
+    '6522;6;td-343':
+        '2HxZLCfrznt_WvZ8PcDV_wn6s-WIUiLxa2PBd3LfHgprRLsNMj3dqjvzseWVRm7KFeApFwxQe_EBpmcdPs6Xf0xqwt5WrDSHjxQgTlh6KpAAeQK8m0sLYOB1hndBcI0LxHPxSd3ZiF98bEVqTOG6Ab2tJoCokDEjVRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5069eG2VEXcMYZUJgswpx5t5_gvAgNO9toSwgeQOh4MWiAU6vklniRX-uzPOZc48QCAVhPSUzpm3IpDRwqueeZNFpoZiySxw',
+    // Summer Shades
+    '6522;6;td-486':
+        '23tbJyfq4mdlZOFpK_TKwRf8pKzdRXWjOWLBfnaJHgkwGOENM2jaqzf05b-SRD_LFLspRwgNL_YFpDIbI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJ7V1_suA0mkVSs8ZTJQ99JNHqZn39V0QPthrGQ9NR71_ZG7TV6zhyn-QX-C1aucMt5dRAloZHk-7yXYuDBg3qKeOqK6gR_w',
+    // Merc's Pride Scarf
+    '6522;6;td-541':
+        '221XOCTHzntuZuB-B8fH0gL-77XdGiahMDGRdnCBHQk9HLZXNzvZ_Dun47idF27KF-t5QFoAKfBR-jVXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq4XMowsJg',
+    // Ghastlierest Gibus
+    '6522;6;td-116':
+        'yWJaFSb30H1jZPFlN8X5wjr_pO-CI3j2ejDBYXGPGlpqRbMMMzmK-WD37b6WSmzOQ-goEF0Bf_cHpm1INJqNahM-gNIVu2u_0U1wGUcXapUbIEHpkiFVOLAimR4KdJZShyLzI4KA2AhjBw9qV7j5Ur_Cedj4xy5LFBtqH74dbIuD6WWsocP8bvOGO6FqM_xu_MqJxBkBW9MdUJo79JhDtZvgsg58Z4kvHFtSQep7ZW_TVfjhl3-ZWbGxaucA5MlRVF5PTErvzXUuDEp96P-LaFhD4WBmrPUCXMSgAQ',
+    // MONOCULUS!
+    '6522;6;td-581':
+        'wG9DJDb92UtofOBuOcfK_w36td2BHWbwbXnAfXmBRV87SrJaYGmPqjPzt-vHQj_KRroqEQxVfaVSoWUaPcyKaxo-ysdVrCOxmkMsIQ54L5UIIlfujH0eNuwa0HBPdYVUmiHmf8mOhDAraEtqRLzkVqqbMtak_2YlUBp5GKgactrV-Hy49ZP1auHfcK86PaJo8dbIxEIATs8bW6I5zpFDqZfxhAFCeY84VQ5PROl4N2iAUq3mwnnKXba0NuAB5MJXAl8fGBm8znd4W0kvuvuMaVxe8CBx9HZyTOA',
+    // Spine-Chilling Skull 2011
+    '6522;6;td-576':
+        '22VDJi7H1Xt_a_ZTOvTKwRf8pKzbHnf0aTOVLniNSAc8RLMPZG6K-mXw4-zAEWyfFespEFtQeaEGoGAcI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJ7V1_suA0mkVSs8ZTJQ99JNHqZn39V0QPthrGQ9NR71_ZG7TV6zhyn-QX-C1aucMt5dRAloZHk-7yXYuDBg3qKeOs5jNmRs',
+    // RoBro 3000
+    '6522;6;td-733':
+        '2GtCFTD332ZiWultKszDjgT-p-DaGCzyMWSXeiWIS11pS-JfNT7Y-DSgtL6cFzzLSLx4RFoMKKAasjoeK5DUaBNSnIcG-yvqzxE7FxsvI_peIVLrhCJAZPssxSZDGtJSlCTuIpfZkwY_P0cFE7nqVqLFZ4GzwW9kBE5qG6QactLI7yi1q8ivKejFabpmOqZiwMKC2VMARsIjUpwszJoI682n61tBOtlrHw9NRrt9MG-IVfHmwHnNWObgaeBc5sIEV19ISBq-ymo7UR4e15UqXg',
+    // Ghostly Gibus
+    '6522;6;td-940':
+        'z2ZZOTb0xEtqbOd5K_TCxQj0nu6MDnPyJm-TdnCAGAlqTOYPMW7Z_jrz4LyVF26YEOouQwwNevBWpDYcP8GJPRMjlNlc7Wy1kBVCBkZ1IosUKFr9w3kUYII9mXxCa51RnDKpe8PY6hZiZUZ0XrvnQOWfOIDK2S4pXQRgF6AMNcvV4XHh_JPxfK7bevVuN65p7IqUw0QTQcYZYZo7xZpUsp3NtwxRbI1zSw1JQe8sZGiHAPjmxCybC-W7PukI5sYFUVxIHE7omHcvD0976qzaOxMA7imGu9UvAw',
+    // Skull Island Topper
+    '6522;6;td-941':
+        'xWtEKzH1yGdSdu55NMf5zATppufDRXX1amGdLSCASgxsTbULNzve-jWi5-mWQTzOR-99QlsNKaYN-m1MbNfJYUUrjdpc-lqgxxktUERwJ4NPfQjq9WxCbO1rnnJHY8IPziWfb5TUhUFma0Z8A-WwV9OLboyljigsXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7Jz7cSJ0FMtSMQSW483yKBKuoz1vkMTON1tTVxNQO8qZGiGBvqyxXeZVuKxOLQP4JMGVgwZSRu9nSZ5Wkp49rmHPV94_930',
+    // Dark Falkirk Helm
+    '6522;6;td-30357':
+        '22xZMnCojCBSbutlP8PS_w3-re-ICEv7aSXDKm-AH18_T-AMPWrd-mb05e2QEzrJQrt6FlxRLvRXpmBMNcuNOkE1h9MP5XW2kAJ0ExF5Td0WLV_1mCxGd7Qoz3AtPZpfmTr2JZHP3AI1aSkjWrXnSLjBb5f8zXglMlNmEqAEY4OVrnSsuM6lZ_OCLe5uOaY69saI2UVdXNUOX5M5zqBBvpD3qQRAVIQ8CVkZX-l9YGmHBvjmxSqZX-TgPLQP7MBYVlodH0m4ySJ6WkoqvPnfOA8Vsy84svzFMO-HQJ4',
+    // Law
+    '6522;6;td-30362':
+        '22xZMnCojCBSaeR7B8fH0gL-77qLTi2iOWKQLSLcTlg_SLReMDnR-TOj4--UQWzMFbt6RFpSf6EBoGxXfZfeKUtgg4ZkszXlxwovRkNue8hBITCjmylDf-t2nWcbKMxT9m3wK5THgVxifh83DbmIH73Pb5-imC8yDFonRvQXYI-Vrnyxr5qoOajYbud0ILNm8cKC6FEXQcQOV54Bx55UvJu8614WO94_Sg9KFeh_YjuCAf_uwnaZXeTnOeRbs8AFVFpOSknvmSF4Xldptq7OKH7iUQ',
+    // Mustachioed Mann
+    '6522;6;td-30352':
+        '22xZMnCojCBSaPB_LMrFyAz0pOayEXX5ZgjILjPeGRA_SrcMM2_fq2X34-qcQjnIFb19RwwCL6oH9GNIbsiKPkc81YUIrze82VRzGVAhf8IXTxfrlyRdY-VwjigfIpo90SX9Jorfhlp0MRs9W9euVrHCcYWmkDl9AE1mcOkbaYuLvy3s7saxKq7SIPwzZOdu8sLa3lUdQdJTTYksypFBvqH1vgNGeYE-JFIdA74re2mCUfnhkX-ZWLezPuZb5pRWXlgSS0y6znJ-XR8ovfraPg1G4nxz8fOM75PnqvzY_ms',
+    // Spine-Tingling Skull
+    '6522;6;td-578':
+        '22VDJi7H1Xt_a_ZTOvTKwRf8pKzbHnf0aTOVLniNSAc8RLMPZG6K-mXw4-zAEWyfFespEFtQeaEGoGAcI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJ7V1_suA0mkVSs8ZTJQ99JNHqZn39V0QPthrGQ9NR71_ZG7TV6zhyn-QX-C1aucMt5dRAloZHk-7yXYuDBg3qKeOs5jNmRs'
+};
+
 const qualityColor: { [name: string]: string } = {
     '0': '11711154', // Normal - #B2B2B2
     '1': '5076053', // Genuine - #4D7455
@@ -1894,6 +2218,18 @@ export default function sendWebHookPriceUpdateV1(
             : itemName.includes('Professional')
             ? ks3Images[sku]
             : ks1Images[sku];
+
+        if (url) {
+            itemImageUrlPrint = `${front}${url}/520fx520f`;
+        }
+
+        if (!itemImageUrlPrint) {
+            itemImageUrlPrint = itemImageUrl.image_url_large;
+        }
+    } else if (itemName.includes('Strangifier') && !itemName.includes('Chemistry Set')) {
+        const front =
+            'https://community.cloudflare.steamstatic.com/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0du1AHE66AL6lNU5Fw_2yIWtaMjIpQmjAT';
+        const url = strangifierImages[sku];
 
         if (url) {
             itemImageUrlPrint = `${front}${url}/520fx520f`;
