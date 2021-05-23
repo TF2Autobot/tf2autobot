@@ -58,15 +58,15 @@ export default class Listings {
 
         // Autobump is enabled, add heartbeat listener
 
-        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
-        this.bot.listingManager.on('heartbeat', this.checkFn);
+        this.bot.listingManager.removeListener('pulse', this.checkFn);
+        this.bot.listingManager.on('pulse', this.checkFn);
 
         // Get account info
         this.checkAccountInfo();
     }
 
     disableAutorelistOption(): void {
-        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
+        this.bot.listingManager.removeListener('pulse', this.checkFn);
         this.disableAutoRelist(false, 'permanent');
     }
 

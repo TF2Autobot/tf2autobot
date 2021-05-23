@@ -250,9 +250,9 @@ export default class MyHandler extends Handler {
                 'item',
                 this.bot.pricelist.getLength,
                 true
-            )} in pricelist | Listings cap: ${String(
-                this.bot.listingManager.cap
-            )} | Startup time: ${process.uptime().toFixed(0)} s`
+            )} in pricelist | Listings cap: ${String(this.bot.listingManager.cap)} | Startup time: ${process
+                .uptime()
+                .toFixed(0)} s`
         );
 
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
@@ -2253,6 +2253,13 @@ export default class MyHandler extends Handler {
             log.debug(`${sku} updated`);
         }
         this.bot.listings.checkBySKU(sku, entry, false, true);
+    }
+
+    onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
+        if (pulse.client) {
+            delete pulse.client;
+        }
+        log.debug('user-agent', pulse);
     }
 
     onLoginThrottle(wait: number): void {
