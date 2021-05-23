@@ -1080,7 +1080,7 @@ export default class Trades {
 
         offer.data('isAccepted', true);
 
-        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
+        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid, true));
 
         // Exit all running apps ("TF2Autobot v#" or custom, and Team Fortress 2)
         // Will play again after craft/smelt/sort inventory job
