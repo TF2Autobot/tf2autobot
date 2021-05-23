@@ -822,7 +822,7 @@ export default class Bot {
     private onSessionExpired(): void {
         log.debug('Web session has expired');
 
-        this.client.webLogOn();
+        if (this.client.steamID) this.client.webLogOn();
     }
 
     private onConfKeyNeeded(tag: string, callback: (err: Error | null, time: number, confKey: string) => void): void {
