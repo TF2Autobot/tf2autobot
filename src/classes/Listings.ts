@@ -370,6 +370,60 @@ export default class Listings {
                     .sort((a, b) => {
                         return inventory.findBySKU(b).length - inventory.findBySKU(a).length;
                     });
+                let makeListings: Array<Entry>;
+                for (let i = 0; i < pricelist.length; i++) {
+                    const qualChecker = parseInt(pricelist[i].sku.substring(pricelist[i].sku.indexOf(';') + 1));
+                    if (qualChecker === 5 && this.bot.options.pricelist.sortSettings.prioritizeUnusuals === true) {
+                        if (makeListings.indexOf(pricelist[i]) < 0) {
+                            makeListings.push(pricelist[i]);
+                        }
+                    }
+                    if (qualChecker === 11 && this.bot.options.pricelist.sortSettings.prioritizeStranges === true) {
+                        if (makeListings.indexOf(pricelist[i]) < 0) {
+                            makeListings.push(pricelist[i]);
+                        }
+                    }
+                    if (
+                        pricelist[i].max - inventory.getAmount(pricelist[i].sku) >
+                        this.bot.options.pricelist.sortSettings.prioritizeNeededStock
+                    ) {
+                        if (makeListings.indexOf(pricelist[i]) < 0) {
+                            makeListings.push(pricelist[i]);
+                        }
+                    }
+                    if (this.bot.options.pricelist.sortSettings.typeOfSort === 1) {
+                        pricelist.sort((a, b) => {
+                            return (
+                                (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                                Currencies.toScrap(b.buy.metal - a.buy.metal) * -1
+                            );
+                        });
+                    }
+                    if (this.bot.options.pricelist.sortSettings.typeOfSort === 2) {
+                        pricelist.sort((a, b) => {
+                            return (
+                                (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                                Currencies.toScrap(b.buy.metal - a.buy.metal)
+                            );
+                        });
+                    }
+                    /*if (this.bot.options.pricelist.sortSettings.typeOfSort === 3){
+                            pricelist.sort(a,b) => {
+                                (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
+                                (currentPure.metal - Currencies.toScrap(b.buy.metal - a.buy.metal))
+                            )}
+                    }TODO: the third sort feature, i cant remember what it was*/
+
+                    for (let i = 0; i < pricelist.length; i++) {
+                        if (makeListings.indexOf(pricelist[i]) < 0) {
+                            makeListings.push(pricelist[i]);
+                        }
+                    }
+                    const n = makeListings.length;
+                    for (let i = 0; i < n; ++i) {
+                        pricelist[i] = makeListings[i];
+                    }
+                }
 
                 log.debug('Checking listings for ' + pluralize('item', skus.length, true) + '...');
 
