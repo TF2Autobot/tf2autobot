@@ -983,7 +983,7 @@ export default class MyHandler extends Handler {
                     return { action: 'decline', reason: 'GIFT_NO_NOTE' };
                 }
             }
-        } else if (itemsToGiveCount > 0 && itemsToReceiveCount === 0 && !exchange.contains.items) {
+        } else if (itemsToGiveCount > 0 && itemsToReceiveCount === 0 && !(opt.miscSettings.counterOffer.enable && exchange.contains.items)) {
             offer.log('info', 'is taking our items for free, declining...');
             return { action: 'decline', reason: 'CRIME_ATTEMPT' };
         }
