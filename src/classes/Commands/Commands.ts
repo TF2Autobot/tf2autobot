@@ -151,7 +151,7 @@ export default class Commands {
         };
 
         if (command === 'help') {
-            this.help.helpCommand(steamID);
+            void this.help.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.help.howToTradeCommand(steamID);
         } else if (['price', 'pc'].includes(command)) {
