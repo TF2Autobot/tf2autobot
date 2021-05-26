@@ -920,7 +920,7 @@ export default class Trades {
                             Object.keys(dataDict[side])
                                 .map(sku => {
                                     if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
-                                    if (isWACEnabled && weapons.includes(sku)) return 0.05;
+                                    if (isWACEnabled && weapons.includes(sku)) return 0.5 * dataDict[side][sku];
 
                                     return (
                                         dataDict[side][sku] *
