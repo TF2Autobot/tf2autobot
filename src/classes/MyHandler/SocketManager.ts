@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import io from '@tf2autobot/socket.io-client';
 import log from '../../lib/logger';
 
 export default class SocketManager {
-    private socket: SocketIOClient.Socket;
+    private socket: any;
 
     constructor(public url: string, public key?: string) {}
 
