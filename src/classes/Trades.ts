@@ -698,11 +698,13 @@ export default class Trades {
         return new Promise((resolve, reject) => {
             const start = dayjs().valueOf();
 
+            const opt = this.bot.options;
+
             const theirInventory = new Inventory(
                 offer.partner,
                 this.bot.manager,
                 this.bot.schema,
-                this.bot.options,
+                opt,
                 this.bot.effects,
                 this.bot.paints,
                 this.bot.strangeParts,
@@ -728,7 +730,7 @@ export default class Trades {
                     offer.itemsToGive,
                     this.bot.manager,
                     this.bot.schema,
-                    this.bot.options,
+                    opt,
                     this.bot.effects,
                     this.bot.paints,
                     this.bot.strangeParts,
@@ -740,7 +742,7 @@ export default class Trades {
                     offer.itemsToReceive,
                     this.bot.manager,
                     this.bot.schema,
-                    this.bot.options,
+                    opt,
                     this.bot.effects,
                     this.bot.paints,
                     this.bot.strangeParts,
@@ -752,7 +754,7 @@ export default class Trades {
                 log.debug('Set counteroffer...');
                 const counter = offer.counter();
 
-                const showOnlyMetal = this.bot.options.miscSettings.showOnlyMetal.enable;
+                const showOnlyMetal = opt.miscSettings.showOnlyMetal.enable;
                 // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
                 // Extensive tutorial if you want to update this function https://www.youtube.com/watch?v=dQw4w9WgXcQ.
 
@@ -904,6 +906,12 @@ export default class Trades {
                     }
                 };
 
+                const isWACEnabled = opt.miscSettings.weaponsAsCurrency.enable;
+                const isUncraftEnabled = opt.miscSettings.weaponsAsCurrency.withUncraft;
+                const weapons = isUncraftEnabled
+                    ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                    : this.bot.craftWeapons;
+
                 // Bigger than 0 ? they have to pay : we have to pay
                 let NonPureWorth = (['our', 'their'] as ['our', 'their'])
                     .map((side, index) => {
@@ -912,6 +920,8 @@ export default class Trades {
                             Object.keys(dataDict[side])
                                 .map(sku => {
                                     if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
+                                    if (isWACEnabled && weapons.includes(sku)) return 0.05;
+
                                     return (
                                         dataDict[side][sku] *
                                         (prices[sku][buySell].keys * keyPriceScrap +
