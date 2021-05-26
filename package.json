@@ -24,6 +24,7 @@
     },
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
+        "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/socket.io-client": "^1.0.3",
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
         "async": "^3.2.0",
@@ -43,7 +44,6 @@
         "graceful-fs": "^4.2.6",
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",
-        "jsonlint": "^1.6.3",
         "jsonschema": "^1.4.0",
         "module-alias": "^2.2.2",
         "pjson": "^1.0.9",
