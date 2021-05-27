@@ -1606,7 +1606,7 @@ class AutoAddQueue {
                         AutoAddQueue.removeJob();
                         return this.bot.sendMessage(
                             this.steamID,
-                            `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
+                            `----------\n✅ Done, summary: ${this.added} added, ${this.skipped} skipped, ${this.failed} failed / ${this.total} total`
                         );
                     }
 
