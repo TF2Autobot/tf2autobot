@@ -1536,7 +1536,7 @@ class AutoAddQueue {
         this.total = skus.length;
     }
 
-    async executeCheck(): Promise<void> {
+    async executeAutoAdd(): Promise<void> {
         if (AutoAddQueue.autoAdd['1'] === false) {
             AutoAddQueue.removeJob();
             return this.bot.sendMessage(this.steamID, '----------\n🛑 Stopped auto-add items');
@@ -1574,7 +1574,7 @@ class AutoAddQueue {
                 );
             }
 
-            void this.executeCheck();
+            void this.executeAutoAdd();
         } else {
             this.bot.pricelist
                 .addPrice(this.params as EntryData, true, PricelistChangedSource.Command)
@@ -1610,7 +1610,7 @@ class AutoAddQueue {
                         );
                     }
 
-                    void this.executeCheck();
+                    void this.executeAutoAdd();
                 });
         }
     }
