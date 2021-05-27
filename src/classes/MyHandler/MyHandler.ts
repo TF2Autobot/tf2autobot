@@ -1912,7 +1912,6 @@ export default class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
                     declined(offer, this.bot, this.isTradingKeys);
                     this.isTradingKeys = false; // reset
-                    MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     cancelled(offer, oldState, this.bot);
                     MyHandler.removePolldataKeys(offer);
@@ -1951,6 +1950,7 @@ export default class MyHandler extends Handler {
                 this.sentSummary[offer.id] = true;
 
                 processDeclined(offer, this.bot, this.isTradingKeys);
+                MyHandler.removePolldataKeys(offer);
             }
         }
 

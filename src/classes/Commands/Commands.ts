@@ -151,7 +151,7 @@ export default class Commands {
         };
 
         if (command === 'help') {
-            this.help.helpCommand(steamID);
+            void this.help.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.help.howToTradeCommand(steamID);
         } else if (['price', 'pc'].includes(command)) {
@@ -205,7 +205,7 @@ export default class Commands {
         } else if (['getslots', 'listings'].includes(command) && isAdmin) {
             void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
-            void this.pManager.autoAddCommand(steamID, message);
+            this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
             this.pManager.stopAutoAddCommand();
         } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {

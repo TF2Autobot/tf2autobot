@@ -1,4 +1,5 @@
 import SteamID from 'steamid';
+import sleepasync from 'sleep-async';
 import Bot from '../../Bot';
 
 export default class HelpCommands {
@@ -6,7 +7,7 @@ export default class HelpCommands {
         this.bot = bot;
     }
 
-    helpCommand(steamID: SteamID): void {
+    async helpCommand(steamID: SteamID): Promise<void> {
         const isAdmin = this.bot.isAdmin(steamID);
         const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
 
@@ -18,75 +19,13 @@ export default class HelpCommands {
                       '\n• [a] = Optionally add "a"' +
                       '\n• (a|b) = Directly input "a" OR "b"' +
                       '\n• <a> = Replace "a" with relevant content' +
-                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F#table-of-contents'
+                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist#table-of-contents'
                     : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
-            }\n\n📜 Here's a list of my commands:\n- ${
+            }\n\n📜 Here's a list of my commands:${
                 isAdmin
-                    ? [
-                          '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
-                          '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items\n\n✨=== Pricelist manager ===✨',
-                          '!sku <Full Item Name> - Get the sku of an item.',
-                          '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
-                          '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently available in your bot inventory (about 2 seconds every item) 🤖',
-                          '!stopautoadd - Stop automatic add items operation 🛑',
-                          '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
-                          '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
-                          '!shuffle - Shuffle pricelist entries.',
-                          '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
-                          '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
-                          '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
-                          '!getSlots or !listings - Get current used listings slot per cap count.\n\n✨=== Bot manager ===✨',
-                          "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
-                          '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable)',
-                          "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
-                          '!message <steamid> <your message> - Send a message to a specific user 💬',
-                          '!block <steamid> - Block a specific user',
-                          '!unblock <steamid> - Unblock a specific user',
-                          '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
-                          '!stop - Stop the bot 🔴',
-                          '!restart - Restart the bot 🔄',
-                          "!refreshautokeys - Refresh the bot's autokeys settings.",
-                          '!refreshlist - Refresh sell listings 🔄',
-                          "!name <new_name> - Change the bot's name",
-                          "!avatar <image_URL> - Change the bot's avatar\n\n✨=== Bot status ===✨",
-                          '!stats - Get statistics for accepted trades 📊',
-                          '!itemstats <item name|sku> - Get statistics for specific item (keys/weapons not supported) 📊',
-                          '!statsdw - Send statistics to Discord Webhook 📊',
-                          "!inventory - Get the bot's current inventory spaces 🎒",
-                          '!version - Get the TF2Autobot version that the bot is running\n\n✨=== Manual review ===✨',
-                          '!trades - Get a list of trade offers pending for manual review 🔍',
-                          '!trade <offerID> - Get information about a trade',
-                          '!offerinfo <offerID> - Get information about the offer from polldata 🔍',
-                          '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
-                          '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍',
-                          '!faccept <offerID> [Your Message] - Force accept any failed to accept offer ✅🔂',
-                          '!fdecline <offerID> [Your Message] - Force decline any failed to decline offer ❌🔂\n\n✨=== Request ===✨',
-                          `!check (sku|name|defindex)=<a> - Request the current price for an item from ${
-                              isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
-                          }`,
-                          `!pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by ${
-                              isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
-                          }`,
-                          `!pricecheckall - Request all items in the bot's pricelist to be price checked by ${
-                              isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
-                          }\n\n✨=== Misc ===✨`,
-                          "!autokeys - Get info on the bot's current autokeys settings 🔑",
-                          "!time - Show the owner's current time 🕥",
-                          '!uptime - Show the bot uptime 🔌',
-                          "!pure - Get the bot's current pure stock 💰",
-                          "!rate - Get the bot's current key rates 🔑",
-                          '!stock - Get a list of items that the bot owns',
-                          "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
-                          "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-                          '!paints - Get a list of paints partial sku 🎨',
-                          '!snapshots (sku|name|defindex)=<a> - Get the bptf snapshots history for an item 🔍',
-                          '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
-                          '!options [OptionsKey] - Get options.json content (current bot option settings) 🔧',
-                          '!config <Options>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
-                          '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
-                          '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
-                      ].join('\n- ')
-                    : [
+                    ? ''
+                    : '\n- ' +
+                      [
                           '!help - Get a list of commands',
                           '!how2trade - Guide on how to trade with the bot',
                           '!price [amount] <name> - Get the price and stock of an item 💲📦\n\n✨=== Instant item trade ===✨',
@@ -106,6 +45,118 @@ export default class HelpCommands {
                       ].join('\n- ')
             }`
         );
+
+        if (isAdmin) {
+            await sleepasync().Promise.sleep(1000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== Pricelist manager ===✨\n- ' +
+                    [
+                        '!sku <Full Item Name> - Get the sku of an item.',
+                        '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+                        '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently available in your bot inventory (about 2 seconds every item) 🤖',
+                        '!stopautoadd - Stop automatic add items operation 🛑',
+                        '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
+                        '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
+                        '!shuffle - Shuffle pricelist entries.',
+                        '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
+                        '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
+                        '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
+                        '!getSlots or !listings - Get current used listings slot per cap count.'
+                    ].join('\n- ')
+            );
+
+            await sleepasync().Promise.sleep(1000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== Bot manager ===✨\n- ' +
+                    [
+                        '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
+                        '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items',
+                        "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
+                        '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable)',
+                        "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
+                        '!message <steamid> <your message> - Send a message to a specific user 💬',
+                        '!block <steamid> - Block a specific user',
+                        '!unblock <steamid> - Unblock a specific user',
+                        '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
+                        '!stop - Stop the bot 🔴',
+                        '!restart - Restart the bot 🔄',
+                        "!refreshautokeys - Refresh the bot's autokeys settings.",
+                        '!refreshlist - Refresh sell listings 🔄',
+                        "!name <new_name> - Change the bot's name",
+                        "!avatar <image_URL> - Change the bot's avatar"
+                    ].join('\n- ')
+            );
+
+            await sleepasync().Promise.sleep(1000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== Bot status ===✨\n- ' +
+                    [
+                        '!stats - Get statistics for accepted trades 📊',
+                        '!itemstats <item name|sku> - Get statistics for specific item (keys/weapons not supported) 📊',
+                        '!statsdw - Send statistics to Discord Webhook 📊',
+                        "!inventory - Get the bot's current inventory spaces 🎒",
+                        '!version - Get the TF2Autobot version that the bot is running'
+                    ].join('\n- ')
+            );
+
+            await sleepasync().Promise.sleep(1000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== Manual review ===✨\n- ' +
+                    [
+                        '!trades - Get a list of trade offers pending for manual review 🔍',
+                        '!trade <offerID> - Get information about a trade',
+                        '!offerinfo <offerID> - Get information about the offer from polldata 🔍',
+                        '!accept <offerID> [Your Message] - Manually accept an active offer ✅🔍',
+                        '!decline <offerID> [Your Message] - Manually decline an active offer ❌🔍',
+                        '!faccept <offerID> [Your Message] - Force accept any failed to accept offer ✅🔂',
+                        '!fdecline <offerID> [Your Message] - Force decline any failed to decline offer'
+                    ].join('\n- ')
+            );
+
+            await sleepasync().Promise.sleep(1000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== Request ===✨\n- ' +
+                    [
+                        `!check (sku|name|defindex)=<a> - Request the current price for an item from ${
+                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                        }`,
+                        `!pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by ${
+                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                        }`,
+                        `!pricecheckall - Request all items in the bot's pricelist to be price checked by ${
+                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                        }`
+                    ].join('\n- ')
+            );
+
+            await sleepasync().Promise.sleep(1000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== Misc ===✨\n- ' +
+                    [
+                        "!autokeys - Get info on the bot's current autokeys settings 🔑",
+                        "!time - Show the owner's current time 🕥",
+                        '!uptime - Show the bot uptime 🔌',
+                        "!pure - Get the bot's current pure stock 💰",
+                        "!rate - Get the bot's current key rates 🔑",
+                        '!stock - Get a list of items that the bot owns',
+                        "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
+                        "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
+                        '!paints - Get a list of paints partial sku 🎨',
+                        '!snapshots (sku|name|defindex)=<a> - Get the bptf snapshots history for an item 🔍',
+                        '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
+                        '!options <OptionsKey> - Get options.json content (current bot option settings) 🔧',
+                        '!config <OptionsKey>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
+                        '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
+                        '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
+                    ].join('\n- ')
+            );
+        }
     }
 
     moreCommand(steamID: SteamID): void {
