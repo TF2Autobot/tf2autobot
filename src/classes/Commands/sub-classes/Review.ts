@@ -94,9 +94,9 @@ export default class ReviewCommands {
 
             reply +=
                 `\n- Offer #${offer.id as string} from ${(offer.data as OfferData).partner}` +
-                `\n⚠️ Send "!trade ${offer.id as string}" for more details or "!faccept ${
+                `\n⚠️ Send "!trade ${offer.id as string}" for more details, "!faccept ${
                     offer.id as string
-                }" to force accept the trade.\n`;
+                }" to force accept the trade, or "!fdecline ${offer.id as string}" to force decline the trade.\n`;
         }
 
         return reply;
@@ -188,7 +188,7 @@ export default class ReviewCommands {
             `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
             (offerData?.action?.action === 'skip'
                 ? `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`
-                : `\n\n⚠️ Send "!faccept ${offerId}" to force accept the trade now!`);
+                : `\n\n⚠️ Send "!faccept ${offerId}" to force accept, or "!fdecline ${offerId}" to decline the trade now!`);
 
         this.bot.sendMessage(steamID, reply);
     }

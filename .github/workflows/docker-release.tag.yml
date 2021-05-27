@@ -34,7 +34,7 @@ jobs:
             type=semver,pattern={{version}}-${{ matrix.node }}
             type=semver,pattern={{major}}.{{minor}}-${{ matrix.node }}
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1.1.0
+        uses: docker/setup-qemu-action@v1.2.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1.3.0
@@ -47,7 +47,7 @@ jobs:
 
       - name: Build and push (node:${{ matrix.node }})
         id: docker
-        uses: docker/build-push-action@v2.4.0
+        uses: docker/build-push-action@v2.5.0
         with:
           push: true
           context: .

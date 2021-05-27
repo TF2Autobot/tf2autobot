@@ -1,6 +1,6 @@
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
-import jsonlint from 'jsonlint';
+import jsonlint from '@tf2autobot/jsonlint';
 import * as path from 'path';
 import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
@@ -1925,6 +1925,7 @@ function throwLintError(filepath: string, e: Error): void {
 function lintPath(filepath: string): void {
     const rawOptions = readFileSync(filepath, { encoding: 'utf8' });
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         jsonlint.parse(rawOptions);
     } catch (e) {
         throwLintError(filepath, e);
@@ -1953,6 +1954,7 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
             if (e instanceof SyntaxError) {
                 // lint the rawOptions to give better feedback since it is SyntaxError
                 try {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     jsonlint.parse(rawOptions);
                 } catch (e) {
                     throwLintError(optionsPath, e);
