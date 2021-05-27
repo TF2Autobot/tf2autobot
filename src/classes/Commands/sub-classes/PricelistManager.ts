@@ -7,6 +7,7 @@ import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
+import { UnknownDictionary, UnknownDictionaryKnownValues } from '../../../types/common';
 import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -18,8 +19,6 @@ import { testSKU } from '../../../lib/tools/export';
 // Pricelist manager
 
 export default class PricelistManagerCommands {
-    private stopAutoAdd = false;
-
     private executed = false;
 
     private lastExecutedTime: number | null = null;
@@ -27,7 +26,7 @@ export default class PricelistManagerCommands {
     private executeTimeout: NodeJS.Timeout;
 
     stopAutoAddCommand(): void {
-        this.stopAutoAdd = true;
+        AutoAddQueue.stopJob();
     }
 
     constructor(private readonly bot: Bot) {
@@ -182,7 +181,7 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}" (${entry.sku})` + this.generateAddedReply(isPremium, entry)
+                    `✅ Added "${entry.name}" (${entry.sku})` + generateAddedReply(this.bot, isPremium, entry)
                 );
             })
             .catch(err => {
@@ -190,24 +189,14 @@ export default class PricelistManagerCommands {
             });
     }
 
-    private generateAddedReply(isPremium: boolean, entry: Entry): string {
-        const amount = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false);
-        const reply =
-            `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
-            `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
-            `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
-            `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
-            `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
-            `\n½🔄 isPartialPriced: ${entry.isPartialPriced ? '✅' : '❌'}` +
-            (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
-            `\n🔰 Group: ${entry.group}` +
-            `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
-            `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`;
+    autoAddCommand(steamID: SteamID, message: string): void {
+        if (AutoAddQueue.isRunning()) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Autoadd is still running. Please wait until it's completed or send !stopautoadd to stop.`
+            );
+        }
 
-        return reply;
-    }
-
-    async autoAddCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
         if (params.sku !== undefined || params.name !== undefined || params.defindex !== undefined) {
@@ -358,7 +347,8 @@ export default class PricelistManagerCommands {
             }
         }
 
-        const total = Object.keys(clonedDict).length;
+        const skus = Object.keys(clonedDict);
+        const total = skus.length;
 
         const totalTime = total * (params.autoprice ? 2 : 1) * 1000;
         const aSecond = 1 * 1000;
@@ -377,77 +367,10 @@ export default class PricelistManagerCommands {
                 } to complete. Send "!stopautoadd" to abort.`
         );
 
-        let added = 0;
-        let skipped = 0;
-        let failed = 0;
+        const autoAdd = new AutoAddQueue(this.bot, steamID, skusFromPricelist, params, isPremium);
+        AutoAddQueue.addJob();
 
-        for (const sku in clonedDict) {
-            if (this.stopAutoAdd) {
-                this.bot.sendMessage(steamID, '----------\n🛑 Stopped auto-add items');
-                this.stopAutoAdd = false;
-                break;
-            }
-
-            if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
-                continue;
-            }
-
-            if (skusFromPricelist.includes(sku)) {
-                skipped++;
-                this.bot.sendMessage(
-                    steamID,
-                    `----------\n⚠️ ${this.bot.schema.getName(
-                        SKU.fromString(sku)
-                    )} (${sku}) already in pricelist, skipping...` +
-                        `\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
-                            total - added - skipped - failed
-                        } remaining`
-                );
-                // Prevent spamming detection and cause the bot to stop sending messages
-                await sleepasync().Promise.sleep(1 * 1000);
-                continue;
-            }
-
-            if (params.autoprice === true) {
-                await sleepasync().Promise.sleep(2 * 1000);
-            } else {
-                await sleepasync().Promise.sleep(1 * 1000);
-            }
-
-            params.sku = sku;
-
-            this.bot.pricelist
-                .addPrice(params as EntryData, true, PricelistChangedSource.Command)
-                .then(entry => {
-                    added++;
-                    this.bot.sendMessage(
-                        steamID,
-                        `----------\n✅ Added "${entry.name}" (${entry.sku})` +
-                            this.generateAddedReply(isPremium, entry) +
-                            `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
-                                total - added - skipped - failed
-                            } remaining`
-                    );
-                })
-                .catch(err => {
-                    failed++;
-                    this.bot.sendMessage(
-                        steamID,
-                        `----------\n❌ Failed to add the item to the pricelist: ${(err as Error).message}` +
-                            `\n\n📜 Status: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total, ${
-                                total - added - skipped - failed
-                            } remaining`
-                    );
-                });
-        }
-
-        await sleepasync().Promise.sleep(2 * 1000);
-        this.bot.sendMessage(
-            steamID,
-            `----------\n✅ Done, summary: ${added} added, ${skipped} skipped, ${failed} failed / ${total} total`
-        );
-
-        this.stopAutoAdd = false;
+        autoAdd.enqueue = skus;
     }
 
     async updateCommand(steamID: SteamID, message: string): Promise<void> {
@@ -953,7 +876,7 @@ export default class PricelistManagerCommands {
         const keyPrice = this.bot.pricelist.getKeyPrice;
         const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku, false);
 
-        const reply =
+        return (
             `\n💲 Buy: ${
                 oldEntry.buy.toValue(keyPrice.metal) !== newEntry.buy.toValue(keyPrice.metal)
                     ? `${oldEntry.buy.toString()} → ${newEntry.buy.toString()}`
@@ -1000,9 +923,8 @@ export default class PricelistManagerCommands {
                 oldEntry.group !== newEntry.group ? `${oldEntry.group} → ${newEntry.group}` : newEntry.group
             }` +
             `${newEntry.note.buy !== null ? `\n📥 Custom buying note: ${newEntry.note.buy}` : ''}` +
-            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`;
-
-        return reply;
+            `${newEntry.note.sell !== null ? `\n📤 Custom selling note: ${newEntry.note.sell}` : ''}`
+        );
     }
 
     async shuffleCommand(steamID: SteamID): Promise<void> {
@@ -1291,12 +1213,12 @@ export default class PricelistManagerCommands {
 
         const listCount = list.length;
 
-        const limit = params.limit === undefined ? 50 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+        const limit = params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
         this.bot.sendMessage(
             steamID,
             `Found ${pluralize('item', listCount, true)} in your pricelist${
-                limit !== -1 && params.limit === undefined && listCount > 50
+                limit !== -1 && params.limit === undefined && listCount > 20
                     ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
                     : `${
                           limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
@@ -1306,17 +1228,17 @@ export default class PricelistManagerCommands {
         );
 
         const applyLimit = limit === -1 ? listCount : limit;
-        const loops = Math.ceil(applyLimit / 50);
+        const loops = Math.ceil(applyLimit / 20);
 
         for (let i = 0; i < loops; i++) {
             const last = loops - i === 1;
-            const i50 = i * 50;
+            const i20 = i * 20;
 
-            const firstOrLast = i < 1 && limit > 0 && limit < 50 ? limit : i50 + (applyLimit - i50);
+            const firstOrLast = i < 1 && limit > 0 && limit < 20 ? limit : i20 + (applyLimit - i20);
 
-            this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
+            this.bot.sendMessage(steamID, list.slice(i20, last ? firstOrLast : (i + 1) * 20).join('\n'));
 
-            await sleepasync().Promise.sleep(1 * 1000);
+            await sleepasync().Promise.sleep(1000);
         }
     }
 
@@ -1352,7 +1274,7 @@ export default class PricelistManagerCommands {
 
         const listCount = list.length;
 
-        const limit = params.limit === undefined ? 50 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+        const limit = params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
         this.bot.sendMessage(
             steamID,
@@ -1362,7 +1284,7 @@ export default class PricelistManagerCommands {
                     listCount,
                     true
                 )} currently being partial priced${
-                    limit !== -1 && params.limit === undefined && listCount > 50
+                    limit !== -1 && params.limit === undefined && listCount > 20
                         ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
                         : `${
                               limit < listCount && limit > 0 && params.limit !== undefined
@@ -1373,17 +1295,17 @@ export default class PricelistManagerCommands {
         );
 
         const applyLimit = limit === -1 ? listCount : limit;
-        const loops = Math.ceil(applyLimit / 50);
+        const loops = Math.ceil(applyLimit / 20);
 
         for (let i = 0; i < loops; i++) {
             const last = loops - i === 1;
-            const i50 = i * 50;
+            const i20 = i * 20;
 
-            const firstOrLast = i < 1 && limit > 0 && limit < 50 ? limit : i50 + (applyLimit - i50);
+            const firstOrLast = i < 1 && limit > 0 && limit < 20 ? limit : i20 + (applyLimit - i20);
 
-            this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
+            this.bot.sendMessage(steamID, list.slice(i20, last ? firstOrLast : (i + 1) * 20).join('\n'));
 
-            await sleepasync().Promise.sleep(1 * 1000);
+            await sleepasync().Promise.sleep(1000);
         }
     }
 
@@ -1534,12 +1456,12 @@ export default class PricelistManagerCommands {
             const listCount = list.length;
 
             const limit =
-                params.limit === undefined ? 50 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
+                params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
             this.bot.sendMessage(
                 steamID,
                 `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}${
-                    limit !== -1 && params.limit === undefined && listCount > 50
+                    limit !== -1 && params.limit === undefined && listCount > 20
                         ? `, showing only ${limit} items (you can send with parameter limit=-1 to list all)`
                         : `${
                               limit < listCount && limit > 0 && params.limit !== undefined
@@ -1551,19 +1473,174 @@ export default class PricelistManagerCommands {
             );
 
             const applyLimit = limit === -1 ? listCount : limit;
-            const loops = Math.ceil(applyLimit / 50);
+            const loops = Math.ceil(applyLimit / 20);
 
             for (let i = 0; i < loops; i++) {
                 const last = loops - i === 1;
-                const i50 = i * 50;
+                const i20 = i * 20;
 
-                const firstOrLast = i < 1 && limit > 0 && limit < 50 ? limit : i50 + (applyLimit - i50);
+                const firstOrLast = i < 1 && limit > 0 && limit < 20 ? limit : i20 + (applyLimit - i20);
 
-                this.bot.sendMessage(steamID, list.slice(i50, last ? firstOrLast : (i + 1) * 50).join('\n'));
+                this.bot.sendMessage(steamID, list.slice(i20, last ? firstOrLast : (i + 1) * 20).join('\n'));
 
-                await sleepasync().Promise.sleep(1 * 1000);
+                await sleepasync().Promise.sleep(1000);
             }
         }
+    }
+}
+
+function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
+    const amount = bot.inventoryManager.getInventory.getAmount(entry.sku, false);
+
+    return (
+        `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
+        `\n🛒 Intent: ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}` +
+        `\n📦 Stock: ${amount} | Min: ${entry.min} | Max: ${entry.max}` +
+        `\n📋 Enabled: ${entry.enabled ? '✅' : '❌'}` +
+        `\n🔄 Autoprice: ${entry.autoprice ? '✅' : '❌'}` +
+        `\n½🔄 isPartialPriced: ${entry.isPartialPriced ? '✅' : '❌'}` +
+        (isPremium ? `\n📢 Promoted: ${entry.promoted === 1 ? '✅' : '❌'}` : '') +
+        `\n🔰 Group: ${entry.group}` +
+        `${entry.note.buy !== null ? `\n📥 Custom buying note: ${entry.note.buy}` : ''}` +
+        `${entry.note.sell !== null ? `\n📤 Custom selling note: ${entry.note.sell}` : ''}`
+    );
+}
+
+class AutoAddQueue {
+    // reference: https://www.youtube.com/watch?v=bK7I79hcm08
+
+    private static autoAdd: UnknownDictionary<boolean> = {};
+
+    private skus: string[] = [];
+
+    private added = 0;
+
+    private skipped = 0;
+
+    private failed = 0;
+
+    private total = 0;
+
+    constructor(
+        private readonly bot: Bot,
+        private readonly steamID: SteamID,
+        private readonly skusToSkip: string[],
+        private params: UnknownDictionaryKnownValues,
+        private readonly isPremium: boolean
+    ) {
+        this.params = params;
+    }
+
+    set enqueue(skus: string[]) {
+        this.skus = skus;
+        this.total = skus.length;
+    }
+
+    async executeAutoAdd(): Promise<void> {
+        if (AutoAddQueue.autoAdd['1'] === false) {
+            AutoAddQueue.removeJob();
+            return this.bot.sendMessage(this.steamID, '----------\n🛑 Stopped auto-add items');
+        }
+
+        if (this.params.autoprice) {
+            await sleepasync().Promise.sleep(2 * 1000);
+        } else {
+            await sleepasync().Promise.sleep(1 * 1000);
+        }
+
+        this.params.sku = this.sku;
+
+        if (this.skusToSkip.includes(this.sku)) {
+            this.skipped++;
+            const remaining = this.total - this.added - this.skipped - this.failed;
+
+            this.bot.sendMessage(
+                this.steamID,
+                `----------\n⚠️ ${this.bot.schema.getName(SKU.fromString(this.sku))} (${
+                    this.sku
+                }) already in pricelist, skipping...` +
+                    `\n📜 Status: ${this.added} added, ${this.skipped} skipped, ${this.failed} failed / ${this.total} total, ${remaining} remaining`
+            );
+            // Prevent spamming detection and cause the bot to stop sending messages
+            await sleepasync().Promise.sleep(1 * 1000);
+
+            this.dequeue();
+
+            if (this.isEmpty) {
+                AutoAddQueue.removeJob();
+                return this.bot.sendMessage(
+                    this.steamID,
+                    `----------\n✅ Done, summary: ${this.added} added, ${this.skipped} skipped, ${this.failed} failed / ${this.total} total`
+                );
+            }
+
+            void this.executeAutoAdd();
+        } else {
+            this.bot.pricelist
+                .addPrice(this.params as EntryData, true, PricelistChangedSource.Command)
+                .then(entry => {
+                    this.added++;
+                    const remaining = this.total - this.added - this.skipped - this.failed;
+
+                    this.bot.sendMessage(
+                        this.steamID,
+                        `----------\n✅ Added "${entry.name}" (${entry.sku})` +
+                            generateAddedReply(this.bot, this.isPremium, entry) +
+                            `\n\n📜 Status: ${this.added} added, ${this.skipped} skipped, ${this.failed} failed / ${this.total} total, ${remaining} remaining`
+                    );
+                })
+                .catch(err => {
+                    this.failed++;
+                    const remaining = this.total - this.added - this.skipped - this.failed;
+
+                    this.bot.sendMessage(
+                        this.steamID,
+                        `----------\n❌ Failed to add the item to the pricelist: ${(err as Error).message}` +
+                            `\n\n📜 Status: ${this.added} added, ${this.skipped} skipped, ${this.failed} failed / ${this.total} total, ${remaining} remaining`
+                    );
+                })
+                .finally(() => {
+                    this.dequeue();
+
+                    if (this.isEmpty) {
+                        AutoAddQueue.removeJob();
+                        return this.bot.sendMessage(
+                            this.steamID,
+                            `----------\n✅ Done, summary: ${this.added} added, ${this.skipped} skipped, ${this.failed} failed / ${this.total} total`
+                        );
+                    }
+
+                    void this.executeAutoAdd();
+                });
+        }
+    }
+
+    private dequeue(): void {
+        this.skus.shift();
+    }
+
+    private get sku(): string {
+        return this.skus[0];
+    }
+
+    private get isEmpty(): boolean {
+        return this.skus.length === 0;
+    }
+
+    static addJob(): void {
+        this.autoAdd['1'] = true;
+    }
+
+    static isRunning(): boolean {
+        return this.autoAdd['1'] !== undefined;
+    }
+
+    static stopJob(): void {
+        this.autoAdd['1'] = false;
+    }
+
+    private static removeJob(): void {
+        delete this.autoAdd['1'];
     }
 }
 
