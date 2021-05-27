@@ -205,7 +205,7 @@ export default class Commands {
         } else if (['getslots', 'listings'].includes(command) && isAdmin) {
             void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
-            void this.pManager.autoAddCommand(steamID, message);
+            this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
             this.pManager.stopAutoAddCommand();
         } else if (command === 'shuffle' && isAdmin) {
