@@ -427,7 +427,7 @@ export default class Bot {
                                   buff[e.sku] = e;
                                   return buff;
                               }, {}) as PricesDataObject)
-                            : data.pricelist;
+                            : data.pricelist || {};
 
                         void this.pricelist.setPricelist(pricelist, this).asCallback(callback);
                     },
