@@ -115,6 +115,7 @@ export function getItemAndAmount(
                         'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
                         `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
                         `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `If you're entering the sku, make sure it's correct`,
                         `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
@@ -167,6 +168,7 @@ export function getItemAndAmount(
                         'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
                         `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
                         `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `If you're entering the sku, make sure it's correct`,
                         `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
