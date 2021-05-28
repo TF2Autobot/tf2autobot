@@ -9,6 +9,7 @@ import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
+import { testSKU } from '../../../lib/tools/export';
 
 export function getItemAndAmount(
     steamID: SteamID,
@@ -52,7 +53,7 @@ export function getItemAndAmount(
         return null;
     }
 
-    let match = bot.pricelist.searchByName(name, true);
+    let match = testSKU(name) ? bot.pricelist.getPrice(name, true) : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 
