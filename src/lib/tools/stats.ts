@@ -10,6 +10,9 @@ export default function stats(bot: Bot): Stats {
     let acceptedOfferTrades24Hours = 0;
     let acceptedOfferTradesToday = 0;
 
+    let acceptedCountered24Hours = 0;
+    let acceptedCounteredToday = 0;
+
     let acceptedSentTrades24Hours = 0;
     let acceptedSentTradesToday = 0;
 
@@ -18,6 +21,9 @@ export default function stats(bot: Bot): Stats {
 
     let declineOffer24Hours = 0;
     let declineOfferToday = 0;
+
+    let declinedCounter24Hours = 0;
+    let declinedCounterToday = 0;
 
     let declineSent24Hours = 0;
     let declineSentToday = 0;
@@ -51,18 +57,36 @@ export default function stats(bot: Bot): Stats {
         if (offerData[offerID].handledByUs === true && offerData[offerID].action !== undefined) {
             // action not undefined means offer received
 
-            if (offerData[offerID].isAccepted === true && offerData[offerID].action.action === 'accept') {
-                // Successful trades handled by the bot
-                acceptedTradesTotal++;
+            if (offerData[offerID].isAccepted === true) {
+                if (offerData[offerID].action.action === 'accept') {
+                    // Successful trades handled by the bot
+                    acceptedTradesTotal++;
 
-                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
-                    // Within the last 24 hours
-                    acceptedOfferTrades24Hours++;
+                    if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                        // Within the last 24 hours
+                        acceptedOfferTrades24Hours++;
+                    }
+
+                    if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                        // All trades since 0:00 in the morning.
+                        acceptedOfferTradesToday++;
+                    }
                 }
 
-                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
-                    // All trades since 0:00 in the morning.
-                    acceptedOfferTradesToday++;
+                if (offerData[offerID].action.action === 'counter') {
+                    acceptedTradesTotal++;
+
+                    if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                        // Within the last 24 hours
+                        acceptedOfferTrades24Hours++;
+                        acceptedCountered24Hours++;
+                    }
+
+                    if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                        // All trades since 0:00 in the morning.
+                        acceptedOfferTradesToday++;
+                        acceptedCounteredToday++;
+                    }
                 }
             }
 
@@ -75,6 +99,22 @@ export default function stats(bot: Bot): Stats {
                 if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
                     // All trades since 0:00 in the morning.
                     declineOfferToday++;
+                }
+            }
+
+            if (offerData[offerID].action.action === 'counter') {
+                if (offerData[offerID].isDeclined === true) {
+                    if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                        // Within the last 24 hours
+                        declineOffer24Hours++;
+                        declinedCounter24Hours++;
+                    }
+
+                    if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                        // All trades since 0:00 in the morning.
+                        declineOfferToday++;
+                        declinedCounterToday++;
+                    }
                 }
             }
 
@@ -178,7 +218,9 @@ export default function stats(bot: Bot): Stats {
         canceledByUserToday +
         isFailedConfirmationToday +
         isCanceledUnknownToday +
-        isInvalidToday;
+        isInvalidToday +
+        acceptedCounteredToday +
+        declinedCounterToday;
 
     const totalProcessed24Hours =
         acceptedSentTrades24Hours +
@@ -188,7 +230,9 @@ export default function stats(bot: Bot): Stats {
         canceledByUser24Hours +
         isFailedConfirmation24Hours +
         isCanceledUnknown24Hours +
-        isInvalid24Hours;
+        isInvalid24Hours +
+        acceptedCountered24Hours +
+        declinedCounter24Hours;
 
     return {
         totalDays: totalDays,
@@ -196,11 +240,17 @@ export default function stats(bot: Bot): Stats {
         today: {
             processed: totalProcessedToday,
             accepted: {
-                offer: acceptedOfferTradesToday,
+                offer: {
+                    total: acceptedOfferTradesToday,
+                    countered: acceptedCounteredToday
+                },
                 sent: acceptedSentTradesToday
             },
             decline: {
-                offer: declineOfferToday,
+                offer: {
+                    total: declineOfferToday,
+                    countered: declinedCounterToday
+                },
                 sent: declineSentToday
             },
             skipped: skippedToday,
@@ -215,11 +265,17 @@ export default function stats(bot: Bot): Stats {
         hours24: {
             processed: totalProcessed24Hours,
             accepted: {
-                offer: acceptedOfferTrades24Hours,
+                offer: {
+                    total: acceptedOfferTrades24Hours,
+                    countered: acceptedCountered24Hours
+                },
                 sent: acceptedSentTrades24Hours
             },
             decline: {
-                offer: declineOffer24Hours,
+                offer: {
+                    total: declineOffer24Hours,
+                    countered: declinedCounter24Hours
+                },
                 sent: declineSent24Hours
             },
             skipped: skipped24Hours,
@@ -250,14 +306,17 @@ interface Canceled {
 
 interface TodayOr24Hours {
     processed: number;
-    accepted: AcceptedOrDeclined;
-    decline: AcceptedOrDeclined;
+    accepted: AcceptedOrDeclinedWithCounter;
+    decline: AcceptedOrDeclinedWithCounter;
     skipped: number;
     canceled: Canceled;
     invalid: number;
 }
 
-interface AcceptedOrDeclined {
-    offer: number;
+interface AcceptedOrDeclinedWithCounter {
+    offer: {
+        total: number;
+        countered: number;
+    };
     sent: number;
 }

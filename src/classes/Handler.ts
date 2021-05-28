@@ -50,7 +50,7 @@ export default abstract class Handler {
      * @param offer - The new trade offer
      */
     abstract onNewTradeOffer(offer: TradeOfferManager.TradeOffer): Promise<null | {
-        action: 'accept' | 'decline' | 'skip';
+        action: 'accept' | 'decline' | 'skip' | 'counter';
         reason: string;
         meta?: Meta;
     }>;
@@ -63,7 +63,7 @@ export default abstract class Handler {
      */
     abstract onOfferAction(
         offer: TradeOfferManager.TradeOffer,
-        action: 'accept' | 'decline' | 'skip',
+        action: 'accept' | 'decline' | 'skip' | 'counter',
         reason: string,
         meta: Meta
     ): void;

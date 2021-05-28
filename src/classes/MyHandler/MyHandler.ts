@@ -983,7 +983,11 @@ export default class MyHandler extends Handler {
                     return { action: 'decline', reason: 'GIFT_NO_NOTE' };
                 }
             }
-        } else if (itemsToGiveCount > 0 && itemsToReceiveCount === 0) {
+        } else if (
+            itemsToGiveCount > 0 &&
+            itemsToReceiveCount === 0 &&
+            !(opt.miscSettings.counterOffer.enable && exchange.contains.items)
+        ) {
             offer.log('info', 'is taking our items for free, declining...');
             return { action: 'decline', reason: 'CRIME_ATTEMPT' };
         }
@@ -1444,7 +1448,8 @@ export default class MyHandler extends Handler {
                 wrongAboutOffer.push({
                     reason: '🟥_INVALID_VALUE',
                     our: exchange.our.value,
-                    their: exchange.their.value
+                    their: exchange.their.value,
+                    missing: exchange.our.value - exchange.their.value
                 });
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
@@ -1774,7 +1779,7 @@ export default class MyHandler extends Handler {
                     }
                 };
             } else if (
-                opt.offerReceived.invalidValue.autoDecline.enable &&
+                (opt.offerReceived.invalidValue.autoDecline.enable || opt.miscSettings.counterOffer.enable) &&
                 isInvalidValue &&
                 !(
                     isUnderstocked ||
@@ -1786,6 +1791,41 @@ export default class MyHandler extends Handler {
                 ) &&
                 this.hasInvalidValueException === false
             ) {
+                if (opt.miscSettings.counterOffer.enable) {
+                    // if counteroffer enabled
+                    if (opt.miscSettings.counterOffer.skipIncludeMessage && offerMessage) {
+                        // if skipIncludeMessage is set to true and offer contains message, skip for review
+                        offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+
+                        return {
+                            action: 'skip',
+                            reason: 'REVIEW',
+                            meta: {
+                                uniqueReasons: uniqueReasons,
+                                reasons: wrongAboutOffer,
+                                highValue: isContainsHighValue ? highValueMeta : undefined
+                            }
+                        };
+                    }
+
+                    offer.log(
+                        'info',
+                        `offer need to counter.\nSummary:\n${JSON.stringify(
+                            summarize(offer, this.bot, 'summary-countering', false),
+                            null,
+                            4
+                        )}`
+                    );
+
+                    return {
+                        action: 'counter',
+                        reason: 'COUNTER_INVALID_VALUE',
+                        meta: {
+                            uniqueReasons: uniqueReasons,
+                            reasons: wrongAboutOffer
+                        }
+                    };
+                }
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
@@ -1994,7 +2034,12 @@ export default class MyHandler extends Handler {
         offer.data('meta', undefined);
     }
 
-    onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
+    onOfferAction(
+        offer: TradeOffer,
+        action: 'accept' | 'decline' | 'skip' | 'counter',
+        reason: string,
+        meta: Meta
+    ): void {
         if (offer.data('notify') !== true) {
             return;
         }
@@ -2310,7 +2355,7 @@ interface OnRun {
 }
 
 interface OnNewTradeOffer {
-    action: 'accept' | 'decline' | 'skip';
+    action: 'accept' | 'decline' | 'skip' | 'counter';
     reason: string;
     meta?: Meta;
 }

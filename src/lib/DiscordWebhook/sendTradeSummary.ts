@@ -14,6 +14,7 @@ export default async function sendTradeSummary(
     bot: Bot,
     timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
+    timeTakenToCounterOffer: number | undefined,
     isTradingKeys: boolean,
     isOfferSent: boolean | undefined
 ): Promise<void> {
@@ -132,6 +133,7 @@ export default async function sendTradeSummary(
                     `\n${cTTimeTaken} ${t.convertTime(
                         timeTakenToComplete,
                         timeTakenToProcessOrConstruct,
+                        timeTakenToCounterOffer,
                         isOfferSent,
                         tSum.showDetailedTimeTaken,
                         tSum.showTimeTakenInMS
@@ -259,6 +261,7 @@ export default async function sendTradeSummary(
                     cTxTimeTaken,
                     timeTakenToComplete,
                     timeTakenToProcessOrConstruct,
+                    timeTakenToCounterOffer,
                     tSum
                 );
             });

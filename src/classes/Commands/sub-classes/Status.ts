@@ -46,11 +46,13 @@ export default class StatusCommands {
                     : String(trades.totalAcceptedTrades)) +
                 `\n\n--- Last 24 hours ---` +
                 `\n• Processed: ${trades.hours24.processed}` +
-                `\n• Accepted: ${trades.hours24.accepted.offer + trades.hours24.accepted.sent}` +
-                `\n---• Received offer: ${trades.hours24.accepted.offer}` +
+                `\n• Accepted: ${trades.hours24.accepted.offer.total + trades.hours24.accepted.sent}` +
+                `\n---• Received offer: ${trades.hours24.accepted.offer.total}` +
+                `\n------• Countered: ${trades.hours24.accepted.offer.countered}` +
                 `\n---• Sent offer: ${trades.hours24.accepted.sent}` +
-                `\n• Declined: ${trades.hours24.decline.offer + trades.hours24.decline.sent}` +
-                `\n---• Received offer: ${trades.hours24.decline.offer}` +
+                `\n• Declined: ${trades.hours24.decline.offer.total + trades.hours24.decline.sent}` +
+                `\n---• Received offer: ${trades.hours24.decline.offer.total}` +
+                `\n------• Countered: ${trades.hours24.decline.offer.countered}` +
                 `\n---• Sent offer: ${trades.hours24.decline.sent}` +
                 `\n• Skipped: ${trades.hours24.skipped}` +
                 `\n• Traded away: ${trades.hours24.invalid}` +
@@ -60,11 +62,13 @@ export default class StatusCommands {
                 `\n---• unknown reason: ${trades.hours24.canceled.unknown}` +
                 `\n\n--- Since beginning of today ---` +
                 `\n• Processed: ${trades.today.processed}` +
-                `\n• Accepted: ${trades.today.accepted.offer + trades.today.accepted.sent}` +
-                `\n---• Received offer: ${trades.today.accepted.offer}` +
+                `\n• Accepted: ${trades.today.accepted.offer.total + trades.today.accepted.sent}` +
+                `\n---• Received offer: ${trades.today.accepted.offer.total}` +
+                `\n------• Countered: ${trades.today.accepted.offer.countered}` +
                 `\n---• Sent offer: ${trades.today.accepted.sent}` +
-                `\n• Declined: ${trades.today.decline.offer + trades.today.decline.sent}` +
-                `\n---• Received offer: ${trades.today.decline.offer}` +
+                `\n• Declined: ${trades.today.decline.offer.total + trades.today.decline.sent}` +
+                `\n---• Received offer: ${trades.today.decline.offer.total}` +
+                `\n------• Countered: ${trades.today.decline.offer.countered}` +
                 `\n---• Sent offer: ${trades.today.decline.sent}` +
                 `\n• Skipped: ${trades.today.skipped}` +
                 `\n• Traded away: ${trades.today.invalid}` +

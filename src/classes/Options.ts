@@ -27,6 +27,10 @@ export const DEFAULTS: JsonOptions = {
         autobump: {
             enable: true
         },
+        counterOffer: {
+            enable: true,
+            skipIncludeMessage: false
+        },
         skipItemsInTrade: {
             enable: true
         },
@@ -475,7 +479,8 @@ export const DEFAULTS: JsonOptions = {
             notBuyingKeys: '',
             banned: '',
             escrow: '',
-            manual: ''
+            manual: '',
+            failedToCounter: ''
         },
         accepted: {
             automatic: {
@@ -1036,12 +1041,19 @@ interface Game {
     customName?: string;
 }
 
+// ------------ Counteroffer ------------
+
+interface Counteroffer extends OnlyEnable {
+    skipIncludeMessage?: boolean;
+}
+
 // --------- Misc Settings ----------
 
 interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
+    counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
     autobump?: OnlyEnable;
@@ -1473,6 +1485,7 @@ interface DeclineNote {
     banned?: string;
     escrow?: string;
     manual?: string;
+    failedToCounter?: string;
 }
 
 interface AcceptedNote {
