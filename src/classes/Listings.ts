@@ -631,12 +631,9 @@ export default class Listings {
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             const inventory = this.bot.inventoryManager.getInventory;
-            const itemName = entry.name;
-            // if the item name takes more than 40 characters, we will use sku
-            const useSkuOrName = itemName.length > 40 ? entry.sku : itemName;
             return details
                 .replace(/%price%/g, entry[key].toString())
-                .replace(/%name%/g, useSkuOrName)
+                .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
                 .replace(/%current_stock%/g, inventory.getAmount(entry.sku, false, true).toString())
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
