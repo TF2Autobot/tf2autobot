@@ -1263,7 +1263,7 @@ export default class Trades {
 
                                 if (match === null) {
                                     // Did not find a matching offer, retry sending the offer
-                                    return void this.sendOfferRetry(offer, attempts);
+                                    return resolve(this.sendOfferRetry(offer, attempts));
                                 }
 
                                 // Update the offer we attempted to send with the properties from the matching offer
