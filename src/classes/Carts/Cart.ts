@@ -334,8 +334,10 @@ export default abstract class Cart {
 
         this.offer.data('handleTimestamp', dayjs().valueOf());
 
+        const showWM = opt.miscSettings.showWatermark.enable;
         this.offer.setMessage(
-            'Powered by TF2Autobot' + (opt.customMessage.sendOffer ? '. ' + opt.customMessage.sendOffer : '')
+            (showWM ? 'Powered by TF2Autobot' : '') +
+                (showWM && opt.customMessage.sendOffer ? '. ' + opt.customMessage.sendOffer : '')
         );
 
         if (this.notify === true) {

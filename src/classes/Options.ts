@@ -45,6 +45,9 @@ export const DEFAULTS: JsonOptions = {
         game: {
             playOnlyTF2: false,
             customName: 'TF2Autobot'
+        },
+        showWatermark: {
+            enable: true
         }
     },
 
@@ -1061,6 +1064,7 @@ interface MiscSettings {
     weaponsAsCurrency?: WeaponsAsCurrency;
     checkUses?: CheckUses;
     game?: Game;
+    showWatermark?: OnlyEnable;
 }
 
 // ------------ SendAlert ------------

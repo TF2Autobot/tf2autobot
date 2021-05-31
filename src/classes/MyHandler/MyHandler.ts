@@ -2117,6 +2117,7 @@ export default class MyHandler extends Handler {
         }
 
         const isAdmin = this.bot.isAdmin(steamID);
+        const showWM = this.opt.miscSettings.showWatermark.enable;
         setImmediate(() => {
             if (!this.bot.friends.isFriend(steamID)) {
                 return;
@@ -2135,10 +2136,10 @@ export default class MyHandler extends Handler {
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
                                   .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                                  ` - TF2Autobot v${process.env.BOT_VERSION}`
+                                  (showWM ? ` - TF2Autobot v${process.env.BOT_VERSION}` : '')
                             : `Hi! If you don't know how things work, please type "!` +
                                   (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
+                                  (showWM ? `" - TF2Autobot v${process.env.BOT_VERSION}` : '')
                     );
                 }
 
@@ -2158,10 +2159,10 @@ export default class MyHandler extends Handler {
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
                           .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                          ` - TF2Autobot v${process.env.BOT_VERSION}`
+                          (showWM ? `" - TF2Autobot v${process.env.BOT_VERSION}` : '')
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
                           (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot v${process.env.BOT_VERSION}`
+                          (showWM ? `" - TF2Autobot v${process.env.BOT_VERSION}` : '')
             );
         });
     }
