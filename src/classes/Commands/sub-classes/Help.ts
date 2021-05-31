@@ -47,7 +47,7 @@ export default class HelpCommands {
         );
 
         if (isAdmin) {
-            await sleepasync().Promise.sleep(1000);
+            await sleepasync().Promise.sleep(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Pricelist manager ===✨\n- ' +
@@ -66,7 +66,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(1000);
+            await sleepasync().Promise.sleep(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Bot manager ===✨\n- ' +
@@ -89,7 +89,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(1000);
+            await sleepasync().Promise.sleep(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Bot status ===✨\n- ' +
@@ -102,7 +102,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(1000);
+            await sleepasync().Promise.sleep(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Manual review ===✨\n- ' +
@@ -117,7 +117,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(1000);
+            await sleepasync().Promise.sleep(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Request ===✨\n- ' +
@@ -134,7 +134,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(1000);
+            await sleepasync().Promise.sleep(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Misc ===✨\n- ' +

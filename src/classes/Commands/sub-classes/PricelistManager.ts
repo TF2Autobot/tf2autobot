@@ -23,6 +23,8 @@ export default class PricelistManagerCommands {
         AutoAddQueue.stopJob();
     }
 
+    private isSending = false;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -1052,6 +1054,10 @@ export default class PricelistManagerCommands {
     }
 
     async getAllCommand(steamID: SteamID, message: string): Promise<void> {
+        if (this.isSending) {
+            return this.bot.sendMessage(steamID, '❌ Please wait.');
+        }
+
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         const pricelist = this.bot.pricelist.getPrices;
@@ -1079,6 +1085,7 @@ export default class PricelistManagerCommands {
 
         const limit = params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
+        this.isSending = true;
         this.bot.sendMessage(
             steamID,
             `Found ${pluralize('item', listCount, true)} in your pricelist${
@@ -1102,11 +1109,17 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i20, last ? firstOrLast : (i + 1) * 20).join('\n'));
 
-            await sleepasync().Promise.sleep(1000);
+            await sleepasync().Promise.sleep(2000);
         }
+
+        this.isSending = false;
     }
 
     async partialPriceUpdateCommand(steamID: SteamID, message: string): Promise<void> {
+        if (this.isSending) {
+            return this.bot.sendMessage(steamID, '❌ Please wait.');
+        }
+
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
@@ -1155,6 +1168,7 @@ export default class PricelistManagerCommands {
 
         const limit = params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
+        this.isSending = true;
         this.bot.sendMessage(
             steamID,
             (!isPpuEnabled ? '⚠️ Partial Price Update disabled, but found ' : 'Found ') +
@@ -1184,11 +1198,17 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i20, last ? firstOrLast : (i + 1) * 20).join('\n'));
 
-            await sleepasync().Promise.sleep(1000);
+            await sleepasync().Promise.sleep(2000);
         }
+
+        this.isSending = false;
     }
 
     async findCommand(steamID: SteamID, message: string): Promise<void> {
+        if (this.isSending) {
+            return this.bot.sendMessage(steamID, '❌ Please wait.');
+        }
+
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
         if (
             !(
@@ -1341,6 +1361,7 @@ export default class PricelistManagerCommands {
             const limit =
                 params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
+            this.isSending = true;
             this.bot.sendMessage(
                 steamID,
                 `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}${
@@ -1366,8 +1387,10 @@ export default class PricelistManagerCommands {
 
                 this.bot.sendMessage(steamID, list.slice(i20, last ? firstOrLast : (i + 1) * 20).join('\n'));
 
-                await sleepasync().Promise.sleep(1000);
+                await sleepasync().Promise.sleep(2000);
             }
+
+            this.isSending = false;
         }
     }
 }
@@ -1425,11 +1448,7 @@ class AutoAddQueue {
             return this.bot.sendMessage(this.steamID, '----------\n🛑 Stopped auto-add items');
         }
 
-        if (this.params.autoprice) {
-            await sleepasync().Promise.sleep(2 * 1000);
-        } else {
-            await sleepasync().Promise.sleep(1 * 1000);
-        }
+        await sleepasync().Promise.sleep(2000);
 
         this.params.sku = this.sku;
 
@@ -1444,8 +1463,6 @@ class AutoAddQueue {
                 }) already in pricelist, skipping...` +
                     `\n📜 Status: ${this.added} added, ${this.skipped} skipped, ${this.failed} failed / ${this.total} total, ${remaining} remaining`
             );
-            // Prevent spamming detection and cause the bot to stop sending messages
-            await sleepasync().Promise.sleep(1 * 1000);
 
             this.dequeue();
 

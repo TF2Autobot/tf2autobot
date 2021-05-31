@@ -352,7 +352,7 @@ export default class ManagerCommands {
             this.bot.client.removeFriend(steamid);
 
             // Prevent Steam from detecting the bot as spamming
-            await sleepasync().Promise.sleep(2 * 1000);
+            await sleepasync().Promise.sleep(2000);
         }
 
         this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
