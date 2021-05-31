@@ -759,8 +759,11 @@ export default class Trades {
                 // Extensive tutorial if you want to update this function https://www.youtube.com/watch?v=dQw4w9WgXcQ.
 
                 log.debug('Set counteroffer message...');
+                const customMessage = opt.customMessage.counterOffer;
                 counter.setMessage(
-                    "Your offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
+                    customMessage
+                        ? customMessage
+                        : "Your offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
                 );
 
                 function getPureValue(sku: PureSKU) {

@@ -1423,6 +1423,10 @@ export const optionsSchema: jsonschema.Schema = {
                 sendOffer: {
                     type: 'string'
                 },
+                counterOffer: {
+                    type: 'string',
+                    maxLength: 128
+                },
                 welcome: {
                     type: 'string'
                 },
@@ -1530,6 +1534,7 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: [
                 'sendOffer',
+                'counterOffer',
                 'welcome',
                 'iDontKnowWhatYouMean',
                 'success',

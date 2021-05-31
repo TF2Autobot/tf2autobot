@@ -461,6 +461,7 @@ export const DEFAULTS: JsonOptions = {
 
     customMessage: {
         sendOffer: '',
+        counterOffer: '',
         welcome: '',
         iDontKnowWhatYouMean: '',
         success: '',
@@ -1458,6 +1459,7 @@ interface SendStatsDW extends OnlyEnable {
 
 interface CustomMessage {
     sendOffer?: string;
+    counterOffer?: string;
     welcome?: string;
     iDontKnowWhatYouMean?: string;
     success?: string;
