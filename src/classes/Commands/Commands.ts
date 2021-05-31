@@ -287,7 +287,7 @@ export default class Commands {
         this.bot.sendMessage(steamID, sku);
 
         if (sku.includes('null') || sku.includes('undefined')) {
-            this.bot.sendMessage(steamID, 'Please check the name. If correct, please let IdiNium know. Thank you.');
+            this.bot.sendMessage(steamID, 'Please check the name. If correct, please let us know. Thank you.');
         }
     }
 
