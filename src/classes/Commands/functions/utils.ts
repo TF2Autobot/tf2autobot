@@ -207,7 +207,21 @@ export function getItemFromParams(
     delete item.craftnumber;
 
     let foundSomething = false;
-    if (params.name !== undefined) {
+    if (params.item !== undefined) {
+        foundSomething = true;
+
+        const sku = bot.schema.getSkuFromName(params.item);
+
+        if (sku.includes('null') || sku.includes('undefined')) {
+            bot.sendMessage(
+                steamID,
+                `Invalid item name. The sku generate was ${sku}. Please report this to us on our Discord server, or create an issue on Github.`
+            );
+            return null;
+        }
+
+        return SKU.fromString(sku);
+    } else if (params.name !== undefined) {
         foundSomething = true;
         // Look for all items that have the same name
 
