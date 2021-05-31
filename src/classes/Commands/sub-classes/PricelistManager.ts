@@ -1135,12 +1135,20 @@ export default class PricelistManagerCommands {
             return this.bot.sendMessage(steamID, '❌ No items with ppu enabled found.');
         }
 
+        const keyPrice = this.bot.pricelist.getKeyPrice.metal;
         const list = Object.keys(pricelist).map((sku, i) => {
             const entry = pricelist[sku];
             const name = entry.name;
             const time = dayjs.unix(entry.time).fromNow();
 
-            return `${i + 1}. ${entry.sku} - ${name} (since ${time})`;
+            const isOneScrapDifference =
+                Currencies.toScrap(entry.sell.keys * keyPrice + entry.sell.metal) -
+                    Currencies.toScrap(entry.buy.keys * keyPrice + entry.buy.metal) ===
+                1;
+
+            return `${i + 1}. ${entry.sku} - ${name} (since ${time}), oneScrapDiff? ${
+                isOneScrapDifference ? '✅' : '❌'
+            }`;
         });
 
         const listCount = list.length;
