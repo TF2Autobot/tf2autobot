@@ -760,7 +760,7 @@ export default class Trades {
 
                 log.debug('Set counteroffer message...');
                 counter.setMessage(
-                    "Oni-chan. I'm not a dummie (thicc) offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
+                    "Your offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
                 );
 
                 function getPureValue(sku: PureSKU) {
