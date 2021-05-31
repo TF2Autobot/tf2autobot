@@ -217,8 +217,15 @@ export function getItemFromParams(
         const itemsCount = items.length;
 
         for (let i = 0; i < itemsCount; i++) {
-            if (items[i].item_name === params.name) {
-                match.push(items[i]);
+            const item = items[i];
+
+            if (item.item_name === 'Name Tag' && item.defindex === 2093) {
+                // skip and let it find Name Tag with defindex 5020
+                continue;
+            }
+
+            if (item.item_name === params.name) {
+                match.push(item);
             }
         }
 
