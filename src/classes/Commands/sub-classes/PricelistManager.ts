@@ -197,7 +197,7 @@ export default class PricelistManagerCommands {
             return this.bot.sendMessage(
                 steamID,
                 `❌ Please only define item listing settings parameters, more info:` +
-                    ` https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F#i2---item-listing-settings-parameters.`
+                    ` https://github.com/TF2Autobot/tf2autobot/wiki/Listing-settings-parameters`
             );
         }
 
