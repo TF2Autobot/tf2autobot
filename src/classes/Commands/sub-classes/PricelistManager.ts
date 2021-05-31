@@ -365,6 +365,7 @@ export default class PricelistManagerCommands {
         AutoAddQueue.addJob();
 
         autoAdd.enqueue = skus;
+        void autoAdd.executeAutoAdd();
     }
 
     async updateCommand(steamID: SteamID, message: string): Promise<void> {
