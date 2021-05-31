@@ -19,6 +19,10 @@
         "autobump": {
             "enable": true
         },
+        "counterOffer": {
+            "enable": true,
+            "skipIncludeMessage": false
+        },
         "skipItemsInTrade": {
             "enable": true
         },
@@ -32,7 +36,7 @@
         },
         "game": {
             "playOnlyTF2": false,
-            "customName": "TF2Autobot"
+            "customName": ""
         }
     },
     "sendAlert": {
@@ -418,6 +422,7 @@
     },
     "customMessage": {
         "sendOffer": "",
+        "counterOffer": "",
         "welcome": "",
         "iDontKnowWhatYouMean": "",
         "success": "",
@@ -436,7 +441,8 @@
             "notBuyingKeys": "",
             "banned": "",
             "escrow": "",
-            "manual": ""
+            "manual": "",
+            "failedToCounter": ""
         },
         "accepted": {
             "automatic": {
