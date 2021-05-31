@@ -44,7 +44,7 @@ export const DEFAULTS: JsonOptions = {
         },
         game: {
             playOnlyTF2: false,
-            customName: 'TF2Autobot'
+            customName: ''
         }
     },
 

@@ -92,14 +92,12 @@ export default class MiscCommands {
             const inviteURL = (opt as Discord).inviteURL;
             let reply: string;
             if (custom) {
-                reply =
-                    'TF2Autobot Discord Server: https://discord.gg/4k5tmMkXjB\n\n' +
-                    custom.replace(/%discordurl%/g, inviteURL);
+                reply = custom.replace(/%discordurl%/g, inviteURL);
             } else {
                 if (inviteURL) {
-                    reply = `TF2Autobot Discord Server: https://discord.gg/4k5tmMkXjB\nOwner's Discord Server: ${inviteURL}`;
+                    reply = `Owner's Discord Server: ${inviteURL}`;
                     //
-                } else reply = 'TF2Autobot Discord Server: https://discord.gg/4k5tmMkXjB';
+                } else return this.bot.sendMessage(steamID, '❌ The owner have not set the Discord invite link.');
             }
             this.bot.sendMessage(steamID, reply);
         } else {

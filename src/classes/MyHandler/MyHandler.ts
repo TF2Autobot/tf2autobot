@@ -158,12 +158,7 @@ export default class MyHandler extends Handler {
 
     get customGameName(): string {
         const customGameName = this.opt.miscSettings.game.customName;
-
-        if (customGameName === '' || customGameName === 'TF2Autobot') {
-            return `TF2Autobot v${process.env.BOT_VERSION}`;
-        } else {
-            return customGameName;
-        }
+        return customGameName ? customGameName : `TF2Autobot`;
     }
 
     private isPremium = false;
@@ -2134,11 +2129,8 @@ export default class MyHandler extends Handler {
                         this.opt.customMessage.welcome
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
-                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                                  ` - TF2Autobot v${process.env.BOT_VERSION}`
-                            : `Hi! If you don't know how things work, please type "!` +
-                                  (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
+                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                            : `Hi! If you don't know how things work, please type "!` + (isAdmin ? 'help' : 'how2trade')
                     );
                 }
 
@@ -2157,11 +2149,9 @@ export default class MyHandler extends Handler {
                 this.opt.customMessage.welcome
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
-                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                          ` - TF2Autobot v${process.env.BOT_VERSION}`
+                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
-                          (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot v${process.env.BOT_VERSION}`
+                          (isAdmin ? 'help' : 'how2trade')
             );
         });
     }
