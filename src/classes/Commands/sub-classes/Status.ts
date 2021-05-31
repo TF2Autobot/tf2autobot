@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
-import { getItemAndAmount, fixSKU } from '../functions/utils';
+import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
@@ -114,11 +114,14 @@ export default class StatusCommands {
         if (testSKU(message)) {
             sku = message;
         } else {
-            const info = getItemAndAmount(steamID, message, this.bot);
-            if (info === null) {
-                return;
+            sku = this.bot.schema.getSkuFromName(message);
+
+            if (sku.includes('null') || sku.includes('undefined')) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `Invalid item name. The sku generate was ${sku}. Please report this to us on our Discord server, or create an issue on Github.`
+                );
             }
-            sku = info.match.sku;
         }
 
         sku = fixSKU(sku);
