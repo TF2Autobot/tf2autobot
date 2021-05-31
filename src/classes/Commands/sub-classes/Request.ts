@@ -162,13 +162,13 @@ export default class RequestCommands {
         }
 
         const pricelist = this.bot.pricelist.getPrices;
-        const skus = pricelist.filter(entry => entry.sku !== '5021;6').map(entry => entry.sku);
+        const skus = Object.keys(pricelist).filter(sku => sku !== '5021;6');
 
         const total = skus.length;
         const totalTime = total * 2 * 1000;
-        const aSecond = 1 * 1000;
-        const aMin = 1 * 60 * 1000;
-        const anHour = 1 * 60 * 60 * 1000;
+        const aSecond = 1000;
+        const aMin = 60 * 1000;
+        const anHour = 60 * 60 * 1000;
         this.bot.sendMessage(
             steamID,
             `⌛ Price check requested for ${total} items. It will be completed in approximately ${
@@ -263,7 +263,7 @@ class Pricecheck {
     }
 
     async executeCheck(): Promise<void> {
-        await sleepasync().Promise.sleep(2 * 1000);
+        await sleepasync().Promise.sleep(2000);
 
         void Pricecheck.requestCheck(this.sku, 'bptf').asCallback(err => {
             if (err) {

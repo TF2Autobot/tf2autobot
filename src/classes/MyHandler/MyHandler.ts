@@ -29,7 +29,7 @@ import { BPTFGetUserInfo } from './interfaces';
 
 import Handler from '../Handler';
 import Bot from '../Bot';
-import { Entry, EntryData } from '../Pricelist';
+import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
 import Inventory from '../Inventory';
@@ -158,12 +158,7 @@ export default class MyHandler extends Handler {
 
     get customGameName(): string {
         const customGameName = this.opt.miscSettings.game.customName;
-
-        if (customGameName === '' || customGameName === 'TF2Autobot') {
-            return `TF2Autobot v${process.env.BOT_VERSION}`;
-        } else {
-            return customGameName;
-        }
+        return customGameName ? customGameName : `TF2Autobot`;
     }
 
     private isPremium = false;
@@ -240,7 +235,7 @@ export default class MyHandler extends Handler {
             files.readFile(this.paths.files.pricelist, true),
             files.readFile(this.paths.files.loginAttempts, true),
             files.readFile(this.paths.files.pollData, true)
-        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, Entry[], number[], PollData]) => {
+        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, PricesDataObject, number[], PollData]) => {
             return { loginKey, pricelist, loginAttempts, pollData };
         });
     }
@@ -333,7 +328,6 @@ export default class MyHandler extends Handler {
             const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced
                 .map(sku => {
                     const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
-
                     return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
                 })
                 .join('\n\n• ')}`;
@@ -359,7 +353,6 @@ export default class MyHandler extends Handler {
                 `because no longer in stock or exceed the threshold:\n\n• ${bulkPartiallyPriced
                     .map(sku => {
                         const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
-
                         return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
                     })
                     .join('\n• ')}`;
@@ -610,53 +603,54 @@ export default class MyHandler extends Handler {
                             }
                         }
 
+                        if (listing.intent === 1 && match !== null && !match.enabled) {
+                            // Listings for selling exist, but the item is currently disabled, remove it.
+                            log.debug(`Intent sell, removed because not selling: ${match.sku}`);
+                            listing.remove();
+                        }
+
                         listingsSKUs.push(listingSKU);
                     });
 
                     // Remove duplicate elements
-                    const newlistingsSKUs = new Set(listingsSKUs);
-                    const uniqueSKUs = [...newlistingsSKUs];
+                    const uniqueSKUs = [...new Set(listingsSKUs)];
+                    const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
 
-                    const pricelist = this.bot.pricelist.getPrices.filter(entry => {
-                        // First find out if lising for this item from bptf already exist.
-                        const isExist = uniqueSKUs.find(sku => entry.sku === sku);
-
-                        if (!isExist) {
-                            // undefined - listing does not exist but item is in the pricelist
-
-                            // Get amountCanBuy (already cover intent and so on)
-                            const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
-
-                            if (
-                                (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
-                                inventory.getAmount(entry.sku, false, true) > 0
-                            ) {
-                                // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
-                                // return this entry
-                                log.debug(
-                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${entry.sku}`
-                                );
-                                return true;
-                            }
-
-                            // Else ignore
-                            return false;
+                    for (const sku in pricelist) {
+                        if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                            continue;
                         }
 
-                        // Else if listing already exist on backpack.tf, ignore
-                        return false;
-                    });
+                        if (uniqueSKUs.includes(sku)) {
+                            delete pricelist[sku];
+                            continue;
+                        }
 
-                    const pricelistCount = pricelist.length;
+                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+
+                        if (
+                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
+                            inventory.getAmount(sku, false, true) > 0
+                        ) {
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // return this entry
+                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
+                        } else {
+                            delete pricelist[sku];
+                        }
+                    }
+
+                    const pricelistCount = Object.keys(pricelist).length;
 
                     if (pricelistCount > 0) {
                         log.debug(
                             'Checking listings for ' +
                                 pluralize('item', pricelistCount, true) +
-                                ` [${pricelist.map(entry => entry.sku).join(', ')}]...`
+                                ` [${Object.keys(pricelist).join(', ')}]...`
                         );
 
                         await this.bot.listings.recursiveCheckPricelist(
+                            Object.keys(pricelist),
                             pricelist,
                             true,
                             pricelistCount > 4000 ? 400 : 200,
@@ -711,7 +705,7 @@ export default class MyHandler extends Handler {
                         });
                     }
                 }
-            }, 1 * 60 * 1000);
+            }, 60 * 1000);
         }
     }
 
@@ -990,7 +984,11 @@ export default class MyHandler extends Handler {
                     return { action: 'decline', reason: 'GIFT_NO_NOTE' };
                 }
             }
-        } else if (itemsToGiveCount > 0 && itemsToReceiveCount === 0) {
+        } else if (
+            itemsToGiveCount > 0 &&
+            itemsToReceiveCount === 0 &&
+            !(opt.miscSettings.counterOffer.enable && exchange.contains.items)
+        ) {
             offer.log('info', 'is taking our items for free, declining...');
             return { action: 'decline', reason: 'CRIME_ATTEMPT' };
         }
@@ -1451,7 +1449,8 @@ export default class MyHandler extends Handler {
                 wrongAboutOffer.push({
                     reason: '🟥_INVALID_VALUE',
                     our: exchange.our.value,
-                    their: exchange.their.value
+                    their: exchange.their.value,
+                    missing: exchange.our.value - exchange.their.value
                 });
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
@@ -1781,7 +1780,7 @@ export default class MyHandler extends Handler {
                     }
                 };
             } else if (
-                opt.offerReceived.invalidValue.autoDecline.enable &&
+                (opt.offerReceived.invalidValue.autoDecline.enable || opt.miscSettings.counterOffer.enable) &&
                 isInvalidValue &&
                 !(
                     isUnderstocked ||
@@ -1793,6 +1792,41 @@ export default class MyHandler extends Handler {
                 ) &&
                 this.hasInvalidValueException === false
             ) {
+                if (opt.miscSettings.counterOffer.enable) {
+                    // if counteroffer enabled
+                    if (opt.miscSettings.counterOffer.skipIncludeMessage && offerMessage) {
+                        // if skipIncludeMessage is set to true and offer contains message, skip for review
+                        offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+
+                        return {
+                            action: 'skip',
+                            reason: 'REVIEW',
+                            meta: {
+                                uniqueReasons: uniqueReasons,
+                                reasons: wrongAboutOffer,
+                                highValue: isContainsHighValue ? highValueMeta : undefined
+                            }
+                        };
+                    }
+
+                    offer.log(
+                        'info',
+                        `offer need to counter.\nSummary:\n${JSON.stringify(
+                            summarize(offer, this.bot, 'summary-countering', false),
+                            null,
+                            4
+                        )}`
+                    );
+
+                    return {
+                        action: 'counter',
+                        reason: 'COUNTER_INVALID_VALUE',
+                        meta: {
+                            uniqueReasons: uniqueReasons,
+                            reasons: wrongAboutOffer
+                        }
+                    };
+                }
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
@@ -1921,10 +1955,10 @@ export default class MyHandler extends Handler {
                     this.isTradingKeys = false; // reset
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     cancelled(offer, oldState, this.bot);
-                    this.removePolldataKeys(offer);
+                    MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
                     invalid(offer, this.bot);
-                    this.removePolldataKeys(offer);
+                    MyHandler.removePolldataKeys(offer);
                 }
             }
 
@@ -1957,7 +1991,7 @@ export default class MyHandler extends Handler {
                 this.sentSummary[offer.id] = true;
 
                 processDeclined(offer, this.bot, this.isTradingKeys);
-                this.removePolldataKeys(offer);
+                MyHandler.removePolldataKeys(offer);
             }
         }
 
@@ -1988,7 +2022,7 @@ export default class MyHandler extends Handler {
             this.inviteToGroups(offer.partner);
 
             // delete notify and meta keys from polldata after each successful trades
-            this.removePolldataKeys(offer);
+            MyHandler.removePolldataKeys(offer);
 
             this.resetSentSummaryTimeout = setTimeout(() => {
                 this.sentSummary = {};
@@ -1996,12 +2030,17 @@ export default class MyHandler extends Handler {
         }
     }
 
-    private removePolldataKeys(offer: TradeOffer): void {
+    private static removePolldataKeys(offer: TradeOffer): void {
         offer.data('notify', undefined);
         offer.data('meta', undefined);
     }
 
-    onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
+    onOfferAction(
+        offer: TradeOffer,
+        action: 'accept' | 'decline' | 'skip' | 'counter',
+        reason: string,
+        meta: Meta
+    ): void {
         if (offer.data('notify') !== true) {
             return;
         }
@@ -2096,11 +2135,8 @@ export default class MyHandler extends Handler {
                         this.opt.customMessage.welcome
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
-                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                                  ` - TF2Autobot v${process.env.BOT_VERSION}`
-                            : `Hi! If you don't know how things work, please type "!` +
-                                  (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
+                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                            : `Hi! If you don't know how things work, please type "!` + (isAdmin ? 'help' : 'how2trade')
                     );
                 }
 
@@ -2119,11 +2155,9 @@ export default class MyHandler extends Handler {
                 this.opt.customMessage.welcome
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
-                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                          ` - TF2Autobot v${process.env.BOT_VERSION}`
+                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
-                          (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot v${process.env.BOT_VERSION}`
+                          (isAdmin ? 'help' : 'how2trade')
             );
         });
     }
@@ -2260,21 +2294,21 @@ export default class MyHandler extends Handler {
         });
     }
 
-    async onPricelist(pricelist: Entry[]): Promise<void> {
-        if (pricelist.length === 0) {
+    async onPricelist(pricelist: PricesObject): Promise<void> {
+        if (Object.keys(pricelist).length === 0) {
             // Ignore errors
             await this.bot.listings.removeAll();
         }
 
-        files
-            .writeFile(
-                this.paths.files.pricelist,
-                pricelist.map(entry => entry.getJSON()),
-                true
-            )
-            .catch(err => {
-                log.warn('Failed to save pricelist: ', err);
-            });
+        /*
+         * was: Failed to save pricelist:  The "data" argument must be of type string or an instance of Buffer, TypedArray, or
+         * DataView. Received undefined {"code":"ERR_INVALID_ARG_TYPE"}
+         *
+         * This will also save the "name" property. I think it's okay.
+         */
+        files.writeFile(this.paths.files.pricelist, pricelist, true).catch(err => {
+            log.warn('Failed to save pricelist: ', err);
+        });
     }
 
     onPriceChange(sku: string, entry: Entry): void {
@@ -2311,13 +2345,13 @@ export default class MyHandler extends Handler {
 
 interface OnRun {
     loginAttempts?: number[];
-    pricelist?: EntryData[];
+    pricelist?: PricesDataObject;
     loginKey?: string;
     pollData?: PollData;
 }
 
 interface OnNewTradeOffer {
-    action: 'accept' | 'decline' | 'skip';
+    action: 'accept' | 'decline' | 'skip' | 'counter';
     reason: string;
     meta?: Meta;
 }

@@ -172,13 +172,13 @@ export default class Inventory {
     }
 
     findBySKU(sku: string, tradableOnly = true): string[] {
-        const tradable = (this.tradable[sku] || []).map(item => (item ? item.id : undefined));
+        const tradable = (this.tradable[sku] || []).map(item => item?.id);
         if (tradableOnly) {
             // Copies the array
             return tradable.slice(0);
         }
 
-        const nonTradable = (this.nonTradable[sku] || []).map(item => (item ? item.id : undefined));
+        const nonTradable = (this.nonTradable[sku] || []).map(item => item?.id);
 
         return nonTradable.concat(tradable).slice(0);
     }
@@ -248,15 +248,14 @@ export default class Inventory {
         const s = SKU.fromString(sku);
 
         if (s.quality === 5) {
-            // generic getAmount so return total that match the generic sku type
-            const reduced = this.effects
-                .map(e => {
-                    s.effect = e.id;
-                    return this.getAmount(SKU.fromObject(s), false, tradableOnly);
-                })
-                // add up total found; total is undefined to being with
-                .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
-            return reduced;
+            const all = tradableOnly
+                ? Object.keys(this.tradable)
+                : Object.keys(this.tradable).concat(Object.keys(this.nonTradable));
+            return all
+                .filter(e => e.startsWith(sku))
+                .reduce((sum, s) => {
+                    return sum + this.getAmount(s, false, tradableOnly);
+                }, 0);
         } else {
             return this.getAmount(sku, false, tradableOnly);
         }

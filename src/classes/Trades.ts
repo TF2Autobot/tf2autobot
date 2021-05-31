@@ -1,15 +1,32 @@
-import TradeOfferManager, { TradeOffer, EconItem, CustomError, Meta, Action } from '@tf2autobot/tradeoffer-manager';
+import TradeOfferManager, {
+    TradeOffer,
+    EconItem,
+    CustomError,
+    Meta,
+    Action,
+    ItemsValue,
+    ItemsDict,
+    Prices
+} from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
+import Currencies from 'tf2-currencies-2';
+
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import Bot from './Bot';
+import Inventory, { Dict } from './Inventory';
+
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { sendAlert } from '../lib/DiscordWebhook/export';
 import { isBptfBanned } from '../lib/bans';
 import * as t from '../lib/tools/export';
+
+type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
+type AddOrRemoveMyOrTheirItems = 'addMyItems' | 'removeMyItems' | 'addTheirItems' | 'removeTheirItems';
+type FailedActions = 'failed-accept' | 'failed-decline' | 'failed-counter';
 
 export default class Trades {
     private itemsInTrade: string[] = [];
@@ -298,7 +315,7 @@ export default class Trades {
     }
 
     applyActionToOffer(
-        action: 'accept' | 'decline' | 'skip',
+        action: 'accept' | 'decline' | 'skip' | 'counter',
         reason: string,
         meta: Meta,
         offer: TradeOfferManager.TradeOffer
@@ -307,10 +324,17 @@ export default class Trades {
 
         let actionFunc: () => Promise<any>;
 
-        if (action === 'accept') {
-            actionFunc = this.acceptOffer.bind(this, offer);
-        } else if (action === 'decline') {
-            actionFunc = this.declineOffer.bind(this, offer);
+        //Switch cases are superior (ﾉ´･ω･)ﾉ ﾐ ┸━┸. Change my mind.
+        switch (action) {
+            case 'accept':
+                actionFunc = this.acceptOffer.bind(this, offer);
+                break;
+            case 'decline':
+                actionFunc = this.declineOffer.bind(this, offer);
+                break;
+            case 'counter':
+                actionFunc = this.counterOffer.bind(this, offer, meta);
+                break;
         }
 
         offer.data('action', {
@@ -318,10 +342,12 @@ export default class Trades {
             reason: reason
         } as Action);
 
-        offer.data('meta', meta);
+        if (action !== 'counter') {
+            offer.data('meta', meta);
 
-        if (meta.highValue) {
-            offer.data('highValue', meta.highValue);
+            if (meta.highValue) {
+                offer.data('highValue', meta.highValue);
+            }
         }
 
         if (action === 'skip') {
@@ -337,75 +363,22 @@ export default class Trades {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return actionFunc()
             .catch(err => {
-                log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
+                this.onFailedAction(offer, action, reason, err);
 
-                /* Ignore notifying admin if eresult is "AlreadyRedeemed" or "InvalidState", or if the message includes that */
-                const isNotInvalidStates = (err as CustomError).eresult
-                    ? ![11, 28].includes((err as CustomError).eresult)
-                    : !(err as CustomError).message.includes('is not active, so it may not be accepted');
+                if (action === 'counter') {
+                    action = 'decline';
+                    reason = 'COUNTER_INVALID_VALUE_FAILED';
 
-                if (isNotInvalidStates) {
-                    const opt = this.bot.options;
+                    offer.data('action', {
+                        action: action,
+                        reason: reason
+                    } as Action);
 
-                    if (opt.sendAlert.failedAccept) {
-                        const keyPrices = this.bot.pricelist.getKeyPrices;
-                        const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+                    actionFunc = this.declineOffer.bind(this, offer);
 
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            const summary = t.summarizeToChat(
-                                offer,
-                                this.bot,
-                                'summary-accepting',
-                                true,
-                                value,
-                                keyPrices,
-                                false,
-                                false
-                            );
-                            sendAlert(
-                                `failed-${action}` as 'failed-accept' | 'failed-decline',
-                                this.bot,
-                                `Failed to ${action} on the offer #${offer.id}` +
-                                    summary +
-                                    `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`,
-                                null,
-                                err,
-                                [offer.id]
-                            );
-                        } else {
-                            const summary = t.summarizeToChat(
-                                offer,
-                                this.bot,
-                                'summary-accepting',
-                                false,
-                                value,
-                                keyPrices,
-                                true,
-                                false
-                            );
-
-                            this.bot.messageAdmins(
-                                `Failed to ${action} on the offer #${offer.id}:` +
-                                    summary +
-                                    `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.` +
-                                    `\n\nError: ${
-                                        (err as CustomError).eresult
-                                            ? `${
-                                                  TradeOfferManager.EResult[(err as CustomError).eresult] as string
-                                              } - https://steamerrors.com/${(err as CustomError).eresult}`
-                                            : (err as Error).message
-                                    }`,
-                                []
-                            );
-                        }
-                    }
-                }
-
-                if (!['MANUAL-FORCE', 'AUTO-RETRY'].includes(reason) && ['accept', 'decline'].includes(action)) {
-                    setTimeout(() => {
-                        // Auto-retry after 30 seconds
-                        void this.retryActionAfterFailure(offer.id, action as 'accept' | 'decline');
-                    }, 30 * 1000);
+                    return actionFunc().catch(err => {
+                        this.onFailedAction(offer, action, reason, err);
+                    });
                 }
             })
             .finally(() => {
@@ -413,6 +386,88 @@ export default class Trades {
                     action: action
                 });
             });
+    }
+
+    private onFailedAction(
+        offer: TradeOffer,
+        action: 'accept' | 'decline' | 'skip' | 'counter',
+        reason: string,
+        err: any
+    ): void {
+        log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
+
+        /* Ignore notifying admin if eresult is "AlreadyRedeemed" or "InvalidState", or if the message includes that */
+        const isNotInvalidStates = (err as CustomError).eresult
+            ? ![11, 28].includes((err as CustomError).eresult)
+            : !(err as CustomError).message.includes('is not active, so it may not be accepted');
+
+        if (isNotInvalidStates) {
+            const opt = this.bot.options;
+
+            if (opt.sendAlert.failedAccept) {
+                const keyPrices = this.bot.pricelist.getKeyPrices;
+                const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                    const summary = t.summarizeToChat(
+                        offer,
+                        this.bot,
+                        'summary-accepting',
+                        true,
+                        value,
+                        keyPrices,
+                        false,
+                        false
+                    );
+                    sendAlert(
+                        `failed-${action}` as FailedActions,
+                        this.bot,
+                        `Failed to ${action} on the offer #${offer.id}` +
+                            summary +
+                            (action === 'counter'
+                                ? '\n\nThe offer has been automatically declined.'
+                                : `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`),
+                        null,
+                        err,
+                        [offer.id]
+                    );
+                } else {
+                    const summary = t.summarizeToChat(
+                        offer,
+                        this.bot,
+                        'summary-accepting',
+                        false,
+                        value,
+                        keyPrices,
+                        true,
+                        false
+                    );
+
+                    this.bot.messageAdmins(
+                        `Failed to ${action} on the offer #${offer.id}:` +
+                            summary +
+                            (action === 'counter'
+                                ? '\n\nThe offer has been automatically declined.'
+                                : `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.`) +
+                            `\n\nError: ${
+                                (err as CustomError).eresult
+                                    ? `${
+                                          TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                      } - https://steamerrors.com/${(err as CustomError).eresult}`
+                                    : (err as Error).message
+                            }`,
+                        []
+                    );
+                }
+            }
+        }
+
+        if (!['MANUAL-FORCE', 'AUTO-RETRY'].includes(reason) && ['accept', 'decline'].includes(action)) {
+            setTimeout(() => {
+                // Auto-retry after 30 seconds
+                void this.retryActionAfterFailure(offer.id, action as 'accept' | 'decline');
+            }, 30 * 1000);
+        }
     }
 
     private async retryActionAfterFailure(offerID: string, action: 'accept' | 'decline'): Promise<void> {
@@ -639,6 +694,434 @@ export default class Trades {
         });
     }
 
+    private counterOffer(offer: TradeOffer, meta: Meta): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const start = dayjs().valueOf();
+
+            const opt = this.bot.options;
+
+            const theirInventory = new Inventory(
+                offer.partner,
+                this.bot.manager,
+                this.bot.schema,
+                opt,
+                this.bot.effects,
+                this.bot.paints,
+                this.bot.strangeParts,
+                'their'
+            );
+
+            const ourInventoryItems = this.bot.inventoryManager.getInventory.getItems;
+
+            log.debug('Fetching their inventory...');
+            void theirInventory.fetch().asCallback(err => {
+                if (err) {
+                    return reject(
+                        new Error(
+                            `Failed to load inventories (Steam might be down, or private inventory): ${JSON.stringify(
+                                err
+                            )}`
+                        )
+                    );
+                }
+
+                const ourItems = Inventory.fromItems(
+                    this.bot.client.steamID || this.bot.community.steamID,
+                    offer.itemsToGive,
+                    this.bot.manager,
+                    this.bot.schema,
+                    opt,
+                    this.bot.effects,
+                    this.bot.paints,
+                    this.bot.strangeParts,
+                    'our'
+                ).getItems;
+
+                const theirItems = Inventory.fromItems(
+                    offer.partner,
+                    offer.itemsToReceive,
+                    this.bot.manager,
+                    this.bot.schema,
+                    opt,
+                    this.bot.effects,
+                    this.bot.paints,
+                    this.bot.strangeParts,
+                    'their'
+                ).getItems;
+
+                const theirInventoryItems = theirInventory.getItems;
+
+                log.debug('Set counteroffer...');
+                const counter = offer.counter();
+
+                const showOnlyMetal = opt.miscSettings.showOnlyMetal.enable;
+                // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
+                // Extensive tutorial if you want to update this function https://www.youtube.com/watch?v=dQw4w9WgXcQ.
+
+                log.debug('Set counteroffer message...');
+                const customMessage = opt.customMessage.counterOffer;
+                counter.setMessage(
+                    customMessage
+                        ? customMessage
+                        : "Your offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
+                );
+
+                function getPureValue(sku: PureSKU) {
+                    if (sku === '5021;6') return keyPriceScrap;
+                    const pures: PureSKU[] = ['5000;6', '5001;6', '5002;6'];
+                    const index = pures.indexOf(sku);
+                    return index === -1 ? 0 : Math.pow(3, index);
+                }
+
+                function calculate(sku: PureSKU, side: Dict | number, increaseDifference: boolean, overpay?: boolean) {
+                    const value = getPureValue(sku);
+                    if (!value) return 0;
+                    const floorCeil = Math[overpay ? 'ceil' : 'floor'];
+                    const length = typeof side === 'number' ? side : side[sku]?.length || 0;
+                    const amount =
+                        Math.min(
+                            length,
+                            Math.max(floorCeil((NonPureWorth * (increaseDifference ? -1 : 1)) / value), 0)
+                        ) || 0;
+
+                    NonPureWorth += amount * value * (increaseDifference ? 1 : -1);
+                    return amount;
+                }
+
+                // + for add - for remove
+                function changeItems(side: 'My' | 'Their', dict: Dict, amount: number, sku: PureSKU) {
+                    if (!amount) return;
+                    const intent = amount >= 0 ? 'add' : 'remove';
+                    const tradeAmount = Math.abs(amount);
+                    const arr = dict[sku];
+                    const whichSide = side == 'My' ? 'our' : 'their';
+                    const changedAmount = counter[(intent + side + 'Items') as AddOrRemoveMyOrTheirItems](
+                        arr.splice(0, tradeAmount).map(item => {
+                            return {
+                                appid: 440,
+                                contextid: '2',
+                                assetid: item.id
+                            };
+                        })
+                    );
+
+                    if (changedAmount !== tradeAmount) {
+                        return reject(new Error(`Couldn't ${intent} ${whichSide} ${tradeAmount} ${sku}'s to Trade`));
+                    }
+
+                    if (!showOnlyMetal && sku === '5021;6') {
+                        tradeValues[whichSide].keys += amount;
+                    } else {
+                        tradeValues[whichSide].scrap += amount * getPureValue(sku);
+                    }
+
+                    dataDict[whichSide][sku] ??= 0;
+                    dataDict[whichSide][sku] += amount;
+
+                    // For removing 0's from the dict
+                    if (dataDict[whichSide][sku] === 0) {
+                        delete dataDict[whichSide][sku];
+                    }
+                }
+
+                const setOfferDataAndSend = () => {
+                    // Backup it should never make it to here as an error
+                    log.debug('Checking final mismatch...');
+                    if (
+                        tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
+                        tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
+                    ) {
+                        return reject(new Error("Couldn't counter an offer - value mismatch"));
+                        // Maybe add some info that they can provide us so we can fix it if it happens again?
+                    }
+
+                    // Set polldata datas
+                    log.debug('Setting counter polldata...');
+                    const handleTimestamp = offer.data('handleTimestamp') as number;
+                    counter.data('handleTimestamp', handleTimestamp);
+                    counter.data('notify', true);
+
+                    counter.data('value', {
+                        our: {
+                            total: tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap,
+                            keys: tradeValues.our.keys,
+                            metal: Currencies.toRefined(tradeValues.our.scrap)
+                        },
+                        their: {
+                            total: tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap,
+                            keys: tradeValues.their.keys,
+                            metal: Currencies.toRefined(tradeValues.their.scrap)
+                        },
+                        rate: values.rate
+                    });
+
+                    counter.data('dict', dataDict);
+
+                    counter.data('prices', prices);
+
+                    counter.data('action', {
+                        action: 'counter',
+                        reason: 'COUNTERED'
+                    } as Action);
+
+                    counter.data('meta', meta);
+
+                    if (meta.highValue) {
+                        counter.data('highValue', meta.highValue);
+                    }
+
+                    const processTime = offer.data('processOfferTime') as number;
+                    counter.data('processOfferTime', processTime);
+                    const processCounterTime = dayjs().valueOf() - start;
+                    counter.data('processCounterTime', processCounterTime);
+
+                    // Send countered offer
+                    log.debug('Sending countered offer...');
+                    void this.sendOffer(counter)
+                        .then(status => {
+                            log.debug('Countered offer sent.');
+                            if (status === 'pending') {
+                                log.debug('Accepting mobile confirmation...');
+                                void this.acceptConfirmation(counter).reflect();
+                            }
+
+                            log.debug(`Done counteroffer for offer #${offer.id}`);
+                            return resolve();
+                        })
+                        .catch(err =>
+                            reject(new Error(`Something wrong while sending countered offer: ${JSON.stringify(err)}`))
+                        );
+                };
+
+                const values = offer.data('value') as ItemsValue;
+                const dataDict = offer.data('dict') as ItemsDict;
+                const prices = offer.data('prices') as Prices;
+
+                const keyPriceScrap = Currencies.toScrap(values.rate);
+                const tradeValues = {
+                    our: {
+                        scrap: values.our.total - values.our.keys * keyPriceScrap,
+                        keys: values.our.keys
+                    },
+                    their: {
+                        scrap: values.their.total - values.their.keys * keyPriceScrap,
+                        keys: values.their.keys
+                    }
+                };
+
+                const isWACEnabled = opt.miscSettings.weaponsAsCurrency.enable;
+                const isUncraftEnabled = opt.miscSettings.weaponsAsCurrency.withUncraft;
+                const weapons = isUncraftEnabled
+                    ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                    : this.bot.craftWeapons;
+
+                // Bigger than 0 ? they have to pay : we have to pay
+                let NonPureWorth = (['our', 'their'] as ['our', 'their'])
+                    .map((side, index) => {
+                        const buySell = index ? 'buy' : 'sell';
+                        return (
+                            Object.keys(dataDict[side])
+                                .map(sku => {
+                                    if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
+                                    if (isWACEnabled && weapons.includes(sku)) return 0.5 * dataDict[side][sku];
+
+                                    return (
+                                        dataDict[side][sku] *
+                                        (prices[sku][buySell].keys * keyPriceScrap +
+                                            Currencies.toScrap(prices[sku][buySell].metal))
+                                    );
+                                })
+                                .reduce((a, b) => a + b, 0) * (side == 'their' ? -1 : 1)
+                        );
+                    })
+                    .reduce((a, b) => b + a, 0);
+
+                // Determine if we need to take a weapon from them
+                const needToTakeWeapon = NonPureWorth - Math.trunc(NonPureWorth) !== 0;
+
+                if (needToTakeWeapon) {
+                    log.debug('needToTakeWeapon:', needToTakeWeapon);
+                    const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                        ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                        : this.bot.craftWeapons;
+
+                    const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
+
+                    // return filtered weapons
+                    let filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+
+                    if (filtered.length === 0) {
+                        // but if nothing left, then just use all
+                        filtered = allWeapons;
+                    }
+
+                    const chosenOne = filtered
+                        .filter(sku => theirItems[sku] === undefined) // filter weapons that are not in their offer
+                        .find(sku => theirInventoryItems[sku]); // find one that is in their inventory
+
+                    log.debug('weaponOfChoice:', chosenOne);
+
+                    const item = theirInventoryItems[chosenOne];
+                    log.debug('item:', item);
+                    if (item) {
+                        const isAdded = counter.addTheirItem({
+                            appid: 440,
+                            contextid: '2',
+                            assetid: item[0].id
+                        });
+                        if (isAdded) {
+                            NonPureWorth -= 0.5;
+                            tradeValues['their'].scrap += 0.5;
+                            dataDict['their'][chosenOne] ??= 0;
+                            dataDict['their'][chosenOne] += 1;
+
+                            const isInPricelist = this.bot.pricelist.getPrice(chosenOne, false);
+
+                            if (isInPricelist !== null) {
+                                prices[chosenOne] = {
+                                    buy: isInPricelist.buy,
+                                    sell: isInPricelist.sell
+                                };
+                            }
+                        }
+                    }
+                }
+
+                const ourBestWay: Record<PureSKU, number> = {
+                    '5021;6': calculate('5021;6', ourInventoryItems, true),
+                    '5002;6': calculate('5002;6', ourInventoryItems, true),
+                    '5001;6': calculate('5001;6', ourInventoryItems, true),
+                    '5000;6': calculate('5000;6', ourInventoryItems, true)
+                };
+                if (NonPureWorth < 0) {
+                    log.debug('NonPureWorth < 0 - ourBestWay before', {
+                        ourBestWay
+                    });
+
+                    ourBestWay['5002;6'] += calculate(
+                        '5002;6',
+                        (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
+                        true,
+                        true
+                    );
+                    ourBestWay['5001;6'] += calculate(
+                        '5001;6',
+                        (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
+                        true,
+                        true
+                    );
+                    ourBestWay['5021;6'] += calculate(
+                        '5021;6',
+                        (ourInventoryItems['5021;6']?.length || 0) - ourBestWay['5021;6'],
+                        true,
+                        true
+                    );
+
+                    ourBestWay['5002;6'] -= calculate('5002;6', ourBestWay['5002;6'], false);
+                    ourBestWay['5001;6'] -= calculate('5001;6', ourBestWay['5001;6'], false);
+                    ourBestWay['5000;6'] -= calculate('5000;6', ourBestWay['5000;6'], false);
+
+                    log.debug('NonPureWorth < 0 - ourBestWay after', {
+                        ourBestWay
+                    });
+                }
+
+                const theirBestWay: Record<PureSKU, number> = {
+                    '5021;6': calculate('5021;6', theirInventoryItems, false),
+                    '5002;6': calculate('5002;6', theirInventoryItems, false),
+                    '5001;6': calculate('5001;6', theirInventoryItems, false),
+                    '5000;6': calculate('5000;6', theirInventoryItems, false)
+                };
+                if (NonPureWorth > 0) {
+                    log.debug('NonPureWorth > 0 - theirBestWay before', {
+                        theirBestWay
+                    });
+                    theirBestWay['5002;6'] += calculate(
+                        '5002;6',
+                        (theirInventoryItems['5002;6']?.length || 0) - theirBestWay['5002;6'],
+                        false,
+                        true
+                    );
+                    theirBestWay['5001;6'] += calculate(
+                        '5001;6',
+                        (theirInventoryItems['5001;6']?.length || 0) - theirBestWay['5001;6'],
+                        false,
+                        true
+                    );
+                    theirBestWay['5021;6'] += calculate(
+                        '5021;6',
+                        (theirInventoryItems['5021;6']?.length || 0) - theirBestWay['5021;6'],
+                        false,
+                        true
+                    );
+
+                    theirBestWay['5002;6'] -= calculate('5002;6', theirBestWay['5002;6'], true);
+                    theirBestWay['5001;6'] -= calculate('5001;6', theirBestWay['5001;6'], true);
+                    theirBestWay['5000;6'] -= calculate('5000;6', theirBestWay['5000;6'], true);
+
+                    log.debug('NonPureWorth > 0 - theirBestWay after', {
+                        theirBestWay
+                    });
+
+                    log.debug('Add some of our items if they are still overpaying - before', {
+                        ourBestWay
+                    });
+                    // Add some of our items if they are still overpaying
+                    ourBestWay['5002;6'] += calculate(
+                        '5002;6',
+                        (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
+                        true
+                    );
+                    ourBestWay['5001;6'] += calculate(
+                        '5001;6',
+                        (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
+                        true
+                    );
+                    ourBestWay['5000;6'] += calculate(
+                        '5000;6',
+                        (ourInventoryItems['5000;6']?.length || 0) - ourBestWay['5000;6'],
+                        true
+                    );
+
+                    log.debug('Add some of our items if they are still overpaying - after', {
+                        ourBestWay
+                    });
+                }
+
+                if (NonPureWorth !== 0) {
+                    return reject(new Error(`Couldn't counter an offer value mismatch: ${NonPureWorth}`));
+                }
+
+                // Filter out trade items from inventories
+                // Now try to match this on the trade offer
+                Object.keys(theirItems).forEach(sku => {
+                    theirInventoryItems[sku] = theirInventoryItems[sku].filter(
+                        i => !theirItems[sku]?.find(i2 => i2.id === i.id) ?? true
+                    );
+                });
+
+                Object.keys(ourItems).forEach(sku => {
+                    ourInventoryItems[sku] = ourInventoryItems[sku].filter(
+                        i => !ourItems[sku]?.find(i2 => i2.id === i.id) ?? true
+                    );
+                });
+
+                [theirBestWay, ourBestWay].forEach((side, index) => {
+                    const [sideText, inventory, tradeInventory] =
+                        index === 0 ? ['Their', theirInventoryItems, theirItems] : ['My', ourInventoryItems, ourItems];
+
+                    (Object.keys(side) as PureSKU[]).forEach(sku => {
+                        const amount = side[sku] - (tradeInventory[sku]?.length || 0);
+                        changeItems(sideText as 'Their' | 'My', amount > 0 ? inventory : tradeInventory, amount, sku);
+                    });
+                });
+
+                log.debug('Set counteroffer and sending...');
+                setOfferDataAndSend();
+            });
+        });
+    }
+
     acceptConfirmation(offer: TradeOffer): Promise<void> {
         return new Promise((resolve, reject) => {
             log.debug(`Accepting mobile confirmation...`, {
@@ -783,7 +1266,7 @@ export default class Trades {
 
                                 if (match === null) {
                                     // Did not find a matching offer, retry sending the offer
-                                    return void this.sendOfferRetry(offer, attempts);
+                                    return resolve(this.sendOfferRetry(offer, attempts));
                                 }
 
                                 // Update the offer we attempted to send with the properties from the matching offer
@@ -1081,7 +1564,7 @@ export default class Trades {
 
         offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid, true));
 
-        // Exit all running apps ("TF2Autobot v#" or custom, and Team Fortress 2)
+        // Exit all running apps ("TF2Autobot" or custom, and Team Fortress 2)
         // Will play again after craft/smelt/sort inventory job
         // https://github.com/TF2Autobot/tf2autobot/issues/527
         this.bot.client.gamesPlayed([]);

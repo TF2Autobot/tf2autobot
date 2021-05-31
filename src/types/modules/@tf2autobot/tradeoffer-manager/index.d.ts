@@ -98,6 +98,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             handledByUs?: boolean;
             processOfferTime?: number;
             constructOfferTime?: number;
+            processCounterTime?: number;
             actionTimestamp?: number;
             confirmationTime?: number;
             finishTimestamp?: number;
@@ -146,7 +147,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
         }
 
         export interface Action {
-            action: 'accept' | 'decline' | 'skip';
+            action: 'accept' | 'decline' | 'skip' | 'counter';
             reason: string;
         }
 
@@ -185,6 +186,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             reason: '🟥_INVALID_VALUE';
             our: number;
             their: number;
+            missing: number;
         }
 
         export interface DupeCheckFailed {
@@ -427,6 +429,14 @@ declare module '@tf2autobot/tradeoffer-manager' {
 
             addTheirItems(items: TradeOfferItem[]): number;
 
+            removeMyItem(item: TradeOfferItem): boolean;
+
+            removeMyItems(items: TradeOfferItem[]): number;
+
+            removeTheirItem(item: TradeOfferItem): boolean;
+
+            removeTheirItems(items: TradeOfferItem[]): number;
+
             setToken(token: string): void;
 
             setMessage(message: string): void;
@@ -440,6 +450,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             send(callback?: (err: Error | null, state?: string) => void): void;
 
             decline(callback?: (err: Error | null) => void): void;
+
+            counter(): TradeOffer;
 
             /**
              * Alias of decline

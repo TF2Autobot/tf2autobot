@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import Currencies from 'tf2-currencies-2';
 import sleepasync from 'sleep-async';
 import Bot from './Bot';
-import { Entry } from './Pricelist';
+import { Entry, PricesObject } from './Pricelist';
 import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
@@ -56,7 +56,7 @@ export default class Listings {
             return;
         }
 
-        // Autobump is enabled, add heartbeat listener
+        // Autobump is enabled, add pulse listener
 
         this.bot.listingManager.removeListener('pulse', this.checkFn);
         this.bot.listingManager.on('pulse', this.checkFn);
@@ -176,7 +176,7 @@ export default class Listings {
 
         let doneSomething = false;
 
-        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const match = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         let hasBuyListing = false;
         let hasSellListing = false;
@@ -262,7 +262,7 @@ export default class Listings {
             }
         });
 
-        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const matchNew = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         if (matchNew !== null && matchNew.enabled === true) {
             const assetids = inventory.findBySKU(sku, true);
@@ -340,21 +340,15 @@ export default class Listings {
 
                 const keyPrice = this.bot.pricelist.getKeyPrice;
 
-                const pricelist = this.bot.pricelist.getPrices
-                    .filter(entry => {
-                        if (!this.bot.options.pricelist.filterCantAfford.enable) {
-                            // if this option is set to false, then always return true
-                            return true;
-                        }
-
-                        // Filter pricelist to only items we can sell and we can afford to buy
-
-                        const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
+                const pricelist = this.bot.pricelist.getPrices;
+                let skus = Object.keys(pricelist);
+                if (this.bot.options.pricelist.filterCantAfford.enable) {
+                    skus = skus.filter(sku => {
+                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
 
                         if (
-                            (amountCanBuy > 0 &&
-                                inventoryManager.isCanAffordToBuy(entry.buy, inventoryManager.getInventory)) ||
-                            inventory.getAmount(entry.sku, false, true) > 0
+                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
+                            inventory.getAmount(sku, false, true) > 0
                         ) {
                             // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
@@ -363,22 +357,23 @@ export default class Listings {
 
                         // Else ignore
                         return false;
-                    })
+                    });
+                }
+                skus = skus
                     .sort((a, b) => {
-                        const diff =
+                        return (
                             currentPure.keys -
-                            (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
-                            (currentPure.metal - Currencies.toScrap(b.buy.metal - a.buy.metal));
-                        return diff;
+                            (pricelist[b].buy.keys - pricelist[a].buy.keys) * keyPrice.toValue() +
+                            (currentPure.metal - Currencies.toScrap(pricelist[b].buy.metal - pricelist[a].buy.metal))
+                        );
                     })
                     .sort((a, b) => {
-                        const diff = inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
-                        return diff;
+                        return inventory.findBySKU(b).length - inventory.findBySKU(a).length;
                     });
 
-                log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+                log.debug('Checking listings for ' + pluralize('item', skus.length, true) + '...');
 
-                void this.recursiveCheckPricelist(pricelist).asCallback(() => {
+                void this.recursiveCheckPricelist(skus, pricelist).asCallback(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -396,24 +391,30 @@ export default class Listings {
         });
     }
 
-    recursiveCheckPricelist(pricelist: Entry[], withDelay = false, time?: number, showLogs = false): Promise<void> {
+    recursiveCheckPricelist(
+        skus: string[],
+        pricelist: PricesObject,
+        withDelay = false,
+        time?: number,
+        showLogs = false
+    ): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
             const iteration = async (): Promise<void> => {
-                if (pricelist.length <= index || this.cancelCheckingListings) {
+                if (skus.length <= index || this.cancelCheckingListings) {
                     this.cancelCheckingListings = false;
                     return resolve();
                 }
 
                 if (withDelay) {
-                    this.checkBySKU(pricelist[index].sku, pricelist[index], false, showLogs);
+                    this.checkBySKU(skus[index], pricelist[skus[index]], false, showLogs);
                     index++;
                     await sleepasync().Promise.sleep(time ? time : 200);
                     void iteration();
                 } else {
                     setImmediate(() => {
-                        this.checkBySKU(pricelist[index].sku, pricelist[index]);
+                        this.checkBySKU(skus[index], pricelist[skus[index]]);
                         index++;
                         void iteration();
                     });
@@ -630,13 +631,12 @@ export default class Listings {
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             const inventory = this.bot.inventoryManager.getInventory;
-            const newDetail = details
+            return details
                 .replace(/%price%/g, entry[key].toString())
                 .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
                 .replace(/%current_stock%/g, inventory.getAmount(entry.sku, false, true).toString())
                 .replace(/%amount_trade%/g, amountCanTrade.toString());
-            return newDetail;
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;
@@ -690,17 +690,14 @@ export default class Listings {
             //
         }
 
-        const generated = details + (highValueString.length > 0 ? ' ' + highValueString : '');
-        return generated;
+        return details + (highValueString.length > 0 ? ' ' + highValueString : '');
     }
 }
 
 type Attachment = 's' | 'sp' | 'ke' | 'ks' | 'p';
 
 function getKeyByValue(object: { [key: string]: any }, value: any): string {
-    const keys = Object.keys(object);
-    const key = keys.find(key => object[key] === value);
-    return key;
+    return Object.keys(object).find(key => object[key] === value);
 }
 
 function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {

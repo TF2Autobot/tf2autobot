@@ -208,8 +208,6 @@ export default class Commands {
             this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
             this.pManager.stopAutoAddCommand();
-        } else if (command === 'shuffle' && isAdmin) {
-            void this.pManager.shuffleCommand(steamID);
         } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
             this.manager.TF2GCCommand(steamID, message, command as TF2GC);
         } else if (['name', 'avatar'].includes(command) && isAdmin) {
@@ -249,7 +247,7 @@ export default class Commands {
         } else if (command === 'pricecheck' && isAdmin) {
             this.request.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
-            this.request.pricecheckAllCommand(steamID);
+            void this.request.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
             void this.request.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
@@ -289,7 +287,7 @@ export default class Commands {
         this.bot.sendMessage(steamID, sku);
 
         if (sku.includes('null') || sku.includes('undefined')) {
-            this.bot.sendMessage(steamID, 'Please check the name. If correct, please let IdiNium know. Thank you.');
+            this.bot.sendMessage(steamID, 'Please check the name. If correct, please let us know. Thank you.');
         }
     }
 
@@ -455,7 +453,7 @@ export default class Commands {
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, false, true);
         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.match.sku, false) - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(info.match.sku), false);
+        const name = info.match.name;
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {

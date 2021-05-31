@@ -342,6 +342,16 @@ export const optionsSchema: jsonschema.Schema = {
                 autobump: {
                     $ref: '#/definitions/only-enable'
                 },
+                counterOffer: {
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        skipIncludeMessage: {
+                            type: 'boolean'
+                        }
+                    }
+                },
                 skipItemsInTrade: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -392,6 +402,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'addFriends',
                 'sendGroupInvite',
                 'autobump',
+                'counterOffer',
                 'skipItemsInTrade',
                 'weaponsAsCurrency',
                 'checkUses',
@@ -1412,6 +1423,10 @@ export const optionsSchema: jsonschema.Schema = {
                 sendOffer: {
                     type: 'string'
                 },
+                counterOffer: {
+                    type: 'string',
+                    maxLength: 128
+                },
                 welcome: {
                     type: 'string'
                 },
@@ -1468,6 +1483,9 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         manual: {
                             type: 'string'
+                        },
+                        failedToCounter: {
+                            type: 'string'
                         }
                     },
                     required: [
@@ -1483,7 +1501,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'notBuyingKeys',
                         'banned',
                         'escrow',
-                        'manual'
+                        'manual',
+                        'failedToCounter'
                     ],
                     additionalProperties: false
                 },
@@ -1515,6 +1534,7 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: [
                 'sendOffer',
+                'counterOffer',
                 'welcome',
                 'iDontKnowWhatYouMean',
                 'success',

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import { Item } from '../types/TeamFortress2';
+import { MinimumItem } from '../types/TeamFortress2';
 import SchemaManager from 'tf2-schema-2';
 
 import isObject from 'isobject';
 
-export function fixItem(item: Item, schema: SchemaManager.Schema): Item {
+export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): MinimumItem {
     const schemaItem = schema.getItemByDefindex(item.defindex);
     if (schemaItem === null) {
         return item;

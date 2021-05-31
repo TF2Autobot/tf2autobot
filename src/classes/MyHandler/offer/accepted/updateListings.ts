@@ -19,6 +19,8 @@ const removeDuplicate = (skus: string[]): string[] => {
     return [...fix];
 };
 
+let craftWeapons: string[] = [];
+
 export default function updateListings(
     offer: TradeOffer,
     bot: Bot,
@@ -32,12 +34,15 @@ export default function updateListings(
             : bot.craftWeapons
         : [];
 
+    craftWeapons = weapons;
+
     const skus: string[] = [];
 
     const inventory = bot.inventoryManager.getInventory;
     const hv = highValue.items;
     const normalizePainted = opt.normalize.painted;
     const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
+    const pure = ['5000;6', '5001;6', '5002;6'];
 
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
@@ -50,7 +55,7 @@ export default function updateListings(
 
         const item = SKU.fromString(sku);
         const name = bot.schema.getName(item, false);
-        const pure = ['5000;6', '5001;6', '5002;6'];
+
         const isNotPure = !pure.includes(sku);
         const isNotPureOrWeapons = !pure.concat(weapons).includes(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
@@ -188,6 +193,8 @@ export default function updateListings(
                             bot.messageAdmins(msg, []);
                         }
                     }
+
+                    addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg =
@@ -203,6 +210,8 @@ export default function updateListings(
                             bot.messageAdmins(msg, []);
                         }
                     }
+
+                    addToQueu(sku, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoaddInvalidItems) {
@@ -220,10 +229,14 @@ export default function updateListings(
 
             bot.pricelist
                 .addPrice(entry, true)
-                .then(() => log.debug(`✅ Automatically added ${name} (${sku}) to sell.`))
-                .catch(err =>
-                    log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${(err as Error).message}`)
-                );
+                .then(() => {
+                    log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
+                    addToQueu(sku, isNotPure, existInPricelist);
+                })
+                .catch(err => {
+                    log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${(err as Error).message}`);
+                    addToQueu(sku, isNotPure, existInPricelist);
+                });
             //
         } else if (receivedHighValueNotInPricelist) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a highValue items, and not
@@ -246,6 +259,8 @@ export default function updateListings(
                     bot.messageAdmins(msg, []);
                 }
             }
+
+            addToQueu(sku, isNotPure, existInPricelist);
         } else if (receivedUnusualNotInPricelist) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a Unusual (bought with Generic Unusual), and not
             // from ADMINS, and opt.pricelist.autoAddInvalidUnusual is false, then notify admin.
@@ -260,6 +275,8 @@ export default function updateListings(
                     bot.messageAdmins(msg, []);
                 }
             }
+
+            addToQueu(sku, isNotPure, existInPricelist);
         } else if (isAutoDisableHighValueItems) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
             const oldGroup = inPrice.group;
@@ -311,9 +328,12 @@ export default function updateListings(
                             bot.messageAdmins(msg, []);
                         }
                     }
+
+                    addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     log.warn(`❌ Failed to disable high value ${sku}: ${(err as Error).message}`);
+                    addToQueu(sku, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoRemoveIntentSell) {
@@ -321,7 +341,10 @@ export default function updateListings(
             // then remove the item entry from pricelist.
             bot.pricelist
                 .removePrice(sku, true)
-                .then(() => log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`))
+                .then(() => {
+                    log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
+                    addToQueu(sku, isNotPure, existInPricelist);
+                })
                 .catch(err => {
                     const msg = `❌ Failed to remove ${name} (${sku}) from pricelist: ${(err as Error).message}`;
                     log.warn(msg);
@@ -333,6 +356,8 @@ export default function updateListings(
                             bot.messageAdmins(msg, []);
                         }
                     }
+
+                    addToQueu(sku, isNotPure, existInPricelist);
                 });
         } else if (isUpdatePartialPricedItem) {
             // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
@@ -377,6 +402,8 @@ export default function updateListings(
                             bot.messageAdmins('✅ Automatically update partially priced item - ' + msg, []);
                         }
                     }
+
+                    addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to update prices for ${name} (${sku}): ${(err as Error).message}`;
@@ -389,31 +416,39 @@ export default function updateListings(
                             bot.messageAdmins(msg, []);
                         }
                     }
-                });
-        }
 
-        /**
-         * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
-         */
-        if (isNotPure) {
-            if (weapons.includes(sku)) {
-                if (existInPricelist) {
-                    // Only includes sku of weapons that are in the pricelist (enabled)
-                    skus.push(sku);
-                }
-            } else {
-                skus.push(sku);
-            }
+                    addToQueu(sku, isNotPure, existInPricelist);
+                });
+        } else {
+            addToQueu(sku, isNotPure, existInPricelist);
         }
     }
 
     if (skus.length > 0) {
         const itemsToCheck = removeDuplicate(skus.concat(itemsFromPreviousTrades));
-
-        itemsToCheck.forEach(sku => {
-            PriceCheckQueue.enqueue(sku);
-        });
-
+        checkPrevious(itemsToCheck);
         itemsFromPreviousTrades = skus.slice(0);
     }
+}
+
+function addToQueu(sku: string, isNotPure: boolean, isExistInPricelist: boolean): void {
+    /**
+     * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
+     */
+    if (isNotPure) {
+        if (craftWeapons.includes(sku)) {
+            if (isExistInPricelist) {
+                // Only includes sku of weapons that are in the pricelist (enabled)
+                PriceCheckQueue.enqueue(sku);
+            }
+        } else {
+            PriceCheckQueue.enqueue(sku);
+        }
+    }
+}
+
+function checkPrevious(skus: string[]): void {
+    skus.forEach(sku => {
+        PriceCheckQueue.enqueue(sku);
+    });
 }

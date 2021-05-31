@@ -126,7 +126,7 @@ export default abstract class Cart {
             ? this.craftAll.concat(this.uncraftAll)
             : this.craftAll;
 
-        const skusFromPricelist = this.bot.pricelist.getPrices.map(entry => entry.sku);
+        const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
 
         // return filtered weapons
         const filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
@@ -334,9 +334,7 @@ export default abstract class Cart {
 
         this.offer.data('handleTimestamp', dayjs().valueOf());
 
-        this.offer.setMessage(
-            'Powered by TF2Autobot' + (opt.customMessage.sendOffer ? '. ' + opt.customMessage.sendOffer : '')
-        );
+        this.offer.setMessage(opt.customMessage.sendOffer ? opt.customMessage.sendOffer : '.');
 
         if (this.notify === true) {
             this.offer.data('notify', true);

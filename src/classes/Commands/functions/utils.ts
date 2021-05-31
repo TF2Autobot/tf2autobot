@@ -4,11 +4,12 @@ import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
-import { Item } from '../../../types/TeamFortress2';
+import { MinimumItem } from '../../../types/TeamFortress2';
 import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
+import { testSKU } from '../../../lib/tools/export';
 
 export function getItemAndAmount(
     steamID: SteamID,
@@ -52,7 +53,7 @@ export function getItemAndAmount(
         return null;
     }
 
-    let match = bot.pricelist.searchByName(name, true);
+    let match = testSKU(name) ? bot.pricelist.getPrice(name, true) : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 
@@ -62,6 +63,7 @@ export function getItemAndAmount(
                 steamID,
                 custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`
             );
+
             return null;
         }
     }
@@ -74,7 +76,13 @@ export function getItemAndAmount(
         let closestUnusualMatch: Entry = null;
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
         const genericEffect = genericNameAndMatch(name, bot.effects);
-        for (const pricedItem of bot.pricelist.getPrices) {
+        const pricelist = bot.pricelist.getPrices;
+        for (const sku in pricelist) {
+            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                continue;
+            }
+
+            const pricedItem = pricelist[sku];
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {
@@ -107,6 +115,7 @@ export function getItemAndAmount(
                         'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
                         `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
                         `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `If you're entering the sku, make sure it's correct`,
                         `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
@@ -159,6 +168,7 @@ export function getItemAndAmount(
                         'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
                         `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
                         `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `If you're entering the sku, make sure it's correct`,
                         `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
@@ -192,12 +202,26 @@ export function getItemFromParams(
     steamID: SteamID | string,
     params: UnknownDictionaryKnownValues,
     bot: Bot
-): Item | null {
+): MinimumItem | null {
     const item = SKU.fromString('');
     delete item.craftnumber;
 
     let foundSomething = false;
-    if (params.name !== undefined) {
+    if (params.item !== undefined) {
+        foundSomething = true;
+
+        const sku = bot.schema.getSkuFromName(params.item);
+
+        if (sku.includes('null') || sku.includes('undefined')) {
+            bot.sendMessage(
+                steamID,
+                `Invalid item name. The sku generate was ${sku}. Please report this to us on our Discord server, or create an issue on Github.`
+            );
+            return null;
+        }
+
+        return SKU.fromString(sku);
+    } else if (params.name !== undefined) {
         foundSomething = true;
         // Look for all items that have the same name
 
@@ -207,8 +231,15 @@ export function getItemFromParams(
         const itemsCount = items.length;
 
         for (let i = 0; i < itemsCount; i++) {
-            if (items[i].item_name === params.name) {
-                match.push(items[i]);
+            const item = items[i];
+
+            if (item.item_name === 'Name Tag' && item.defindex === 2093) {
+                // skip and let it find Name Tag with defindex 5020
+                continue;
+            }
+
+            if (item.item_name === params.name) {
+                match.push(item);
             }
         }
 
@@ -257,7 +288,7 @@ export function getItemFromParams(
     if (!foundSomething) {
         bot.sendMessage(
             steamID,
-            '⚠️ Missing item properties. Please refer to: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F'
+            '⚠️ Missing item properties. Please refer to: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist'
         );
         return null;
     }

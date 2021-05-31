@@ -77,6 +77,11 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case '🟥_INVALID_VALUE':
                 declined.reasonDescription = offerReceived.reason + ': We are paying more than them.';
                 break;
+            case 'COUNTER_INVALID_VALUE_FAILED':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    ': We are paying more than them and we failed to counter the offer, or Steam might be down, or private inventory (failed to load their inventory).';
+                break;
             case '🟫_DUPED_ITEMS':
                 declined.reasonDescription = offerReceived.reason + ': Offer contains duped items.';
                 break;
@@ -264,6 +269,7 @@ export function sendToAdmin(
             `\n${cTTimeTaken} ${t.convertTime(
                 null,
                 timeTakenToProcessOrConstruct,
+                undefined,
                 isOfferSent,
                 tSum.showDetailedTimeTaken,
                 tSum.showTimeTakenInMS

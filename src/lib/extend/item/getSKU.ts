@@ -3,6 +3,7 @@ import { EconItem } from '@tf2autobot/tradeoffer-manager';
 import SchemaManager, { Paints } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import url from 'url';
+import { MinimumItem } from '../../../types/TeamFortress2';
 import { fixItem } from '../../items';
 
 let isCrate = false;
@@ -41,7 +42,7 @@ export = function (
             paint: getPainted(self, normalizePainted, paints, paintsInOptions)
         },
         getOutput(self, schema)
-    );
+    ) as MinimumItem;
 
     if (item.target === null) {
         item.target = getTarget(self, schema);

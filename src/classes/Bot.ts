@@ -13,7 +13,7 @@ import semver from 'semver';
 import request from 'request-retry-dayjs';
 
 import InventoryManager from './InventoryManager';
-import Pricelist, { EntryData } from './Pricelist';
+import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
 import Friends from './Friends';
 import Trades from './Trades';
 import Listings from './Listings';
@@ -124,6 +124,7 @@ export default class Bot {
 
         this.listingManager = new ListingManager({
             token: this.options.bptfAccessToken,
+            userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
             batchSize: 25,
             waitTime: 100,
             schema: this.schema
@@ -301,7 +302,7 @@ export default class Bot {
     start(): Promise<void> {
         let data: {
             loginAttempts?: number[];
-            pricelist?: EntryData[];
+            pricelist?: PricesDataObject;
             loginKey?: string;
             pollData?: TradeOfferManager.PollData;
         };
@@ -421,9 +422,14 @@ export default class Bot {
 
                         log.info('Setting up pricelist...');
 
-                        void this.pricelist
-                            .setPricelist(!Array.isArray(data.pricelist) ? [] : data.pricelist, this)
-                            .asCallback(callback);
+                        const pricelist = Array.isArray(data.pricelist)
+                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
+                                  buff[e.sku] = e;
+                                  return buff;
+                              }, {}) as PricesDataObject)
+                            : data.pricelist || {};
+
+                        void this.pricelist.setPricelist(pricelist, this).asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Waiting for web session');

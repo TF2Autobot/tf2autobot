@@ -352,7 +352,7 @@ export default class ManagerCommands {
             this.bot.client.removeFriend(steamid);
 
             // Prevent Steam from detecting the bot as spamming
-            await sleepasync().Promise.sleep(2 * 1000);
+            await sleepasync().Promise.sleep(2000);
         }
 
         this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
@@ -477,44 +477,44 @@ export default class ManagerCommands {
                         }
                     }
 
+                    if (listing.intent === 1 && match !== null && !match.enabled) {
+                        // Listings for selling exist, but the item is currently disabled, remove it.
+                        log.debug(`Intent sell, removed because not selling: ${match.sku}`);
+                        listing.remove();
+                    }
+
                     listingsSKUs.push(listingSKU);
                 });
 
                 // Remove duplicate elements
-                const newlistingsSKUs = new Set(listingsSKUs);
-                const uniqueSKUs = [...newlistingsSKUs];
+                const uniqueSKUs = [...new Set(listingsSKUs)];
 
-                const pricelist = this.bot.pricelist.getPrices.filter(entry => {
-                    // First find out if lising for this item from bptf already exist.
-                    const isExist = uniqueSKUs.find(sku => entry.sku === sku);
-
-                    if (!isExist) {
-                        // undefined - listing does not exist but item is in the pricelist
-
-                        // Get amountCanBuy (already cover intent and so on)
-                        const amountCanBuy = inventoryManager.amountCanTrade(entry.sku, true);
-
-                        if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
-                            inventory.getAmount(entry.sku, false, true) > 0
-                        ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
-                            // return this entry
-                            log.debug(
-                                `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${entry.sku}`
-                            );
-                            return true;
-                        }
-
-                        // Else ignore
-                        return false;
+                const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
+                for (const sku in pricelist) {
+                    if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                        continue;
                     }
 
-                    // Else if listing already exist on backpack.tf, ignore
-                    return false;
-                });
+                    if (uniqueSKUs.includes(sku)) {
+                        delete pricelist[sku];
+                        continue;
+                    }
 
-                const pricelistCount = pricelist.length;
+                    const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+
+                    if (
+                        (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
+                        inventory.getAmount(sku, false, true) > 0
+                    ) {
+                        // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                        // return this entry
+                        log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
+                    } else {
+                        delete pricelist[sku];
+                    }
+                }
+
+                const pricelistCount = Object.keys(pricelist).length;
 
                 if (pricelistCount > 0) {
                     clearTimeout(this.executeTimeout);
@@ -523,7 +523,7 @@ export default class ManagerCommands {
                     log.debug(
                         'Checking listings for ' +
                             pluralize('item', pricelistCount, true) +
-                            ` [${pricelist.map(entry => entry.sku).join(', ')}] ...`
+                            ` [${Object.keys(pricelist).join(', ')}] ...`
                     );
 
                     this.bot.sendMessage(
@@ -543,6 +543,7 @@ export default class ManagerCommands {
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
                     await this.bot.listings.recursiveCheckPricelist(
+                        Object.keys(pricelist),
                         pricelist,
                         true,
                         this.pricelistCount > 4000 ? 400 : 200,

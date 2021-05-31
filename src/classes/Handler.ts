@@ -3,7 +3,7 @@
 import SteamID from 'steamid';
 import TradeOfferManager, { PollData, Meta } from '@tf2autobot/tradeoffer-manager';
 import Bot from './Bot';
-import { Entry, EntryData } from './Pricelist';
+import { Entry, PricesDataObject, PricesObject } from './Pricelist';
 
 export default abstract class Handler {
     protected constructor(readonly bot: Bot) {
@@ -19,7 +19,7 @@ export default abstract class Handler {
      */
     abstract onRun(): Promise<{
         loginAttempts?: number[];
-        pricelist?: EntryData[];
+        pricelist?: PricesDataObject;
         loginKey?: string;
         pollData?: PollData;
     }>;
@@ -50,7 +50,7 @@ export default abstract class Handler {
      * @param offer - The new trade offer
      */
     abstract onNewTradeOffer(offer: TradeOfferManager.TradeOffer): Promise<null | {
-        action: 'accept' | 'decline' | 'skip';
+        action: 'accept' | 'decline' | 'skip' | 'counter';
         reason: string;
         meta?: Meta;
     }>;
@@ -63,7 +63,7 @@ export default abstract class Handler {
      */
     abstract onOfferAction(
         offer: TradeOfferManager.TradeOffer,
-        action: 'accept' | 'decline' | 'skip',
+        action: 'accept' | 'decline' | 'skip' | 'counter',
         reason: string,
         meta: Meta
     ): void;
@@ -84,7 +84,7 @@ export default abstract class Handler {
      * Called when the pricelist updates
      * @param pricelist - The pricelist
      */
-    abstract onPricelist(pricelist: Entry[]): Promise<void>;
+    abstract onPricelist(pricelist: PricesObject): Promise<void>;
 
     /**
      * Called when the price of an item changes
