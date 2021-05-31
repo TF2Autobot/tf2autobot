@@ -477,6 +477,12 @@ export default class ManagerCommands {
                         }
                     }
 
+                    if (listing.intent === 1 && match !== null && !match.enabled) {
+                        // Listings for selling exist, but the item is currently disabled, remove it.
+                        log.debug(`Intent sell, removed because not selling: ${match.sku}`);
+                        listing.remove();
+                    }
+
                     listingsSKUs.push(listingSKU);
                 });
 
