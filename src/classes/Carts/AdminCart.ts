@@ -13,7 +13,7 @@ export default class AdminCart extends Cart {
         return new Promise((resolve, reject) => {
             if (this.isEmpty) return reject('cart is empty');
 
-            const start = Date.now()
+            const start = Date.now();
             const offer = this.bot.manager.createOffer(this.partner);
 
             const alteredMessages: string[] = [];

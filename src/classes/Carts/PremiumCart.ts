@@ -14,7 +14,7 @@ export default class PremiumCart extends Cart {
                 return reject('cart is empty');
             }
 
-            const start = Date.now()
+            const start = Date.now();
             const offer = this.bot.manager.createOffer(
                 'https://steamcommunity.com/tradeoffer/new/?partner=240216030&token=duh3W4zi'
                 // Backpack.tf premium purchase bot - https://steamcommunity.com/id/backpacktf001
