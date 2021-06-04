@@ -120,7 +120,7 @@ export function convertTime(
                   ? `\n- To counter: ${
                         isMsCounter
                             ? `${counterTime}`
-                            : `${counterTime}${showInMS ? ` (${counterProcessTime}) ms` : ''}`
+                            : `${counterTime}${showInMS ? ` (${counterProcessTime} ms)` : ''}`
                     }`
                   : ''
           }${
