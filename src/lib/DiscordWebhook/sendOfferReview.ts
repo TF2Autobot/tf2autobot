@@ -123,7 +123,7 @@ export default function sendOfferReview(
                             ? '\n\n`Steam down, please manually check if this person have escrow.`'
                             : '') +
                         summary +
-                        (offer.message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
+                        (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
                         (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                     fields: [
                         {

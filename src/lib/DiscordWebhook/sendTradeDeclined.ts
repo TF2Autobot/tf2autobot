@@ -69,6 +69,7 @@ export default async function sendTradeDeclined(
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
     const partnerNameNoFormat = t.replace.specialChar(details.personaName);
+    const message = t.replace.specialChar(offer.message);
 
     const declinedDescription = declined.reasonDescription;
     const declinedTradeSummary: Webhook = {
@@ -95,8 +96,9 @@ export default async function sendTradeDeclined(
                         isOfferSent,
                         tDec.showDetailedTimeTaken,
                         tDec.showTimeTakenInMS
-                    )}\n\n` +
-                    (misc.showQuickLinks ? `${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                    )}` +
+                    (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
+                    (misc.showQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                 fields: [
                     {
                         name: '__Item list__',
@@ -209,6 +211,7 @@ export default async function sendTradeDeclined(
                     value,
                     itemListx,
                     keyPrices,
+                    offer.message,
                     isOfferSent,
                     isCustomPricer,
                     cTxKeyRate,

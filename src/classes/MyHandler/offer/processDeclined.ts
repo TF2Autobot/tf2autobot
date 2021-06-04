@@ -186,6 +186,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             highValue: declined.highNotSellingItems
         };
         const keyPrices = bot.pricelist.getKeyPrices;
+        const offerMessage = offer.message;
         const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
@@ -209,6 +210,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             value,
             itemList,
             keyPrices,
+            offerMessage,
             isOfferSent,
             isCustomPricer,
             cTKeyRate,
@@ -232,6 +234,7 @@ export function sendToAdmin(
     value: t.ValueDiff,
     itemList: string,
     keyPrices: KeyPrices,
+    offerMessage: string,
     isOfferSent: boolean,
     isCustomPricer: boolean,
     cTKeyRate: string,
@@ -250,6 +253,7 @@ export function sendToAdmin(
             offer.id
         } with ${offer.partner.getSteamID64()} was declined. ❌` +
             t.summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true, isOfferSent) +
+            (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
             (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
             `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
             ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
