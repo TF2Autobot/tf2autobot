@@ -13,6 +13,7 @@ export default class AdminCart extends Cart {
         return new Promise((resolve, reject) => {
             if (this.isEmpty) return reject('cart is empty');
 
+            const start = Date.now();
             const offer = this.bot.manager.createOffer(this.partner);
 
             const alteredMessages: string[] = [];
@@ -103,6 +104,10 @@ export default class AdminCart extends Cart {
 
                 this.offer = offer;
 
+                const timeTaken = Date.now() - start;
+                offer.data('constructOfferTime', timeTaken);
+                log.debug(`Constructing offer took ${timeTaken} ms`);
+
                 return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
             }
 
@@ -176,6 +181,10 @@ export default class AdminCart extends Cart {
                 this.offer = offer;
 
                 theirInventory.clearFetch();
+
+                const timeTaken = Date.now() - start;
+                offer.data('constructOfferTime', timeTaken);
+                log.debug(`Constructing offer took ${timeTaken} ms`);
 
                 return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
             });

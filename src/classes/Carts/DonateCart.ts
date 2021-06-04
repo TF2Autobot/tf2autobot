@@ -14,6 +14,7 @@ export default class DonateCart extends Cart {
                 return reject('cart is empty');
             }
 
+            const start = Date.now();
             const offer = this.bot.manager.createOffer(
                 'https://steamcommunity.com/tradeoffer/new/?partner=432099474&token=Cc9yZSv0'
                 // Backpack.tf donation bot - https://steamcommunity.com/id/teenytinybot
@@ -107,6 +108,10 @@ export default class DonateCart extends Cart {
                 offer.data('donation', true);
 
                 this.offer = offer;
+
+                const timeTaken = Date.now() - start;
+                offer.data('constructOfferTime', timeTaken);
+                log.debug(`Constructing offer took ${timeTaken} ms`);
 
                 return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
             }
