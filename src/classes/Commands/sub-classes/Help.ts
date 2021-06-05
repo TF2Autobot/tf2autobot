@@ -58,7 +58,6 @@ export default class HelpCommands {
                         '!stopautoadd - Stop automatic add items operation 🛑',
                         '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
                         '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
-                        '!shuffle - Shuffle pricelist entries.',
                         '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
                         '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
                         '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
