@@ -213,7 +213,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    addToQueu(paintedSKU, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg =
@@ -230,7 +230,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    addToQueu(paintedSKU, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoAddPaintedFromAdmin) {
