@@ -69,7 +69,7 @@ export default class Inventory {
         effects: Effect[],
         paints: Paints,
         strangeParts: StrangeParts,
-        which: 'our' | 'their'
+        which: 'our' | 'their' | 'admin'
     ): Inventory {
         const inventory = new Inventory(steamID, manager, schema, options, effects, paints, strangeParts, which);
         inventory.setItems = items;

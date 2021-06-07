@@ -723,6 +723,7 @@ export default class MyHandler extends Handler {
         clearTimeout(this.classWeaponsTimeout);
 
         const opt = this.opt;
+        const isAdmin = this.bot.isAdmin(offer.partner);
 
         const items = {
             our: Inventory.fromItems(
@@ -745,7 +746,7 @@ export default class MyHandler extends Handler {
                 this.bot.effects,
                 this.bot.paints,
                 this.bot.strangeParts,
-                'their'
+                isAdmin ? 'admin' : 'their'
             ).getItems
         };
 
@@ -860,7 +861,7 @@ export default class MyHandler extends Handler {
             Object.keys(getHighValue.our.items).length > 0 || Object.keys(getHighValue.their.items).length > 0;
 
         // Check if the offer is from an admin
-        if (this.bot.isAdmin(offer.partner)) {
+        if (isAdmin) {
             offer.log(
                 'trade',
                 `is from an admin, accepting. Summary:\n${JSON.stringify(
