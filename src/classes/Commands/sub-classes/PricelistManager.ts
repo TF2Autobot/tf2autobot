@@ -237,7 +237,8 @@ export default class PricelistManagerCommands {
                     delete params.item;
                 } else {
                     errorMessage.push(
-                        `❌ Failed to add "${itemToAdd}": Please only use "sku" or "item" parameter. Thank you.`
+                        `❌ Failed to add "${itemToAdd}": Please only use "sku" or "item" parameter, ` +
+                            `OR check if you have missing something. Thank you.`
                     );
                     failed++;
                     failedNotUsingItemOrSkuParam++;
