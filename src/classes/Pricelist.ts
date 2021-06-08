@@ -382,10 +382,15 @@ export default class Pricelist extends EventEmitter {
             if (entry.autoprice) {
                 const item = this.transformedPricelistForBulk[entry.sku];
 
+                const newPrices = {
+                    buy: new Currencies(item.buy),
+                    sell: new Currencies(item.sell)
+                };
+
                 if (entry.sku === '5021;6') {
                     clearTimeout(this.retryGetKeyPrices);
 
-                    const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(item);
+                    const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
 
                     if (!canUseKeyPricesFromSource) {
                         throw new Error(
@@ -395,17 +400,17 @@ export default class Pricelist extends EventEmitter {
                     }
 
                     this.globalKeyPrices = {
-                        buy: item.buy,
-                        sell: item.sell,
+                        buy: newPrices.buy,
+                        sell: newPrices.sell,
                         src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
                         time: item.time
                     };
 
-                    this.currentKeyPrices = item;
+                    this.currentKeyPrices = newPrices;
                 }
 
-                entry.buy = item.buy;
-                entry.sell = item.sell;
+                entry.buy = newPrices.buy;
+                entry.sell = newPrices.sell;
                 entry.time = item.time;
             }
         }
