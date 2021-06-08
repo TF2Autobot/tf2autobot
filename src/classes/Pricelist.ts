@@ -382,6 +382,10 @@ export default class Pricelist extends EventEmitter {
             if (entry.autoprice) {
                 const item = this.transformedPricelistForBulk[entry.sku];
 
+                if (item === undefined) {
+                    throw new Error('Item is not priced - please manually price this item');
+                }
+
                 const newPrices = {
                     buy: new Currencies(item.buy),
                     sell: new Currencies(item.sell)
