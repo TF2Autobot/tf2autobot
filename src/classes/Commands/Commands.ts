@@ -59,7 +59,7 @@ export default class Commands {
         this.message = new c.MessageCommand(bot);
         this.misc = new c.MiscCommands(bot);
         this.opt = new c.OptionsCommand(bot);
-        this.pManager = new c.PricelistManager(bot);
+        this.pManager = new c.PricelistManager(bot, pricer);
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
@@ -192,6 +192,8 @@ export default class Commands {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
             this.pManager.addCommand(steamID, message);
+        } else if (command === 'addbulk' && isAdmin) {
+            void this.pManager.addbulkCommand(steamID, message);
         } else if (command === 'update' && isAdmin) {
             void this.pManager.updateCommand(steamID, message);
         } else if (command === 'remove' && isAdmin) {
