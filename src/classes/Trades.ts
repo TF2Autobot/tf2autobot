@@ -404,7 +404,7 @@ export default class Trades {
         if (isNotInvalidStates) {
             const opt = this.bot.options;
 
-            if (opt.sendAlert.failedAccept) {
+            if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                 const keyPrices = this.bot.pricelist.getKeyPrices;
                 const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
 
@@ -609,7 +609,7 @@ export default class Trades {
                             // Only notify if error is not "Could not act on confirmation" or not "Could not find confirmation for object"
                             const opt = this.bot.options;
 
-                            if (opt.sendAlert.failedAccept) {
+                            if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                                 const keyPrices = this.bot.pricelist.getKeyPrices;
                                 const value = t.valueDiff(
                                     offer,

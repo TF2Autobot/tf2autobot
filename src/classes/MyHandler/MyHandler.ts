@@ -899,7 +899,7 @@ export default class MyHandler extends Handler {
 
             const optDw = opt.discordWebhook;
 
-            if (opt.sendAlert.unableToProcessOffer) {
+            if (opt.sendAlert.enable && opt.sendAlert.unableToProcessOffer) {
                 if (optDw.sendAlert.enable && optDw.sendAlert.url !== '') {
                     sendAlert('failed-processing-offer', this.bot, null, null, null, [
                         offer.partner.getSteamID64(),

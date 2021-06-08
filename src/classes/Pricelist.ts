@@ -1014,7 +1014,7 @@ export default class Pricelist extends EventEmitter {
 
                     const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices);
 
-                    if (opt.sendAlert.partialPrice.onUpdate) {
+                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onUpdate) {
                         if (this.isDwAlertEnabled) {
                             sendAlert('isPartialPriced', this.bot, msg);
                         } else {
@@ -1052,7 +1052,7 @@ export default class Pricelist extends EventEmitter {
 
                         const msg = this.generatePartialPriceResetMsg(oldPrice, match);
 
-                        if (opt.sendAlert.partialPrice.onResetAfterThreshold) {
+                        if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onResetAfterThreshold) {
                             if (this.isDwAlertEnabled) {
                                 sendAlert('autoResetPartialPrice', this.bot, msg);
                             } else {
