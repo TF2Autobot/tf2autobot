@@ -820,8 +820,9 @@ export default class Pricelist extends EventEmitter {
                         }
                     } else {
                         if (
-                            !currPrice.isPartialPriced ||
-                            (currPrice.isPartialPriced && !(isNotExceedThreshold || isInStock))
+                            !currPrice.isPartialPriced || // partialPrice is false - update as usual
+                            (currPrice.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND and has exceeded threshold
+                            (currPrice.isPartialPriced && !isInStock) // OR, still partialPrice true AND and no longer in stock
                         ) {
                             currPrice.buy = newPrices.buy;
                             currPrice.sell = newPrices.sell;
@@ -968,7 +969,8 @@ export default class Pricelist extends EventEmitter {
                     sku: match.sku,
                     inStock: isInStock,
                     notExceed: isNotExceedThreshold,
-                    notExclude: isNotExcluded
+                    notExclude: isNotExcluded,
+                    isMaxOne: maxIsOne
                 });
             }
 
@@ -1020,7 +1022,9 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 } else {
+                    log.debug('ppu - nothing match');
                     if (!match.isPartialPriced) {
+                        log.debug('ppu - isPartialPrice was false');
                         match.buy = newPrices.buy;
                         match.sell = newPrices.sell;
                         match.time = data.time;
@@ -1029,12 +1033,21 @@ export default class Pricelist extends EventEmitter {
                     }
                 }
             } else {
-                if (!match.isPartialPriced || (match.isPartialPriced && !(isNotExceedThreshold || isInStock))) {
+                if (
+                    !match.isPartialPriced || // partialPrice is false - update as usual
+                    (match.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND and has exceeded threshold
+                    (match.isPartialPriced && !isInStock) // OR, still partialPrice true AND and no longer in stock
+                ) {
+                    log.debug('update price as usual');
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
                     match.time = data.time;
 
                     if (match.isPartialPriced) {
+                        log.debug('reset partial price', {
+                            isExceededThreshold: !isNotExceedThreshold,
+                            isNotInStock: !isInStock
+                        });
                         match.isPartialPriced = false; // reset to default
 
                         const msg = this.generatePartialPriceResetMsg(oldPrice, match);
