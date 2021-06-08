@@ -10,7 +10,7 @@ import log from '../lib/logger';
 import validator from '../lib/validator';
 import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
 import SocketManager from './MyHandler/SocketManager';
-import Pricer, { GetItemPriceResponse, Item } from './Pricer';
+import Pricer, { GetItemPriceResponse, Item, GetPricelistResponse } from './Pricer';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -197,6 +197,8 @@ export default class Pricelist extends EventEmitter {
 
     private readonly boundHandlePriceChange;
 
+    private transformedPricelistForBulk: { [p: string]: Item };
+
     private retryGetKeyPrices: NodeJS.Timeout;
 
     failedUpdateOldPrices: string[] = [];
@@ -328,10 +330,10 @@ export default class Pricelist extends EventEmitter {
         return matchedNames;
     }
 
-    private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
+    private async validateEntry(entry: Entry, src: PricelistChangedSource, isBulk: boolean): Promise<void> {
         const keyPrices = this.getKeyPrices;
 
-        if (entry.autoprice && !entry.isPartialPriced) {
+        if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
             try {
                 const price = await this.priceSource.getPrice(entry.sku, 'bptf');
@@ -376,6 +378,45 @@ export default class Pricelist extends EventEmitter {
                     }`
                 );
             }
+        } else if (isBulk) {
+            if (entry.autoprice) {
+                const item = this.transformedPricelistForBulk[entry.sku];
+
+                if (item === undefined) {
+                    throw new Error('Item is not priced - please manually price this item');
+                }
+
+                const newPrices = {
+                    buy: new Currencies(item.buy),
+                    sell: new Currencies(item.sell)
+                };
+
+                if (entry.sku === '5021;6') {
+                    clearTimeout(this.retryGetKeyPrices);
+
+                    const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
+
+                    if (!canUseKeyPricesFromSource) {
+                        throw new Error(
+                            'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
+                                'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                        );
+                    }
+
+                    this.globalKeyPrices = {
+                        buy: newPrices.buy,
+                        sell: newPrices.sell,
+                        src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
+                        time: item.time
+                    };
+
+                    this.currentKeyPrices = newPrices;
+                }
+
+                entry.buy = newPrices.buy;
+                entry.sell = newPrices.sell;
+                entry.time = item.time;
+            }
         }
 
         if (!entry.hasPrice()) {
@@ -411,7 +452,10 @@ export default class Pricelist extends EventEmitter {
     async addPrice(
         entryData: EntryData,
         emitChange: boolean,
-        src: PricelistChangedSource = PricelistChangedSource.Other
+        src: PricelistChangedSource = PricelistChangedSource.Other,
+        isBulk = false,
+        pricelist: GetPricelistResponse = null,
+        isLast: boolean = null
     ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
@@ -438,12 +482,20 @@ export default class Pricelist extends EventEmitter {
 
         const entry = Entry.fromData(entryData, this.schema);
 
-        await this.validateEntry(entry, src);
+        if (isBulk && pricelist !== null && this.transformedPricelistForBulk === undefined) {
+            this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricelist.items);
+        }
+
+        await this.validateEntry(entry, src, isBulk);
         // Add new price
         this.prices[entry.sku] = entry;
 
         if (emitChange) {
             this.priceChanged(entry.sku, entry);
+        }
+
+        if (isBulk && isLast) {
+            this.transformedPricelistForBulk = undefined;
         }
 
         return entry;
@@ -475,7 +527,7 @@ export default class Pricelist extends EventEmitter {
         }
 
         const entry = Entry.fromData(entryData, this.schema);
-        await this.validateEntry(entry, src);
+        await this.validateEntry(entry, src, false);
 
         // Remove old price
         await this.removePrice(entry.sku, false);

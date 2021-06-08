@@ -53,7 +53,8 @@ export default class HelpCommands {
                 '.\n✨=== Pricelist manager ===✨\n- ' +
                     [
                         '!sku <Full Item Name> - Get the sku of an item.',
-                        '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+                        '!add (sku|item|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+                        '!addbulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk add pricelist entries ➕➕➕',
                         '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently available in your bot inventory (about 2 seconds every item) 🤖',
                         '!stopautoadd - Stop automatic add items operation 🛑',
                         '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
