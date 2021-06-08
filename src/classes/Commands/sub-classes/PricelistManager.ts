@@ -198,7 +198,7 @@ export default class PricelistManagerCommands {
             );
         }
 
-        const itemsToAdd = commandRemoved.split('\n');
+        const itemsToAdd = commandRemoved.split('\n').filter(itemString => itemString !== '');
         const count = itemsToAdd.length;
         const errorMessage: string[] = [];
         const savedParams: EntryData[] = [];
