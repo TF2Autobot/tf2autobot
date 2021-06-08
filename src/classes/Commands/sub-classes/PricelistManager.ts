@@ -24,7 +24,7 @@ export default class PricelistManagerCommands {
         AutoAddQueue.stopJob();
     }
 
-    private isSending = false;
+    static isSending = false;
 
     constructor(private readonly bot: Bot, private priceSource: Pricer) {
         this.bot = bot;
@@ -386,7 +386,7 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            this.isSending = false;
+            PricelistManagerCommands.isSending = false;
         }
 
         try {
@@ -413,7 +413,7 @@ export default class PricelistManagerCommands {
                     })
                     .finally(() => {
                         if (isLast) {
-                            this.isSending = true;
+                            PricelistManagerCommands.isSending = true;
                             this.bot.sendMessage(steamID, `✅ Bulk add successful: ${added} added, ${failed} failed`);
 
                             void sendErrors(this.bot);
@@ -1297,7 +1297,7 @@ export default class PricelistManagerCommands {
     }
 
     async getAllCommand(steamID: SteamID, message: string): Promise<void> {
-        if (this.isSending) {
+        if (PricelistManagerCommands.isSending) {
             return this.bot.sendMessage(steamID, '❌ Please wait.');
         }
 
@@ -1328,7 +1328,7 @@ export default class PricelistManagerCommands {
 
         const limit = params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
-        this.isSending = true;
+        PricelistManagerCommands.isSending = true;
         this.bot.sendMessage(
             steamID,
             `Found ${pluralize('item', listCount, true)} in your pricelist${
@@ -1355,11 +1355,11 @@ export default class PricelistManagerCommands {
             await sleepasync().Promise.sleep(2000);
         }
 
-        this.isSending = false;
+        PricelistManagerCommands.isSending = false;
     }
 
     async partialPriceUpdateCommand(steamID: SteamID, message: string): Promise<void> {
-        if (this.isSending) {
+        if (PricelistManagerCommands.isSending) {
             return this.bot.sendMessage(steamID, '❌ Please wait.');
         }
 
@@ -1411,7 +1411,7 @@ export default class PricelistManagerCommands {
 
         const limit = params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
-        this.isSending = true;
+        PricelistManagerCommands.isSending = true;
         this.bot.sendMessage(
             steamID,
             (!isPpuEnabled ? '⚠️ Partial Price Update disabled, but found ' : 'Found ') +
@@ -1444,11 +1444,11 @@ export default class PricelistManagerCommands {
             await sleepasync().Promise.sleep(2000);
         }
 
-        this.isSending = false;
+        PricelistManagerCommands.isSending = false;
     }
 
     async findCommand(steamID: SteamID, message: string): Promise<void> {
-        if (this.isSending) {
+        if (PricelistManagerCommands.isSending) {
             return this.bot.sendMessage(steamID, '❌ Please wait.');
         }
 
@@ -1604,7 +1604,7 @@ export default class PricelistManagerCommands {
             const limit =
                 params.limit === undefined ? 20 : (params.limit as number) <= 0 ? -1 : (params.limit as number);
 
-            this.isSending = true;
+            PricelistManagerCommands.isSending = true;
             this.bot.sendMessage(
                 steamID,
                 `Found ${pluralize('item', filterCount, true)} with ${display.join('&')}${
@@ -1633,7 +1633,7 @@ export default class PricelistManagerCommands {
                 await sleepasync().Promise.sleep(2000);
             }
 
-            this.isSending = false;
+            PricelistManagerCommands.isSending = false;
         }
     }
 }
