@@ -25,7 +25,7 @@
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/jsonlint": "^1.0.0",
-        "@tf2autobot/socket.io-client": "^1.0.3",
+        "@tf2autobot/socket.io-client": "^1.0.4",
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
         "async": "^3.2.0",
         "bluebird": "^3.7.2",
