@@ -196,6 +196,8 @@ export default class Commands {
             void this.pManager.addbulkCommand(steamID, message);
         } else if (command === 'update' && isAdmin) {
             void this.pManager.updateCommand(steamID, message);
+        } else if (command === 'updatebulk' && isAdmin) {
+            void this.pManager.updateCommand(steamID, message);
         } else if (command === 'remove' && isAdmin) {
             void this.pManager.removeCommand(steamID, message);
         } else if (command === 'get' && isAdmin) {

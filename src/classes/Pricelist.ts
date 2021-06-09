@@ -504,7 +504,10 @@ export default class Pricelist extends EventEmitter {
     async updatePrice(
         entryData: EntryData,
         emitChange: boolean,
-        src: PricelistChangedSource = PricelistChangedSource.Other
+        src: PricelistChangedSource = PricelistChangedSource.Other,
+        isBulk = false,
+        pricelist: GetPricelistResponse = null,
+        isLast: boolean = null
     ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
@@ -527,6 +530,11 @@ export default class Pricelist extends EventEmitter {
         }
 
         const entry = Entry.fromData(entryData, this.schema);
+
+        if (isBulk && pricelist !== null && this.transformedPricelistForBulk === undefined) {
+            this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricelist.items);
+        }
+
         await this.validateEntry(entry, src, false);
 
         // Remove old price
@@ -538,6 +546,11 @@ export default class Pricelist extends EventEmitter {
         if (emitChange) {
             this.priceChanged(entry.sku, entry);
         }
+
+        if (isBulk && isLast) {
+            this.transformedPricelistForBulk = undefined;
+        }
+
         return entry;
     }
 
