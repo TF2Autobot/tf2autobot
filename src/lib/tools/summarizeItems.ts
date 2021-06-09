@@ -115,7 +115,7 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
     let sellPrice: string;
 
     for (const sku in prices) {
-        let autoprice = 'removed/unlisted';
+        let autoprice = 'removed/not listed';
 
         if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
             continue;
