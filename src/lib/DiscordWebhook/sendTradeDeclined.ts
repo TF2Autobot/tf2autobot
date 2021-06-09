@@ -196,34 +196,7 @@ export default async function sendTradeDeclined(
                 );
 
                 const itemListx = t.listItems(offer, bot, itemsName, true);
-
-                const chatOpt = bot.options.tradeSummary.customText;
-                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
-                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
-                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
-                const cTxTimeTaken = chatOpt.timeTaken.steamChat ? chatOpt.timeTaken.steamChat : '⏱ Time taken:';
-
-                //Not so sure about this if something goes wrong with discord and we get a lot of trades it'll be un🐻able
-                sendToAdmin(
-                    bot,
-                    offer,
-                    optBot.steamChat.customInitializer.declinedTradeSummary,
-                    value,
-                    itemListx,
-                    keyPrices,
-                    offer.message,
-                    isOfferSent,
-                    isCustomPricer,
-                    cTxKeyRate,
-                    autokeys,
-                    status,
-                    slots,
-                    cTxPureStock,
-                    cTxTotalItems,
-                    cTxTimeTaken,
-                    timeTakenToProcessOrConstruct,
-                    tDec
-                );
+                sendToAdmin(bot, offer, value, itemListx, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
             });
     });
 }
