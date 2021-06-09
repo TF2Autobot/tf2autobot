@@ -32,7 +32,7 @@
         "bluebird-global": "^1.0.1",
         "body-parser": "^1.19.0",
         "bptf-listings-2": "^3.0.2",
-        "bptf-login-2": "^2.0.3",
+        "bptf-login-2": "^2.0.4",
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
         "cheerio": "^1.0.0-rc.10",
