@@ -262,6 +262,8 @@ export default class Commands {
             void this.opt.optionsCommand(steamID, message);
         } else if (command === 'config' && isAdmin) {
             this.opt.updateOptionsCommand(steamID, message);
+        } else if (command === 'cleararray' && isAdmin) {
+            this.opt.clearArrayCommand(steamID, message);
         } else if (command === 'donatebptf' && isAdmin) {
             this.donateBPTFCommand(steamID, message);
         } else if (command === 'donatenow' && isAdmin) {
