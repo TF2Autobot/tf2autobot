@@ -195,28 +195,7 @@ export default function sendOfferReview(
 
                 const itemListx = listItems(offer, bot, itemsName, true);
 
-                const chatOpt = bot.options.tradeSummary.customText;
-                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
-                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
-                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
-
-                sendToAdmin(
-                    bot,
-                    offer,
-                    bot.options.steamChat.customInitializer.review,
-                    isCustomPricer,
-                    reasons,
-                    value,
-                    keyPrices,
-                    offer.message,
-                    itemListx,
-                    links,
-                    currentItems,
-                    slots,
-                    cTxKeyRate,
-                    cTxTotalItems,
-                    cTxPureStock
-                );
+                sendToAdmin(bot, offer, reasons, value, keyPrices, itemListx, links);
             });
     });
 }
