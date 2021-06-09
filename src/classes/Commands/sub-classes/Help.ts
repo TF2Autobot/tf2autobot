@@ -19,7 +19,8 @@ export default class HelpCommands {
                       '\n• [a] = Optionally add "a"' +
                       '\n• (a|b) = Directly input "a" OR "b"' +
                       '\n• <a> = Replace "a" with relevant content' +
-                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist#table-of-contents'
+                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer' +
+                      ' to the wiki: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist#table-of-contents'
                     : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
             }\n\n📜 Here's a list of my commands:${
                 isAdmin
@@ -55,7 +56,8 @@ export default class HelpCommands {
                         '!sku <Full Item Name> - Get the sku of an item.',
                         '!add (sku|item|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
                         '!addbulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk add pricelist entries ➕➕➕',
-                        '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently available in your bot inventory (about 2 seconds every item) 🤖',
+                        '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently' +
+                            ' available in your bot inventory (about 2 seconds every item) 🤖',
                         '!stopautoadd - Stop automatic add items operation 🛑',
                         '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry 🔄',
                         '!updatebulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk update pricelist entries 🔄🔄🔄',
