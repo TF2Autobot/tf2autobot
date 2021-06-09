@@ -212,9 +212,11 @@ export default function processAccepted(
         const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
         const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
         const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
+        const cTOfferMessage = cT.offerMessage.steamChat ? cT.offerMessage.steamChat : '💬 Offer message:';
 
         const customInitializer = bot.options.steamChat.customInitializer.acceptedTradeSummary;
         const isCustomPricer = bot.pricelist.isUseCustomPricer;
+        const isShowOfferMessage = opt.tradeSummary.showOfferMessage;
 
         sendToAdmin(
             bot,
@@ -232,10 +234,12 @@ export default function processAccepted(
             cTPureStock,
             cTTotalItems,
             cTTimeTaken,
+            cTOfferMessage,
             timeTakenToComplete,
             timeTakenToProcessOrConstruct,
             timeTakenToCounterOffer,
-            tSum
+            tSum,
+            isShowOfferMessage
         );
     }
 
@@ -262,10 +266,12 @@ export function sendToAdmin(
     cTPureStock: string,
     cTTotalItems: string,
     cTTimeTaken: string,
+    cTOfferMessage: string,
     timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
     timeTakenToCounterOffer: number | undefined,
-    tSum: TradeSummary
+    tSum: TradeSummary,
+    isShowOfferMessage: boolean
 ): void {
     bot.messageAdmins(
         'trade',
@@ -273,6 +279,9 @@ export function sendToAdmin(
             offer.id
         } with ${offer.partner.getSteamID64()} is accepted. ✅` +
             t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
+            (isShowOfferMessage
+                ? (cTOfferMessage && offer.message ? cTOfferMessage : '\n\n💬 Offer message:') + ` "${offer.message}"`
+                : '') +
             (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
             `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
             ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +

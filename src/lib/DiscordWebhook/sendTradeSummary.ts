@@ -106,6 +106,7 @@ export default async function sendTradeSummary(
     const slots = bot.tf2.backpackSlots;
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
+    const isShowOfferMessage = optBot.tradeSummary.showOfferMessage;
 
     const tSum = optBot.tradeSummary;
     const cT = tSum.customText;
@@ -113,6 +114,7 @@ export default async function sendTradeSummary(
     const cTKeyRate = cT.keyRate.discordWebhook ? cT.keyRate.discordWebhook : '🔑 Key rate:';
     const cTPureStock = cT.pureStock.discordWebhook ? cT.pureStock.discordWebhook : '💰 Pure stock:';
     const cTTotalItems = cT.totalItems.discordWebhook ? cT.totalItems.discordWebhook : '🎒 Total items:';
+    const cTOfferMessage = cT.offerMessage.discordWebhook ? cT.offerMessage.discordWebhook : '💬 **Offer message:**';
 
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
@@ -138,6 +140,10 @@ export default async function sendTradeSummary(
                         tSum.showDetailedTimeTaken,
                         tSum.showTimeTakenInMS
                     )}\n\n` +
+                    (isShowOfferMessage
+                        ? (cTOfferMessage && offer.message ? cTOfferMessage : '💬 Offer message:') +
+                          ` "${offer.message}"\n\n`
+                        : '') +
                     (misc.showQuickLinks ? `${quickLinks(t.replace.specialChar(details.personaName), links)}\n` : '\n'),
                 fields: [
                     {
@@ -242,6 +248,9 @@ export default async function sendTradeSummary(
                 const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
                 const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
                 const cTxTimeTaken = chatOpt.timeTaken.steamChat ? chatOpt.timeTaken.steamChat : '⏱ Time taken:';
+                const cTxOfferMessage = chatOpt.offerMessage.steamChat
+                    ? chatOpt.offerMessage.discordWebhook
+                    : '💬 Offer message:';
 
                 sendToAdmin(
                     bot,
@@ -259,10 +268,12 @@ export default async function sendTradeSummary(
                     cTxPureStock,
                     cTxTotalItems,
                     cTxTimeTaken,
+                    cTxOfferMessage,
                     timeTakenToComplete,
                     timeTakenToProcessOrConstruct,
                     timeTakenToCounterOffer,
-                    tSum
+                    tSum,
+                    isShowOfferMessage
                 );
             });
     });
