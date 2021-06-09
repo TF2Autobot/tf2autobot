@@ -5,15 +5,12 @@ import Bot from '../../classes/Bot';
 import { Paints, StrangeParts } from 'tf2-schema-2';
 import { testSKU } from '../tools/export';
 
-export default function getHighValueItems(
-    items: Items,
-    bot: Bot,
-    paints: Paints,
-    parts: StrangeParts
-): { [name: string]: string } {
-    const itemsWithName: {
-        [name: string]: string;
-    } = {};
+interface ItemsWithName {
+    [name: string]: string;
+}
+
+export default function getHighValueItems(items: Items, bot: Bot, paints: Paints, parts: StrangeParts): ItemsWithName {
+    const itemsWithName: ItemsWithName = {};
 
     const cT = bot.options.tradeSummary.customText;
     const normalizePaint = bot.options.normalize.painted.our === false || bot.options.normalize.painted.their === false;
