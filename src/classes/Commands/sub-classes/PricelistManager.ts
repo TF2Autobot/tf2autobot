@@ -1620,6 +1620,146 @@ export default class PricelistManagerCommands {
             );
     }
 
+    removebulkCommand(steamID: SteamID, message: string): void {
+        const commandRemoved = CommandParser.removeCommand(removeLinkProtocol(message));
+
+        if (!commandRemoved.includes('\n')) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Incorrect usage. If you want to only remove one item, please use the !remove command.\n` +
+                    `Correct usage example: !removebulk sku=5021;6\nsku=30186;6\nsku=30994;6\nitem=Genuine Horace\n...` +
+                    `(separated by a new line)`
+            );
+        }
+
+        const itemsToRemove = commandRemoved.split('\n').filter(itemString => itemString !== '');
+        const count = itemsToRemove.length;
+        const errorMessage: string[] = [];
+        const skusToRemove: string[] = [];
+        let failed = 0;
+        let failedNotUsingItemOrSkuParam = 0;
+
+        for (let i = 0; i < count; i++) {
+            const itemToRemove = itemsToRemove[i];
+
+            const params = CommandParser.parseParams(itemToRemove);
+
+            if (params.all !== undefined) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ Bulk remove operation aborted: "all" parameter can only be used with the !remove command!`
+                );
+            }
+
+            if (params.sku !== undefined && !testSKU(params.sku as string)) {
+                errorMessage.push(
+                    `❌ Failed to remove ${params.sku as string}: "sku" should not be empty or wrong format.`
+                );
+                failed++;
+                continue;
+            }
+
+            if (params.sku === undefined) {
+                if (params.item !== undefined) {
+                    params.sku = this.bot.schema.getSkuFromName(params.item);
+
+                    if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
+                        errorMessage.push(
+                            `❌ Failed to remove ${params.sku as string}: The sku for "${
+                                params.item as string
+                            }" returned "${params.sku as string}".` +
+                                `\nIf the item name is correct, please let us know in our Discord server.`
+                        );
+                        failed++;
+                        continue;
+                    }
+
+                    delete params.item;
+                } else {
+                    errorMessage.push(
+                        `❌ Failed to remove "${itemToRemove}": Please only use "sku" or "item" parameter, ` +
+                            `OR check if you have missing something. Thank you.`
+                    );
+                    failed++;
+                    failedNotUsingItemOrSkuParam++;
+                    continue;
+                }
+            }
+
+            if (!this.bot.pricelist.hasPrice(params.sku as string)) {
+                errorMessage.push(
+                    `❌ Failed to update ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
+                        params.sku as string
+                    }): ❌ Item is not in the pricelist.`
+                );
+                failed++;
+            }
+
+            skusToRemove.push(params.sku);
+        }
+
+        let removed = 0;
+
+        async function sendErrors(bot: Bot): Promise<void> {
+            const errorCount = errorMessage.length;
+            if (errorCount > 0) {
+                const limit = 10;
+
+                const loops = Math.ceil(errorCount / limit);
+
+                for (let i = 0; i < loops; i++) {
+                    const last = loops - i === 1;
+                    const i10 = i * limit;
+
+                    const firstOrLast = i < 1 ? limit : i10 + (errorCount - i10);
+
+                    bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
+
+                    await sleepasync().Promise.sleep(2000);
+                }
+            }
+
+            PricelistManagerCommands.isSending = false;
+        }
+
+        if (failedNotUsingItemOrSkuParam === count) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Bulk update operation aborted: Please only use "sku" or "item" as the item identifying paramater. Thank you.`
+            );
+        }
+
+        const count2 = skusToRemove.length;
+
+        for (let i = 0; i < count2; i++) {
+            const sku = skusToRemove[i];
+            const isLast = count2 - i === 1;
+
+            this.bot.pricelist
+                .removePrice(sku, true)
+                .then(() => removed++)
+                .catch(err => {
+                    errorMessage.push(
+                        `❌ Error updating ${this.bot.schema.getName(SKU.fromString(sku))} (${sku}): ${
+                            (err as Error)?.message
+                        }`
+                    );
+                    failed++;
+                })
+                .finally(() => {
+                    if (isLast) {
+                        PricelistManagerCommands.isSending = true;
+                        this.bot.sendMessage(
+                            steamID,
+                            `✅ Bulk update successful: ${removed} removed, ${failed} failed`
+                        );
+
+                        void sendErrors(this.bot);
+                    }
+                });
+        }
+    }
+
     getSlotsCommand(steamID: SteamID): void {
         const listingsCap = this.bot.listingManager.cap;
         const currentUsedSlots = this.bot.listingManager.listings.length;
