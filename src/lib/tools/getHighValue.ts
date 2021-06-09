@@ -14,6 +14,7 @@ export default function getHighValueItems(items: Items, bot: Bot, paints: Paints
 
     const cT = bot.options.tradeSummary.customText;
     const normalizePaint = bot.options.normalize.painted.our === false || bot.options.normalize.painted.their === false;
+    let hasNotFull = false;
 
     for (const sku in items) {
         if (!Object.prototype.hasOwnProperty.call(items, sku)) {
@@ -30,7 +31,11 @@ export default function getHighValueItems(items: Items, bot: Bot, paints: Paints
 
         Object.keys(items[sku]).forEach(attachment => {
             if (attachment === 'isFull') {
-                toString += `\n💯 Full uses: ${items[sku].isFull ? '✅' : '❌'}`;
+                if (!items[sku].isFull) {
+                    hasNotFull = true;
+                }
+
+                toString += `\n💯 All full uses: ${!hasNotFull ? '✅' : '❌'}`;
             } else {
                 if (items[sku][attachment]) {
                     if (attachment === 's') {
