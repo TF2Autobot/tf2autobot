@@ -197,11 +197,11 @@ export default class Commands {
         } else if (command === 'update' && isAdmin) {
             void this.pManager.updateCommand(steamID, message);
         } else if (command === 'updatebulk' && isAdmin) {
-            void this.pManager.updateCommand(steamID, message);
+            void this.pManager.updatebulkCommand(steamID, message);
         } else if (command === 'remove' && isAdmin) {
             void this.pManager.removeCommand(steamID, message);
         } else if (command === 'removebulk' && isAdmin) {
-            void this.pManager.removebulkCommand(steamID, message);
+            this.pManager.removebulkCommand(steamID, message);
         } else if (command === 'get' && isAdmin) {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
