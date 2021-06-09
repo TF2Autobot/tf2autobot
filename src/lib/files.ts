@@ -51,18 +51,18 @@ export function writeFile(p: string, data: unknown, json: boolean): Promise<void
         const dir = path.dirname(p);
 
         if (fs.existsSync(dir)) {
-            writeFile();
+            writeToFile();
         } else {
             fs.mkdir(dir, { recursive: true }, err => {
                 if (err) {
                     return reject(err);
                 }
 
-                writeFile();
+                writeToFile();
             });
         }
 
-        function writeFile(): void {
+        function writeToFile(): void {
             filesBeingSaved++;
             fs.writeFile(p, write, { encoding: 'utf8' }, err => {
                 filesBeingSaved--;
