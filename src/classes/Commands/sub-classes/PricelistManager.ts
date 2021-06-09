@@ -390,19 +390,64 @@ export default class PricelistManagerCommands {
             PricelistManagerCommands.isSending = false;
         }
 
-        try {
-            this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
-            const pricerPricelist = await this.priceSource.getPricelist('bptf');
+        let isHasAutoprice = false;
+        const count2 = savedParams.length;
 
-            this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, adding items to our pricelist...`);
+        // yes it's longer, but much better than using Array.some() method
+        for (let i = 0; i < count2; i++) {
+            if (savedParams[i].autoprice) {
+                isHasAutoprice = true;
+                break;
+            }
+        }
 
-            const count2 = savedParams.length;
+        if (isHasAutoprice) {
+            try {
+                this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
+                const pricerPricelist = await this.priceSource.getPricelist('bptf');
+
+                this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, adding items to our pricelist...`);
+
+                for (let i = 0; i < count2; i++) {
+                    const params = savedParams[i];
+                    const isLast = count2 - i === 1;
+
+                    this.bot.pricelist
+                        .addPrice(params, true, PricelistChangedSource.Command, true, pricerPricelist, isLast)
+                        .then(() => added++)
+                        .catch(err => {
+                            errorMessage.push(
+                                `❌ Error adding ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
+                                    params.sku
+                                }): ${(err as Error)?.message}`
+                            );
+                            failed++;
+                        })
+                        .finally(() => {
+                            if (isLast) {
+                                PricelistManagerCommands.isSending = true;
+                                this.bot.sendMessage(
+                                    steamID,
+                                    `✅ Bulk add successful: ${added} added, ${failed} failed`
+                                );
+
+                                void sendErrors(this.bot);
+                            }
+                        });
+                }
+            } catch (err) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ Bulk add operation aborted: Failed to obtain pricelist from pricer: ${(err as Error)?.message}`
+                );
+            }
+        } else {
             for (let i = 0; i < count2; i++) {
                 const params = savedParams[i];
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .addPrice(params, true, PricelistChangedSource.Command, true, pricerPricelist, isLast)
+                    .addPrice(params, true, PricelistChangedSource.Command, true)
                     .then(() => added++)
                     .catch(err => {
                         errorMessage.push(
@@ -421,11 +466,6 @@ export default class PricelistManagerCommands {
                         }
                     });
             }
-        } catch (err) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ Bulk add operation aborted: Failed to obtain pricelist from pricer: ${(err as Error)?.message}`
-            );
         }
     }
 
