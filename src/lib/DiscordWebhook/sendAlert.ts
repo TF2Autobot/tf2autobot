@@ -102,7 +102,9 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';
-        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
+        const errStringify = JSON.stringify(err);
+        const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+        description = msg + `\n\nError:\n${errMessage}`;
         color = '16711680'; // red
         footer = `${items[1] ? `#${items[1]} • ` : ''}${items[0]} • `; // 0 - steamID, 1 - trade offer id
     } else if (type === 'highValuedDisabled') {

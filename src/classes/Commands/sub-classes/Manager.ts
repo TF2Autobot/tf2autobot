@@ -305,10 +305,9 @@ export default class ManagerCommands {
         try {
             friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
         } catch (err) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ Error while trying to remove friends: ${(err as Error)?.message || JSON.stringify(err)}`
-            );
+            const errStringify = JSON.stringify(err);
+            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+            return this.bot.sendMessage(steamID, `❌ Error while trying to remove friends: ${errMessage}`);
         }
 
         const total = friendsToRemove.length;
@@ -435,9 +434,11 @@ export default class ManagerCommands {
             const listingsSKUs: string[] = [];
             this.bot.listingManager.getListings(async err => {
                 if (err) {
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
-                        '❌ Unable to refresh listings, please try again later: ' + JSON.stringify(err)
+                        '❌ Unable to refresh listings, please try again later: ' + errMessage
                     );
                 }
 

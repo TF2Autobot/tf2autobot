@@ -675,9 +675,11 @@ export default class Commands {
 
             void this.bot.trades.getOffer(activeOffer).asCallback((err, offer) => {
                 if (err || !offer) {
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${JSON.stringify(err)}` +
+                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${errMessage}` +
                             (!offer ? ` (or the offer might already be canceled)` : '')
                     );
                 }

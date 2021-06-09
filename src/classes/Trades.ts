@@ -716,11 +716,11 @@ export default class Trades {
             log.debug('Fetching their inventory...');
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return reject(
                         new Error(
-                            `Failed to load inventories (Steam might be down, or private inventory): ${JSON.stringify(
-                                err
-                            )}`
+                            `Failed to load inventories (Steam might be down, or private inventory): ${errMessage}`
                         )
                     );
                 }
@@ -888,9 +888,11 @@ export default class Trades {
                             log.debug(`Done counteroffer for offer #${offer.id}`);
                             return resolve();
                         })
-                        .catch(err =>
-                            reject(new Error(`Something wrong while sending countered offer: ${JSON.stringify(err)}`))
-                        );
+                        .catch(err => {
+                            const errStringify = JSON.stringify(err);
+                            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                            reject(new Error(`Something wrong while sending countered offer: ${errMessage}`));
+                        });
                 };
 
                 const values = offer.data('value') as ItemsValue;
