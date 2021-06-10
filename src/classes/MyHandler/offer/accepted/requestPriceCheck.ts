@@ -62,7 +62,7 @@ export default class PriceCheckQueue {
             if (err) {
                 const errStringify = JSON.stringify(err);
                 const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
-                log.debug(`❌ Failed to request pricecheck for ${sku}: ${errMessage}`);
+                log.warn(`❌ Failed to request pricecheck for ${sku}: ${errMessage}`);
             } else {
                 log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
             }

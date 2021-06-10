@@ -11,13 +11,13 @@ export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ person
         if (offer.state === TradeOfferManager.ETradeOfferState['Active']) {
             offer.getUserDetails((err, me, them) => {
                 if (err) {
-                    log.debug('Error retrieving partner Avatar and Name: ', err);
+                    log.warn('Error retrieving partner Avatar and Name: ', err);
                     resolve({
                         personaName: 'unknown',
                         avatarFull: defaultImage
                     });
                 } else {
-                    log.debug('partner Avatar and Name retrieved. Applying...');
+                    log.info('Partner Avatar and Name retrieved. Applying...');
                     resolve({
                         personaName: them.personaName,
                         avatarFull: them.avatarFull
@@ -27,13 +27,13 @@ export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ person
         } else {
             bot.community.getSteamUser(offer.partner, (err, user) => {
                 if (err) {
-                    log.debug('Error retrieving partner Avatar and Name: ', err);
+                    log.warn('Error retrieving partner Avatar and Name: ', err);
                     resolve({
                         personaName: 'unknown',
                         avatarFull: defaultImage
                     });
                 } else {
-                    log.debug('partner Avatar and Name retrieved. Applying...');
+                    log.info('Partner Avatar and Name retrieved. Applying...');
                     resolve({
                         personaName: user.name,
                         avatarFull: user.getAvatarURL('full')
@@ -57,7 +57,7 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
                 if (request.status === 204) {
                     resolve();
                 } else {
-                    reject(request.responseText);
+                    reject({ responseText: request.responseText, webhook });
                 }
             }
         };

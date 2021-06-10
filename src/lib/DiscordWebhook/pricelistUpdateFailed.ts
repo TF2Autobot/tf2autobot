@@ -87,7 +87,7 @@ class PriceUpdateFailedQueue {
                 log.debug(`Sent price update error for ${sku} to Discord.`);
             })
             .catch(err => {
-                log.debug(`❌ Failed to send price update error for ${sku} to Discord: `, err);
+                log.warn(`❌ Failed to send price update error for ${sku} to Discord: `, err);
             })
             .finally(() => {
                 this.isProcessing = false;

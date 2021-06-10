@@ -188,7 +188,7 @@ export default async function sendTradeDeclined(
         sendWebhook(link, declinedTradeSummary, 'trade-declined', i)
             .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
             .catch(err => {
-                log.debug(
+                log.warn(
                     `❌ Failed to send trade-declined webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? `(${i + 1})` : ''
                     }: `,

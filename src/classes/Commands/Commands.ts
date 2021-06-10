@@ -691,6 +691,7 @@ export default class Commands {
                     // will get an alert from the onTradeOfferChanged handler
 
                     if (err) {
+                        log.warn('Error while trying to cancel an offer: ', err);
                         this.bot.sendMessage(
                             steamID,
                             `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
@@ -833,9 +834,11 @@ export default class Commands {
                 await adminInventory.fetch();
                 this.adminInventory[steamid] = adminInventory;
             } catch (err) {
+                log.error('Error fetching inventory: ', err);
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ Error fetching inventory, steam might down. Please try again later.`
+                    `❌ Error fetching inventory, steam might down. Please try again later. ` +
+                        `If you have private profile/inventory, please set to public and try again.`
                 );
             }
         }

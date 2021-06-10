@@ -234,7 +234,7 @@ export default async function sendTradeSummary(
         sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
             .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
             .catch(err => {
-                log.debug(
+                log.warn(
                     `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? `(${i + 1})` : ''
                     }: `,

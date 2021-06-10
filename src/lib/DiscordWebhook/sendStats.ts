@@ -135,7 +135,7 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
             }
         })
         .catch(err => {
-            log.debug(`❌ Failed to send statistics webhook to Discord: `, err);
+            log.warn(`❌ Failed to send statistics webhook to Discord: `, err);
             if (forceSend) {
                 const errStringify = JSON.stringify(err);
                 const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;

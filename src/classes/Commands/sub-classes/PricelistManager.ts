@@ -13,7 +13,6 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 import validator from '../../../lib/validator';
-import log from '../../../lib/logger';
 import { testSKU } from '../../../lib/tools/export';
 import Pricer from '../../Pricer';
 
@@ -871,7 +870,6 @@ export default class PricelistManagerCommands {
                     await this.bot.listings.redoListings();
                 })
                 .catch(err => {
-                    log.warn('Failed to update prices: ', err);
                     return this.bot.sendMessage(steamID, `❌ Failed to update prices: ${(err as Error).message}`);
                 });
         }
@@ -1553,7 +1551,10 @@ export default class PricelistManagerCommands {
                     this.bot.sendMessage(steamID, `✅ Removed ${removeCount} items from pricelist.`);
                     return await this.bot.listings.redoListings();
                 } catch (err) {
-                    return this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
+                    return this.bot.sendMessage(
+                        steamID,
+                        `❌ Failed to clear pricelist with/without group: ${(err as Error).message}`
+                    );
                 }
             } else {
                 try {
@@ -1615,9 +1616,9 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
             })
-            .catch(err =>
-                this.bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${(err as Error).message}`)
-            );
+            .catch(err => {
+                this.bot.sendMessage(steamID, `❌ Failed to remove pricelist entry: ${(err as Error).message}`);
+            });
     }
 
     removebulkCommand(steamID: SteamID, message: string): void {
@@ -1740,7 +1741,7 @@ export default class PricelistManagerCommands {
                 .then(() => removed++)
                 .catch(err => {
                     errorMessage.push(
-                        `❌ Error updating ${this.bot.schema.getName(SKU.fromString(sku))} (${sku}): ${
+                        `❌ Error removing ${this.bot.schema.getName(SKU.fromString(sku))} (${sku}): ${
                             (err as Error)?.message
                         }`
                     );
@@ -1751,7 +1752,7 @@ export default class PricelistManagerCommands {
                         PricelistManagerCommands.isSending = true;
                         this.bot.sendMessage(
                             steamID,
-                            `✅ Bulk update successful: ${removed} removed, ${failed} failed`
+                            `✅ Bulk remove successful: ${removed} removed, ${failed} failed`
                         );
 
                         void sendErrors(this.bot);
