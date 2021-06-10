@@ -444,7 +444,9 @@ export default class Pricelist extends EventEmitter {
         try {
             return await this.priceSource.getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
         } catch (err) {
-            log.debug(`getItemPrices failed ${JSON.stringify(err)}`);
+            const errStringify = JSON.stringify(err);
+            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+            log.debug(`getItemPrices failed ${errMessage}`);
             return null;
         }
     }

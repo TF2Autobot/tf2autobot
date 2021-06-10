@@ -4,8 +4,6 @@ import Bot from '../../Bot';
 import * as t from '../../../lib/tools/export';
 import sendTradeDeclined from '../../../lib/DiscordWebhook/sendTradeDeclined';
 import { KeyPrices } from '../../../classes/Pricelist';
-import Autokeys, { OverallStatus } from '../../../classes/Autokeys/Autokeys';
-import { TradeSummary } from '../../Options';
 
 export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTradingKeys: boolean): void {
     const opt = bot.options;
@@ -175,7 +173,6 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
     if (isWebhookEnabled) {
         void sendTradeDeclined(offer, declined, bot, timeTakenToProcessOrConstruct, isTradingKeys, isOfferSent);
     } else {
-        const slots = bot.tf2.backpackSlots;
         const itemsName = {
             invalid: declined.invalidItems, // 🟨_INVALID_ITEMS
             disabled: declined.disabledItems, // 🟧_DISABLED_ITEMS
@@ -186,43 +183,10 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             highValue: declined.highNotSellingItems
         };
         const keyPrices = bot.pricelist.getKeyPrices;
-        const offerMessage = offer.message;
         const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
-        const autokeys = bot.handler.autokeys;
-        const status = autokeys.getOverallStatus;
-
-        const tDec = bot.options.tradeSummary;
-        const cT = tDec.customText;
-        const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
-        const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
-        const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
-        const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
-
-        const customInitializer = bot.options.steamChat.customInitializer.declinedTradeSummary;
-        const isCustomPricer = bot.pricelist.isUseCustomPricer;
-
-        sendToAdmin(
-            bot,
-            offer,
-            customInitializer,
-            value,
-            itemList,
-            keyPrices,
-            offerMessage,
-            isOfferSent,
-            isCustomPricer,
-            cTKeyRate,
-            autokeys,
-            status,
-            slots,
-            cTPureStock,
-            cTTotalItems,
-            cTTimeTaken,
-            timeTakenToProcessOrConstruct,
-            tDec
-        );
+        sendToAdmin(bot, offer, value, itemList, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
     }
     //else it's sent by us and they declined it so we don't care ?
 }
@@ -230,23 +194,27 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
 export function sendToAdmin(
     bot: Bot,
     offer: i.TradeOffer,
-    customInitializer: string,
     value: t.ValueDiff,
     itemList: string,
     keyPrices: KeyPrices,
-    offerMessage: string,
     isOfferSent: boolean,
-    isCustomPricer: boolean,
-    cTKeyRate: string,
-    autokeys: Autokeys,
-    status: OverallStatus,
-    slots: number,
-    cTPureStock: string,
-    cTTotalItems: string,
-    cTTimeTaken: string,
-    timeTakenToProcessOrConstruct: number,
-    tSum: TradeSummary
+    timeTakenToProcessOrConstruct: number
 ): void {
+    const slots = bot.tf2.backpackSlots;
+    const autokeys = bot.handler.autokeys;
+    const status = autokeys.getOverallStatus;
+    const offerMessage = offer.message;
+
+    const tSum = bot.options.tradeSummary;
+    const cT = tSum.customText;
+    const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
+    const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
+    const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
+    const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
+
+    const customInitializer = bot.options.steamChat.customInitializer.declinedTradeSummary;
+    const isCustomPricer = bot.pricelist.isUseCustomPricer;
+
     bot.messageAdmins(
         'trade',
         `${customInitializer ? customInitializer : '/me'} Trade #${

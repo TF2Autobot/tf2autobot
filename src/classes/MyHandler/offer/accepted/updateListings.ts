@@ -218,9 +218,9 @@ export default function updateListings(
                 .catch(err => {
                     const msg =
                         `❌ Failed to add ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
-                        ` (${paintedSKU}) sell automatically: ${(err as Error).message}`;
+                        ` (${paintedSKU}) to sell automatically: ${(err as Error).message}`;
 
-                    log.debug(msg);
+                    log.warn(`Failed to add ${paintedSKU} to sell automatically:`, err);
 
                     if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
                         if (dwEnabled) {
@@ -298,9 +298,9 @@ export default function updateListings(
                     addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
-                    const msg = `❌ Failed to add ${name} (${sku}) sell automatically: ${(err as Error).message}`;
+                    const msg = `❌ Failed to add ${name} (${sku}) to sell automatically: ${(err as Error).message}`;
 
-                    log.debug(msg);
+                    log.warn(`Failed to add ${sku} to sell automatically:`, err);
 
                     if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
                         if (dwEnabled) {
@@ -333,7 +333,7 @@ export default function updateListings(
                     addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
-                    log.warn(`❌ Failed to add ${name} (${sku}) sell automatically: ${(err as Error).message}`);
+                    log.warn(`❌ Failed to add ${name} (${sku}) to sell automatically: ${(err as Error).message}`);
                     addToQueu(sku, isNotPure, existInPricelist);
                 });
             //
@@ -431,7 +431,7 @@ export default function updateListings(
                     addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
-                    log.warn(`❌ Failed to disable high value ${sku}: ${(err as Error).message}`);
+                    log.warn(`❌ Failed to disable high value ${sku}: `, err);
                     addToQueu(sku, isNotPure, existInPricelist);
                 });
             //
@@ -445,8 +445,10 @@ export default function updateListings(
                     addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
-                    const msg = `❌ Failed to remove ${name} (${sku}) from pricelist: ${(err as Error).message}`;
-                    log.warn(msg);
+                    const msg = `❌ Failed to automatically remove ${name} (${sku}) from pricelist: ${
+                        (err as Error).message
+                    }`;
+                    log.warn(`❌ Failed to automatically remove ${sku}`, err);
 
                     if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
                         if (dwEnabled) {
@@ -505,8 +507,10 @@ export default function updateListings(
                     addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
-                    const msg = `❌ Failed to update prices for ${name} (${sku}): ${(err as Error).message}`;
-                    log.warn(msg);
+                    const msg = `❌ Failed to automatically update prices for ${name} (${sku}): ${
+                        (err as Error).message
+                    }`;
+                    log.error(`❌ Failed to automatically update prices for ${sku}`, err);
 
                     if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
                         if (dwEnabled) {

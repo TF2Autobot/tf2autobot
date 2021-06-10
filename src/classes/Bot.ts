@@ -253,7 +253,7 @@ export default class Bot {
         // Check for updates every 10 minutes
         setInterval(() => {
             this.checkForUpdates.catch(err => {
-                log.warn('Failed to check for updates: ', err);
+                log.error('Failed to check for updates: ', err);
             });
         }, 10 * 60 * 1000);
     }
@@ -752,7 +752,7 @@ export default class Bot {
                     this.client.removeListener('loggedOn', loggedOnEvent);
                     clearTimeout(timeout);
 
-                    log.debug('Failed to sign in to Steam: ', err);
+                    log.error('Failed to sign in to Steam: ', err);
 
                     reject(err);
                 };

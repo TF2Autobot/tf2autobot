@@ -350,7 +350,9 @@ export default class StatusCommands {
                 }
             })
             .catch(err => {
-                this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`);
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${errMessage}`);
             });
     }
 }

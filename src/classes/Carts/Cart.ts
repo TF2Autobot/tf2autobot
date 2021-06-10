@@ -556,7 +556,7 @@ export default abstract class Cart {
                 },
                 (err, reponse, body) => {
                     if (err) {
-                        log.debug('Failed requesting bot info from backpack.tf: ', err);
+                        log.error('Failed requesting user info from backpack.tf: ', err);
                         return resolve(0);
                     }
 

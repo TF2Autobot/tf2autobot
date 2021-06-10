@@ -60,7 +60,9 @@ export default class PriceCheckQueue {
 
         void this.requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
             if (err) {
-                log.debug(`❌ Failed to request pricecheck for ${sku}: ${JSON.stringify(err)}`);
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                log.warn(`❌ Failed to request pricecheck for ${sku}: ${errMessage}`);
             } else {
                 log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
             }

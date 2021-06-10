@@ -40,7 +40,7 @@ export default function sendAdminMessage(
             log.debug(`✅ Sent admin-message webhook (to ${their.player_name}) on Discord.`);
         })
         .catch(err => {
-            log.debug(`❌ Failed to send admin-message webhook (to ${their.player_name}) on Discord: `, err);
+            log.warn(`❌ Failed to send admin-message webhook (to ${their.player_name}) on Discord: `, err);
         });
 }
 

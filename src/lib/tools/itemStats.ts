@@ -27,27 +27,27 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
             const bought: ItemStats = {};
 
             for (let i = 0; i < trades.length; i++) {
-                // const trade = trades[i];
-                if (!(trades[i].handledByUs && trades[i].isAccepted)) {
+                const trade = trades[i];
+                if (!(trade.handledByUs && trade.isAccepted)) {
                     // trade was not accepted, go to next trade
                     continue;
                 }
 
-                if (!Object.prototype.hasOwnProperty.call(trades[i], 'dict')) {
+                if (!Object.prototype.hasOwnProperty.call(trade, 'dict')) {
                     // trade has no items involved (not possible, but who knows)
                     continue;
                 }
 
-                if (typeof Object.keys(trades[i].dict.our).length === 'undefined') {
+                if (typeof Object.keys(trade.dict.our).length === 'undefined') {
                     continue; // no items on our side, so it is probably gift - we are not counting gifts
-                } else if (Object.keys(trades[i].dict.our).length > 0) {
+                } else if (Object.keys(trade.dict.our).length > 0) {
                     // trade is not a gift
-                    if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
+                    if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
                         // trade is missing value object
                         continue;
                     }
 
-                    if (!(Object.keys(trades[i].prices).length > 0)) {
+                    if (!(Object.keys(trade.prices).length > 0)) {
                         // have no prices, broken data, skip
                         continue;
                     }
@@ -55,29 +55,29 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                     continue; // no items on our side, so it is probably gift
                 }
 
-                if (typeof trades[i].value === 'undefined') {
-                    trades[i].value = {};
+                if (typeof trade.value === 'undefined') {
+                    trade.value = {};
                 }
 
-                if (typeof trades[i].value.rate === 'undefined') {
-                    if (!Object.prototype.hasOwnProperty.call(trades[i], 'value')) {
+                if (typeof trade.value.rate === 'undefined') {
+                    if (!Object.prototype.hasOwnProperty.call(trade, 'value')) {
                         // in case it was gift
-                        trades[i].value = {};
+                        trade.value = {};
                     }
 
-                    trades[i].value.rate = keyPrice.metal; // set key value to current value if it is not defined
+                    trade.value.rate = keyPrice.metal; // set key value to current value if it is not defined
                 }
 
-                for (const sku in trades[i].dict.their) {
+                for (const sku in trade.dict.their) {
                     // item bought
                     if (
-                        Object.prototype.hasOwnProperty.call(trades[i].dict.their, sku) &&
+                        Object.prototype.hasOwnProperty.call(trade.dict.their, sku) &&
                         (!isCheckForPainted ? sku.replace(/;[p][0-9]+/, '') : sku) === SKU
                     ) {
                         const itemCount =
-                            typeof trades[i].dict.their[sku] === 'object'
-                                ? (trades[i].dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
-                                : trades[i].dict.their[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
+                            typeof trade.dict.their[sku] === 'object'
+                                ? (trade.dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
+                                : trade.dict.their[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
                         if (
                             !(
@@ -86,30 +86,30 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                             )
                         ) {
                             // if it is not currency
-                            if (!Object.prototype.hasOwnProperty.call(trades[i].prices, sku)) {
+                            if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                                 continue; // item is not in pricelist, so we will just skip it
                             }
-                            while (Object.prototype.hasOwnProperty.call(bought, trades[i].time)) {
-                                trades[i].time++; // Prevent two trades with the same timestamp (should not happen so much)
+                            while (Object.prototype.hasOwnProperty.call(bought, trade.time)) {
+                                trade.time++; // Prevent two trades with the same timestamp (should not happen so much)
                             }
-                            bought[String(trades[i].time)] = {
+                            bought[String(trade.time)] = {
                                 count: itemCount,
-                                keys: trades[i].prices[sku].buy.keys,
-                                metal: trades[i].prices[sku].buy.metal
+                                keys: trade.prices[sku].buy.keys,
+                                metal: trade.prices[sku].buy.metal
                             };
                         }
                     }
                 }
 
-                for (const sku in trades[i].dict.our) {
+                for (const sku in trade.dict.our) {
                     if (
-                        Object.prototype.hasOwnProperty.call(trades[i].dict.our, sku) &&
+                        Object.prototype.hasOwnProperty.call(trade.dict.our, sku) &&
                         (!isCheckForPainted ? sku.replace(/;[p][0-9]+/, '') : sku) === SKU
                     ) {
                         const itemCount =
-                            typeof trades[i].dict.our[sku] === 'object'
-                                ? (trades[i].dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
-                                : trades[i].dict.our[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
+                            typeof trade.dict.our[sku] === 'object'
+                                ? (trade.dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
+                                : trade.dict.our[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
                         if (
                             !(
@@ -117,16 +117,16 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                                 ['5000;6', '5001;6', '5002;6'].includes(sku)
                             )
                         ) {
-                            if (!Object.prototype.hasOwnProperty.call(trades[i].prices, sku)) {
+                            if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                                 continue; // item is not in pricelist, so we will just skip it
                             }
-                            while (Object.prototype.hasOwnProperty.call(sold, trades[i].time)) {
-                                trades[i].time++; // Prevent two trades with the same timestamp (should not happen so much)
+                            while (Object.prototype.hasOwnProperty.call(sold, trade.time)) {
+                                trade.time++; // Prevent two trades with the same timestamp (should not happen so much)
                             }
-                            sold[String(trades[i].time)] = {
+                            sold[String(trade.time)] = {
                                 count: itemCount,
-                                keys: trades[i].prices[sku].sell.keys,
-                                metal: trades[i].prices[sku].sell.metal
+                                keys: trade.prices[sku].sell.keys,
+                                metal: trade.prices[sku].sell.metal
                             };
                         }
                     }

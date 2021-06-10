@@ -85,10 +85,16 @@ export default function sendAlert(
     ) {
         const isSteamDown = type === 'escrow-check-failed-not-restart-steam-maintenance';
 
+        let errMessage = null;
+        if (err !== null) {
+            const errStringify = JSON.stringify(err);
+            errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+        }
+
         title = 'Escrow check failed, unable to restart';
         description = `Current failed count: ${positionOrCount}, unable to perform automatic restart because ${
             isSteamDown ? 'Steam' : 'backpack.tf'
-        } is currently down.`;
+        } is currently down${errMessage ? `: ${errMessage as string}` : '.'}`;
         color = '16711680'; // red
     } else if (type === 'failedPM2') {
         title = 'Automatic restart failed - no PM2';
@@ -102,7 +108,9 @@ export default function sendAlert(
         color = '16711680'; // red
     } else if (type === 'full-backpack') {
         title = 'Full backpack error';
-        description = msg + `\n\nError:\n${JSON.stringify(err)}`;
+        const errStringify = JSON.stringify(err);
+        const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+        description = msg + `\n\nError:\n${errMessage}`;
         color = '16711680'; // red
         footer = `${items[1] ? `#${items[1]} • ` : ''}${items[0]} • `; // 0 - steamID, 1 - trade offer id
     } else if (type === 'highValuedDisabled') {
@@ -245,7 +253,7 @@ export default function sendAlert(
 
     sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert')
         .then(() => log.debug(`✅ Sent alert webhook (${type}) to Discord.`))
-        .catch(err => log.debug(`❌ Failed to send alert webhook (${type}) to Discord: `, err));
+        .catch(err => log.warn(`❌ Failed to send alert webhook (${type}) to Discord: `, err));
 }
 
 function generateError(err: any): string {

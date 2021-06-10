@@ -73,15 +73,19 @@ export default class CartQueue {
                 clearTimeout(this.queuePositionCheck);
                 this.queueCheck(steamID);
 
+                log.error('Failed to perform restart - bptf down: ', err);
+
                 if (dwEnabled) {
-                    return sendAlert('queue-problem-not-restart-bptf-down', this.bot, null, position);
+                    return sendAlert('queue-problem-not-restart-bptf-down', this.bot, err, position);
                 } else {
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return this.bot.messageAdmins(
                         `❌ Unable to perform automatic restart due to Escrow check problem, which has failed for ${pluralize(
                             'time',
                             position,
                             true
-                        )} because backpack.tf is currently down.`,
+                        )} because backpack.tf is currently down: ${errMessage}`,
                         []
                     );
                 }
@@ -98,6 +102,8 @@ export default class CartQueue {
                 // do not restart during Steam weekly maintenance, try again after 3 minutes
                 clearTimeout(this.queuePositionCheck);
                 this.queueCheck(steamID);
+
+                log.warn('Failed to perform restart - Steam is not good now: ');
 
                 if (dwEnabled) {
                     return sendAlert('queue-problem-not-restart-steam-maintenance', this.bot, null, position);
@@ -124,7 +130,7 @@ export default class CartQueue {
                             this.bot.sendMessage(steamID, 'Sorry! Something went wrong. I am restarting myself...');
                         })
                         .catch(err => {
-                            log.warn('Error occurred while trying to restart: ', err);
+                            log.error('Error occurred while trying to restart: ', err);
                             sendAlert('failedRestartError', this.bot, null, null, err);
                             // try again after 3 minutes
                             clearTimeout(this.queuePositionCheck);
@@ -145,7 +151,7 @@ export default class CartQueue {
                             this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
                         })
                         .catch(err => {
-                            log.warn('Error occurred while trying to restart: ', err);
+                            log.error('Error occurred while trying to restart: ', err);
                             this.bot.messageAdmins(
                                 `❌ An error occurred while trying to restart: ${(err as Error).message}`,
                                 []

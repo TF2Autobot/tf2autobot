@@ -47,10 +47,10 @@ export function summarizeToChat(
     const cTOffered = isSteamChat
         ? cT.offered.steamChat
             ? cT.offered.steamChat
-            : '• Asked:'
+            : '• Offered:'
         : cT.offered.discordWebhook
         ? cT.offered.discordWebhook
-        : '**• Asked:**';
+        : '**• Offered:**';
 
     const cTProfit = isSteamChat
         ? cT.profitFromOverpay.steamChat

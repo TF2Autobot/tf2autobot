@@ -234,7 +234,7 @@ export default async function sendTradeSummary(
         sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
             .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
             .catch(err => {
-                log.debug(
+                log.warn(
                     `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? `(${i + 1})` : ''
                     }: `,
@@ -243,37 +243,16 @@ export default async function sendTradeSummary(
 
                 const itemListx = t.listItems(offer, bot, itemsName, true);
 
-                const chatOpt = bot.options.tradeSummary.customText;
-                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
-                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
-                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
-                const cTxTimeTaken = chatOpt.timeTaken.steamChat ? chatOpt.timeTaken.steamChat : '⏱ Time taken:';
-                const cTxOfferMessage = chatOpt.offerMessage.steamChat
-                    ? chatOpt.offerMessage.discordWebhook
-                    : '💬 Offer message:';
-
                 sendToAdmin(
                     bot,
                     offer,
-                    optBot.steamChat.customInitializer.acceptedTradeSummary,
                     value,
                     itemListx,
                     keyPrices,
                     isOfferSent,
-                    isCustomPricer,
-                    cTxKeyRate,
-                    autokeys,
-                    status,
-                    slots,
-                    cTxPureStock,
-                    cTxTotalItems,
-                    cTxTimeTaken,
-                    cTxOfferMessage,
                     timeTakenToComplete,
                     timeTakenToProcessOrConstruct,
-                    timeTakenToCounterOffer,
-                    tSum,
-                    isShowOfferMessage
+                    timeTakenToCounterOffer
                 );
             });
     });

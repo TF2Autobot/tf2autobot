@@ -905,7 +905,9 @@ export default class OptionsCommands {
                 }
             })
             .catch(err => {
-                const msg = `❌ Error saving options file to disk: ${JSON.stringify(err)}`;
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                const msg = `❌ Error saving options file to disk: ${errMessage}`;
                 if (steamID) {
                     this.bot.sendMessage(steamID, msg);
                 } else {
@@ -1033,7 +1035,9 @@ export default class OptionsCommands {
                 }
             })
             .catch(err => {
-                const msg = `❌ Error saving options file to disk: ${JSON.stringify(err)}`;
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                const msg = `❌ Error saving options file to disk: ${errMessage}`;
                 if (steamID) {
                     this.bot.sendMessage(steamID, msg);
                 } else {
