@@ -984,7 +984,7 @@ export default class OptionsCommands {
         }
 
         if (knownParams.discordWebhook?.tradeSummary?.mentionOwner?.itemSkus !== undefined) {
-            opt.discordWebhook.tradeSummary.url.length = 0;
+            opt.discordWebhook.tradeSummary.mentionOwner.itemSkus.length = 0;
         }
 
         if (knownParams.discordWebhook?.declinedTrade?.url !== undefined) {
@@ -1004,7 +1004,7 @@ export default class OptionsCommands {
         }
 
         if (knownParams.commands?.sellcart?.disableForSKU !== undefined) {
-            opt.commands.buycart.disableForSKU.length = 0;
+            opt.commands.sellcart.disableForSKU.length = 0;
         }
 
         const optionsPath = getOptionsPath(opt.steamAccountName);
