@@ -621,6 +621,9 @@ export const optionsSchema: jsonschema.Schema = {
                 showProperName: {
                     type: 'boolean'
                 },
+                showOfferMessage: {
+                    type: 'boolean'
+                },
                 customText: {
                     type: 'object',
                     properties: {
@@ -631,6 +634,9 @@ export const optionsSchema: jsonschema.Schema = {
                             $ref: '#/definitions/steamChat-or-discordWebhook'
                         },
                         offered: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        offerMessage: {
                             $ref: '#/definitions/steamChat-or-discordWebhook'
                         },
                         profitFromOverpay: {
@@ -671,6 +677,7 @@ export const optionsSchema: jsonschema.Schema = {
                         'summary',
                         'asked',
                         'offered',
+                        'offerMessage',
                         'profitFromOverpay',
                         'lossFromUnderpay',
                         'timeTaken',
@@ -693,6 +700,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'showDetailedTimeTaken',
                 'showItemPrices',
                 'showPureInEmoji',
+                'showProperName',
+                'showOfferMessage',
                 'customText'
             ],
             additionalProperties: false

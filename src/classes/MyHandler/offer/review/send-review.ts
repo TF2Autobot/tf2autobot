@@ -105,56 +105,33 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
         sendOfferReview(offer, reasons, time.time, keyPrices, content.value, links, items, bot);
         //
     } else {
-        const currentItems = bot.inventoryManager.getInventory.getTotalItems;
-        const slots = bot.tf2.backpackSlots;
-        const offerMessage = offer.message;
         const list = t.listItems(offer, bot, items, true);
-        const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
-        const cT = bot.options.tradeSummary.customText;
-        const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
-        const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
-        const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
-
-        const customInitializer = bot.options.steamChat.customInitializer.review;
-
-        sendToAdmin(
-            bot,
-            offer,
-            customInitializer,
-            isCustomPricer,
-            reasons,
-            content.value,
-            keyPrices,
-            offerMessage,
-            list,
-            links,
-            currentItems,
-            slots,
-            cTKeyRate,
-            cTTotalItems,
-            cTPureStock
-        );
+        sendToAdmin(bot, offer, reasons, content.value, keyPrices, list, links);
     }
 }
 
 export function sendToAdmin(
     bot: Bot,
     offer: TradeOffer,
-    customInitializer: string,
-    isCustomPricer: boolean,
     reasons: string,
     value: t.ValueDiff,
     keyPrices: KeyPrices,
-    offerMessage: string,
     list: string,
-    links: Links,
-    currentItems: number,
-    slots: number,
-    cTKeyRate: string,
-    cTTotalItems: string,
-    cTPureStock: string
+    links: Links
 ): void {
+    const currentItems = bot.inventoryManager.getInventory.getTotalItems;
+    const slots = bot.tf2.backpackSlots;
+    const offerMessage = offer.message;
+    const isCustomPricer = bot.pricelist.isUseCustomPricer;
+
+    const cT = bot.options.tradeSummary.customText;
+    const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
+    const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
+    const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
+
+    const customInitializer = bot.options.steamChat.customInitializer.review;
+
     bot.messageAdmins(
         `${customInitializer ? customInitializer + ' ' : ''}⚠️ Offer #${
             offer.id

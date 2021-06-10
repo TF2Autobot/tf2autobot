@@ -126,6 +126,7 @@ export const DEFAULTS: JsonOptions = {
         showItemPrices: true,
         showPureInEmoji: false,
         showProperName: false,
+        showOfferMessage: false,
         customText: {
             summary: {
                 steamChat: 'Summary',
@@ -138,6 +139,10 @@ export const DEFAULTS: JsonOptions = {
             offered: {
                 steamChat: '• Offered:',
                 discordWebhook: '**• Offered:**'
+            },
+            offerMessage: {
+                steamChat: '💬 Offer message:',
+                discordWebhook: '💬 **Offer message:**'
             },
             profitFromOverpay: {
                 steamChat: '📈 Profit from overpay:',
@@ -1144,6 +1149,7 @@ export interface TradeSummary {
     showItemPrices?: boolean;
     showPureInEmoji?: boolean;
     showProperName?: boolean;
+    showOfferMessage?: boolean;
     customText?: TradeSummaryCustomText;
 }
 
@@ -1151,6 +1157,7 @@ interface TradeSummaryCustomText {
     summary: SteamDiscord;
     asked: SteamDiscord;
     offered: SteamDiscord;
+    offerMessage: SteamDiscord;
     profitFromOverpay: SteamDiscord;
     lossFromUnderpay: SteamDiscord;
     timeTaken: SteamDiscord;

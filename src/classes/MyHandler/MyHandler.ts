@@ -410,7 +410,7 @@ export default class MyHandler extends Handler {
 
                         void this.bot.listings.removeAll().asCallback(err => {
                             if (err) {
-                                log.warn('Failed to remove all listings: ', err);
+                                log.warn('Failed to remove all listings on shutdown (autokeys was enabled): ', err);
                             }
 
                             resolve();
@@ -424,7 +424,7 @@ export default class MyHandler extends Handler {
 
                 void this.bot.listings.removeAll().asCallback(err => {
                     if (err) {
-                        log.warn('Failed to remove all listings: ', err);
+                        log.warn('Failed to remove all listings on shutdown: ', err);
                     }
 
                     resolve();
@@ -561,6 +561,7 @@ export default class MyHandler extends Handler {
                 const listingsSKUs: string[] = [];
                 this.bot.listingManager.getListings(async err => {
                     if (err) {
+                        log.warn('Error getting listings on auto-refresh listings operation:', err);
                         setTimeout(() => {
                             this.enableAutoRefreshListings();
                         }, 30 * 60 * 1000);
@@ -723,6 +724,7 @@ export default class MyHandler extends Handler {
         clearTimeout(this.classWeaponsTimeout);
 
         const opt = this.opt;
+        const isAdmin = this.bot.isAdmin(offer.partner);
 
         const items = {
             our: Inventory.fromItems(
@@ -745,7 +747,7 @@ export default class MyHandler extends Handler {
                 this.bot.effects,
                 this.bot.paints,
                 this.bot.strangeParts,
-                'their'
+                isAdmin ? 'admin' : 'their'
             ).getItems
         };
 
@@ -860,7 +862,7 @@ export default class MyHandler extends Handler {
             Object.keys(getHighValue.our.items).length > 0 || Object.keys(getHighValue.their.items).length > 0;
 
         // Check if the offer is from an admin
-        if (this.bot.isAdmin(offer.partner)) {
+        if (isAdmin) {
             offer.log(
                 'trade',
                 `is from an admin, accepting. Summary:\n${JSON.stringify(
@@ -898,7 +900,7 @@ export default class MyHandler extends Handler {
 
             const optDw = opt.discordWebhook;
 
-            if (opt.sendAlert.unableToProcessOffer) {
+            if (opt.sendAlert.enable && opt.sendAlert.unableToProcessOffer) {
                 if (optDw.sendAlert.enable && optDw.sendAlert.url !== '') {
                     sendAlert('failed-processing-offer', this.bot, null, null, null, [
                         offer.partner.getSteamID64(),
@@ -1572,7 +1574,7 @@ export default class MyHandler extends Handler {
                     }
                 }
             } catch (err) {
-                log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + (err as Error).message);
+                log.error(`Failed dupe check on ${assetidsToCheck.join(', ')}`, err);
                 wrongAboutOffer.push({
                     reason: '🟪_DUPE_CHECK_FAILED',
                     withError: true,
@@ -1628,14 +1630,13 @@ export default class MyHandler extends Handler {
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
                         log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    }
-                    log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
+                    } else log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
                 });
 
                 return { action: 'decline', reason: 'BANNED' };
             }
         } catch (err) {
-            log.warn('Failed to check banned: ', err);
+            log.error('Failed to check banned: ', err);
 
             wrongAboutOffer.push({
                 reason: '⬜_BANNED_CHECK_FAILED'
@@ -2231,7 +2232,7 @@ export default class MyHandler extends Handler {
                 },
                 (err, reponse, body) => {
                     if (err) {
-                        log.debug('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
+                        log.error('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {

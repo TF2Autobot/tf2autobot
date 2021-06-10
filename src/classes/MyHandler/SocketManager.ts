@@ -21,7 +21,7 @@ export default class SocketManager {
 
     private socketUnauthorized() {
         return (err: Error) => {
-            log.debug('Failed to authenticate with socket server', {
+            log.warn('Failed to authenticate with socket server', {
                 error: err
             });
         };

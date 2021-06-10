@@ -905,7 +905,139 @@ export default class OptionsCommands {
                 }
             })
             .catch(err => {
-                const msg = `❌ Error saving options file to disk: ${JSON.stringify(err)}`;
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                const msg = `❌ Error saving options file to disk: ${errMessage}`;
+                if (steamID) {
+                    this.bot.sendMessage(steamID, msg);
+                } else {
+                    log.error(msg);
+                }
+
+                return;
+            });
+    }
+
+    clearArrayCommand(steamID: SteamID, message: string): void {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message)) as unknown;
+
+        if (Object.keys(params).length === 0) {
+            const msg = '⚠️ Missing properties to update.';
+            if (steamID) {
+                this.bot.sendMessage(steamID, msg);
+            } else {
+                log.warn(msg);
+            }
+
+            return;
+        }
+
+        const knownParams = params as JsonOptions;
+
+        if (
+            knownParams.pricelist === undefined &&
+            knownParams.highValue === undefined &&
+            knownParams.statistics === undefined &&
+            knownParams.offerReceived === undefined &&
+            knownParams.discordWebhook === undefined &&
+            knownParams.commands === undefined
+        ) {
+            return this.bot.sendMessage(steamID, '❌ Parent parameter does not have any value with array type.');
+        }
+
+        const opt = this.bot.options;
+
+        if (knownParams.pricelist?.partialPriceUpdate?.excludeSKU !== undefined) {
+            opt.pricelist.partialPriceUpdate.excludeSKU.length = 0;
+        }
+
+        if (knownParams.highValue?.spells !== undefined) {
+            opt.highValue.spells.length = 0;
+        }
+
+        if (knownParams.highValue?.sheens !== undefined) {
+            opt.highValue.sheens.length = 0;
+        }
+
+        if (knownParams.highValue?.killstreakers !== undefined) {
+            opt.highValue.killstreakers.length = 0;
+        }
+
+        if (knownParams.highValue?.strangeParts !== undefined) {
+            opt.highValue.strangeParts.length = 0;
+        }
+
+        if (knownParams.highValue?.painted !== undefined) {
+            opt.highValue.painted.length = 0;
+        }
+
+        if (knownParams.statistics?.sendStats?.time !== undefined) {
+            opt.statistics.sendStats.time.length = 0;
+        }
+
+        if (knownParams.offerReceived?.invalidValue?.exceptionValue?.skus !== undefined) {
+            opt.offerReceived.invalidValue.exceptionValue.skus.length = 0;
+        }
+
+        if (knownParams.discordWebhook?.tradeSummary?.url !== undefined) {
+            opt.discordWebhook.tradeSummary.url.length = 0;
+        }
+
+        if (knownParams.discordWebhook?.tradeSummary?.mentionOwner?.itemSkus !== undefined) {
+            opt.discordWebhook.tradeSummary.url.length = 0;
+        }
+
+        if (knownParams.discordWebhook?.declinedTrade?.url !== undefined) {
+            opt.discordWebhook.declinedTrade.url.length = 0;
+        }
+
+        if (knownParams.commands?.buy?.disableForSKU !== undefined) {
+            opt.commands.buy.disableForSKU.length = 0;
+        }
+
+        if (knownParams.commands?.sell?.disableForSKU !== undefined) {
+            opt.commands.sell.disableForSKU.length = 0;
+        }
+
+        if (knownParams.commands?.buycart?.disableForSKU !== undefined) {
+            opt.commands.buycart.disableForSKU.length = 0;
+        }
+
+        if (knownParams.commands?.sellcart?.disableForSKU !== undefined) {
+            opt.commands.buycart.disableForSKU.length = 0;
+        }
+
+        const optionsPath = getOptionsPath(opt.steamAccountName);
+        const saveOptions = deepMerge({}, opt) as JsonOptions;
+        removeCliOptions(saveOptions);
+
+        const errors = validator(saveOptions, 'options');
+        if (errors !== null) {
+            const msg = '❌ Error updating options: ' + errors.join(', ');
+            if (steamID) {
+                this.bot.sendMessage(steamID, msg);
+            } else {
+                log.error(msg);
+            }
+
+            return;
+        }
+
+        fsp.writeFile(optionsPath, JSON.stringify(saveOptions, null, 4), { encoding: 'utf8' })
+            .then(() => {
+                deepMerge({}, saveOptions);
+                const msg = '✅ Updated options!';
+
+                if (steamID) {
+                    return this.bot.sendMessage(steamID, msg);
+                } else {
+                    return log.info(msg);
+                }
+            })
+            .catch(err => {
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                const msg = `❌ Error saving options file to disk: ${errMessage}`;
                 if (steamID) {
                     this.bot.sendMessage(steamID, msg);
                 } else {

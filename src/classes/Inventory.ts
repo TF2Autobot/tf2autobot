@@ -48,7 +48,7 @@ export default class Inventory {
         private readonly effects: Effect[],
         private readonly paints: Paints,
         private readonly strangeParts: StrangeParts,
-        private readonly which: 'our' | 'their'
+        private readonly which: 'our' | 'their' | 'admin'
     ) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
@@ -69,7 +69,7 @@ export default class Inventory {
         effects: Effect[],
         paints: Paints,
         strangeParts: StrangeParts,
-        which: 'our' | 'their'
+        which: 'our' | 'their' | 'admin'
     ): Inventory {
         const inventory = new Inventory(steamID, manager, schema, options, effects, paints, strangeParts, which);
         inventory.setItems = items;
@@ -279,7 +279,7 @@ export default class Inventory {
         opt: Options,
         paints: Paints,
         strangeParts: StrangeParts,
-        which: 'our' | 'their'
+        which: 'our' | 'their' | 'admin'
     ): Dict {
         const dict: Dict = {};
 
@@ -289,13 +289,19 @@ export default class Inventory {
                 : opt.highValue.painted.map(paint => paint.toLowerCase());
 
         const itemsCount = items.length;
+        const isAdmin = which === 'admin';
+        const isNormalizeFestivized = isAdmin ? false : opt.normalize.festivized[which as 'our' | 'their'];
+        const isNormalizeStrangeAsSecondQuality = isAdmin
+            ? false
+            : opt.normalize.strangeAsSecondQuality[which as 'our' | 'their'];
+        const isNormalizePainted = isAdmin ? false : opt.normalize.painted[which as 'our' | 'their'];
 
         for (let i = 0; i < itemsCount; i++) {
             const sku = items[i].getSKU(
                 schema,
-                opt.normalize.festivized[which],
-                opt.normalize.strangeAsSecondQuality[which],
-                opt.normalize.painted[which],
+                isNormalizeFestivized,
+                isNormalizeStrangeAsSecondQuality,
+                isNormalizePainted,
                 paints,
                 paintedOptions
             );

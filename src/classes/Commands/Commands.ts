@@ -59,7 +59,7 @@ export default class Commands {
         this.message = new c.MessageCommand(bot);
         this.misc = new c.MiscCommands(bot);
         this.opt = new c.OptionsCommand(bot);
-        this.pManager = new c.PricelistManager(bot);
+        this.pManager = new c.PricelistManager(bot, pricer);
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
@@ -192,10 +192,16 @@ export default class Commands {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
             this.pManager.addCommand(steamID, message);
+        } else if (command === 'addbulk' && isAdmin) {
+            void this.pManager.addbulkCommand(steamID, message);
         } else if (command === 'update' && isAdmin) {
             void this.pManager.updateCommand(steamID, message);
+        } else if (command === 'updatebulk' && isAdmin) {
+            void this.pManager.updatebulkCommand(steamID, message);
         } else if (command === 'remove' && isAdmin) {
             void this.pManager.removeCommand(steamID, message);
+        } else if (command === 'removebulk' && isAdmin) {
+            this.pManager.removebulkCommand(steamID, message);
         } else if (command === 'get' && isAdmin) {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
@@ -256,6 +262,8 @@ export default class Commands {
             void this.opt.optionsCommand(steamID, message);
         } else if (command === 'config' && isAdmin) {
             this.opt.updateOptionsCommand(steamID, message);
+        } else if (command === 'cleararray' && isAdmin) {
+            this.opt.clearArrayCommand(steamID, message);
         } else if (command === 'donatebptf' && isAdmin) {
             this.donateBPTFCommand(steamID, message);
         } else if (command === 'donatenow' && isAdmin) {
@@ -667,9 +675,11 @@ export default class Commands {
 
             void this.bot.trades.getOffer(activeOffer).asCallback((err, offer) => {
                 if (err || !offer) {
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${JSON.stringify(err)}` +
+                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${errMessage}` +
                             (!offer ? ` (or the offer might already be canceled)` : '')
                     );
                 }
@@ -681,6 +691,7 @@ export default class Commands {
                     // will get an alert from the onTradeOfferChanged handler
 
                     if (err) {
+                        log.warn('Error while trying to cancel an offer: ', err);
                         this.bot.sendMessage(
                             steamID,
                             `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
@@ -823,9 +834,11 @@ export default class Commands {
                 await adminInventory.fetch();
                 this.adminInventory[steamid] = adminInventory;
             } catch (err) {
+                log.error('Error fetching inventory: ', err);
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ Error fetching inventory, steam might down. Please try again later.`
+                    `❌ Error fetching inventory, steam might down. Please try again later. ` +
+                        `If you have private profile/inventory, please set to public and try again.`
                 );
             }
         }

@@ -116,6 +116,7 @@
         "showItemPrices": true,
         "showPureInEmoji": false,
         "showProperName": false,
+        "showOfferMessage": false,
         "customText": {
             "summary": {
                 "steamChat": "Summary",
@@ -128,6 +129,10 @@
             "offered": {
                 "steamChat": "• Offered:",
                 "discordWebhook": "**• Offered:**"
+            },
+            "offerMessage": {
+                "steamChat": "💬 Offer message:",
+                "discordWebhook": "💬 **Offer message:**"
             },
             "profitFromOverpay": {
                 "steamChat": "📈 Profit from overpay:",

@@ -104,9 +104,9 @@ export function convertTime(
     showDetailedTimeTaken: boolean,
     showInMS: boolean
 ): string {
-    const timePC = prettyMs(processOrConstructTime, { verbose: true });
-    const timeComp = completeTime === null ? null : prettyMs(completeTime, { verbose: true });
-    const counterTime = counterProcessTime === undefined ? undefined : prettyMs(counterProcessTime, { verbose: true });
+    const timePC = !processOrConstructTime ? null : prettyMs(processOrConstructTime, { verbose: true });
+    const timeComp = !completeTime ? null : prettyMs(completeTime, { verbose: true });
+    const counterTime = !counterProcessTime ? undefined : prettyMs(counterProcessTime, { verbose: true });
 
     const isMsPC = timePC?.includes('millisecond');
     const isMsComp = timeComp?.includes('millisecond');
@@ -120,7 +120,7 @@ export function convertTime(
                   ? `\n- To counter: ${
                         isMsCounter
                             ? `${counterTime}`
-                            : `${counterTime}${showInMS ? ` (${counterProcessTime}) ms` : ''}`
+                            : `${counterTime}${showInMS ? ` (${counterProcessTime} ms)` : ''}`
                     }`
                   : ''
           }${

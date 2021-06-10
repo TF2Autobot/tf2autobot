@@ -80,7 +80,7 @@ export default function sendOfferReview(
     log.debug('getting partner Avatar and Name...');
     offer.getUserDetails((err, me, them) => {
         if (err) {
-            log.debug('Error retrieving partner Avatar and Name: ', err);
+            log.warn('Error retrieving partner Avatar and Name: ', err);
             partnerAvatar =
                 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg'; //default "?" image
             partnerName = 'unknown';
@@ -123,7 +123,7 @@ export default function sendOfferReview(
                             ? '\n\n`Steam down, please manually check if this person have escrow.`'
                             : '') +
                         summary +
-                        (offer.message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
+                        (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
                         (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                     fields: [
                         {
@@ -191,32 +191,11 @@ export default function sendOfferReview(
         sendWebhook(opt.offerReview.url, webhookReview, 'offer-review')
             .then(() => log.debug(`✅ Sent offer-review webhook (#${offer.id}) to Discord.`))
             .catch(err => {
-                log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
+                log.warn(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
 
                 const itemListx = listItems(offer, bot, itemsName, true);
 
-                const chatOpt = bot.options.tradeSummary.customText;
-                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
-                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
-                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
-
-                sendToAdmin(
-                    bot,
-                    offer,
-                    bot.options.steamChat.customInitializer.review,
-                    isCustomPricer,
-                    reasons,
-                    value,
-                    keyPrices,
-                    offer.message,
-                    itemListx,
-                    links,
-                    currentItems,
-                    slots,
-                    cTxKeyRate,
-                    cTxTotalItems,
-                    cTxPureStock
-                );
+                sendToAdmin(bot, offer, reasons, value, keyPrices, itemListx, links);
             });
     });
 }

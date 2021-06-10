@@ -10,7 +10,7 @@ import log from '../lib/logger';
 import validator from '../lib/validator';
 import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
 import SocketManager from './MyHandler/SocketManager';
-import Pricer, { GetItemPriceResponse, Item } from './Pricer';
+import Pricer, { GetItemPriceResponse, Item, GetPricelistResponse } from './Pricer';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -197,6 +197,8 @@ export default class Pricelist extends EventEmitter {
 
     private readonly boundHandlePriceChange;
 
+    private transformedPricelistForBulk: { [p: string]: Item };
+
     private retryGetKeyPrices: NodeJS.Timeout;
 
     failedUpdateOldPrices: string[] = [];
@@ -328,10 +330,10 @@ export default class Pricelist extends EventEmitter {
         return matchedNames;
     }
 
-    private async validateEntry(entry: Entry, src: PricelistChangedSource): Promise<void> {
+    private async validateEntry(entry: Entry, src: PricelistChangedSource, isBulk: boolean): Promise<void> {
         const keyPrices = this.getKeyPrices;
 
-        if (entry.autoprice && !entry.isPartialPriced) {
+        if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
             try {
                 const price = await this.priceSource.getPrice(entry.sku, 'bptf');
@@ -376,6 +378,45 @@ export default class Pricelist extends EventEmitter {
                     }`
                 );
             }
+        } else if (isBulk) {
+            if (entry.autoprice) {
+                const item = this.transformedPricelistForBulk[entry.sku];
+
+                if (item === undefined) {
+                    throw new Error('Item is not priced - please manually price this item');
+                }
+
+                const newPrices = {
+                    buy: new Currencies(item.buy),
+                    sell: new Currencies(item.sell)
+                };
+
+                if (entry.sku === '5021;6') {
+                    clearTimeout(this.retryGetKeyPrices);
+
+                    const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
+
+                    if (!canUseKeyPricesFromSource) {
+                        throw new Error(
+                            'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
+                                'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                        );
+                    }
+
+                    this.globalKeyPrices = {
+                        buy: newPrices.buy,
+                        sell: newPrices.sell,
+                        src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
+                        time: item.time
+                    };
+
+                    this.currentKeyPrices = newPrices;
+                }
+
+                entry.buy = newPrices.buy;
+                entry.sell = newPrices.sell;
+                entry.time = item.time;
+            }
         }
 
         if (!entry.hasPrice()) {
@@ -403,7 +444,9 @@ export default class Pricelist extends EventEmitter {
         try {
             return await this.priceSource.getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
         } catch (err) {
-            log.debug(`getItemPrices failed ${JSON.stringify(err)}`);
+            const errStringify = JSON.stringify(err);
+            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+            log.debug(`getItemPrices failed ${errMessage}`);
             return null;
         }
     }
@@ -411,7 +454,10 @@ export default class Pricelist extends EventEmitter {
     async addPrice(
         entryData: EntryData,
         emitChange: boolean,
-        src: PricelistChangedSource = PricelistChangedSource.Other
+        src: PricelistChangedSource = PricelistChangedSource.Other,
+        isBulk = false,
+        pricelist: GetPricelistResponse = null,
+        isLast: boolean = null
     ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
@@ -438,12 +484,20 @@ export default class Pricelist extends EventEmitter {
 
         const entry = Entry.fromData(entryData, this.schema);
 
-        await this.validateEntry(entry, src);
+        if (isBulk && pricelist !== null && this.transformedPricelistForBulk === undefined) {
+            this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricelist.items);
+        }
+
+        await this.validateEntry(entry, src, isBulk);
         // Add new price
         this.prices[entry.sku] = entry;
 
         if (emitChange) {
             this.priceChanged(entry.sku, entry);
+        }
+
+        if (isBulk && isLast) {
+            this.transformedPricelistForBulk = undefined;
         }
 
         return entry;
@@ -452,7 +506,10 @@ export default class Pricelist extends EventEmitter {
     async updatePrice(
         entryData: EntryData,
         emitChange: boolean,
-        src: PricelistChangedSource = PricelistChangedSource.Other
+        src: PricelistChangedSource = PricelistChangedSource.Other,
+        isBulk = false,
+        pricelist: GetPricelistResponse = null,
+        isLast: boolean = null
     ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
@@ -475,7 +532,12 @@ export default class Pricelist extends EventEmitter {
         }
 
         const entry = Entry.fromData(entryData, this.schema);
-        await this.validateEntry(entry, src);
+
+        if (isBulk && pricelist !== null && this.transformedPricelistForBulk === undefined) {
+            this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricelist.items);
+        }
+
+        await this.validateEntry(entry, src, false);
 
         // Remove old price
         await this.removePrice(entry.sku, false);
@@ -486,6 +548,11 @@ export default class Pricelist extends EventEmitter {
         if (emitChange) {
             this.priceChanged(entry.sku, entry);
         }
+
+        if (isBulk && isLast) {
+            this.transformedPricelistForBulk = undefined;
+        }
+
         return entry;
     }
 
@@ -820,8 +887,9 @@ export default class Pricelist extends EventEmitter {
                         }
                     } else {
                         if (
-                            !currPrice.isPartialPriced ||
-                            (currPrice.isPartialPriced && !(isNotExceedThreshold || isInStock))
+                            !currPrice.isPartialPriced || // partialPrice is false - update as usual
+                            (currPrice.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND and has exceeded threshold
+                            (currPrice.isPartialPriced && !isInStock) // OR, still partialPrice true AND and no longer in stock
                         ) {
                             currPrice.buy = newPrices.buy;
                             currPrice.sell = newPrices.sell;
@@ -968,7 +1036,8 @@ export default class Pricelist extends EventEmitter {
                     sku: match.sku,
                     inStock: isInStock,
                     notExceed: isNotExceedThreshold,
-                    notExclude: isNotExcluded
+                    notExclude: isNotExcluded,
+                    isMaxOne: maxIsOne
                 });
             }
 
@@ -1012,7 +1081,7 @@ export default class Pricelist extends EventEmitter {
 
                     const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices);
 
-                    if (opt.sendAlert.partialPrice.onUpdate) {
+                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onUpdate) {
                         if (this.isDwAlertEnabled) {
                             sendAlert('isPartialPriced', this.bot, msg);
                         } else {
@@ -1020,7 +1089,9 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 } else {
+                    log.debug('ppu - nothing match');
                     if (!match.isPartialPriced) {
+                        log.debug('ppu - isPartialPrice was false');
                         match.buy = newPrices.buy;
                         match.sell = newPrices.sell;
                         match.time = data.time;
@@ -1029,17 +1100,26 @@ export default class Pricelist extends EventEmitter {
                     }
                 }
             } else {
-                if (!match.isPartialPriced || (match.isPartialPriced && !(isNotExceedThreshold || isInStock))) {
+                if (
+                    !match.isPartialPriced || // partialPrice is false - update as usual
+                    (match.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND and has exceeded threshold
+                    (match.isPartialPriced && !isInStock) // OR, still partialPrice true AND and no longer in stock
+                ) {
+                    log.debug('update price as usual');
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
                     match.time = data.time;
 
                     if (match.isPartialPriced) {
+                        log.debug('reset partial price', {
+                            isExceededThreshold: !isNotExceedThreshold,
+                            isNotInStock: !isInStock
+                        });
                         match.isPartialPriced = false; // reset to default
 
                         const msg = this.generatePartialPriceResetMsg(oldPrice, match);
 
-                        if (opt.sendAlert.partialPrice.onResetAfterThreshold) {
+                        if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onResetAfterThreshold) {
                             if (this.isDwAlertEnabled) {
                                 sendAlert('autoResetPartialPrice', this.bot, msg);
                             } else {

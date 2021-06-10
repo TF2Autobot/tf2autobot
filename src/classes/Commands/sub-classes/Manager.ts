@@ -55,7 +55,7 @@ export default class ManagerCommands {
 
             this.bot.tf2gc.useItem(assetids[0], err => {
                 if (err) {
-                    log.warn('Error trying to expand inventory: ', err);
+                    log.error('Error trying to expand inventory: ', err);
                     return this.bot.sendMessage(steamID, `❌ Failed to expand inventory: ${err.message}`);
                 }
 
@@ -305,10 +305,11 @@ export default class ManagerCommands {
         try {
             friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
         } catch (err) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ Error while trying to remove friends: ${(err as Error)?.message || JSON.stringify(err)}`
-            );
+            log.warn('Error while trying to remove friends:', err);
+
+            const errStringify = JSON.stringify(err);
+            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+            return this.bot.sendMessage(steamID, `❌ Error while trying to remove friends: ${errMessage}`);
         }
 
         const total = friendsToRemove.length;
@@ -435,9 +436,13 @@ export default class ManagerCommands {
             const listingsSKUs: string[] = [];
             this.bot.listingManager.getListings(async err => {
                 if (err) {
+                    log.error('Unable to refresh listings: ', err);
+
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
-                        '❌ Unable to refresh listings, please try again later: ' + JSON.stringify(err)
+                        '❌ Unable to refresh listings, please try again later: ' + errMessage
                     );
                 }
 

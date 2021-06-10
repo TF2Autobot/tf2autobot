@@ -19,7 +19,8 @@ export default class HelpCommands {
                       '\n• [a] = Optionally add "a"' +
                       '\n• (a|b) = Directly input "a" OR "b"' +
                       '\n• <a> = Replace "a" with relevant content' +
-                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer to the wiki: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist#table-of-contents'
+                      '\n\nDo not include characters <>, ( | ) nor [ ] when typing it. For more info, please refer' +
+                      ' to the wiki: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist#table-of-contents'
                     : `\nDo not include characters <> nor [ ] - <> means required and [] means optional.`
             }\n\n📜 Here's a list of my commands:${
                 isAdmin
@@ -53,12 +54,15 @@ export default class HelpCommands {
                 '.\n✨=== Pricelist manager ===✨\n- ' +
                     [
                         '!sku <Full Item Name> - Get the sku of an item.',
-                        '!add (sku|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
-                        '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently available in your bot inventory (about 2 seconds every item) 🤖',
+                        '!add (sku|item|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+                        '!addbulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk add pricelist entries ➕➕➕',
+                        '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently' +
+                            ' available in your bot inventory (about 2 seconds every item) 🤖',
                         '!stopautoadd - Stop automatic add items operation 🛑',
-                        '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry',
-                        '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry ➖',
-                        '!shuffle - Shuffle pricelist entries.',
+                        '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry 🔄',
+                        '!updatebulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk update pricelist entries 🔄🔄🔄',
+                        '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry 🔥',
+                        '!removebulk (sku|item)=<a><Enter (new line)><second and so on>... - Bulk remove pricelist entries 🔥🔥🔥',
                         '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
                         '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
                         '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
@@ -152,6 +156,7 @@ export default class HelpCommands {
                         '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
                         '!options <OptionsKey> - Get options.json content (current bot option settings) 🔧',
                         '!config <OptionsKey>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
+                        '!clearArray <OptionsKey>=[] - Clear any array options (example: !clearArray highValue.sheens=[]&highValue.painted=[]) 🔥📃',
                         '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
                         '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
                     ].join('\n- ')
