@@ -1162,13 +1162,24 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            if (!this.bot.pricelist.hasPrice(params.sku as string)) {
+            if (this.bot.pricelist.getPrice(params.sku as string) === null) {
                 errorMessage.push(
                     `❌ Failed to update ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
                         params.sku as string
                     }): ❌ Item is not in the pricelist.`
                 );
                 failed++;
+                continue;
+            }
+
+            if (!this.bot.pricelist.hasPrice(params.sku as string)) {
+                errorMessage.push(
+                    `❌ Failed to update ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
+                        params.sku as string
+                    }): ❌ Item was not properly priced. Try remove and re-add the item.`
+                );
+                failed++;
+                continue;
             }
 
             if (typeof params.intent === 'string') {
@@ -1687,13 +1698,14 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            if (!this.bot.pricelist.hasPrice(params.sku as string)) {
+            if (this.bot.pricelist.getPrice(params.sku as string) === null) {
                 errorMessage.push(
-                    `❌ Failed to update ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
+                    `❌ Failed to remove ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
                         params.sku as string
                     }): ❌ Item is not in the pricelist.`
                 );
                 failed++;
+                continue;
             }
 
             skusToRemove.push(params.sku);
@@ -1726,7 +1738,7 @@ export default class PricelistManagerCommands {
         if (failedNotUsingItemOrSkuParam === count) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Bulk update operation aborted: Please only use "sku" or "item" as the item identifying paramater. Thank you.`
+                `❌ Bulk remove operation aborted: Please only use "sku" or "item" as the item identifying paramater. Thank you.`
             );
         }
 
