@@ -1,12 +1,18 @@
 import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import processReview from './process-review';
+import sleepasync from 'sleep-async';
 import Bot from '../../../Bot';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import * as t from '../../../../lib/tools/export';
 import { KeyPrices } from 'src/classes/Pricelist';
 import { Links } from '../../../../lib/tools/export';
 
-export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTradingKeys: boolean): void {
+export default async function sendReview(
+    offer: TradeOffer,
+    bot: Bot,
+    meta: Meta,
+    isTradingKeys: boolean
+): Promise<void> {
     const opt = bot.options;
     const time = t.timeNow(bot.options);
     const keyPrices = bot.pricelist.getKeyPrices;
@@ -107,6 +113,8 @@ export default function sendReview(offer: TradeOffer, bot: Bot, meta: Meta, isTr
     } else {
         const list = t.listItems(offer, bot, items, true);
 
+        // add delay here because Steam said RateLimitExceeded
+        await sleepasync().Promise.sleep(1000);
         sendToAdmin(bot, offer, reasons, content.value, keyPrices, list, links);
     }
 }
