@@ -2047,7 +2047,8 @@ export default class MyHandler extends Handler {
         }
 
         if (action === 'skip') {
-            return sendReview(offer, this.bot, meta, this.isTradingKeys);
+            void sendReview(offer, this.bot, meta, this.isTradingKeys);
+            return;
         }
     }
 
