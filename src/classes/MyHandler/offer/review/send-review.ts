@@ -114,7 +114,7 @@ export default async function sendReview(
         const list = t.listItems(offer, bot, items, true);
 
         // add delay here because Steam said RateLimitExceeded
-        await sleepasync().Promise.sleep(1000);
+        await sleepasync().Promise.sleep(2000);
         sendToAdmin(bot, offer, reasons, content.value, keyPrices, list, links);
     }
 }
