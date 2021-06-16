@@ -30,56 +30,59 @@ export default async function sendReview(
 
     const reasons = meta.uniqueReasons.join(', ');
     const isWebhookEnabled = opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '';
+    const isNotifyTradePartner = opt.steamChat.notifyTradePartner.onOfferForReview;
 
     // Notify partner and admin that the offer is waiting for manual review
-    if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
-        let reply: string;
+    if (isNotifyTradePartner) {
+        if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
+            let reply: string;
 
-        if (reasons.includes('⬜_BANNED_CHECK_FAILED')) {
-            const custom = opt.manualReview.bannedCheckFailed.note;
-            reply = custom
-                ? custom
-                : 'Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep' +
-                  ' status, please wait for my owner to manually accept/decline your offer.';
+            if (reasons.includes('⬜_BANNED_CHECK_FAILED')) {
+                const custom = opt.manualReview.bannedCheckFailed.note;
+                reply = custom
+                    ? custom
+                    : 'Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep' +
+                      ' status, please wait for my owner to manually accept/decline your offer.';
+            } else {
+                const custom = opt.manualReview.escrowCheckFailed.note;
+                reply = custom
+                    ? custom
+                    : 'Steam is down and I failed to check your Escrow (Trade holds)' +
+                      ' status, please wait for my owner to manually accept/decline your offer.';
+            }
+            bot.sendMessage(offer.partner, reply);
         } else {
-            const custom = opt.manualReview.escrowCheckFailed.note;
-            reply = custom
-                ? custom
-                : 'Steam is down and I failed to check your Escrow (Trade holds)' +
-                  ' status, please wait for my owner to manually accept/decline your offer.';
+            bot.sendMessage(
+                offer.partner,
+                `⚠️ Your offer is pending review.\nReasons: ${reasons}` +
+                    (opt.manualReview.showOfferSummary
+                        ? t
+                              .summarizeToChat(offer, bot, 'review-partner', false, content.value, keyPrices, true)
+                              .replace('Asked', '  My side')
+                              .replace('Offered', 'Your side') +
+                          (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
+                              ? content.missing
+                              : '') +
+                          (opt.manualReview.showReviewOfferNote
+                              ? `\n\nNote:\n${
+                                    content.notes.join('\n') +
+                                    (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')
+                                }`
+                              : '')
+                        : '') +
+                    (opt.manualReview.additionalNotes
+                        ? '\n\n' +
+                          opt.manualReview.additionalNotes
+                              .replace(/%keyRate%/g, `${keyPrices.buy.toString()}/${keyPrices.sell.toString()}`)
+                              .replace(/%pureStock%/g, t.pure.stock(bot).join(', ').toString())
+                        : '') +
+                    (opt.manualReview.showOwnerCurrentTime
+                        ? `\n\nIt is currently the following time in my owner's timezone: ${time.emoji} ${
+                              time.time + (time.note !== '' ? `. ${time.note}.` : '.')
+                          }`
+                        : '')
+            );
         }
-        bot.sendMessage(offer.partner, reply);
-    } else {
-        bot.sendMessage(
-            offer.partner,
-            `⚠️ Your offer is pending review.\nReasons: ${reasons}` +
-                (opt.manualReview.showOfferSummary
-                    ? t
-                          .summarizeToChat(offer, bot, 'review-partner', false, content.value, keyPrices, true)
-                          .replace('Asked', '  My side')
-                          .replace('Offered', 'Your side') +
-                      (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
-                          ? content.missing
-                          : '') +
-                      (opt.manualReview.showReviewOfferNote
-                          ? `\n\nNote:\n${
-                                content.notes.join('\n') +
-                                (hasCustomNote ? '' : '\n\nPlease wait for a response from the owner.')
-                            }`
-                          : '')
-                    : '') +
-                (opt.manualReview.additionalNotes
-                    ? '\n\n' +
-                      opt.manualReview.additionalNotes
-                          .replace(/%keyRate%/g, `${keyPrices.buy.toString()}/${keyPrices.sell.toString()}`)
-                          .replace(/%pureStock%/g, t.pure.stock(bot).join(', ').toString())
-                    : '') +
-                (opt.manualReview.showOwnerCurrentTime
-                    ? `\n\nIt is currently the following time in my owner's timezone: ${time.emoji} ${
-                          time.time + (time.note !== '' ? `. ${time.note}.` : '.')
-                      }`
-                    : '')
-        );
     }
 
     const highValueItems: string[] = [];
@@ -114,7 +117,7 @@ export default async function sendReview(
         const list = t.listItems(offer, bot, items, true);
 
         // add delay here because Steam said RateLimitExceeded
-        await sleepasync().Promise.sleep(2000);
+        if (isNotifyTradePartner) await sleepasync().Promise.sleep(2000);
         sendToAdmin(bot, offer, reasons, content.value, keyPrices, list, links);
     }
 }

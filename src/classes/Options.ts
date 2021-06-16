@@ -186,6 +186,14 @@ export const DEFAULTS: JsonOptions = {
                 toOtherAdmins: '/quote'
                 // toTradePartner is in commands.message.customReply.fromOwner
             }
+        },
+        notifyTradePartner: {
+            onSuccessAccepted: true,
+            onSuccessAcceptedEscrow: true,
+            onDeclined: true,
+            onCancelled: true,
+            onTradedAway: true,
+            onOfferForReview: true
         }
     },
 
@@ -1180,6 +1188,7 @@ interface SteamDiscord {
 
 interface SteamChat {
     customInitializer?: CustomInitializer;
+    notifyTradePartner?: NotifyTradePartner;
 }
 
 interface CustomInitializer {
@@ -1192,6 +1201,15 @@ interface CustomInitializer {
 interface CustomInitializerMessage {
     onReceive?: string;
     toOtherAdmins?: string;
+}
+
+interface NotifyTradePartner {
+    onSuccessAccepted: boolean;
+    onSuccessAcceptedEscrow: boolean;
+    onDeclined: boolean;
+    onCancelled: boolean;
+    onTradedAway: boolean;
+    onOfferForReview: boolean;
 }
 
 // ------------ HighValue ------------
