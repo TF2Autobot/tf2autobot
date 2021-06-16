@@ -355,7 +355,9 @@ export const optionsSchema: jsonschema.Schema = {
                         skipIncludeMessage: {
                             type: 'boolean'
                         }
-                    }
+                    },
+                    required: ['enable', 'skipIncludeMessage'],
+                    additionalProperties: false
                 },
                 skipItemsInTrade: {
                     $ref: '#/definitions/only-enable'
@@ -517,7 +519,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'failedAccept',
                 'unableToProcessOffer',
                 'partialPrice',
-                'receivedUnusualNotInPricelist'
+                'receivedUnusualNotInPricelist',
+                'failedToUpdateOldPrices'
             ],
             additionalProperties: false
         },
@@ -1137,6 +1140,7 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: [
                 'sendPreAcceptMessage',
+                'alwaysDeclineNonTF2Items',
                 'invalidValue',
                 'invalidItems',
                 'disabledItems',
@@ -2373,10 +2377,12 @@ export const optionsSchema: jsonschema.Schema = {
         }
     },
     required: [
+        'miscSettings',
         'sendAlert',
         'pricelist',
         'bypass',
         'tradeSummary',
+        'steamChat',
         'highValue',
         'normalize',
         'details',
