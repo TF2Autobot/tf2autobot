@@ -33,6 +33,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         'only-enable-declineReply': {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -183,6 +184,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 customReply: {
+                    type: 'object',
                     properties: {
                         reply: {
                             type: 'string'
@@ -280,6 +282,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         'valid-initializer': {
+            type: 'string',
             anyOf: [
                 {
                     const: '/me'
@@ -307,6 +310,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 sortInventory: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -343,6 +347,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 counterOffer: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -356,6 +361,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 weaponsAsCurrency: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -411,6 +417,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         sendAlert: {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -963,6 +970,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         autokeys: {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -983,6 +991,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 scrapAdjustment: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -1024,6 +1033,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 metals: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -1225,6 +1235,7 @@ export const optionsSchema: jsonschema.Schema = {
                     pattern: '^[0-9]+$'
                 },
                 tradeSummary: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -1255,6 +1266,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         },
                         mentionOwner: {
+                            type: 'object',
                             properties: {
                                 enable: {
                                     type: 'boolean'
@@ -1275,6 +1287,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 },
                 declinedTrade: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
