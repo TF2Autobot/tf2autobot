@@ -116,6 +116,8 @@ export default async function sendTradeSummary(
     const cTTotalItems = cT.totalItems.discordWebhook ? cT.totalItems.discordWebhook : '🎒 Total items:';
     const cTOfferMessage = cT.offerMessage.discordWebhook ? cT.offerMessage.discordWebhook : '💬 **Offer message:**';
 
+    const message = t.replace.specialChar(offer.message);
+
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
     const acceptedTradeSummary: Webhook = {
@@ -140,9 +142,8 @@ export default async function sendTradeSummary(
                         tSum.showDetailedTimeTaken,
                         tSum.showTimeTakenInMS
                     )}\n\n` +
-                    (isShowOfferMessage
-                        ? (cTOfferMessage && offer.message ? cTOfferMessage : '💬 Offer message:') +
-                          ` "${offer.message}"\n\n`
+                    (isShowOfferMessage && message.length !== 0
+                        ? (cTOfferMessage ? cTOfferMessage : '💬 Offer message:') + ` "${message}"\n\n`
                         : '') +
                     (misc.showQuickLinks ? `${quickLinks(t.replace.specialChar(details.personaName), links)}\n` : '\n'),
                 fields: [
