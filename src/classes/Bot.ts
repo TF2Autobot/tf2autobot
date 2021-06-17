@@ -780,11 +780,8 @@ export default class Bot {
 
         this.client.chat.sendFriendMessage(steamID, message, { chatEntryType: 1 }, err => {
             if (err) {
-                log.warn(`Failed to send message to ${steamID64}:`, {
-                    error: JSON.stringify(err),
-                    isFriend: friend !== null
-                });
-                log.debug('Sent using chatMessage method instead');
+                log.warn(`Failed to send message to ${steamID64} (isFriend: ${String(friend !== null)}):`, err);
+                log.debug(`Sent using chatMessage method instead: ${message}`);
                 return this.client.chatMessage(steamID, message);
             }
 
