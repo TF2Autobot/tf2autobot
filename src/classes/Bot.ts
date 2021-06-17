@@ -790,10 +790,10 @@ export default class Bot {
 
             if (friend === null) {
                 void this.getPartnerDetails(steamID).then(name => {
-                    log.info(`Message sent to ${name} (${steamID64}): ${message}`);
+                    log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
                 });
             } else {
-                log.info(`Message sent to ${friend.player_name} (${steamID64}): ${message}`);
+                log.info(`Message sent to ${friend.player_name} (${steamID64} - is friend): ${message}`);
             }
         });
     }
