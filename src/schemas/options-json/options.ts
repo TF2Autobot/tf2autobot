@@ -748,9 +748,41 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['acceptedTradeSummary', 'declinedTradeSummary', 'review', 'message'],
                     additionalProperties: false
+                },
+                notifyTradePartner: {
+                    type: 'object',
+                    properties: {
+                        onSuccessAccepted: {
+                            type: 'boolean'
+                        },
+                        onSuccessAcceptedEscrow: {
+                            type: 'boolean'
+                        },
+                        onDeclined: {
+                            type: 'boolean'
+                        },
+                        onCancelled: {
+                            type: 'boolean'
+                        },
+                        onTradedAway: {
+                            type: 'boolean'
+                        },
+                        onOfferForReview: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: [
+                        'onSuccessAccepted',
+                        'onSuccessAcceptedEscrow',
+                        'onDeclined',
+                        'onCancelled',
+                        'onTradedAway',
+                        'onOfferForReview'
+                    ],
+                    additionalProperties: false
                 }
             },
-            required: ['customInitializer'],
+            required: ['customInitializer', 'notifyTradePartner'],
             additionalProperties: false
         },
 
