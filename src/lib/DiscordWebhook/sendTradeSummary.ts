@@ -243,7 +243,7 @@ export default async function sendTradeSummary(
 
                 const itemListx = t.listItems(offer, bot, itemsName, true);
 
-                sendToAdmin(
+                void sendToAdmin(
                     bot,
                     offer,
                     value,
