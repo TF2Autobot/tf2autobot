@@ -184,7 +184,7 @@ export default class HelpCommands {
 
         this.bot.sendMessage(
             steamID,
-            `Advanced commands list:\n- ${[
+            `Misc commands list:\n- ${[
                 "!autokeys - Get info on the bot's current autokeys settings 🔑",
                 "!time - Show the owner's current time 🕥",
                 '!uptime - Show the bot uptime 🔌',
