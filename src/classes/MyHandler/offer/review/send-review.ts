@@ -2,6 +2,7 @@ import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import processReview from './process-review';
 import sleepasync from 'sleep-async';
 import Bot from '../../../Bot';
+import log from '../../../../lib/logger';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
 import * as t from '../../../../lib/tools/export';
 import { KeyPrices } from 'src/classes/Pricelist';
@@ -118,11 +119,11 @@ export default async function sendReview(
 
         // add delay here because Steam said RateLimitExceeded
         if (isNotifyTradePartner) await sleepasync().Promise.sleep(2000);
-        sendToAdmin(bot, offer, reasons, content.value, keyPrices, list, links);
+        void sendToAdmin(bot, offer, reasons, content.value, keyPrices, list, links);
     }
 }
 
-export function sendToAdmin(
+export async function sendToAdmin(
     bot: Bot,
     offer: TradeOffer,
     reasons: string,
@@ -130,7 +131,7 @@ export function sendToAdmin(
     keyPrices: KeyPrices,
     list: string,
     links: Links
-): void {
+): Promise<void> {
     const currentItems = bot.inventoryManager.getInventory.getTotalItems;
     const slots = bot.tf2.backpackSlots;
     const offerMessage = offer.message;
@@ -143,26 +144,50 @@ export function sendToAdmin(
 
     const customInitializer = bot.options.steamChat.customInitializer.review;
 
-    bot.messageAdmins(
+    const message1 =
         `${customInitializer ? customInitializer + ' ' : ''}⚠️ Offer #${
             offer.id
         } from ${offer.partner.toString()} is pending review.` +
-            `\nReasons: ${reasons}` +
-            (reasons.includes('⬜_BANNED_CHECK_FAILED')
-                ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
-                : reasons.includes('⬜_ESCROW_CHECK_FAILED')
-                ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
-                : '') +
-            t.summarizeToChat(offer, bot, 'review-admin', false, value, keyPrices, true) +
-            (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
-            (list !== '-' ? `\n\nItem lists:\n${list}` : '') +
-            `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
-            `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-            ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
-            `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
-            `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
-            `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
-            `\n\nVersion ${process.env.BOT_VERSION}`,
-        []
-    );
+        `\nReasons: ${reasons}` +
+        (reasons.includes('⬜_BANNED_CHECK_FAILED')
+            ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
+            : reasons.includes('⬜_ESCROW_CHECK_FAILED')
+            ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
+            : '');
+
+    const message2 =
+        t.summarizeToChat(offer, bot, 'review-admin', false, value, keyPrices, true) +
+        (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '');
+
+    const message3 = list !== '-' ? `\n\nItem lists:\n${list}` : '';
+
+    const message4 =
+        `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
+        `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
+        ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
+        `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
+        `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
+        `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
+        `\n\nVersion ${process.env.BOT_VERSION}`;
+
+    const message = message1 + message2 + message3 + message4;
+
+    if (message.length > 5000) {
+        // Maximum allowed characters now is 5000
+        log.warn('Message more than 5000 character');
+
+        log.debug('Sending message 1');
+        bot.messageAdmins(message1, []);
+        await sleepasync().Promise.sleep(1500); // bruh
+        log.debug('Sending message 2');
+        bot.messageAdmins(message2, []);
+        await sleepasync().Promise.sleep(1500);
+        log.debug('Sending message 3');
+        bot.messageAdmins(message3, []);
+        await sleepasync().Promise.sleep(1000);
+        log.debug('Sending message 4');
+        return bot.messageAdmins(message4, []);
+    }
+
+    bot.messageAdmins(message, []);
 }
