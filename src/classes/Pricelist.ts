@@ -537,7 +537,7 @@ export default class Pricelist extends EventEmitter {
             this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricelist.items);
         }
 
-        await this.validateEntry(entry, src, false);
+        await this.validateEntry(entry, src, isBulk);
 
         // Remove old price
         await this.removePrice(entry.sku, false);
