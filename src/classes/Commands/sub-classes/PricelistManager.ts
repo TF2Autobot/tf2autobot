@@ -412,7 +412,7 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .addPrice(params, true, PricelistChangedSource.Command, true, pricerPricelist, isLast)
+                        .addPrice(params, true, PricelistChangedSource.Command, true, pricerPricelist.items, isLast)
                         .then(() => added++)
                         .catch(err => {
                             errorMessage.push(
@@ -1400,7 +1400,7 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .updatePrice(params, true, PricelistChangedSource.Command, true, pricerPricelist, isLast)
+                        .updatePrice(params, true, PricelistChangedSource.Command, true, pricerPricelist.items, isLast)
                         .then(() => updated++)
                         .catch(err => {
                             errorMessage.push(
