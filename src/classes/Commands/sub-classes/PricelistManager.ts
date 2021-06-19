@@ -404,6 +404,7 @@ export default class PricelistManagerCommands {
             try {
                 this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
                 const pricerPricelist = await this.priceSource.getPricelist('bptf');
+                const items = pricerPricelist.items;
 
                 this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, adding items to our pricelist...`);
 
@@ -412,7 +413,7 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .addPrice(params, true, PricelistChangedSource.Command, true, pricerPricelist, isLast)
+                        .addPrice(params, true, PricelistChangedSource.Command, true, items, isLast)
                         .then(() => added++)
                         .catch(err => {
                             errorMessage.push(
@@ -1392,6 +1393,7 @@ export default class PricelistManagerCommands {
             try {
                 this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
                 const pricerPricelist = await this.priceSource.getPricelist('bptf');
+                const items = pricerPricelist.items;
 
                 this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, updating items...`);
 
@@ -1400,7 +1402,7 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .updatePrice(params, true, PricelistChangedSource.Command, true, pricerPricelist, isLast)
+                        .updatePrice(params, true, PricelistChangedSource.Command, true, items, isLast)
                         .then(() => updated++)
                         .catch(err => {
                             errorMessage.push(
