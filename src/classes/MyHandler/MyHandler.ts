@@ -1941,8 +1941,10 @@ export default class MyHandler extends Handler {
 
         if (offer.data('handledByUs') === true) {
             if (offer.data('notify') === true && offer.data('switchedState') !== offer.state) {
+                const notifyOpt = this.opt.steamChat.notifyTradePartner;
+
                 if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
-                    accepted(offer, this.bot);
+                    if (notifyOpt.onSuccessAccepted) accepted(offer, this.bot);
 
                     if (offer.data('donation')) {
                         this.bot.messageAdmins('✅ Success! Your donation has been sent and received!', []);
@@ -1950,15 +1952,15 @@ export default class MyHandler extends Handler {
                         this.bot.messageAdmins('✅ Success! Your premium purchase has been sent and received!', []);
                     }
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
-                    acceptEscrow(offer, this.bot);
+                    if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
-                    declined(offer, this.bot, this.isTradingKeys);
+                    if (notifyOpt.onDeclined) declined(offer, this.bot, this.isTradingKeys);
                     this.isTradingKeys = false; // reset
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
-                    cancelled(offer, oldState, this.bot);
+                    if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
                     MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
-                    invalid(offer, this.bot);
+                    if (notifyOpt.onTradedAway) invalid(offer, this.bot);
                     MyHandler.removePolldataKeys(offer);
                 }
             }
@@ -2047,7 +2049,8 @@ export default class MyHandler extends Handler {
         }
 
         if (action === 'skip') {
-            return sendReview(offer, this.bot, meta, this.isTradingKeys);
+            void sendReview(offer, this.bot, meta, this.isTradingKeys);
+            return;
         }
     }
 

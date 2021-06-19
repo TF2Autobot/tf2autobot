@@ -223,6 +223,213 @@ declare module 'steam-user' {
         LaunchTypeGamepad = 4096
     }
 
+    // https://github.com/DoctorMcKay/node-steam-user/wiki/SteamChatRoomClient
+
+    enum EChatRoomJoinState {
+        Default = 0,
+        None = 1,
+        Joined = 2
+    }
+
+    enum EChatRoomGroupRank {
+        Default = 0,
+        Viewer = 10,
+        Guest = 15,
+        Member = 20,
+        Moderator = 30,
+        Officer = 40,
+        Owner = 50
+    }
+
+    enum EChatRoomNotificationLevel {
+        Invalid = 0,
+        None = 1,
+        MentionMe = 2,
+        MentionAll = 3,
+        AllMessages = 4
+    }
+
+    interface ChatRoomGroupSummary {
+        chat_rooms: ChatRoomState;
+        top_members: SteamID[];
+        chat_group_id: string;
+        chat_group_name: string;
+        active_member_count: number;
+        active_voice_member_count: number;
+        default_chat_id: string;
+        chat_group_tagline: string;
+        appid: GameId | null;
+        steamid_owner: SteamID;
+        watching_broadcast_steamid: SteamID;
+        chat_group_avatar_sha: Buffer | null;
+        chat_group_avatar_url: string | null;
+    }
+
+    interface ChatRoomGroupState {
+        members: ChatRoomMember[];
+        chat_rooms: ChatRoomState[];
+        kicked: ChatRoomMember[];
+        default_chat_id: string;
+        header_state: ChatRoomGroupHeaderState;
+    }
+
+    interface UserChatRoomGroupState {
+        chat_group_id: string;
+        time_joined: Date;
+        user_chat_room_state: UserChatRoomState[];
+        desktop_notification_level: EChatRoomNotificationLevel;
+        mobile_notification_level: EChatRoomNotificationLevel;
+        time_last_group_ack: Date | null;
+        unread_indicator_muted: boolean;
+    }
+
+    interface UserChatRoomState {
+        chat_id: string;
+        time_joined: Date;
+        time_last_ack: Date;
+        desktop_notification_level: EChatRoomNotificationLevel;
+        mobile_notification_level: EChatRoomNotificationLevel;
+        time_last_mention: Date;
+        unread_indicator_muted: boolean;
+        time_first_unread: Date;
+    }
+
+    interface ChatRoomGroupHeaderState {
+        chat_group_id: string;
+        chat_name: string;
+        clanid: SteamID | null;
+        steamid_owner: SteamID;
+        appid: GameId | null;
+        tagline: string;
+        avatar_sha: Buffer | null;
+        avatar_url: string | null;
+        default_role_id: string;
+        roles: ChatRole[];
+        role_actions: ChatRoleAction[];
+    }
+
+    interface ChatRoomMember {
+        steamid: SteamID;
+        state: EChatRoomJoinState;
+        rank: EChatRoomGroupRank;
+        time_kick_expire: Date | null;
+        role_ids: string[];
+    }
+
+    interface ChatRoomState {
+        chat_id: string;
+        chat_name: string;
+        voice_allowed: boolean;
+        members_in_voice: SteamID[];
+        time_last_message: Date;
+        sort_order: number;
+        last_message: string;
+        steamid_last_message: SteamID;
+    }
+
+    interface ChatRole {
+        role_id: number;
+        name: string;
+        ordinal: number;
+    }
+
+    interface ChatRoleAction {
+        role_id: number;
+        can_create_rename_delete_channel: boolean;
+        can_kick: boolean;
+        can_ban: boolean;
+        can_invite: boolean;
+        can_change_tagline_avatar_name: boolean;
+        can_chat: boolean;
+        can_view_history: boolean;
+        can_change_group_roles: boolean;
+        can_change_user_roles: boolean;
+        can_mention_all: boolean;
+        can_set_watching_broadcast: boolean;
+    }
+
+    interface ChatRoomGroup {
+        [chat_room_group_id: string]: {
+            group_summary?: ChatRoomGroupSummary;
+            group_state: ChatRoomGroupState;
+        };
+    }
+
+    export enum EChatEntryType {
+        Invalid = 0,
+        ChatMsg = 1,
+        Typing = 2,
+        InviteGame = 3,
+        Emote = 4, // removed "No longer supported by clients"
+        LobbyGameStart = 5, // removed "Listen for LobbyGameCreated_t callback instead"
+        LeftConversation = 6,
+        Entered = 7,
+        WasKicked = 8,
+        WasBanned = 9,
+        Disconnected = 10,
+        HistoricalChat = 11,
+        Reserved1 = 12,
+        Reserved2 = 13,
+        LinkBlocked = 14
+    }
+
+    interface BBCodes {
+        tag: string;
+        attrs: any;
+        content: any[];
+    }
+
+    interface IncomingFriendMessage {
+        steamid_friend: SteamID;
+        chat_entry_type: EChatEntryType;
+        from_limited_account: boolean;
+        message: string;
+        message_no_bbcode: string;
+        message_bbcode_parsed: (BBCodes | string)[];
+        server_timestamp: Date;
+        ordinal: number;
+        local_echo: boolean;
+        low_priority: boolean;
+    }
+
+    interface IncomingChatMessage {
+        chat_group_id: string;
+        chat_id: string;
+        steamid_sender: SteamID;
+        message: string;
+        message_no_bbcode: string;
+        server_timestamp: Date;
+        ordinal: number;
+        mentions: ChatMentions | null;
+        server_message: ServerMessage | null;
+        chat_name: string;
+    }
+
+    interface ChatMentions {
+        mention_all: boolean;
+        mention_here: boolean;
+        mention_steamids: SteamID[];
+    }
+
+    enum EChatRoomServerMessage {
+        Invalid = 0,
+        RenameChatRoom = 1,
+        Joined = 2,
+        Parted = 3,
+        Kicked = 4,
+        Invited = 5,
+        InviteDismissed = 8,
+        ChatRoomTaglineChanged = 9,
+        ChatRoomAvatarChanged = 10,
+        AppCustom = 11
+    }
+
+    interface ServerMessage {
+        message: EChatRoomServerMessage;
+        string_param: any;
+        steamid_param: SteamID;
+    }
+
     export default class SteamUser extends EventEmitter {
         steamID: SteamID;
 
@@ -265,6 +472,20 @@ declare module 'steam-user' {
         myGroups: Map<SteamID | string, EClanRelationship>;
 
         myFriends: Map<SteamID | string, EFriendRelationship>;
+
+        chat: {
+            // getGroups(callback: (err?: Error | null, response?: ChatRoomGroup) => void): void;
+            // setSessionActiveGroups(groupIDs: string[], callback: (err?: Error, response?: ChatRoomGroup) => void): void;
+            sendFriendMessage(
+                steamID: SteamID | string,
+                message: string,
+                options?: { chatEntryType?: number; containsBbCode?: boolean },
+                callback?: (
+                    err: Error,
+                    response?: { modified_message: string; server_timestamp: Date; ordinal: number }
+                ) => void
+            ): void;
+        };
 
         autoRelogin: boolean;
 

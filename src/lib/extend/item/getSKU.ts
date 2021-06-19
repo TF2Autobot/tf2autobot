@@ -465,9 +465,9 @@ function getCrateSeries(item: EconItem): number | null {
             'Mann Co. Supply Crate Series #77': 77
         },
         is5068: {
-            'Salvaged Mann Co. Supply Crate #30': 30,
-            'Salvaged Mann Co. Supply Crate #40': 40,
-            'Salvaged Mann Co. Supply Crate #50': 50
+            'Salvaged Mann Co. Supply Crate Series #30': 30,
+            'Salvaged Mann Co. Supply Crate Series #40': 40,
+            'Salvaged Mann Co. Supply Crate Series #50': 50
         }
     };
 

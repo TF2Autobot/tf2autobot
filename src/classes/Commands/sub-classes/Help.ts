@@ -65,6 +65,7 @@ export default class HelpCommands {
                         '!removebulk (sku|item)=<a><Enter (new line)><second and so on>... - Bulk remove pricelist entries 🔥🔥🔥',
                         '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
                         '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
+                        '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
                         '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
                         '!getSlots or !listings - Get current used listings slot per cap count.'
                     ].join('\n- ')
@@ -89,7 +90,9 @@ export default class HelpCommands {
                         "!refreshautokeys - Refresh the bot's autokeys settings.",
                         '!refreshlist - Refresh sell listings 🔄',
                         "!name <new_name> - Change the bot's name",
-                        "!avatar <image_URL> - Change the bot's avatar"
+                        "!avatar <image_URL> - Change the bot's avatar",
+                        '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
+                        '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
                     ].join('\n- ')
             );
 
@@ -134,7 +137,19 @@ export default class HelpCommands {
                         }`,
                         `!pricecheckall - Request all items in the bot's pricelist to be price checked by ${
                             isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
-                        }`
+                        }`,
+                        '!snapshots (sku|name|defindex)=<a> - Get the bptf snapshots history for an item 🔍'
+                    ].join('\n- ')
+            );
+
+            await sleepasync().Promise.sleep(2000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== Configuration manager (options.json) ===✨\n- ' +
+                    [
+                        '!options <OptionsKey> - Get options.json content (current bot option settings) 🔧',
+                        '!config <OptionsKey>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
+                        '!clearArray <OptionsKey>=[] - Clear any array options (example: !clearArray highValue.sheens=[]&highValue.painted=[]) 🔥📃'
                     ].join('\n- ')
             );
 
@@ -151,14 +166,7 @@ export default class HelpCommands {
                         '!stock - Get a list of items that the bot owns',
                         "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
                         "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
-                        '!paints - Get a list of paints partial sku 🎨',
-                        '!snapshots (sku|name|defindex)=<a> - Get the bptf snapshots history for an item 🔍',
-                        '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
-                        '!options <OptionsKey> - Get options.json content (current bot option settings) 🔧',
-                        '!config <OptionsKey>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
-                        '!clearArray <OptionsKey>=[] - Clear any array options (example: !clearArray highValue.sheens=[]&highValue.painted=[]) 🔥📃',
-                        '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
-                        '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
+                        '!paints - Get a list of paints partial sku 🎨'
                     ].join('\n- ')
             );
         }
@@ -176,7 +184,7 @@ export default class HelpCommands {
 
         this.bot.sendMessage(
             steamID,
-            `Advanced commands list:\n- ${[
+            `Misc commands list:\n- ${[
                 "!autokeys - Get info on the bot's current autokeys settings 🔑",
                 "!time - Show the owner's current time 🕥",
                 '!uptime - Show the bot uptime 🔌',

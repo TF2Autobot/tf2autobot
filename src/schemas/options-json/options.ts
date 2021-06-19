@@ -33,6 +33,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         'only-enable-declineReply': {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -183,6 +184,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 customReply: {
+                    type: 'object',
                     properties: {
                         reply: {
                             type: 'string'
@@ -280,6 +282,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         'valid-initializer': {
+            type: 'string',
             anyOf: [
                 {
                     const: '/me'
@@ -307,6 +310,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 sortInventory: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -343,6 +347,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 counterOffer: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -350,12 +355,15 @@ export const optionsSchema: jsonschema.Schema = {
                         skipIncludeMessage: {
                             type: 'boolean'
                         }
-                    }
+                    },
+                    required: ['enable', 'skipIncludeMessage'],
+                    additionalProperties: false
                 },
                 skipItemsInTrade: {
                     $ref: '#/definitions/only-enable'
                 },
                 weaponsAsCurrency: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -411,6 +419,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         sendAlert: {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -510,7 +519,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'failedAccept',
                 'unableToProcessOffer',
                 'partialPrice',
-                'receivedUnusualNotInPricelist'
+                'receivedUnusualNotInPricelist',
+                'failedToUpdateOldPrices'
             ],
             additionalProperties: false
         },
@@ -738,9 +748,41 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['acceptedTradeSummary', 'declinedTradeSummary', 'review', 'message'],
                     additionalProperties: false
+                },
+                notifyTradePartner: {
+                    type: 'object',
+                    properties: {
+                        onSuccessAccepted: {
+                            type: 'boolean'
+                        },
+                        onSuccessAcceptedEscrow: {
+                            type: 'boolean'
+                        },
+                        onDeclined: {
+                            type: 'boolean'
+                        },
+                        onCancelled: {
+                            type: 'boolean'
+                        },
+                        onTradedAway: {
+                            type: 'boolean'
+                        },
+                        onOfferForReview: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: [
+                        'onSuccessAccepted',
+                        'onSuccessAcceptedEscrow',
+                        'onDeclined',
+                        'onCancelled',
+                        'onTradedAway',
+                        'onOfferForReview'
+                    ],
+                    additionalProperties: false
                 }
             },
-            required: ['customInitializer'],
+            required: ['customInitializer', 'notifyTradePartner'],
             additionalProperties: false
         },
 
@@ -963,6 +1005,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         autokeys: {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -983,6 +1026,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 scrapAdjustment: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -1024,6 +1068,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 metals: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -1127,6 +1172,7 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: [
                 'sendPreAcceptMessage',
+                'alwaysDeclineNonTF2Items',
                 'invalidValue',
                 'invalidItems',
                 'disabledItems',
@@ -1225,6 +1271,7 @@ export const optionsSchema: jsonschema.Schema = {
                     pattern: '^[0-9]+$'
                 },
                 tradeSummary: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -1255,6 +1302,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         },
                         mentionOwner: {
+                            type: 'object',
                             properties: {
                                 enable: {
                                     type: 'boolean'
@@ -1275,6 +1323,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 },
                 declinedTrade: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -2360,10 +2409,12 @@ export const optionsSchema: jsonschema.Schema = {
         }
     },
     required: [
+        'miscSettings',
         'sendAlert',
         'pricelist',
         'bypass',
         'tradeSummary',
+        'steamChat',
         'highValue',
         'normalize',
         'details',

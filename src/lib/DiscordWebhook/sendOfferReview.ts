@@ -195,7 +195,7 @@ export default function sendOfferReview(
 
                 const itemListx = listItems(offer, bot, itemsName, true);
 
-                sendToAdmin(bot, offer, reasons, value, keyPrices, itemListx, links);
+                void sendToAdmin(bot, offer, reasons, value, keyPrices, itemListx, links);
             });
     });
 }

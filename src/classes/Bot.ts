@@ -776,16 +776,27 @@ export default class Bot {
 
     sendMessage(steamID: SteamID | string, message: string): void {
         const steamID64 = steamID.toString();
-        this.client.chatMessage(steamID, message);
-
         const friend = this.friends.getFriend(steamID64);
-        if (friend === null) {
+
+        if (!friend) {
+            // If not friend, we send message with chatMessage
+            this.client.chatMessage(steamID, message);
             void this.getPartnerDetails(steamID).then(name => {
-                log.info(`Message sent to ${name} (${steamID64}): ${message}`);
+                log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
             });
-        } else {
-            log.info(`Message sent to ${friend.player_name} (${steamID64}): ${message}`);
+            return;
         }
+
+        // else, we use the new chat.sendFriendMessage
+        const friendName = friend.player_name;
+        this.client.chat.sendFriendMessage(steamID, message, { chatEntryType: 1 }, err => {
+            if (err) {
+                log.warn(`Failed to send message to ${friendName} (${steamID64}):`, err);
+                return;
+            }
+
+            log.info(`Message sent to ${friendName} (${steamID64}): ${message}`);
+        });
     }
 
     private getPartnerDetails(steamID: SteamID | string): Promise<string> {
