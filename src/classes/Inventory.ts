@@ -284,9 +284,12 @@ export default class Inventory {
         const dict: Dict = {};
 
         const paintedOptions =
-            opt.highValue.painted.length < 1 || opt.highValue.painted[0] === ''
+            opt.highValue.painted.names.length < 1 || opt.highValue.painted.names[0] === ''
                 ? Object.keys(paints).map(paint => paint.toLowerCase())
-                : opt.highValue.painted.map(paint => paint.toLowerCase());
+                : opt.highValue.painted.names.map(paint => paint.toLowerCase());
+
+        const paintedExceptionSkus = opt.highValue.painted.exceptionSkus;
+        const isExceptionNotEmpty = paintedExceptionSkus.length > 0;
 
         const itemsCount = items.length;
         const isAdmin = which === 'admin';
@@ -297,7 +300,7 @@ export default class Inventory {
         const isNormalizePainted = isAdmin ? false : opt.normalize.painted[which as 'our' | 'their'];
 
         for (let i = 0; i < itemsCount; i++) {
-            const sku = items[i].getSKU(
+            let sku = items[i].getSKU(
                 schema,
                 isNormalizeFestivized,
                 isNormalizeStrangeAsSecondQuality,
@@ -306,7 +309,15 @@ export default class Inventory {
                 paintedOptions
             );
 
-            const attributes = highValue(items[i], opt, paints, strangeParts);
+            if (
+                isExceptionNotEmpty &&
+                /;[p][0-9]+/.test(sku) &&
+                paintedExceptionSkus.some(exSku => sku.includes(exSku)) // do like this so ";5" is possible
+            ) {
+                sku = removePaintedPartialSku(sku);
+            }
+
+            const attributes = highValue(sku, items[i], opt, paints, strangeParts);
             const attributesCount = Object.keys(attributes).length;
 
             const isUses =
@@ -335,6 +346,10 @@ export default class Inventory {
     }
 }
 
+function removePaintedPartialSku(sku: string): string {
+    return sku.replace(/;[p][0-9]+/, '');
+}
+
 export interface Dict {
     [sku: string]: DictItem[];
 }
@@ -359,6 +374,7 @@ function isFull(item: EconItem, type: 'duel' | 'noise'): boolean {
 }
 
 function highValue(
+    sku: string,
     econ: EconItem,
     opt: Options,
     paints: Paints,
@@ -367,29 +383,44 @@ function highValue(
     const attributes: ItemAttributes = {};
 
     const spells =
-        opt.highValue.spells.length < 1 || opt.highValue.spells[0] === ''
+        opt.highValue.spells.names.length < 1 || opt.highValue.spells.names[0] === ''
             ? Object.keys(spellsData).map(spell => spell.toLowerCase())
-            : opt.highValue.spells.map(spell => spell.toLowerCase());
+            : opt.highValue.spells.names.map(spell => spell.toLowerCase());
 
     const strangeParts =
-        opt.highValue.strangeParts.length < 1 || opt.highValue.strangeParts[0] === ''
+        opt.highValue.strangeParts.names.length < 1 || opt.highValue.strangeParts.names[0] === ''
             ? Object.keys(parts).map(part => part.toLowerCase())
-            : opt.highValue.strangeParts.map(part => part.toLowerCase());
+            : opt.highValue.strangeParts.names.map(part => part.toLowerCase());
 
     const killstreakers =
-        opt.highValue.killstreakers.length < 1 || opt.highValue.killstreakers[0] === ''
+        opt.highValue.killstreakers.names.length < 1 || opt.highValue.killstreakers.names[0] === ''
             ? Object.keys(killstreakersData).map(killstreaker => killstreaker.toLowerCase())
-            : opt.highValue.killstreakers.map(killstreaker => killstreaker.toLowerCase());
+            : opt.highValue.killstreakers.names.map(killstreaker => killstreaker.toLowerCase());
 
     const sheens =
-        opt.highValue.sheens.length < 1 || opt.highValue.sheens[0] === ''
+        opt.highValue.sheens.names.length < 1 || opt.highValue.sheens.names[0] === ''
             ? Object.keys(sheensData).map(sheen => sheen.toLowerCase())
-            : opt.highValue.sheens.map(sheen => sheen.toLowerCase());
+            : opt.highValue.sheens.names.map(sheen => sheen.toLowerCase());
 
     const painted =
-        opt.highValue.painted.length < 1 || opt.highValue.painted[0] === ''
+        opt.highValue.painted.names.length < 1 || opt.highValue.painted.names[0] === ''
             ? Object.keys(paints).map(paint => paint.toLowerCase())
-            : opt.highValue.painted.map(paint => paint.toLowerCase());
+            : opt.highValue.painted.names.map(paint => paint.toLowerCase());
+
+    const spellsExSkus = opt.highValue.spells.exceptionSkus;
+    const isSpellsExNotEmpty = spellsExSkus.length > 0;
+
+    const strangePartsExSkus = opt.highValue.strangeParts.exceptionSkus;
+    const isStrangePartsExNotEmpty = strangePartsExSkus.length > 0;
+
+    const killstreakersExSkus = opt.highValue.killstreakers.exceptionSkus;
+    const isKillstreakersExNotEmpty = killstreakersExSkus.length > 0;
+
+    const sheensExSkus = opt.highValue.sheens.exceptionSkus;
+    const isSheensExNotEmpty = sheensExSkus.length > 0;
+
+    const paintedExSkus = opt.highValue.painted.exceptionSkus;
+    const isPaintedExNotEmpty = paintedExSkus.length > 0;
 
     const s: PartialSKUWithMention = {};
     const sp: PartialSKUWithMention = {};

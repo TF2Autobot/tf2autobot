@@ -300,6 +300,19 @@ export const optionsSchema: jsonschema.Schema = {
                     const: ''
                 }
             ]
+        },
+        'high-value-content': {
+            type: 'object',
+            properties: {
+                names: {
+                    type: '#/definitions/string-array'
+                },
+                exceptionSkus: {
+                    type: '#/definitions/string-array'
+                }
+            },
+            required: ['names', 'exceptionSkus'],
+            additionalProperties: false
         }
     },
     properties: {
@@ -793,22 +806,52 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 spells: {
-                    $ref: '#/definitions/string-array',
-                    maxItems: 16
+                    type: 'object',
+                    properties: {
+                        names: {
+                            type: '#/definitions/string-array',
+                            maxItems: 16
+                        },
+                        exceptionSkus: {
+                            type: '#/definitions/string-array'
+                        }
+                    },
+                    required: ['names', 'exceptionSkus'],
+                    additionalProperties: false
                 },
                 sheens: {
-                    $ref: '#/definitions/string-array',
-                    maxItems: 7
+                    type: 'object',
+                    properties: {
+                        names: {
+                            $ref: '#/definitions/string-array',
+                            maxItems: 7
+                        },
+                        exceptionSkus: {
+                            $ref: '#/definitions/string-array'
+                        }
+                    },
+                    required: ['names', 'exceptionSkus'],
+                    additionalProperties: false
                 },
                 killstreakers: {
-                    $ref: '#/definitions/string-array',
-                    maxItems: 7
+                    type: 'object',
+                    properties: {
+                        names: {
+                            $ref: '#/definitions/string-array',
+                            maxItems: 7
+                        },
+                        exceptionSkus: {
+                            $ref: '#/definitions/string-array'
+                        }
+                    },
+                    required: ['names', 'exceptionSkus'],
+                    additionalProperties: false
                 },
                 strangeParts: {
-                    $ref: '#/definitions/string-array'
+                    $ref: '#/definitions/high-value-content'
                 },
                 painted: {
-                    $ref: '#/definitions/string-array'
+                    $ref: '#/definitions/high-value-content'
                 }
             },
             required: ['enableHold', 'spells', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
