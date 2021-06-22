@@ -953,47 +953,58 @@ export default class OptionsCommands {
         }
 
         if (knownParams.highValue !== undefined) {
+            let isChanged = false;
             if (knownParams.highValue?.spells?.names !== undefined) {
+                isChanged = true;
                 opt.highValue.spells.names.length = 0;
             }
 
             if (knownParams.highValue?.spells?.exceptionSkus !== undefined) {
+                isChanged = true;
                 opt.highValue.spells.exceptionSkus.length = 0;
             }
 
             if (knownParams.highValue?.sheens?.names !== undefined) {
+                isChanged = true;
                 opt.highValue.sheens.names.length = 0;
             }
 
             if (knownParams.highValue?.sheens?.exceptionSkus !== undefined) {
+                isChanged = true;
                 opt.highValue.sheens.exceptionSkus.length = 0;
             }
 
             if (knownParams.highValue?.killstreakers?.names !== undefined) {
+                isChanged = true;
                 opt.highValue.killstreakers.names.length = 0;
             }
 
             if (knownParams.highValue?.killstreakers?.exceptionSkus !== undefined) {
+                isChanged = true;
                 opt.highValue.killstreakers.exceptionSkus.length = 0;
             }
 
             if (knownParams.highValue?.strangeParts?.names !== undefined) {
+                isChanged = true;
                 opt.highValue.strangeParts.names.length = 0;
             }
 
             if (knownParams.highValue?.strangeParts?.exceptionSkus !== undefined) {
+                isChanged = true;
                 opt.highValue.strangeParts.exceptionSkus.length = 0;
             }
 
             if (knownParams.highValue?.painted?.names !== undefined) {
+                isChanged = true;
                 opt.highValue.painted.names.length = 0;
             }
 
             if (knownParams.highValue?.painted?.exceptionSkus !== undefined) {
+                isChanged = true;
                 opt.highValue.painted.exceptionSkus.length = 0;
             }
 
-            Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
+            if (isChanged) Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
         }
 
         if (knownParams.statistics?.sendStats?.time !== undefined) {
