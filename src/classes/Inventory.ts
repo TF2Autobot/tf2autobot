@@ -285,6 +285,26 @@ export default class Inventory {
 
     static sheensOptions: string[];
 
+    static paintedExceptionSkus: string[];
+
+    static spellsExceptionSkus: string[];
+
+    static strangePartsExceptionSkus: string[];
+
+    static killstreakersExceptionSkus: string[];
+
+    static sheensExceptionSkus: string[];
+
+    static paintedExceptionNotEmpty: boolean;
+
+    static spellsExceptionNotEmpty: boolean;
+
+    static strangePartsExceptionNotEmpty: boolean;
+
+    static killstreakersExceptionNotEmpty: boolean;
+
+    static sheensExceptionNotEmpty: boolean;
+
     static setOptions(paints: Paints, parts: StrangeParts, fromOpt: HighValue): void {
         this.paintedOptions =
             fromOpt.painted.names.length < 1 || fromOpt.painted.names[0] === ''
@@ -310,6 +330,21 @@ export default class Inventory {
             fromOpt.sheens.names.length < 1 || fromOpt.sheens.names[0] === ''
                 ? Object.keys(sheensData).map(sheen => sheen.toLowerCase())
                 : fromOpt.sheens.names.map(sheen => sheen.toLowerCase());
+
+        this.paintedExceptionSkus = fromOpt.painted.exceptionSkus;
+        this.paintedExceptionNotEmpty = this.paintedExceptionSkus.length > 0;
+
+        this.spellsExceptionSkus = fromOpt.spells.exceptionSkus;
+        this.spellsExceptionNotEmpty = this.spellsExceptionSkus.length > 0;
+
+        this.strangePartsExceptionSkus = fromOpt.strangeParts.exceptionSkus;
+        this.strangePartsExceptionNotEmpty = this.strangePartsExceptionSkus.length > 0;
+
+        this.killstreakersExceptionSkus = fromOpt.killstreakers.exceptionSkus;
+        this.killstreakersExceptionNotEmpty = this.killstreakersExceptionSkus.length > 0;
+
+        this.sheensExceptionSkus = fromOpt.sheens.exceptionSkus;
+        this.sheensExceptionNotEmpty = this.sheensExceptionSkus.length > 0;
     }
 
     private static createDictionary(
@@ -321,9 +356,6 @@ export default class Inventory {
         which: 'our' | 'their' | 'admin'
     ): Dict {
         const dict: Dict = {};
-
-        const paintedExceptionSkus = opt.highValue.painted.exceptionSkus;
-        const isExceptionNotEmpty = paintedExceptionSkus.length > 0;
 
         const itemsCount = items.length;
         const isAdmin = which === 'admin';
@@ -344,9 +376,9 @@ export default class Inventory {
             );
 
             if (
-                isExceptionNotEmpty &&
+                this.paintedExceptionNotEmpty &&
                 /;[p][0-9]+/.test(sku) &&
-                paintedExceptionSkus.some(exSku => sku.includes(exSku)) // do like this so ";5" is possible
+                this.paintedExceptionSkus.some(exSku => sku.includes(exSku)) // do like this so ";5" is possible
             ) {
                 sku = removePaintedPartialSku(sku);
             }
@@ -383,21 +415,6 @@ export default class Inventory {
     ): ItemAttributes | Record<string, never> {
         const attributes: ItemAttributes = {};
 
-        const spellsExSkus = opt.highValue.spells.exceptionSkus;
-        const isSpellsExNotEmpty = spellsExSkus.length > 0;
-
-        const strangePartsExSkus = opt.highValue.strangeParts.exceptionSkus;
-        const isStrangePartsExNotEmpty = strangePartsExSkus.length > 0;
-
-        const killstreakersExSkus = opt.highValue.killstreakers.exceptionSkus;
-        const isKillstreakersExNotEmpty = killstreakersExSkus.length > 0;
-
-        const sheensExSkus = opt.highValue.sheens.exceptionSkus;
-        const isSheensExNotEmpty = sheensExSkus.length > 0;
-
-        const paintedExSkus = opt.highValue.painted.exceptionSkus;
-        const isPaintedExNotEmpty = paintedExSkus.length > 0;
-
         const s: PartialSKUWithMention = {};
         const sp: PartialSKUWithMention = {};
         const ke: PartialSKUWithMention = {};
@@ -429,7 +446,10 @@ export default class Inventory {
                 const spellName = content.value.substring(10, content.value.length - 32).trim();
 
                 // push for storage, example: s-1000
-                s[spellsData[spellName]] = this.spellsOptions.includes(spellName.toLowerCase());
+                s[spellsData[spellName]] =
+                    (this.spellsExceptionNotEmpty // check if exception not empty
+                        ? !this.spellsExceptionSkus.some(exSku => sku.includes(exSku)) // if this true, make it false
+                        : true) && this.spellsOptions.includes(spellName.toLowerCase());
             } else if (
                 (['Kills', 'Assists'].includes(partsString)
                     ? econ.getItemTag('Type') === 'Cosmetic'
@@ -444,19 +464,31 @@ export default class Inventory {
                 // if the particular strange part is one of the parts that the user wants,
                 // then mention and put "(🌟)"
                 // else no mention and just the name.
-                sp[parts[partsString]] = this.strangePartsOptions.includes(partsString.toLowerCase());
+                sp[parts[partsString]] =
+                    (this.strangePartsExceptionNotEmpty
+                        ? !this.strangePartsExceptionSkus.some(exSku => sku.includes(exSku))
+                        : true) && this.strangePartsOptions.includes(partsString.toLowerCase());
                 //
             } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
                 const extractedName = content.value.replace('Killstreaker: ', '').trim();
-                ke[killstreakersData[extractedName]] = this.killstreakersOptions.includes(extractedName.toLowerCase());
+                ke[killstreakersData[extractedName]] =
+                    (this.killstreakersExceptionNotEmpty
+                        ? !this.killstreakersExceptionSkus.some(exSku => sku.includes(exSku))
+                        : true) && this.killstreakersOptions.includes(extractedName.toLowerCase());
                 //
             } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
                 const extractedName = content.value.replace('Sheen: ', '').trim();
-                ks[sheensData[extractedName]] = this.sheensOptions.includes(extractedName.toLowerCase());
+                ks[sheensData[extractedName]] =
+                    (this.sheensExceptionNotEmpty
+                        ? !this.sheensExceptionSkus.some(exSku => sku.includes(exSku))
+                        : true) && this.sheensOptions.includes(extractedName.toLowerCase());
                 //
             } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
                 const extractedName = content.value.replace('Paint Color: ', '').trim();
-                p[paints[extractedName]] = this.paintedOptions.includes(extractedName.toLowerCase());
+                p[paints[extractedName]] =
+                    (this.paintedExceptionNotEmpty
+                        ? !this.paintedExceptionSkus.some(exSku => sku.includes(exSku))
+                        : true) && this.paintedOptions.includes(extractedName.toLowerCase());
             }
         }
 
@@ -465,7 +497,7 @@ export default class Inventory {
             econ.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi') &&
             Object.keys(p).length === 0
         ) {
-            p['p5801378'] = true; // Legacy Paint
+            p['p5801378'] = true; // Legacy Paint - no exception?
         }
 
         [s, sp, ke, ks, p].forEach((attachment, i) => {
