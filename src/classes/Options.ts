@@ -1229,7 +1229,7 @@ interface NotifyTradePartner {
 
 // ------------ HighValue ------------
 
-interface HighValue {
+export interface HighValue {
     enableHold?: boolean;
     spells?: HighValueContent;
     sheens?: HighValueContent;
