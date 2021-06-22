@@ -3,6 +3,7 @@ import { promises as fsp } from 'fs';
 import sleepasync from 'sleep-async';
 import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
+import Inventory from '../../Inventory';
 import CommandParser from '../../CommandParser';
 import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
 import validator from '../../../lib/validator';
@@ -951,44 +952,48 @@ export default class OptionsCommands {
             opt.pricelist.partialPriceUpdate.excludeSKU.length = 0;
         }
 
-        if (knownParams.highValue?.spells?.names !== undefined) {
-            opt.highValue.spells.names.length = 0;
-        }
+        if (knownParams.highValue !== undefined) {
+            if (knownParams.highValue?.spells?.names !== undefined) {
+                opt.highValue.spells.names.length = 0;
+            }
 
-        if (knownParams.highValue?.spells?.exceptionSkus !== undefined) {
-            opt.highValue.spells.exceptionSkus.length = 0;
-        }
+            if (knownParams.highValue?.spells?.exceptionSkus !== undefined) {
+                opt.highValue.spells.exceptionSkus.length = 0;
+            }
 
-        if (knownParams.highValue?.sheens?.names !== undefined) {
-            opt.highValue.sheens.names.length = 0;
-        }
+            if (knownParams.highValue?.sheens?.names !== undefined) {
+                opt.highValue.sheens.names.length = 0;
+            }
 
-        if (knownParams.highValue?.sheens?.exceptionSkus !== undefined) {
-            opt.highValue.sheens.exceptionSkus.length = 0;
-        }
+            if (knownParams.highValue?.sheens?.exceptionSkus !== undefined) {
+                opt.highValue.sheens.exceptionSkus.length = 0;
+            }
 
-        if (knownParams.highValue?.killstreakers?.names !== undefined) {
-            opt.highValue.killstreakers.names.length = 0;
-        }
+            if (knownParams.highValue?.killstreakers?.names !== undefined) {
+                opt.highValue.killstreakers.names.length = 0;
+            }
 
-        if (knownParams.highValue?.killstreakers?.exceptionSkus !== undefined) {
-            opt.highValue.killstreakers.exceptionSkus.length = 0;
-        }
+            if (knownParams.highValue?.killstreakers?.exceptionSkus !== undefined) {
+                opt.highValue.killstreakers.exceptionSkus.length = 0;
+            }
 
-        if (knownParams.highValue?.strangeParts?.names !== undefined) {
-            opt.highValue.strangeParts.names.length = 0;
-        }
+            if (knownParams.highValue?.strangeParts?.names !== undefined) {
+                opt.highValue.strangeParts.names.length = 0;
+            }
 
-        if (knownParams.highValue?.strangeParts?.exceptionSkus !== undefined) {
-            opt.highValue.strangeParts.exceptionSkus.length = 0;
-        }
+            if (knownParams.highValue?.strangeParts?.exceptionSkus !== undefined) {
+                opt.highValue.strangeParts.exceptionSkus.length = 0;
+            }
 
-        if (knownParams.highValue?.painted?.names !== undefined) {
-            opt.highValue.painted.names.length = 0;
-        }
+            if (knownParams.highValue?.painted?.names !== undefined) {
+                opt.highValue.painted.names.length = 0;
+            }
 
-        if (knownParams.highValue?.painted?.exceptionSkus !== undefined) {
-            opt.highValue.painted.exceptionSkus.length = 0;
+            if (knownParams.highValue?.painted?.exceptionSkus !== undefined) {
+                opt.highValue.painted.exceptionSkus.length = 0;
+            }
+
+            Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
         }
 
         if (knownParams.statistics?.sendStats?.time !== undefined) {
