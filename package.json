@@ -52,7 +52,7 @@
         "pretty-ms": "^7.0.1",
         "rand-token": "^1.0.1",
         "request-retry-dayjs": "^1.0.4",
-        "retry": "^0.12.0",
+        "retry": "^0.13.1",
         "sleep-async": "^1.0.5",
         "steam-totp": "^2.1.1",
         "steam-user": "^4.19.10",
