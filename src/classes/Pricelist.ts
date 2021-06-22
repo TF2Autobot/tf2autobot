@@ -10,7 +10,7 @@ import log from '../lib/logger';
 import validator from '../lib/validator';
 import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
 import SocketManager from './MyHandler/SocketManager';
-import Pricer, { GetItemPriceResponse, Item, GetPricelistResponse } from './Pricer';
+import Pricer, { GetItemPriceResponse, Item } from './Pricer';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -456,7 +456,7 @@ export default class Pricelist extends EventEmitter {
         emitChange: boolean,
         src: PricelistChangedSource = PricelistChangedSource.Other,
         isBulk = false,
-        pricelist: GetPricelistResponse = null,
+        pricerItems: Item[] = null,
         isLast: boolean = null
     ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
@@ -484,8 +484,8 @@ export default class Pricelist extends EventEmitter {
 
         const entry = Entry.fromData(entryData, this.schema);
 
-        if (isBulk && pricelist !== null && this.transformedPricelistForBulk === undefined) {
-            this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricelist.items);
+        if (isBulk && pricerItems !== null && this.transformedPricelistForBulk === undefined) {
+            this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricerItems);
         }
 
         await this.validateEntry(entry, src, isBulk);
@@ -508,7 +508,7 @@ export default class Pricelist extends EventEmitter {
         emitChange: boolean,
         src: PricelistChangedSource = PricelistChangedSource.Other,
         isBulk = false,
-        pricelist: GetPricelistResponse = null,
+        pricerItems: Item[] = null,
         isLast: boolean = null
     ): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
@@ -533,11 +533,11 @@ export default class Pricelist extends EventEmitter {
 
         const entry = Entry.fromData(entryData, this.schema);
 
-        if (isBulk && pricelist !== null && this.transformedPricelistForBulk === undefined) {
-            this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricelist.items);
+        if (isBulk && pricerItems !== null && this.transformedPricelistForBulk === undefined) {
+            this.transformedPricelistForBulk = Pricelist.transformPricesFromPricer(pricerItems);
         }
 
-        await this.validateEntry(entry, src, false);
+        await this.validateEntry(entry, src, isBulk);
 
         // Remove old price
         await this.removePrice(entry.sku, false);
