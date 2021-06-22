@@ -884,8 +884,9 @@ export default class OptionsCommands {
                     this.bot.handler.sendStats();
                 }
 
-                if (typeof knownParams.highValue !== undefined) {
+                if (knownParams.highValue !== undefined) {
                     void this.bot.inventoryManager.getInventory.fetch();
+                    Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
                 }
 
                 if (typeof knownParams.normalize === 'object') {
