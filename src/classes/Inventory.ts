@@ -406,7 +406,7 @@ export default class Inventory {
         return dict;
     }
 
-    static highValue(
+    private static highValue(
         sku: string,
         econ: EconItem,
         paints: Paints,
