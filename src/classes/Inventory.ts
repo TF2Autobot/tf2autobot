@@ -275,35 +275,35 @@ export default class Inventory {
         return toObject;
     }
 
-    static paintedOptions: string[];
+    private static paintedOptions: string[];
 
-    static spellsOptions: string[];
+    private static spellsOptions: string[];
 
-    static strangePartsOptions: string[];
+    private static strangePartsOptions: string[];
 
-    static killstreakersOptions: string[];
+    private static killstreakersOptions: string[];
 
-    static sheensOptions: string[];
+    private static sheensOptions: string[];
 
-    static paintedExceptionSkus: string[];
+    private static paintedExceptionSkus: string[];
 
-    static spellsExceptionSkus: string[];
+    private static spellsExceptionSkus: string[];
 
-    static strangePartsExceptionSkus: string[];
+    private static strangePartsExceptionSkus: string[];
 
-    static killstreakersExceptionSkus: string[];
+    private static killstreakersExceptionSkus: string[];
 
-    static sheensExceptionSkus: string[];
+    private static sheensExceptionSkus: string[];
 
-    static paintedExceptionNotEmpty: boolean;
+    private static paintedExceptionNotEmpty: boolean;
 
-    static spellsExceptionNotEmpty: boolean;
+    private static spellsExceptionNotEmpty: boolean;
 
-    static strangePartsExceptionNotEmpty: boolean;
+    private static strangePartsExceptionNotEmpty: boolean;
 
-    static killstreakersExceptionNotEmpty: boolean;
+    private static killstreakersExceptionNotEmpty: boolean;
 
-    static sheensExceptionNotEmpty: boolean;
+    private static sheensExceptionNotEmpty: boolean;
 
     static setOptions(paints: Paints, parts: StrangeParts, fromOpt: HighValue): void {
         this.paintedOptions =
