@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import TradeOfferManager, { EconItem, ItemAttributes, PartialSKUWithMention } from '@tf2autobot/tradeoffer-manager';
 import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
-import Options from './Options';
+import Options, { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 
@@ -58,6 +58,8 @@ export default class Inventory {
         this.paints = paints;
         this.strangeParts = strangeParts;
         this.which = which;
+
+        Inventory.setOptions(paints, strangeParts, options.highValue);
     }
 
     static fromItems(
@@ -273,6 +275,78 @@ export default class Inventory {
         return toObject;
     }
 
+    private static paintedOptions: string[];
+
+    private static spellsOptions: string[];
+
+    private static strangePartsOptions: string[];
+
+    private static killstreakersOptions: string[];
+
+    private static sheensOptions: string[];
+
+    private static paintedExceptionSkus: string[];
+
+    private static spellsExceptionSkus: string[];
+
+    private static strangePartsExceptionSkus: string[];
+
+    private static killstreakersExceptionSkus: string[];
+
+    private static sheensExceptionSkus: string[];
+
+    private static paintedExceptionNotEmpty: boolean;
+
+    private static spellsExceptionNotEmpty: boolean;
+
+    private static strangePartsExceptionNotEmpty: boolean;
+
+    private static killstreakersExceptionNotEmpty: boolean;
+
+    private static sheensExceptionNotEmpty: boolean;
+
+    static setOptions(paints: Paints, parts: StrangeParts, fromOpt: HighValue): void {
+        this.paintedOptions =
+            fromOpt.painted.names.length < 1 || fromOpt.painted.names[0] === ''
+                ? Object.keys(paints).map(paint => paint.toLowerCase())
+                : fromOpt.painted.names.map(paint => paint.toLowerCase());
+
+        this.spellsOptions =
+            fromOpt.spells.names.length < 1 || fromOpt.spells.names[0] === ''
+                ? Object.keys(spellsData).map(spell => spell.toLowerCase())
+                : fromOpt.spells.names.map(spell => spell.toLowerCase());
+
+        this.strangePartsOptions =
+            fromOpt.strangeParts.names.length < 1 || fromOpt.strangeParts.names[0] === ''
+                ? Object.keys(parts).map(part => part.toLowerCase())
+                : fromOpt.strangeParts.names.map(part => part.toLowerCase());
+
+        this.killstreakersOptions =
+            fromOpt.killstreakers.names.length < 1 || fromOpt.killstreakers.names[0] === ''
+                ? Object.keys(killstreakersData).map(part => part.toLowerCase())
+                : fromOpt.killstreakers.names.map(part => part.toLowerCase());
+
+        this.sheensOptions =
+            fromOpt.sheens.names.length < 1 || fromOpt.sheens.names[0] === ''
+                ? Object.keys(sheensData).map(sheen => sheen.toLowerCase())
+                : fromOpt.sheens.names.map(sheen => sheen.toLowerCase());
+
+        this.paintedExceptionSkus = fromOpt.painted.exceptionSkus;
+        this.paintedExceptionNotEmpty = this.paintedExceptionSkus.length > 0;
+
+        this.spellsExceptionSkus = fromOpt.spells.exceptionSkus;
+        this.spellsExceptionNotEmpty = this.spellsExceptionSkus.length > 0;
+
+        this.strangePartsExceptionSkus = fromOpt.strangeParts.exceptionSkus;
+        this.strangePartsExceptionNotEmpty = this.strangePartsExceptionSkus.length > 0;
+
+        this.killstreakersExceptionSkus = fromOpt.killstreakers.exceptionSkus;
+        this.killstreakersExceptionNotEmpty = this.killstreakersExceptionSkus.length > 0;
+
+        this.sheensExceptionSkus = fromOpt.sheens.exceptionSkus;
+        this.sheensExceptionNotEmpty = this.sheensExceptionSkus.length > 0;
+    }
+
     private static createDictionary(
         items: EconItem[],
         schema: SchemaManager.Schema,
@@ -282,14 +356,6 @@ export default class Inventory {
         which: 'our' | 'their' | 'admin'
     ): Dict {
         const dict: Dict = {};
-
-        const paintedOptions =
-            opt.highValue.painted.names.length < 1 || opt.highValue.painted.names[0] === ''
-                ? Object.keys(paints).map(paint => paint.toLowerCase())
-                : opt.highValue.painted.names.map(paint => paint.toLowerCase());
-
-        const paintedExceptionSkus = opt.highValue.painted.exceptionSkus;
-        const isExceptionNotEmpty = paintedExceptionSkus.length > 0;
 
         const itemsCount = items.length;
         const isAdmin = which === 'admin';
@@ -306,18 +372,18 @@ export default class Inventory {
                 isNormalizeStrangeAsSecondQuality,
                 isNormalizePainted,
                 paints,
-                paintedOptions
+                this.paintedOptions
             );
 
             if (
-                isExceptionNotEmpty &&
+                this.paintedExceptionNotEmpty &&
                 /;[p][0-9]+/.test(sku) &&
-                paintedExceptionSkus.some(exSku => sku.includes(exSku)) // do like this so ";5" is possible
+                this.paintedExceptionSkus.some(exSku => sku.includes(exSku)) // do like this so ";5" is possible
             ) {
                 sku = removePaintedPartialSku(sku);
             }
 
-            const attributes = highValue(sku, items[i], opt, paints, strangeParts);
+            const attributes = this.highValue(sku, items[i], paints, strangeParts);
             const attributesCount = Object.keys(attributes).length;
 
             const isUses =
@@ -338,6 +404,108 @@ export default class Inventory {
         }
 
         return dict;
+    }
+
+    private static highValue(
+        sku: string,
+        econ: EconItem,
+        paints: Paints,
+        parts: StrangeParts
+    ): ItemAttributes | Record<string, never> {
+        const attributes: ItemAttributes = {};
+
+        const s: PartialSKUWithMention = {};
+        const sp: PartialSKUWithMention = {};
+        const ke: PartialSKUWithMention = {};
+        const ks: PartialSKUWithMention = {};
+        const p: PartialSKUWithMention = {};
+
+        for (const content of econ.descriptions) {
+            /**
+             * For Strange Parts, example: "(Kills During Halloween: 0)"
+             * remove "(" and ": <numbers>)" to get only the part name.
+             */
+            const partsString = content.value
+                .replace('(', '')
+                .replace(/: \d+\)/g, '')
+                .trim();
+
+            if (
+                content.value.startsWith('Halloween:') &&
+                content.value.endsWith('(spell only active during event)') &&
+                content.color === '7ea9d1'
+            ) {
+                // Example: "Halloween: Voices From Below (spell only active during event)"
+                // where "Voices From Below" is the spell name.
+                // Color of this description must be rgb(126, 169, 209) or 7ea9d1
+                // https://www.spycolor.com/7ea9d1#
+                // Get the spell name
+                // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
+                // from "(spell only active during event)", and trim any whitespaces.
+                const spellName = content.value.substring(10, content.value.length - 32).trim();
+
+                // push for storage, example: s-1000
+                s[spellsData[spellName]] =
+                    (this.spellsExceptionNotEmpty // check if exception not empty
+                        ? !this.spellsExceptionSkus.some(exSku => sku.includes(exSku)) // if this true, make it false
+                        : true) && this.spellsOptions.includes(spellName.toLowerCase());
+            } else if (
+                (['Kills', 'Assists'].includes(partsString)
+                    ? econ.getItemTag('Type') === 'Cosmetic'
+                    : Object.keys(parts).includes(partsString)) &&
+                content.color === '756b5e'
+            ) {
+                // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
+                // Else, will scan through Strange Parts Object keys in this.strangeParts()
+                // Color of this description must be rgb(117, 107, 94) or 756b5e
+                // https://www.spycolor.com/756b5e#
+
+                // if the particular strange part is one of the parts that the user wants,
+                // then mention and put "(🌟)"
+                // else no mention and just the name.
+                sp[parts[partsString]] =
+                    (this.strangePartsExceptionNotEmpty
+                        ? !this.strangePartsExceptionSkus.some(exSku => sku.includes(exSku))
+                        : true) && this.strangePartsOptions.includes(partsString.toLowerCase());
+                //
+            } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
+                const extractedName = content.value.replace('Killstreaker: ', '').trim();
+                ke[killstreakersData[extractedName]] =
+                    (this.killstreakersExceptionNotEmpty
+                        ? !this.killstreakersExceptionSkus.some(exSku => sku.includes(exSku))
+                        : true) && this.killstreakersOptions.includes(extractedName.toLowerCase());
+                //
+            } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
+                const extractedName = content.value.replace('Sheen: ', '').trim();
+                ks[sheensData[extractedName]] =
+                    (this.sheensExceptionNotEmpty
+                        ? !this.sheensExceptionSkus.some(exSku => sku.includes(exSku))
+                        : true) && this.sheensOptions.includes(extractedName.toLowerCase());
+                //
+            } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
+                const extractedName = content.value.replace('Paint Color: ', '').trim();
+                p[paints[extractedName]] =
+                    (this.paintedExceptionNotEmpty
+                        ? !this.paintedExceptionSkus.some(exSku => sku.includes(exSku))
+                        : true) && this.paintedOptions.includes(extractedName.toLowerCase());
+            }
+        }
+
+        if (
+            !econ.type.includes('Tool') && // Not a Paint Can
+            econ.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi') &&
+            Object.keys(p).length === 0
+        ) {
+            p['p5801378'] = true; // Legacy Paint - no exception?
+        }
+
+        [s, sp, ke, ks, p].forEach((attachment, i) => {
+            if (Object.keys(attachment).length > 0) {
+                attributes[['s', 'sp', 'ke', 'ks', 'p'][i]] = attachment;
+            }
+        });
+
+        return attributes;
     }
 
     clearFetch(): void {
@@ -371,134 +539,6 @@ function isFull(item: EconItem, type: 'duel' | 'noise'): boolean {
     }
 
     return false;
-}
-
-function highValue(
-    sku: string,
-    econ: EconItem,
-    opt: Options,
-    paints: Paints,
-    parts: StrangeParts
-): ItemAttributes | Record<string, never> {
-    const attributes: ItemAttributes = {};
-
-    const spells =
-        opt.highValue.spells.names.length < 1 || opt.highValue.spells.names[0] === ''
-            ? Object.keys(spellsData).map(spell => spell.toLowerCase())
-            : opt.highValue.spells.names.map(spell => spell.toLowerCase());
-
-    const strangeParts =
-        opt.highValue.strangeParts.names.length < 1 || opt.highValue.strangeParts.names[0] === ''
-            ? Object.keys(parts).map(part => part.toLowerCase())
-            : opt.highValue.strangeParts.names.map(part => part.toLowerCase());
-
-    const killstreakers =
-        opt.highValue.killstreakers.names.length < 1 || opt.highValue.killstreakers.names[0] === ''
-            ? Object.keys(killstreakersData).map(killstreaker => killstreaker.toLowerCase())
-            : opt.highValue.killstreakers.names.map(killstreaker => killstreaker.toLowerCase());
-
-    const sheens =
-        opt.highValue.sheens.names.length < 1 || opt.highValue.sheens.names[0] === ''
-            ? Object.keys(sheensData).map(sheen => sheen.toLowerCase())
-            : opt.highValue.sheens.names.map(sheen => sheen.toLowerCase());
-
-    const painted =
-        opt.highValue.painted.names.length < 1 || opt.highValue.painted.names[0] === ''
-            ? Object.keys(paints).map(paint => paint.toLowerCase())
-            : opt.highValue.painted.names.map(paint => paint.toLowerCase());
-
-    const spellsExSkus = opt.highValue.spells.exceptionSkus;
-    const isSpellsExNotEmpty = spellsExSkus.length > 0;
-
-    const strangePartsExSkus = opt.highValue.strangeParts.exceptionSkus;
-    const isStrangePartsExNotEmpty = strangePartsExSkus.length > 0;
-
-    const killstreakersExSkus = opt.highValue.killstreakers.exceptionSkus;
-    const isKillstreakersExNotEmpty = killstreakersExSkus.length > 0;
-
-    const sheensExSkus = opt.highValue.sheens.exceptionSkus;
-    const isSheensExNotEmpty = sheensExSkus.length > 0;
-
-    const paintedExSkus = opt.highValue.painted.exceptionSkus;
-    const isPaintedExNotEmpty = paintedExSkus.length > 0;
-
-    const s: PartialSKUWithMention = {};
-    const sp: PartialSKUWithMention = {};
-    const ke: PartialSKUWithMention = {};
-    const ks: PartialSKUWithMention = {};
-    const p: PartialSKUWithMention = {};
-
-    for (const content of econ.descriptions) {
-        /**
-         * For Strange Parts, example: "(Kills During Halloween: 0)"
-         * remove "(" and ": <numbers>)" to get only the part name.
-         */
-        const partsString = content.value
-            .replace('(', '')
-            .replace(/: \d+\)/g, '')
-            .trim();
-
-        if (
-            content.value.startsWith('Halloween:') &&
-            content.value.endsWith('(spell only active during event)') &&
-            content.color === '7ea9d1'
-        ) {
-            // Example: "Halloween: Voices From Below (spell only active during event)"
-            // where "Voices From Below" is the spell name.
-            // Color of this description must be rgb(126, 169, 209) or 7ea9d1
-            // https://www.spycolor.com/7ea9d1#
-            // Get the spell name
-            // Starts from "Halloween:" (10), then the whole spell description minus 32 characters
-            // from "(spell only active during event)", and trim any whitespaces.
-            const spellName = content.value.substring(10, content.value.length - 32).trim();
-
-            // push for storage, example: s-1000
-            s[spellsData[spellName]] = spells.includes(spellName.toLowerCase());
-        } else if (
-            (['Kills', 'Assists'].includes(partsString)
-                ? econ.getItemTag('Type') === 'Cosmetic'
-                : Object.keys(parts).includes(partsString)) &&
-            content.color === '756b5e'
-        ) {
-            // If the part name is "Kills" or "Assists", then confirm the item is a cosmetic, not a weapon.
-            // Else, will scan through Strange Parts Object keys in this.strangeParts()
-            // Color of this description must be rgb(117, 107, 94) or 756b5e
-            // https://www.spycolor.com/756b5e#
-
-            // if the particular strange part is one of the parts that the user wants,
-            // then mention and put "(🌟)"
-            // else no mention and just the name.
-            sp[parts[partsString]] = strangeParts.includes(partsString.toLowerCase());
-            //
-        } else if (content.value.startsWith('Killstreaker: ') && content.color === '7ea9d1') {
-            const extractedName = content.value.replace('Killstreaker: ', '').trim();
-            ke[killstreakersData[extractedName]] = killstreakers.includes(extractedName.toLowerCase());
-            //
-        } else if (content.value.startsWith('Sheen: ') && content.color === '7ea9d1') {
-            const extractedName = content.value.replace('Sheen: ', '').trim();
-            ks[sheensData[extractedName]] = sheens.includes(extractedName.toLowerCase());
-            //
-        } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
-            const extractedName = content.value.replace('Paint Color: ', '').trim();
-            p[paints[extractedName]] = painted.includes(extractedName.toLowerCase());
-        }
-    }
-
-    if (
-        !econ.type.includes('Tool') && // Not a Paint Can
-        econ.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi') &&
-        Object.keys(p).length === 0
-    ) {
-        p['p5801378'] = true; // Legacy Paint
-    }
-
-    [s, sp, ke, ks, p].forEach((attachment, i) => {
-        if (Object.keys(attachment).length > 0) {
-            attributes[['s', 'sp', 'ke', 'ks', 'p'][i]] = attachment;
-        }
-    });
-
-    return attributes;
 }
 
 /**
