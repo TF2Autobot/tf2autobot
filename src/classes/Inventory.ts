@@ -383,7 +383,7 @@ export default class Inventory {
                 sku = removePaintedPartialSku(sku);
             }
 
-            const attributes = this.highValue(sku, items[i], opt, paints, strangeParts);
+            const attributes = this.highValue(sku, items[i], paints, strangeParts);
             const attributesCount = Object.keys(attributes).length;
 
             const isUses =
@@ -409,7 +409,6 @@ export default class Inventory {
     static highValue(
         sku: string,
         econ: EconItem,
-        opt: Options,
         paints: Paints,
         parts: StrangeParts
     ): ItemAttributes | Record<string, never> {
