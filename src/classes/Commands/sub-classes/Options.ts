@@ -951,24 +951,44 @@ export default class OptionsCommands {
             opt.pricelist.partialPriceUpdate.excludeSKU.length = 0;
         }
 
-        if (knownParams.highValue?.spells !== undefined) {
-            opt.highValue.spells.length = 0;
+        if (knownParams.highValue?.spells?.names !== undefined) {
+            opt.highValue.spells.names.length = 0;
         }
 
-        if (knownParams.highValue?.sheens !== undefined) {
-            opt.highValue.sheens.length = 0;
+        if (knownParams.highValue?.spells?.exceptionSkus !== undefined) {
+            opt.highValue.spells.exceptionSkus.length = 0;
         }
 
-        if (knownParams.highValue?.killstreakers !== undefined) {
-            opt.highValue.killstreakers.length = 0;
+        if (knownParams.highValue?.sheens?.names !== undefined) {
+            opt.highValue.sheens.names.length = 0;
         }
 
-        if (knownParams.highValue?.strangeParts !== undefined) {
-            opt.highValue.strangeParts.length = 0;
+        if (knownParams.highValue?.sheens?.exceptionSkus !== undefined) {
+            opt.highValue.sheens.exceptionSkus.length = 0;
         }
 
-        if (knownParams.highValue?.painted !== undefined) {
-            opt.highValue.painted.length = 0;
+        if (knownParams.highValue?.killstreakers?.names !== undefined) {
+            opt.highValue.killstreakers.names.length = 0;
+        }
+
+        if (knownParams.highValue?.killstreakers?.exceptionSkus !== undefined) {
+            opt.highValue.killstreakers.exceptionSkus.length = 0;
+        }
+
+        if (knownParams.highValue?.strangeParts?.names !== undefined) {
+            opt.highValue.strangeParts.names.length = 0;
+        }
+
+        if (knownParams.highValue?.strangeParts?.exceptionSkus !== undefined) {
+            opt.highValue.strangeParts.exceptionSkus.length = 0;
+        }
+
+        if (knownParams.highValue?.painted?.names !== undefined) {
+            opt.highValue.painted.names.length = 0;
+        }
+
+        if (knownParams.highValue?.painted?.exceptionSkus !== undefined) {
+            opt.highValue.painted.exceptionSkus.length = 0;
         }
 
         if (knownParams.statistics?.sendStats?.time !== undefined) {
