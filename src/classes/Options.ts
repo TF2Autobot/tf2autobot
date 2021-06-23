@@ -199,11 +199,26 @@ export const DEFAULTS: JsonOptions = {
 
     highValue: {
         enableHold: true,
-        spells: [],
-        sheens: [],
-        killstreakers: [],
-        strangeParts: [],
-        painted: []
+        spells: {
+            names: [],
+            exceptionSkus: []
+        },
+        sheens: {
+            names: [],
+            exceptionSkus: []
+        },
+        killstreakers: {
+            names: [],
+            exceptionSkus: []
+        },
+        strangeParts: {
+            names: [],
+            exceptionSkus: []
+        },
+        painted: {
+            names: [],
+            exceptionSkus: []
+        }
     },
 
     normalize: {
@@ -1214,13 +1229,18 @@ interface NotifyTradePartner {
 
 // ------------ HighValue ------------
 
-interface HighValue {
+export interface HighValue {
     enableHold?: boolean;
-    spells?: string[];
-    sheens?: string[];
-    killstreakers?: string[];
-    strangeParts?: string[];
-    painted?: string[];
+    spells?: HighValueContent;
+    sheens?: HighValueContent;
+    killstreakers?: HighValueContent;
+    strangeParts?: HighValueContent;
+    painted?: HighValueContent;
+}
+
+interface HighValueContent {
+    names: string[];
+    exceptionSkus: string[];
 }
 
 // ------------ Normalize ------------
@@ -1975,7 +1995,12 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
     try {
         const rawOptions = readFileSync(optionsPath, { encoding: 'utf8' });
         try {
-            fileOptions = deepMerge({}, workingDefault, JSON.parse(rawOptions));
+            const parsedRaw = JSON.parse(rawOptions) as JsonOptions;
+            if (replaceOldProperties(parsedRaw)) {
+                writeFileSync(optionsPath, JSON.stringify(parsedRaw, null, 4), { encoding: 'utf8' });
+            }
+
+            fileOptions = deepMerge({}, workingDefault, parsedRaw);
             return deepMerge(fileOptions, incomingOptions);
         } catch (e) {
             if (e instanceof SyntaxError) {
@@ -2015,6 +2040,60 @@ export function removeCliOptions(incomingOptions: Options): void {
             .map(e => e.slice(18, -1))
             .map(e => delete incomingOptions[e]);
     }
+}
+
+function replaceOldProperties(options: Options): boolean {
+    // Automatically replace old properties
+    let isChanged = false;
+
+    // <= v4.1.5 → v4.2.0
+    const hv = options.highValue;
+    const spells = hv.spells;
+    if (Array.isArray(spells)) {
+        options.highValue.spells = {
+            names: spells,
+            exceptionSkus: []
+        };
+        isChanged = true;
+    }
+
+    const sheens = hv.sheens;
+    if (Array.isArray(sheens)) {
+        options.highValue.sheens = {
+            names: sheens,
+            exceptionSkus: []
+        };
+        isChanged = true;
+    }
+
+    const killstreakers = hv.killstreakers;
+    if (Array.isArray(killstreakers)) {
+        options.highValue.killstreakers = {
+            names: killstreakers,
+            exceptionSkus: []
+        };
+        isChanged = true;
+    }
+
+    const strangeParts = hv.strangeParts;
+    if (Array.isArray(strangeParts)) {
+        options.highValue.strangeParts = {
+            names: strangeParts,
+            exceptionSkus: []
+        };
+        isChanged = true;
+    }
+
+    const painted = hv.painted;
+    if (Array.isArray(painted)) {
+        options.highValue.painted = {
+            names: painted,
+            exceptionSkus: []
+        };
+        isChanged = true;
+    }
+
+    return isChanged;
 }
 
 export function loadOptions(options?: Options): Options {

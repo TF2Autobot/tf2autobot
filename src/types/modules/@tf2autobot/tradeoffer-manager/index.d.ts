@@ -366,7 +366,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
                 normalizePainted: boolean,
                 paints: Paints,
                 paintsInOptions: string[]
-            ): string | null;
+            ): { sku: string; isPainted: boolean } | null;
         }
 
         type TradeOfferItem = {
