@@ -3,6 +3,7 @@ import { promises as fsp } from 'fs';
 import sleepasync from 'sleep-async';
 import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
+import Inventory from '../../Inventory';
 import CommandParser from '../../CommandParser';
 import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
 import validator from '../../../lib/validator';
@@ -883,8 +884,9 @@ export default class OptionsCommands {
                     this.bot.handler.sendStats();
                 }
 
-                if (typeof knownParams.highValue !== undefined) {
+                if (knownParams.highValue !== undefined) {
                     void this.bot.inventoryManager.getInventory.fetch();
+                    Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
                 }
 
                 if (typeof knownParams.normalize === 'object') {
@@ -951,24 +953,59 @@ export default class OptionsCommands {
             opt.pricelist.partialPriceUpdate.excludeSKU.length = 0;
         }
 
-        if (knownParams.highValue?.spells !== undefined) {
-            opt.highValue.spells.length = 0;
-        }
+        if (knownParams.highValue !== undefined) {
+            let isChanged = false;
+            if (knownParams.highValue.spells?.names !== undefined) {
+                isChanged = true;
+                opt.highValue.spells.names.length = 0;
+            }
 
-        if (knownParams.highValue?.sheens !== undefined) {
-            opt.highValue.sheens.length = 0;
-        }
+            if (knownParams.highValue.spells?.exceptionSkus !== undefined) {
+                isChanged = true;
+                opt.highValue.spells.exceptionSkus.length = 0;
+            }
 
-        if (knownParams.highValue?.killstreakers !== undefined) {
-            opt.highValue.killstreakers.length = 0;
-        }
+            if (knownParams.highValue.sheens?.names !== undefined) {
+                isChanged = true;
+                opt.highValue.sheens.names.length = 0;
+            }
 
-        if (knownParams.highValue?.strangeParts !== undefined) {
-            opt.highValue.strangeParts.length = 0;
-        }
+            if (knownParams.highValue.sheens?.exceptionSkus !== undefined) {
+                isChanged = true;
+                opt.highValue.sheens.exceptionSkus.length = 0;
+            }
 
-        if (knownParams.highValue?.painted !== undefined) {
-            opt.highValue.painted.length = 0;
+            if (knownParams.highValue.killstreakers?.names !== undefined) {
+                isChanged = true;
+                opt.highValue.killstreakers.names.length = 0;
+            }
+
+            if (knownParams.highValue.killstreakers?.exceptionSkus !== undefined) {
+                isChanged = true;
+                opt.highValue.killstreakers.exceptionSkus.length = 0;
+            }
+
+            if (knownParams.highValue.strangeParts?.names !== undefined) {
+                isChanged = true;
+                opt.highValue.strangeParts.names.length = 0;
+            }
+
+            if (knownParams.highValue.strangeParts?.exceptionSkus !== undefined) {
+                isChanged = true;
+                opt.highValue.strangeParts.exceptionSkus.length = 0;
+            }
+
+            if (knownParams.highValue.painted?.names !== undefined) {
+                isChanged = true;
+                opt.highValue.painted.names.length = 0;
+            }
+
+            if (knownParams.highValue.painted?.exceptionSkus !== undefined) {
+                isChanged = true;
+                opt.highValue.painted.exceptionSkus.length = 0;
+            }
+
+            if (isChanged) Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
         }
 
         if (knownParams.statistics?.sendStats?.time !== undefined) {

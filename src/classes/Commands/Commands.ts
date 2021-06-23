@@ -274,6 +274,8 @@ export default class Commands {
             this.buyBPTFPremiumCommand(steamID, message);
         } else if (command === 'sku' && isAdmin) {
             this.getSKU(steamID, message);
+        } else if (command === 'refreshschema' && isAdmin) {
+            this.manager.refreshSchema(steamID);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))

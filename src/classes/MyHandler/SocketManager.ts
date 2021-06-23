@@ -64,6 +64,10 @@ export default class SocketManager {
                 log.warn(`Socket blocked. Expires in ${blocked.expire}`);
             });
 
+            this.socket.on('connect_error', err => {
+                log.warn(`Couldn't connect to socket server`, err);
+            });
+
             resolve(undefined);
         });
     }
