@@ -186,11 +186,26 @@
     },
     "highValue": {
         "enableHold": true,
-        "spells": [],
-        "sheens": [],
-        "killstreakers": [],
-        "strangeParts": [],
-        "painted": []
+        "spells": {
+            "names": [],
+            "exceptionSkus": []
+        },
+        "sheens": {
+            "names": [],
+            "exceptionSkus": []
+        },
+        "killstreakers": {
+            "names": [],
+            "exceptionSkus": []
+        },
+        "strangeParts": {
+            "names": [],
+            "exceptionSkus": []
+        },
+        "painted": {
+            "names": [],
+            "exceptionSkus": []
+        }
     },
     "normalize": {
         "festivized": {
