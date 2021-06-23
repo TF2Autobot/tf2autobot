@@ -240,8 +240,8 @@ export default function updateListings(
             const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
             const keyPriceInScrap = Currencies.toScrap(keyPriceInRef);
 
-            let sellingKeyPrice = inPrice.sell.keys + priceFromOptions.keys;
-            let sellingMetalPriceInRef = inPrice.sell.metal + priceFromOptions.metal;
+            let sellingKeyPrice = inPrice2.sell.keys + priceFromOptions.keys;
+            let sellingMetalPriceInRef = inPrice2.sell.metal + priceFromOptions.metal;
             const sellingMetalPriceInScrap = Currencies.toScrap(sellingMetalPriceInRef);
 
             if (sellingMetalPriceInScrap >= keyPriceInScrap) {
