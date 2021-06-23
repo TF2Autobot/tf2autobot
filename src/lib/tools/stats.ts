@@ -54,35 +54,37 @@ export default function stats(bot: Bot): Stats {
             continue;
         }
 
-        if (offerData[offerID].handledByUs === true && offerData[offerID].action !== undefined) {
+        const offer = offerData[offerID];
+
+        if (offer.handledByUs === true && offer.action !== undefined) {
             // action not undefined means offer received
 
-            if (offerData[offerID].isAccepted === true) {
-                if (offerData[offerID].action.action === 'accept') {
+            if (offer.isAccepted === true) {
+                if (offer.action.action === 'accept') {
                     // Successful trades handled by the bot
                     acceptedTradesTotal++;
 
-                    if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                    if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                         // Within the last 24 hours
                         acceptedOfferTrades24Hours++;
                     }
 
-                    if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                    if (offer.finishTimestamp >= startOfDay.valueOf()) {
                         // All trades since 0:00 in the morning.
                         acceptedOfferTradesToday++;
                     }
                 }
 
-                if (offerData[offerID].action.action === 'counter') {
+                if (offer.action.action === 'counter') {
                     acceptedTradesTotal++;
 
-                    if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                    if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                         // Within the last 24 hours
                         acceptedOfferTrades24Hours++;
                         acceptedCountered24Hours++;
                     }
 
-                    if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                    if (offer.finishTimestamp >= startOfDay.valueOf()) {
                         // All trades since 0:00 in the morning.
                         acceptedOfferTradesToday++;
                         acceptedCounteredToday++;
@@ -90,27 +92,27 @@ export default function stats(bot: Bot): Stats {
                 }
             }
 
-            if (offerData[offerID].action.action === 'decline') {
-                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+            if (offer.action.action === 'decline') {
+                if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                     // Within the last 24 hours
                     declineOffer24Hours++;
                 }
 
-                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                if (offer.finishTimestamp >= startOfDay.valueOf()) {
                     // All trades since 0:00 in the morning.
                     declineOfferToday++;
                 }
             }
 
-            if (offerData[offerID].action.action === 'counter') {
-                if (offerData[offerID].isDeclined === true) {
-                    if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+            if (offer.action.action === 'counter') {
+                if (offer.isDeclined === true) {
+                    if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                         // Within the last 24 hours
                         declineOffer24Hours++;
                         declinedCounter24Hours++;
                     }
 
-                    if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                    if (offer.finishTimestamp >= startOfDay.valueOf()) {
                         // All trades since 0:00 in the morning.
                         declineOfferToday++;
                         declinedCounterToday++;
@@ -118,92 +120,92 @@ export default function stats(bot: Bot): Stats {
                 }
             }
 
-            if (offerData[offerID].action.action === 'skip') {
-                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+            if (offer.action.action === 'skip') {
+                if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                     // Within the last 24 hours
                     skipped24Hours++;
                 }
 
-                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                if (offer.finishTimestamp >= startOfDay.valueOf()) {
                     // All trades since 0:00 in the morning.
                     skippedToday++;
                 }
             }
         }
 
-        if (offerData[offerID].handledByUs === true && offerData[offerID].action === undefined) {
+        if (offer.handledByUs === true && offer.action === undefined) {
             // action undefined means offer sent
-            if (offerData[offerID].isAccepted === true) {
+            if (offer.isAccepted === true) {
                 // Successful trades handled by the bot
                 acceptedTradesTotal++;
 
-                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+                if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                     // Within the last 24 hours
                     acceptedSentTrades24Hours++;
                 }
 
-                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                if (offer.finishTimestamp >= startOfDay.valueOf()) {
                     // All trades since 0:00 in the morning.
                     acceptedSentTradesToday++;
                 }
             }
 
-            if (offerData[offerID].isDeclined === true) {
-                if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+            if (offer.isDeclined === true) {
+                if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                     // Within the last 24 hours
                     declineSent24Hours++;
                 }
 
-                if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+                if (offer.finishTimestamp >= startOfDay.valueOf()) {
                     // All trades since 0:00 in the morning.
                     declineSentToday++;
                 }
             }
         }
 
-        if (offerData[offerID].handledByUs === true && offerData[offerID].canceledByUser === true) {
-            if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+        if (offer.handledByUs === true && offer.canceledByUser === true) {
+            if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                 // Within the last 24 hours
                 canceledByUser24Hours++;
             }
 
-            if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+            if (offer.finishTimestamp >= startOfDay.valueOf()) {
                 // All trades since 0:00 in the morning.
                 canceledByUserToday++;
             }
         }
 
-        if (offerData[offerID].handledByUs === true && offerData[offerID].isFailedConfirmation === true) {
-            if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+        if (offer.handledByUs === true && offer.isFailedConfirmation === true) {
+            if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                 // Within the last 24 hours
                 isFailedConfirmation24Hours++;
             }
 
-            if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+            if (offer.finishTimestamp >= startOfDay.valueOf()) {
                 // All trades since 0:00 in the morning.
                 isFailedConfirmationToday++;
             }
         }
 
-        if (offerData[offerID].handledByUs === true && offerData[offerID].isCanceledUnknown === true) {
-            if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+        if (offer.handledByUs === true && offer.isCanceledUnknown === true) {
+            if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                 // Within the last 24 hours
                 isCanceledUnknown24Hours++;
             }
 
-            if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+            if (offer.finishTimestamp >= startOfDay.valueOf()) {
                 // All trades since 0:00 in the morning.
                 isCanceledUnknownToday++;
             }
         }
 
-        if (offerData[offerID].handledByUs === true && offerData[offerID].isInvalid === true) {
-            if (offerData[offerID].finishTimestamp >= aDayAgo.valueOf()) {
+        if (offer.handledByUs === true && offer.isInvalid === true) {
+            if (offer.finishTimestamp >= aDayAgo.valueOf()) {
                 // Within the last 24 hours
                 isInvalid24Hours++;
             }
 
-            if (offerData[offerID].finishTimestamp >= startOfDay.valueOf()) {
+            if (offer.finishTimestamp >= startOfDay.valueOf()) {
                 // All trades since 0:00 in the morning.
                 isInvalidToday++;
             }

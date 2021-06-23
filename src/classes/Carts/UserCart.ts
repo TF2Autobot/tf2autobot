@@ -29,9 +29,8 @@ export default class UserCart extends Cart {
         if (banned) {
             this.bot.client.blockUser(this.partner, err => {
                 if (err) {
-                    log.warn(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
-                }
-                log.debug(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
+                    log.error(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
+                } else log.debug(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
             });
 
             return Promise.reject('you are banned in one or more trading communities');
@@ -88,6 +87,7 @@ export default class UserCart extends Cart {
                     }
                 }
             } catch (err) {
+                log.error('Failed to check for duped items: ', err);
                 return Promise.reject('failed to check for duped items, try sending an offer instead');
             }
         }
@@ -474,7 +474,11 @@ export default class UserCart extends Cart {
         try {
             await theirInventory.fetch();
         } catch (err) {
-            return Promise.reject('Failed to load inventories (Steam might be down)');
+            log.error(`Failed to load inventories (${this.partner.getSteamID64()}): `, err);
+            return Promise.reject(
+                'Failed to load your inventory, Steam might be down. ' +
+                    'Please try again later. If you have your profile/inventory set to private, please set it to public and try again.'
+            );
         }
 
         this.theirInventoryCount = theirInventory.getTotalItems;

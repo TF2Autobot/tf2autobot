@@ -2371,7 +2371,7 @@ class PriceUpdateQueue {
                 log.debug(`Sent ${sku} update to Discord.`);
             })
             .catch(err => {
-                log.debug(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
+                log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
             })
             .finally(() => {
                 this.isProcessing = false;

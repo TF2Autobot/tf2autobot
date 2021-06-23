@@ -48,20 +48,20 @@ export const killstreakersData: { [name: string]: string } = {
 };
 
 export const spellsData: { [name: string]: string } = {
-    'Team Spirit Footprints': 's-1000',
-    'Gangreen Footprints': 's-1001',
-    'Corpse Gray Footprints': 's-1002',
-    'Violent Violet Footprints': 's-1003',
-    'Rotten Orange Footprints': 's-1004',
-    'Bruised Purple Footprints': 's-1005',
-    'Headless Horseshoes': 's-1006',
-    'Putrescent Pigmentation': 's-2000',
-    'Die Job': 's-2001',
-    'Chromatic Corruption': 's-2002',
-    'Spectral Spectrum': 's-2003',
-    'Sinister Staining': 's-2004',
-    'Voices From Below': 's-3000',
-    Exorcism: 's-4000',
-    'Pumpkin Bombs': 's-5000',
-    'Halloween Fire': 's-6000'
+    'Team Spirit Footprints': 's-1005-1',
+    'Headless Horseshoes': 's-1005-2',
+    'Gangreen Footprints': 's-1005-8421376',
+    'Corpse Gray Footprints': 's-1005-3100495',
+    'Violent Violet Footprints': 's-1005-5322826',
+    'Rotten Orange Footprints': 's-1005-13595446',
+    'Bruised Purple Footprints': 's-1005-8208497',
+    'Die Job': 's-1004-0',
+    'Chromatic Corruption': 's-1004-1',
+    'Putrescent Pigmentation': 's-1004-2',
+    'Spectral Spectrum': 's-1004-3',
+    'Sinister Staining': 's-1004-4',
+    'Voices From Below': 's-1006-1',
+    'Pumpkin Bombs': 's-1007-1',
+    'Halloween Fire': 's-1008-1',
+    Exorcism: 's-1009-1'
 };

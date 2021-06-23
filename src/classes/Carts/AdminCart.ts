@@ -121,12 +121,16 @@ export default class AdminCart extends Cart {
                 this.bot.effects,
                 this.bot.paints,
                 this.bot.strangeParts,
-                'their'
+                'admin'
             );
 
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
-                    return reject('Failed to load inventories (Steam might be down)');
+                    log.error(`Failed to load admin inventories (${this.partner.getSteamID64()}): `, err);
+                    return reject(
+                        'Failed to load your inventory, Steam might be down. ' +
+                            'Please try again later. If you have your profile/inventory set to private, please set it to public and try again.'
+                    );
                 }
 
                 // Add their items

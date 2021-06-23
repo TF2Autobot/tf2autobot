@@ -334,7 +334,7 @@ export default abstract class Cart {
 
         this.offer.data('handleTimestamp', dayjs().valueOf());
 
-        this.offer.setMessage(opt.customMessage.sendOffer ? opt.customMessage.sendOffer : '.');
+        this.offer.setMessage(opt.customMessage.sendOffer ? opt.customMessage.sendOffer : 'Thank you for the trade!');
 
         if (this.notify === true) {
             this.offer.data('notify', true);
@@ -556,7 +556,7 @@ export default abstract class Cart {
                 },
                 (err, reponse, body) => {
                     if (err) {
-                        log.debug('Failed requesting bot info from backpack.tf: ', err);
+                        log.error('Failed requesting user info from backpack.tf: ', err);
                         return resolve(0);
                     }
 

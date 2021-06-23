@@ -269,7 +269,9 @@ class Pricecheck {
             if (err) {
                 this.submitted++;
                 this.failed++;
-                log.warn(`pricecheck failed for ${this.sku}: ${JSON.stringify(err)}`);
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                log.warn(`pricecheck failed for ${this.sku}: ${errMessage}`);
                 log.debug(
                     `pricecheck for ${this.sku} failed, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
                 );

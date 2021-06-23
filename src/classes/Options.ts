@@ -126,6 +126,7 @@ export const DEFAULTS: JsonOptions = {
         showItemPrices: true,
         showPureInEmoji: false,
         showProperName: false,
+        showOfferMessage: false,
         customText: {
             summary: {
                 steamChat: 'Summary',
@@ -138,6 +139,10 @@ export const DEFAULTS: JsonOptions = {
             offered: {
                 steamChat: '• Offered:',
                 discordWebhook: '**• Offered:**'
+            },
+            offerMessage: {
+                steamChat: '💬 Offer message:',
+                discordWebhook: '💬 **Offer message:**'
             },
             profitFromOverpay: {
                 steamChat: '📈 Profit from overpay:',
@@ -181,6 +186,14 @@ export const DEFAULTS: JsonOptions = {
                 toOtherAdmins: '/quote'
                 // toTradePartner is in commands.message.customReply.fromOwner
             }
+        },
+        notifyTradePartner: {
+            onSuccessAccepted: true,
+            onSuccessAcceptedEscrow: true,
+            onDeclined: true,
+            onCancelled: true,
+            onTradedAway: true,
+            onOfferForReview: true
         }
     },
 
@@ -1144,6 +1157,7 @@ export interface TradeSummary {
     showItemPrices?: boolean;
     showPureInEmoji?: boolean;
     showProperName?: boolean;
+    showOfferMessage?: boolean;
     customText?: TradeSummaryCustomText;
 }
 
@@ -1151,6 +1165,7 @@ interface TradeSummaryCustomText {
     summary: SteamDiscord;
     asked: SteamDiscord;
     offered: SteamDiscord;
+    offerMessage: SteamDiscord;
     profitFromOverpay: SteamDiscord;
     lossFromUnderpay: SteamDiscord;
     timeTaken: SteamDiscord;
@@ -1173,6 +1188,7 @@ interface SteamDiscord {
 
 interface SteamChat {
     customInitializer?: CustomInitializer;
+    notifyTradePartner?: NotifyTradePartner;
 }
 
 interface CustomInitializer {
@@ -1185,6 +1201,15 @@ interface CustomInitializer {
 interface CustomInitializerMessage {
     onReceive?: string;
     toOtherAdmins?: string;
+}
+
+interface NotifyTradePartner {
+    onSuccessAccepted: boolean;
+    onSuccessAcceptedEscrow: boolean;
+    onDeclined: boolean;
+    onCancelled: boolean;
+    onTradedAway: boolean;
+    onOfferForReview: boolean;
 }
 
 // ------------ HighValue ------------

@@ -21,7 +21,7 @@ export default class SocketManager {
 
     private socketUnauthorized() {
         return (err: Error) => {
-            log.debug('Failed to authenticate with socket server', {
+            log.warn('Failed to authenticate with socket server', {
                 error: err
             });
         };
@@ -62,6 +62,10 @@ export default class SocketManager {
 
             this.socket.on('blocked', (blocked: { expire: number }) => {
                 log.warn(`Socket blocked. Expires in ${blocked.expire}`);
+            });
+
+            this.socket.on('connect_error', err => {
+                log.warn(`Couldn't connect to socket server`, err);
             });
 
             resolve(undefined);

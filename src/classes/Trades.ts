@@ -286,7 +286,7 @@ export default class Trades {
 
         void Promise.resolve(this.bot.handler.onNewTradeOffer(offer)).asCallback((err, response) => {
             if (err) {
-                log.debug('Error occurred while handler was processing offer: ', err);
+                log.warn('Error occurred while handler was processing offer: ', err);
                 throw err;
             }
 
@@ -404,7 +404,7 @@ export default class Trades {
         if (isNotInvalidStates) {
             const opt = this.bot.options;
 
-            if (opt.sendAlert.failedAccept) {
+            if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                 const keyPrices = this.bot.pricelist.getKeyPrices;
                 const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
 
@@ -599,7 +599,7 @@ export default class Trades {
                 if (status === 'pending') {
                     // Maybe wait for confirmation to be accepted and then resolve?
                     this.acceptConfirmation(offer).catch(err => {
-                        log.debug(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
+                        log.warn(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
 
                         const isNotIgnoredError =
                             !(err as CustomError).message?.includes('Could not act on confirmation') &&
@@ -609,7 +609,7 @@ export default class Trades {
                             // Only notify if error is not "Could not act on confirmation" or not "Could not find confirmation for object"
                             const opt = this.bot.options;
 
-                            if (opt.sendAlert.failedAccept) {
+                            if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                                 const keyPrices = this.bot.pricelist.getKeyPrices;
                                 const value = t.valueDiff(
                                     offer,
@@ -716,11 +716,11 @@ export default class Trades {
             log.debug('Fetching their inventory...');
             void theirInventory.fetch().asCallback(err => {
                 if (err) {
+                    log.error(`Failed to load inventories (${offer.partner.getSteamID64()}): `, err);
                     return reject(
                         new Error(
-                            `Failed to load inventories (Steam might be down, or private inventory): ${JSON.stringify(
-                                err
-                            )}`
+                            `Failed to load your inventories (Steam might down). Please try again later.` +
+                                ` If your profile/inventory is set to private, please set it to public and try again.`
                         )
                     );
                 }
@@ -831,7 +831,18 @@ export default class Trades {
                         tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
                         tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
                     ) {
-                        return reject(new Error("Couldn't counter an offer - value mismatch"));
+                        return reject(
+                            new Error(
+                                `Couldn't counter an offer - value mismatch:\n${JSON.stringify({
+                                    value: NonPureWorth,
+                                    needToTakeWeapon,
+                                    ourTradesValue: tradeValues.our,
+                                    ourItems: dataDict.our,
+                                    theirTradesValue: tradeValues.their,
+                                    theirItems: dataDict.their
+                                })}`
+                            )
+                        );
                         // Maybe add some info that they can provide us so we can fix it if it happens again?
                     }
 
@@ -888,9 +899,11 @@ export default class Trades {
                             log.debug(`Done counteroffer for offer #${offer.id}`);
                             return resolve();
                         })
-                        .catch(err =>
-                            reject(new Error(`Something wrong while sending countered offer: ${JSON.stringify(err)}`))
-                        );
+                        .catch(err => {
+                            const errStringify = JSON.stringify(err);
+                            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                            reject(new Error(`Something wrong while sending countered offer: ${errMessage}`));
+                        });
                 };
 
                 const values = offer.data('value') as ItemsValue;
@@ -1354,6 +1367,8 @@ export default class Trades {
                                 void this.triggerRestartBot(offer.partner);
                             }, 2 * 1000);
 
+                            log.error('Escrow check failed: ', err);
+
                             return reject(operation.mainError());
                         }
 
@@ -1401,20 +1416,24 @@ export default class Trades {
                 clearTimeout(this.restartOnEscrowCheckFailed);
                 this.retryToRestart(steamID);
 
+                log.warn('Failed to perform restart - bptf down: ', err);
+
                 if (dwEnabled) {
                     return sendAlert(
                         'escrow-check-failed-not-restart-bptf-down',
                         this.bot,
-                        null,
+                        err,
                         this.escrowCheckFailedCount
                     );
                 } else {
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return this.bot.messageAdmins(
                         `❌ Unable to perform automatic restart due to Escrow check problem, which has failed for ${pluralize(
                             'time',
                             this.escrowCheckFailedCount,
                             true
-                        )} because backpack.tf is currently down.`,
+                        )} because backpack.tf is currently down: ${errMessage}`,
                         []
                     );
                 }
@@ -1431,6 +1450,8 @@ export default class Trades {
                 // do not restart during Steam weekly maintenance, try again after 3 minutes
                 clearTimeout(this.restartOnEscrowCheckFailed);
                 this.retryToRestart(steamID);
+
+                log.warn('Failed to perform restart - Steam is not good now: ');
 
                 if (dwEnabled) {
                     return sendAlert(
