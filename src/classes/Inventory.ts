@@ -366,7 +366,7 @@ export default class Inventory {
         const isNormalizePainted = isAdmin ? false : opt.normalize.painted[which as 'our' | 'their'];
 
         for (let i = 0; i < itemsCount; i++) {
-            let sku = items[i].getSKU(
+            const getSku = items[i].getSKU(
                 schema,
                 isNormalizeFestivized,
                 isNormalizeStrangeAsSecondQuality,
@@ -375,9 +375,11 @@ export default class Inventory {
                 this.paintedOptions
             );
 
+            let sku = getSku.sku;
+
             if (
+                getSku.isPainted &&
                 this.paintedExceptionNotEmpty &&
-                /;[p][0-9]+/.test(sku) &&
                 this.paintedExceptionSkus.some(exSku => sku.includes(exSku)) // do like this so ";5" is possible
             ) {
                 sku = removePaintedPartialSku(sku);
