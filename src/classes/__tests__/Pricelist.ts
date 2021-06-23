@@ -9,7 +9,7 @@ import { getPricer } from '../../lib/pricer/pricer';
 
 jest.mock('../../lib/pricer-api');
 
-it('can pricecheck', async done => {
+it('can pricecheck', async () => {
     const paths = genPaths('test');
     init(paths, { debug: true, debugFile: false });
     const prices = getPricer({});
@@ -44,5 +44,4 @@ it('can pricecheck', async done => {
     expect(priceList.hasPrice('5021;6')).toEqual(false);
     expect(priceList.getPrice('5021;6')).toBeNull();
     // expect(priceList.searchByName('Mann Co. Supply Crate Key')).toBeNull();
-    done();
 });
