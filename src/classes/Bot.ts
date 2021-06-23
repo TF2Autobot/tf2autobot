@@ -577,7 +577,7 @@ export default class Bot {
         });
     }
 
-    private setProperties(): void {
+    setProperties(): void {
         this.effects = this.schema.getUnusualEffects();
         this.paints = this.schema.getPaints();
         this.strangeParts = this.schema.getStrangeParts();
@@ -595,6 +595,7 @@ export default class Bot {
             spy: this.schema.getWeaponsForCraftingByClass('Spy')
         };
 
+        clearInterval(this.updateSchemaPropertiesInterval);
         this.refreshSchemaProperties();
     }
 
