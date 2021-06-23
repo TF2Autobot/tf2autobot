@@ -2046,7 +2046,7 @@ function replaceOldProperties(options: Options): boolean {
     // Automatically replace old properties
     let isChanged = false;
 
-    // <= v4.1.2 → v4.2.0
+    // <= v4.1.5 → v4.2.0
     const hv = options.highValue;
     const spells = hv.spells;
     if (Array.isArray(spells)) {
