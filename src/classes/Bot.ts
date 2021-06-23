@@ -30,7 +30,7 @@ import Pricer from './Pricer';
 
 export default class Bot {
     // Modules and classes
-    readonly schema: SchemaManager.Schema;
+    schema: SchemaManager.Schema; // should be readonly
 
     readonly bptf: BptfLogin;
 
@@ -42,7 +42,7 @@ export default class Bot {
 
     readonly community: SteamCommunity;
 
-    readonly listingManager: ListingManager;
+    listingManager: ListingManager; // should be readonly
 
     readonly friends: Friends;
 
@@ -56,9 +56,11 @@ export default class Bot {
 
     readonly handler: MyHandler;
 
-    readonly inventoryManager: InventoryManager;
+    inventoryManager: InventoryManager; // should be readonly
 
-    readonly pricelist: Pricelist;
+    pricelist: Pricelist; // should be readonly
+
+    schemaManager: SchemaManager; // should be readonly
 
     public effects: Effect[];
 
@@ -109,8 +111,6 @@ export default class Bot {
     constructor(public readonly botManager: BotManager, public options: Options, private priceSource: Pricer) {
         this.botManager = botManager;
 
-        this.schema = this.botManager.getSchema;
-
         this.client = new SteamUser();
         this.community = new SteamCommunity();
         this.manager = new TradeOfferManager({
@@ -122,13 +122,6 @@ export default class Bot {
             pendingCancelTime: 1.5 * 60 * 1000
         });
 
-        this.listingManager = new ListingManager({
-            token: this.options.bptfAccessToken,
-            userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
-            batchSize: 25,
-            waitTime: 100,
-            schema: this.schema
-        });
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
 
@@ -139,15 +132,6 @@ export default class Bot {
         this.tf2gc = new TF2GC(this);
 
         this.handler = new MyHandler(this, this.priceSource);
-
-        this.pricelist = new Pricelist(
-            this.priceSource,
-            this.schema,
-            this.botManager.getSocketManager,
-            this.options,
-            this
-        );
-        this.inventoryManager = new InventoryManager(this.pricelist);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
 
@@ -299,6 +283,20 @@ export default class Bot {
         });
     }
 
+    initializeSchema(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.schemaManager.init(err => {
+                if (err) {
+                    return reject(err);
+                }
+
+                this.schema = this.schemaManager.schema;
+
+                return resolve();
+            });
+        });
+    }
+
     start(): Promise<void> {
         let data: {
             loginAttempts?: number[];
@@ -325,24 +323,6 @@ export default class Bot {
         this.addListener(this.manager, 'sentOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
-
-        this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
-        this.addListener(
-            this.listingManager,
-            'createListingsError',
-            this.handler.onCreateListingsError.bind(this),
-            true
-        );
-        this.addListener(
-            this.listingManager,
-            'deleteListingsError',
-            this.handler.onDeleteListingsError.bind(this),
-            true
-        );
-
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this.addListener(this.pricelist, 'pricelist', this.handler.onPricelist.bind(this.handler), false);
-        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
@@ -393,43 +373,11 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
-                            this.setProperties();
-
-                            this.inventoryManager.setInventory = new Inventory(
-                                this.client.steamID,
-                                this.manager,
-                                this.schema,
-                                this.options,
-                                this.effects,
-                                this.paints,
-                                this.strangeParts,
-                                'our'
-                            );
-
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         };
 
                         void this.login(data.loginKey || null).asCallback(loginResponse);
-                    },
-                    (callback): void => {
-                        if (this.options.enableSocket === false) {
-                            log.warn('Disabling socket...');
-                            this.botManager.getSocketManager.shutDown();
-                        } else {
-                            this.pricelist.init();
-                        }
-
-                        log.info('Setting up pricelist...');
-
-                        const pricelist = Array.isArray(data.pricelist)
-                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
-                                  buff[e.sku] = e;
-                                  return buff;
-                              }, {}) as PricesDataObject)
-                            : data.pricelist || {};
-
-                        void this.pricelist.setPricelist(pricelist, this).asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Waiting for web session');
@@ -464,6 +412,77 @@ export default class Bot {
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         });
+                    },
+                    (callback): void => {
+                        log.info('Getting Steam API key...');
+                        void this.setCookies(cookies).asCallback(callback);
+                    },
+                    (callback): void => {
+                        this.schemaManager = new SchemaManager({
+                            apiKey: this.manager.apiKey,
+                            updateTime: 24 * 60 * 60 * 1000
+                        });
+
+                        log.info('Getting TF2 schema...');
+                        void this.initializeSchema().asCallback(callback);
+                    },
+                    (callback): void => {
+                        log.info('Setting properties, inventory, etc...');
+                        this.pricelist = new Pricelist(
+                            this.priceSource,
+                            this.schema,
+                            this.botManager.getSocketManager,
+                            this.options,
+                            this
+                        );
+                        this.inventoryManager = new InventoryManager(this.pricelist);
+
+                        this.listingManager = new ListingManager({
+                            token: this.options.bptfAccessToken,
+                            userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
+                            batchSize: 25,
+                            waitTime: 100,
+                            schema: this.schema
+                        });
+
+                        this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
+                        this.addListener(
+                            this.listingManager,
+                            'createListingsError',
+                            this.handler.onCreateListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteListingsError',
+                            this.handler.onDeleteListingsError.bind(this),
+                            true
+                        );
+
+                        this.addListener(
+                            this.pricelist,
+                            'pricelist',
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            this.handler.onPricelist.bind(this.handler),
+                            false
+                        );
+                        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
+
+                        this.setProperties();
+
+                        this.inventoryManager.setInventory = new Inventory(
+                            this.client.steamID,
+                            this.manager,
+                            this.schema,
+                            this.options,
+                            this.effects,
+                            this.paints,
+                            this.strangeParts,
+                            'our'
+                        );
+
+                        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                        return callback(null);
                     },
                     (callback): void => {
                         log.info('Initializing inventory, bptf-listings, and profile settings');
@@ -501,8 +520,23 @@ export default class Bot {
                         );
                     },
                     (callback): void => {
-                        log.info('Getting Steam API key...');
-                        void this.setCookies(cookies).asCallback(callback);
+                        if (this.options.enableSocket === false) {
+                            log.warn('Disabling socket...');
+                            this.botManager.getSocketManager.shutDown();
+                        } else {
+                            this.pricelist.init();
+                        }
+
+                        log.info('Setting up pricelist...');
+
+                        const pricelist = Array.isArray(data.pricelist)
+                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
+                                  buff[e.sku] = e;
+                                  return buff;
+                              }, {}) as PricesDataObject)
+                            : data.pricelist || {};
+
+                        void this.pricelist.setPricelist(pricelist, this).asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
@@ -531,9 +565,6 @@ export default class Bot {
                         return resolve();
                     }
 
-                    log.debug('Setting Steam API Key to schema');
-                    this.botManager.setAPIKeyForSchema = this.manager.apiKey;
-
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
@@ -546,7 +577,7 @@ export default class Bot {
         });
     }
 
-    private setProperties(): void {
+    setProperties(): void {
         this.effects = this.schema.getUnusualEffects();
         this.paints = this.schema.getPaints();
         this.strangeParts = this.schema.getStrangeParts();
@@ -563,6 +594,15 @@ export default class Bot {
             sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
             spy: this.schema.getWeaponsForCraftingByClass('Spy')
         };
+
+        clearInterval(this.updateSchemaPropertiesInterval);
+        this.refreshSchemaProperties();
+    }
+
+    private refreshSchemaProperties(): void {
+        this.updateSchemaPropertiesInterval = setInterval(() => {
+            this.setProperties();
+        }, 24 * 60 * 60 * 1000);
     }
 
     setCookies(cookies: string[]): Promise<void> {

@@ -92,7 +92,8 @@ export default class HelpCommands {
                         "!name <new_name> - Change the bot's name",
                         "!avatar <image_URL> - Change the bot's avatar",
                         '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
-                        '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑'
+                        '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑',
+                        '!refreshSchema - Force refresh TF2 Schema when new update arrived (do not spam this)'
                     ].join('\n- ')
             );
 

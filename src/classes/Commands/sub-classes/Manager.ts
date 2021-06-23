@@ -20,11 +20,17 @@ type BlockUnblock = 'block' | 'unblock';
 export default class ManagerCommands {
     private pricelistCount = 0;
 
-    private executed = false;
+    private executedRefreshList = false;
 
-    private lastExecutedTime: number | null = null;
+    private lastExecutedRefreshListTime: number | null = null;
 
-    private executeTimeout: NodeJS.Timeout;
+    private executeRefreshListTimeout: NodeJS.Timeout;
+
+    private executedRefreshSchema = false;
+
+    private lastExecutedRefreshSchemaTime: number | null = null;
+
+    private executeRefreshSchemaTimeout: NodeJS.Timeout;
 
     constructor(private readonly bot: Bot) {
         this.bot = bot;
@@ -423,9 +429,9 @@ export default class ManagerCommands {
         }
 
         const newExecutedTime = dayjs().valueOf();
-        const timeDiff = newExecutedTime - this.lastExecutedTime;
+        const timeDiff = newExecutedTime - this.lastExecutedRefreshListTime;
 
-        if (this.executed === true) {
+        if (this.executedRefreshList === true) {
             return this.bot.sendMessage(
                 steamID,
                 `⚠️ You need to wait ${Math.trunc(
@@ -522,8 +528,8 @@ export default class ManagerCommands {
                 const pricelistCount = Object.keys(pricelist).length;
 
                 if (pricelistCount > 0) {
-                    clearTimeout(this.executeTimeout);
-                    this.lastExecutedTime = dayjs().valueOf();
+                    clearTimeout(this.executeRefreshListTimeout);
+                    this.lastExecutedRefreshListTime = dayjs().valueOf();
 
                     log.debug(
                         'Checking listings for ' +
@@ -539,12 +545,12 @@ export default class ManagerCommands {
                     this.bot.handler.isRecentlyExecuteRefreshlistCommand = true;
                     this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
                     this.pricelistCount = pricelistCount;
-                    this.executed = true;
-                    this.executeTimeout = setTimeout(() => {
-                        this.lastExecutedTime = null;
-                        this.executed = false;
+                    this.executedRefreshList = true;
+                    this.executeRefreshListTimeout = setTimeout(() => {
+                        this.lastExecutedRefreshListTime = null;
+                        this.executedRefreshList = false;
                         this.bot.handler.isRecentlyExecuteRefreshlistCommand = false;
-                        clearTimeout(this.executeTimeout);
+                        clearTimeout(this.executeRefreshListTimeout);
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
                     await this.bot.listings.recursiveCheckPricelist(
@@ -661,5 +667,42 @@ export default class ManagerCommands {
          */
 
         return reply;
+    }
+
+    refreshSchema(steamID: SteamID): void {
+        const newExecutedTime = dayjs().valueOf();
+        const timeDiff = newExecutedTime - this.lastExecutedRefreshSchemaTime;
+
+        if (this.executedRefreshSchema === true) {
+            return this.bot.sendMessage(
+                steamID,
+                `⚠️ You need to wait ${Math.trunc(
+                    (30 * 60 * 1000 - timeDiff) / (1000 * 60)
+                )} minutes before you run update schema command again.`
+            );
+        } else {
+            clearTimeout(this.executeRefreshSchemaTimeout);
+            this.lastExecutedRefreshSchemaTime = dayjs().valueOf();
+
+            this.bot.schemaManager.getSchema(err => {
+                if (err) {
+                    log.error('Error getting schema on !refreshSchema command:', err);
+                    return this.bot.sendMessage(steamID, `❌ Error getting TF2 Schema: ${JSON.stringify(err)}`);
+                }
+
+                log.debug('Refreshing TF2 Schema...');
+                this.bot.schema = this.bot.schemaManager.schema;
+                this.bot.setProperties();
+
+                this.executedRefreshSchema = true;
+                this.executeRefreshSchemaTimeout = setTimeout(() => {
+                    this.lastExecutedRefreshSchemaTime = null;
+                    this.executedRefreshSchema = false;
+                    clearTimeout(this.executeRefreshSchemaTimeout);
+                }, 30 * 60 * 1000);
+
+                this.bot.sendMessage(steamID, '✅ Refresh schema success!');
+            });
+        }
     }
 }

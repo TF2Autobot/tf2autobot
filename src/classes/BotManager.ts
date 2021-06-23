@@ -18,7 +18,7 @@ const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SEC
 export default class BotManager {
     private readonly socketManager: SocketManager;
 
-    private readonly schemaManager: SchemaManager;
+    private schemaManager: SchemaManager;
 
     public bot: Bot = null;
 
@@ -32,8 +32,6 @@ export default class BotManager {
 
     constructor(private readonly pricer: Pricer) {
         this.pricer = pricer;
-        this.schemaManager = new SchemaManager({});
-        this.patchSchemaManager();
         this.extendTradeOfferApis();
         const priceToken = pricer.getOptions().pricerApiToken;
         this.socketManager = new SocketManager(pricer.getOptions().pricerUrl, priceToken ? priceToken : null);
@@ -51,30 +49,6 @@ export default class BotManager {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
             TradeOffer.prototype[v] = require('../lib/extend/offer/' + v);
         });
-    }
-
-    private patchSchemaManager() {
-        // Make the schema manager request the schema from PricesTF/custom pricer
-        const priceManager = this.pricer;
-        this.schemaManager.getSchema = function (callback): void {
-            priceManager
-                .getSchema()
-                .then(schema => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-                    this.setSchema(schema, true);
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    callback(null, this.schema);
-                })
-                .catch(err => callback(err));
-        };
-    }
-
-    get getSchema(): SchemaManager.Schema | null {
-        return this.schemaManager.schema;
-    }
-
-    set setAPIKeyForSchema(apiKey: string) {
-        this.schemaManager.setAPIKey(apiKey);
     }
 
     get getSocketManager(): SocketManager {
@@ -108,10 +82,6 @@ export default class BotManager {
                         void this.socketManager.init().asCallback(callback);
                     },
                     (callback): void => {
-                        log.info('Getting TF2 schema...');
-                        void this.initializeSchema().asCallback(callback);
-                    },
-                    (callback): void => {
                         log.info('Starting bot...');
 
                         this.bot = new Bot(this, options, this.pricer);
@@ -141,6 +111,8 @@ export default class BotManager {
                         log.info('Connecting to socket server...');
                         this.socketManager.connect();
                     }
+
+                    this.schemaManager = this.bot.schemaManager;
 
                     return resolve();
                 }
@@ -236,13 +208,13 @@ export default class BotManager {
             this.bot.manager.pollInterval = -1;
 
             // Stop updating schema
-            clearTimeout(this.schemaManager._updateTimeout);
-            clearInterval(this.schemaManager._updateInterval);
+            clearTimeout(this.schemaManager?._updateTimeout);
+            clearInterval(this.schemaManager?._updateInterval);
             clearInterval(this.bot.updateSchemaPropertiesInterval);
 
             // Stop heartbeat and inventory timers
-            clearInterval(this.bot.listingManager._heartbeatInterval);
-            clearInterval(this.bot.listingManager._inventoryInterval);
+            clearInterval(this.bot.listingManager?._heartbeatInterval);
+            clearInterval(this.bot.listingManager?._inventoryInterval);
         }
 
         // Disconnect from socket server to stop price updates
@@ -281,18 +253,6 @@ export default class BotManager {
     connectToPM2(): Promise<void> {
         return new Promise((resolve, reject) => {
             pm2.connect(err => {
-                if (err) {
-                    return reject(err);
-                }
-
-                return resolve();
-            });
-        });
-    }
-
-    initializeSchema(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.schemaManager.init(err => {
                 if (err) {
                     return reject(err);
                 }
