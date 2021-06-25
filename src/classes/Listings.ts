@@ -66,8 +66,10 @@ export default class Listings {
     }
 
     disableAutorelistOption(): void {
-        this.bot.listingManager.removeListener('pulse', this.checkFn);
-        this.disableAutoRelist(false, 'permanent');
+        if (this.bot.listingManager) {
+            this.bot.listingManager.removeListener('pulse', this.checkFn);
+            this.disableAutoRelist(false, 'permanent');
+        }
     }
 
     private enableAutoRelist(): void {
