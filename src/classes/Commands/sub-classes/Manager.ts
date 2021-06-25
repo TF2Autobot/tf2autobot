@@ -439,7 +439,7 @@ export default class ManagerCommands {
                 )} minutes before you run refresh listings command again.`
             );
         } else {
-            const listingsSKUs: string[] = [];
+            const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
             this.bot.listingManager.getListings(async err => {
                 if (err) {
                     log.error('Unable to refresh listings: ', err);
@@ -494,12 +494,15 @@ export default class ManagerCommands {
                         listing.remove();
                     }
 
-                    listingsSKUs.push(listingSKU);
+                    if (listingsSKUs[listingSKU]) {
+                        listingsSKUs[listingSKU].intent.push(listing.intent);
+                    } else {
+                        listingsSKUs[listingSKU] = {
+                            intent: [listing.intent]
+                        };
+                    }
                 });
 
-                // Remove duplicate elements
-                const setSKUs = new Set(listingsSKUs);
-                const uniqueSKUs = [...setSKUs];
                 const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
 
                 for (const sku in pricelist) {
@@ -507,15 +510,22 @@ export default class ManagerCommands {
                         continue;
                     }
 
-                    if (uniqueSKUs.includes(sku) && pricelist[sku].max === 1) {
-                        delete pricelist[sku];
-                        continue;
+                    const entry = pricelist[sku];
+                    const listing = listingsSKUs[sku];
+
+                    if (listing) {
+                        if (listing.intent.length === 1 && entry.max > 1) {
+                            // do nothing here - we will let the other if to check if it's missing or not.
+                        } else {
+                            delete pricelist[sku];
+                            continue;
+                        }
                     }
 
                     const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
 
                     if (
-                        (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
+                        (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
                         inventory.getAmount(sku, false, true) > 0
                     ) {
                         // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
