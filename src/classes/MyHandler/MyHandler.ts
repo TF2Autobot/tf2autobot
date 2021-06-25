@@ -321,7 +321,9 @@ export default class MyHandler extends Handler {
         // Send notification to admin/Discord Webhook if there's any partially priced item got reset on updateOldPrices
         const bulkUpdatedPartiallyPriced = this.bot.pricelist.partialPricedUpdateBulk;
 
-        if (bulkUpdatedPartiallyPriced.length > 0) {
+        const count = bulkUpdatedPartiallyPriced.length;
+        if (count > 0 && count < 20) {
+            // we send only if less than 20
             const dw = this.opt.discordWebhook.sendAlert;
             const isDwEnabled = dw.enable && dw.url !== '';
 
