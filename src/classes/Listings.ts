@@ -56,18 +56,22 @@ export default class Listings {
             return;
         }
 
-        // Autobump is enabled, add pulse listener
+        // Autobump is enabled, add autorelist listener
 
-        this.bot.listingManager.removeListener('pulse', this.checkFn);
-        this.bot.listingManager.on('pulse', this.checkFn);
+        this.bot.listingManager.removeListener('autorelist', this.checkFn);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.bot.listingManager.on('autorelist', this.checkFn);
 
         // Get account info
         this.checkAccountInfo();
     }
 
     disableAutorelistOption(): void {
-        this.bot.listingManager.removeListener('pulse', this.checkFn);
-        this.disableAutoRelist(false, 'permanent');
+        if (this.bot.listingManager) {
+            this.bot.listingManager.removeListener('autorelist', this.checkFn);
+            this.disableAutoRelist(false, 'permanent');
+        }
     }
 
     private enableAutoRelist(): void {
