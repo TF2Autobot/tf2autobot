@@ -17,7 +17,9 @@ export default function sendPartnerMessage(
     const discordPartnerMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-        content: `${opt.messages.isMention ? `<@!${opt.ownerID}>, ` : ''}new message! - ${steamID}`,
+        content: `${
+            opt.messages.isMention ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, ` : ''
+        }new message! - ${steamID}`,
         embeds: [
             {
                 author: {

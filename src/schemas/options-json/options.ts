@@ -1299,7 +1299,7 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 ownerID: {
-                    type: 'string',
+                    $ref: '#/definitions/string-array',
                     pattern: '^$|^[0-9]+$'
                 },
                 displayName: {
