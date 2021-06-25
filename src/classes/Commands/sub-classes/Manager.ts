@@ -536,7 +536,8 @@ export default class ManagerCommands {
                     }
                 }
 
-                const pricelistCount = Object.keys(pricelist).length;
+                const skusToCheck = Object.keys(pricelist);
+                const pricelistCount = skusToCheck.length;
 
                 if (pricelistCount > 0) {
                     clearTimeout(this.executeRefreshListTimeout);
@@ -545,7 +546,7 @@ export default class ManagerCommands {
                     log.debug(
                         'Checking listings for ' +
                             pluralize('item', pricelistCount, true) +
-                            ` [${Object.keys(pricelist).join(', ')}] ...`
+                            ` [${skusToCheck.join(', ')}] ...`
                     );
 
                     this.bot.sendMessage(
@@ -565,7 +566,7 @@ export default class ManagerCommands {
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
                     await this.bot.listings.recursiveCheckPricelist(
-                        Object.keys(pricelist),
+                        skusToCheck,
                         pricelist,
                         true,
                         this.pricelistCount > 4000 ? 400 : 200,
