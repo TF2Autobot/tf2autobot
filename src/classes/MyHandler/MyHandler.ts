@@ -614,7 +614,8 @@ export default class MyHandler extends Handler {
                     });
 
                     // Remove duplicate elements
-                    const uniqueSKUs = [...new Set(listingsSKUs)];
+                    const setSKUs = new Set(listingsSKUs);
+                    const uniqueSKUs = [...setSKUs];
                     const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
 
                     for (const sku in pricelist) {
@@ -622,7 +623,7 @@ export default class MyHandler extends Handler {
                             continue;
                         }
 
-                        if (uniqueSKUs.includes(sku)) {
+                        if (uniqueSKUs.includes(sku) && pricelist[sku].max === 1) {
                             delete pricelist[sku];
                             continue;
                         }
