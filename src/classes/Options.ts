@@ -420,7 +420,7 @@ export const DEFAULTS: JsonOptions = {
     },
 
     discordWebhook: {
-        ownerID: '',
+        ownerID: [''],
         displayName: '',
         avatarURL: '',
         embedColor: '9171753',
@@ -1425,7 +1425,7 @@ interface ManualReview extends OnlyEnable {
 // ------------ Discord Webhook ------------
 
 interface DiscordWebhook {
-    ownerID?: string;
+    ownerID?: string[];
     displayName?: string;
     avatarURL?: string;
     embedColor?: string;
@@ -2090,6 +2090,13 @@ function replaceOldProperties(options: Options): boolean {
             names: painted,
             exceptionSkus: []
         };
+        isChanged = true;
+    }
+
+    // <= v4.2.0 → v4.2.1
+    const ownerID = options.discordWebhook.ownerID;
+    if (!Array.isArray(ownerID)) {
+        options.discordWebhook.ownerID = [ownerID];
         isChanged = true;
     }
 

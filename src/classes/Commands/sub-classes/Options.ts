@@ -821,7 +821,9 @@ export default class OptionsCommands {
 
         if (knownParams.discordWebhook?.ownerID !== undefined) {
             // Stringify numbers
-            knownParams.discordWebhook.ownerID = String(knownParams.discordWebhook.ownerID);
+            if (Array.isArray(knownParams.discordWebhook.ownerID)) {
+                knownParams.discordWebhook.ownerID.map(id => String(id));
+            }
         }
 
         if (knownParams.discordWebhook?.embedColor !== undefined) {
@@ -1014,6 +1016,10 @@ export default class OptionsCommands {
 
         if (knownParams.offerReceived?.invalidValue?.exceptionValue?.skus !== undefined) {
             opt.offerReceived.invalidValue.exceptionValue.skus.length = 0;
+        }
+
+        if (knownParams.discordWebhook?.ownerID !== undefined) {
+            opt.discordWebhook.ownerID.length = 0;
         }
 
         if (knownParams.discordWebhook?.tradeSummary?.url !== undefined) {
