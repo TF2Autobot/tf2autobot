@@ -614,7 +614,8 @@ export default class MyHandler extends Handler {
                     });
 
                     // Remove duplicate elements
-                    const uniqueSKUs = [...new Set(listingsSKUs)];
+                    const setSKUs = new Set(listingsSKUs);
+                    const uniqueSKUs = [...setSKUs];
                     const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
 
                     for (const sku in pricelist) {
