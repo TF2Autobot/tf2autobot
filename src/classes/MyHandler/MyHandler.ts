@@ -629,22 +629,32 @@ export default class MyHandler extends Handler {
                         const entry = pricelist[sku];
                         const listing = listingsSKUs[sku];
 
+                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                        const amountAvailable = inventory.getAmount(sku, false, true);
+
                         if (listing) {
-                            if (listing.intent.length === 1 && entry.max > 1) {
-                                // do nothing here - we will let the other if to check if it's missing or not.
+                            if (
+                                listing.intent.length === 1 &&
+                                entry.max > 1 &&
+                                amountAvailable > 0 &&
+                                amountAvailable > entry.min
+                            ) {
+                                // here we only check if the bot already have that item
+                                log.debug(`Missing sell order listings: ${sku}`);
                             } else {
                                 delete pricelist[sku];
-                                continue;
                             }
+
+                            continue;
                         }
 
-                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                        // listing not exist
 
                         if (
                             (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
-                            inventory.getAmount(sku, false, true) > 0
+                            amountAvailable > 0
                         ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
                             // return this entry
                             log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
                         } else {
