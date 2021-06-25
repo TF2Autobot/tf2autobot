@@ -230,7 +230,7 @@ export default class BotManager {
 
         if (this.bot !== null) {
             this.bot.manager.shutdown();
-            this.bot.listingManager.shutdown();
+            this.bot.listingManager?.shutdown();
             this.bot.client.logOff();
         }
 
