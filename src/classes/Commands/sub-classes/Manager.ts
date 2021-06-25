@@ -506,7 +506,7 @@ export default class ManagerCommands {
                         continue;
                     }
 
-                    if (uniqueSKUs.includes(sku)) {
+                    if (uniqueSKUs.includes(sku) && pricelist[sku].max === 1) {
                         delete pricelist[sku];
                         continue;
                     }
