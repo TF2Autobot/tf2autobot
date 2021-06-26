@@ -519,6 +519,7 @@ export default class ManagerCommands {
                     if (listing) {
                         if (
                             listing.intent.length === 1 &&
+                            listing.intent[0] === 0 && // We only check if the only listing exist is buy order
                             entry.max > 1 &&
                             amountAvailable > 0 &&
                             amountAvailable > entry.min
