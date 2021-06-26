@@ -318,7 +318,7 @@ export default class OptionsCommands {
                         {
                             discordWebhook: {
                                 ownerID: webhook.ownerID,
-                                displayName: webhook.ownerID,
+                                displayName: webhook.displayName,
                                 avatarURL: webhook.avatarURL,
                                 embedColor: webhook.embedColor
                             }
