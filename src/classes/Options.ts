@@ -2048,56 +2048,60 @@ function replaceOldProperties(options: Options): boolean {
 
     // <= v4.1.5 → v4.2.0
     const hv = options.highValue;
-    const spells = hv.spells;
-    if (Array.isArray(spells)) {
-        options.highValue.spells = {
-            names: spells,
-            exceptionSkus: []
-        };
-        isChanged = true;
-    }
+    if (hv) {
+        const spells = hv.spells;
+        if (Array.isArray(spells)) {
+            options.highValue.spells = {
+                names: spells,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
 
-    const sheens = hv.sheens;
-    if (Array.isArray(sheens)) {
-        options.highValue.sheens = {
-            names: sheens,
-            exceptionSkus: []
-        };
-        isChanged = true;
-    }
+        const sheens = hv.sheens;
+        if (Array.isArray(sheens)) {
+            options.highValue.sheens = {
+                names: sheens,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
 
-    const killstreakers = hv.killstreakers;
-    if (Array.isArray(killstreakers)) {
-        options.highValue.killstreakers = {
-            names: killstreakers,
-            exceptionSkus: []
-        };
-        isChanged = true;
-    }
+        const killstreakers = hv.killstreakers;
+        if (Array.isArray(killstreakers)) {
+            options.highValue.killstreakers = {
+                names: killstreakers,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
 
-    const strangeParts = hv.strangeParts;
-    if (Array.isArray(strangeParts)) {
-        options.highValue.strangeParts = {
-            names: strangeParts,
-            exceptionSkus: []
-        };
-        isChanged = true;
-    }
+        const strangeParts = hv.strangeParts;
+        if (Array.isArray(strangeParts)) {
+            options.highValue.strangeParts = {
+                names: strangeParts,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
 
-    const painted = hv.painted;
-    if (Array.isArray(painted)) {
-        options.highValue.painted = {
-            names: painted,
-            exceptionSkus: []
-        };
-        isChanged = true;
+        const painted = hv.painted;
+        if (Array.isArray(painted)) {
+            options.highValue.painted = {
+                names: painted,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
     }
 
     // <= v4.2.0 → v4.2.1
-    const ownerID = options.discordWebhook.ownerID;
-    if (!Array.isArray(ownerID)) {
-        options.discordWebhook.ownerID = [ownerID];
-        isChanged = true;
+    if (options.discordWebhook) {
+        const ownerID = options.discordWebhook.ownerID;
+        if (!Array.isArray(ownerID)) {
+            options.discordWebhook.ownerID = [ownerID];
+            isChanged = true;
+        }
     }
 
     return isChanged;
