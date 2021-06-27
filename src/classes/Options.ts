@@ -2110,6 +2110,8 @@ function replaceOldProperties(options: Options): boolean {
                 } else {
                     options.discordWebhook.ownerID.length = 0;
                 }
+
+                isChanged = true;
             }
         }
     }
