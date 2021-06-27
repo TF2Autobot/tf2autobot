@@ -2099,7 +2099,7 @@ function replaceOldProperties(options: Options): boolean {
     if (options.discordWebhook) {
         const ownerID = options.discordWebhook.ownerID;
         if (!Array.isArray(ownerID)) {
-            options.discordWebhook.ownerID = [ownerID];
+            options.discordWebhook.ownerID = ownerID === '' ? [] : [ownerID];
             isChanged = true;
         }
     }
