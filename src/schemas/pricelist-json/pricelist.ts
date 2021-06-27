@@ -32,6 +32,9 @@ export const pricelistSchema: jsonschema.Schema = {
         sell: {
             $ref: 'tf2-currencies'
         },
+        limit: {
+            $ref: 'pricelist-limit'
+        },
         promoted: {
             type: 'integer',
             enum: [0, 1]
