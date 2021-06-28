@@ -420,7 +420,7 @@ export const DEFAULTS: JsonOptions = {
     },
 
     discordWebhook: {
-        ownerID: [''],
+        ownerID: [],
         displayName: '',
         avatarURL: '',
         embedColor: '9171753',

@@ -18,7 +18,7 @@ export default function sendPartnerMessage(
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
         content: `${
-            opt.messages.isMention ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, ` : ''
+            opt.messages.isMention && opt.ownerID.length > 0 ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, ` : ''
         }new message! - ${steamID}`,
         embeds: [
             {
