@@ -21,7 +21,7 @@ A free and open source fully automated TF2 trading bot advertising on www.backpa
 Before you install the bot, there are a few things you will need:
 
 -   You need a separate [Unlimited](https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663) Steam account with a mobile authenticator. I suggest using the [Steam Desktop Authenticator](https://github.com/Jessecar96/SteamDesktopAuthenticator) to authenticate the account and get the secret keys used to automate the generation of 2FA codes and managment of mobile confirmations.
--   NodeJS version 14.x or above
+-   NodeJS version 14.x LTS (version 15.x and above will break the socket module - or the autopricer)
 -   Typescript 4.1 or above
 
 ## JetBrains Support
@@ -53,10 +53,3 @@ Join the [TF2Autobot Discord server](https://discord.gg/4k5tmMkXjB) and head ove
 
 - Env variables: [↗](https://github.com/TF2Autobot/tf2autobot/wiki/Configuring-the-bot)
 - Options properties: [↗](https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file)
-
-<!-- ## Useful Modules
-
-### Typed
-
-1. [`xmlhttprequest-ts`](https://www.npmjs.com/package/xmlhttprequest-ts) - For sending trade summary/review offer/messages to Discord Webhook.
-2. [`tf2-item-format`](https://github.com/danocmx/node-tf2-item-format/tree/v4) by [@danocmx](https://github.com/danocmx) - to get item info (Spelled, Strange parts, etc). -->
