@@ -3,12 +3,8 @@ import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
 import validUrl from 'valid-url';
-import child from 'child_process';
-import fs from 'graceful-fs';
 import sleepasync from 'sleep-async';
-import path from 'path';
 import dayjs from 'dayjs';
-import { EPersonaState } from 'steam-user';
 import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -24,11 +20,17 @@ type BlockUnblock = 'block' | 'unblock';
 export default class ManagerCommands {
     private pricelistCount = 0;
 
-    private executed = false;
+    private executedRefreshList = false;
 
-    private lastExecutedTime: number | null = null;
+    private lastExecutedRefreshListTime: number | null = null;
 
-    private executeTimeout: NodeJS.Timeout;
+    private executeRefreshListTimeout: NodeJS.Timeout;
+
+    private executedRefreshSchema = false;
+
+    private lastExecutedRefreshSchemaTime: number | null = null;
+
+    private executeRefreshSchemaTimeout: NodeJS.Timeout;
 
     constructor(private readonly bot: Bot) {
         this.bot = bot;
@@ -59,7 +61,7 @@ export default class ManagerCommands {
 
             this.bot.tf2gc.useItem(assetids[0], err => {
                 if (err) {
-                    log.warn('Error trying to expand inventory: ', err);
+                    log.error('Error trying to expand inventory: ', err);
                     return this.bot.sendMessage(steamID, `❌ Failed to expand inventory: ${err.message}`);
                 }
 
@@ -309,10 +311,11 @@ export default class ManagerCommands {
         try {
             friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
         } catch (err) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ Error while trying to remove friends: ${(err as Error)?.message || JSON.stringify(err)}`
-            );
+            log.warn('Error while trying to remove friends:', err);
+
+            const errStringify = JSON.stringify(err);
+            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+            return this.bot.sendMessage(steamID, `❌ Error while trying to remove friends: ${errMessage}`);
         }
 
         const total = friendsToRemove.length;
@@ -356,7 +359,7 @@ export default class ManagerCommands {
             this.bot.client.removeFriend(steamid);
 
             // Prevent Steam from detecting the bot as spamming
-            await sleepasync().Promise.sleep(2 * 1000);
+            await sleepasync().Promise.sleep(2000);
         }
 
         this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
@@ -394,116 +397,6 @@ export default class ManagerCommands {
             });
     }
 
-    updaterepoCommand(steamID: SteamID): void {
-        if (!fs.existsSync(path.resolve(__dirname, '..', '..', '..', '..', '.git'))) {
-            return this.bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
-        }
-
-        if (process.env.pm_id === undefined) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ You're not running the bot with PM2!` +
-                    `\n\nNavigate to your bot folder and run ` +
-                    `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
-                    `and then restart your bot.`
-            );
-        }
-
-        this.bot.checkForUpdates
-            .then(({ hasNewVersion, latestVersion }) => {
-                if (!hasNewVersion) {
-                    return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
-                } else if (this.bot.lastNotifiedVersion === latestVersion) {
-                    this.bot.sendMessage(steamID, '⌛ Updating...');
-                    // Make the bot snooze on Steam, that way people will know it is not running
-                    this.bot.client.setPersona(EPersonaState.Snooze);
-
-                    // Set isUpdating status, so any command will not be processed
-                    this.bot.handler.isUpdatingStatus = true;
-
-                    // Stop polling offers
-                    this.bot.manager.pollInterval = -1;
-
-                    // Callback hell 😈
-
-                    // git reset HEAD --hard
-                    child.exec(
-                        'git reset HEAD --hard',
-                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                        () => {
-                            // ignore err
-
-                            // git checkout master
-                            child.exec(
-                                'git checkout master',
-                                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                () => {
-                                    // ignore err
-
-                                    this.bot.sendMessage(steamID, '⌛ Pulling changes...');
-
-                                    // git pull
-                                    child.exec(
-                                        'git pull --prune',
-                                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                        () => {
-                                            // ignore err
-
-                                            void promiseDelay(3 * 1000);
-
-                                            this.bot.sendMessage(steamID, '⌛ Installing packages...');
-
-                                            // npm install
-                                            child.exec(
-                                                'npm install',
-                                                { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                                () => {
-                                                    // ignore err
-
-                                                    // 10 seconds delay, because idk why this always cause some problem
-                                                    void promiseDelay(10 * 1000);
-
-                                                    this.bot.sendMessage(
-                                                        steamID,
-                                                        '⌛ Compiling TypeScript codes into JavaScript...'
-                                                    );
-
-                                                    // tsc -p .
-                                                    child.exec(
-                                                        'npm run build',
-                                                        { cwd: path.resolve(__dirname, '..', '..', '..', '..') },
-                                                        () => {
-                                                            // ignore err
-
-                                                            // 5 seconds delay?
-                                                            void promiseDelay(5 * 1000);
-
-                                                            this.bot.sendMessage(steamID, '⌛ Restarting...');
-
-                                                            child.exec(
-                                                                'pm2 restart ecosystem.json',
-                                                                {
-                                                                    cwd: path.resolve(__dirname, '..', '..', '..', '..')
-                                                                },
-                                                                () => {
-                                                                    // ignore err
-                                                                }
-                                                            );
-                                                        }
-                                                    );
-                                                }
-                                            );
-                                        }
-                                    );
-                                }
-                            );
-                        }
-                    );
-                }
-            })
-            .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));
-    }
-
     autokeysCommand(steamID: SteamID): void {
         const opt = this.bot.options.commands.autokeys;
         if (!opt.enable) {
@@ -536,9 +429,9 @@ export default class ManagerCommands {
         }
 
         const newExecutedTime = dayjs().valueOf();
-        const timeDiff = newExecutedTime - this.lastExecutedTime;
+        const timeDiff = newExecutedTime - this.lastExecutedRefreshListTime;
 
-        if (this.executed === true) {
+        if (this.executedRefreshList === true) {
             return this.bot.sendMessage(
                 steamID,
                 `⚠️ You need to wait ${Math.trunc(
@@ -546,12 +439,16 @@ export default class ManagerCommands {
                 )} minutes before you run refresh listings command again.`
             );
         } else {
-            const listingsSKUs: string[] = [];
+            const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
             this.bot.listingManager.getListings(async err => {
                 if (err) {
+                    log.error('Unable to refresh listings: ', err);
+
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
-                        '❌ Unable to refresh listings, please try again later: ' + JSON.stringify(err)
+                        '❌ Unable to refresh listings, please try again later: ' + errMessage
                     );
                 }
 
@@ -591,30 +488,58 @@ export default class ManagerCommands {
                         }
                     }
 
-                    listingsSKUs.push(listingSKU);
+                    if (listing.intent === 1 && match !== null && !match.enabled) {
+                        // Listings for selling exist, but the item is currently disabled, remove it.
+                        log.debug(`Intent sell, removed because not selling: ${match.sku}`);
+                        listing.remove();
+                    }
+
+                    if (listingsSKUs[listingSKU]) {
+                        listingsSKUs[listingSKU].intent.push(listing.intent);
+                    } else {
+                        listingsSKUs[listingSKU] = {
+                            intent: [listing.intent]
+                        };
+                    }
                 });
 
-                // Remove duplicate elements
-                const uniqueSKUs = [...new Set(listingsSKUs)];
-
                 const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
+
                 for (const sku in pricelist) {
                     if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
                         continue;
                     }
 
-                    if (uniqueSKUs.includes(sku)) {
-                        delete pricelist[sku];
+                    const entry = pricelist[sku];
+                    const listing = listingsSKUs[sku];
+
+                    const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                    const amountAvailable = inventory.getAmount(sku, false, true);
+
+                    if (listing) {
+                        if (
+                            listing.intent.length === 1 &&
+                            listing.intent[0] === 0 && // We only check if the only listing exist is buy order
+                            entry.max > 1 &&
+                            amountAvailable > 0 &&
+                            amountAvailable > entry.min
+                        ) {
+                            // here we only check if the bot already have that item
+                            log.debug(`Missing sell order listings: ${sku}`);
+                        } else {
+                            delete pricelist[sku];
+                        }
+
                         continue;
                     }
 
-                    const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                    // listing not exist
 
                     if (
-                        (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
-                        inventory.getAmount(sku, false, true) > 0
+                        (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
+                        amountAvailable > 0
                     ) {
-                        // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                        // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
                         // return this entry
                         log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
                     } else {
@@ -622,16 +547,17 @@ export default class ManagerCommands {
                     }
                 }
 
-                const pricelistCount = Object.keys(pricelist).length;
+                const skusToCheck = Object.keys(pricelist);
+                const pricelistCount = skusToCheck.length;
 
                 if (pricelistCount > 0) {
-                    clearTimeout(this.executeTimeout);
-                    this.lastExecutedTime = dayjs().valueOf();
+                    clearTimeout(this.executeRefreshListTimeout);
+                    this.lastExecutedRefreshListTime = dayjs().valueOf();
 
                     log.debug(
                         'Checking listings for ' +
                             pluralize('item', pricelistCount, true) +
-                            ` [${Object.keys(pricelist).join(', ')}] ...`
+                            ` [${skusToCheck.join(', ')}] ...`
                     );
 
                     this.bot.sendMessage(
@@ -642,16 +568,16 @@ export default class ManagerCommands {
                     this.bot.handler.isRecentlyExecuteRefreshlistCommand = true;
                     this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
                     this.pricelistCount = pricelistCount;
-                    this.executed = true;
-                    this.executeTimeout = setTimeout(() => {
-                        this.lastExecutedTime = null;
-                        this.executed = false;
+                    this.executedRefreshList = true;
+                    this.executeRefreshListTimeout = setTimeout(() => {
+                        this.lastExecutedRefreshListTime = null;
+                        this.executedRefreshList = false;
                         this.bot.handler.isRecentlyExecuteRefreshlistCommand = false;
-                        clearTimeout(this.executeTimeout);
+                        clearTimeout(this.executeRefreshListTimeout);
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
                     await this.bot.listings.recursiveCheckPricelist(
-                        Object.keys(pricelist),
+                        skusToCheck,
                         pricelist,
                         true,
                         this.pricelistCount > 4000 ? 400 : 200,
@@ -765,8 +691,41 @@ export default class ManagerCommands {
 
         return reply;
     }
-}
 
-function promiseDelay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(() => resolve(), ms));
+    refreshSchema(steamID: SteamID): void {
+        const newExecutedTime = dayjs().valueOf();
+        const timeDiff = newExecutedTime - this.lastExecutedRefreshSchemaTime;
+
+        if (this.executedRefreshSchema === true) {
+            return this.bot.sendMessage(
+                steamID,
+                `⚠️ You need to wait ${Math.trunc(
+                    (30 * 60 * 1000 - timeDiff) / (1000 * 60)
+                )} minutes before you run update schema command again.`
+            );
+        } else {
+            clearTimeout(this.executeRefreshSchemaTimeout);
+            this.lastExecutedRefreshSchemaTime = dayjs().valueOf();
+
+            this.bot.schemaManager.getSchema(err => {
+                if (err) {
+                    log.error('Error getting schema on !refreshSchema command:', err);
+                    return this.bot.sendMessage(steamID, `❌ Error getting TF2 Schema: ${JSON.stringify(err)}`);
+                }
+
+                log.debug('Refreshing TF2 Schema...');
+                this.bot.schema = this.bot.schemaManager.schema;
+                this.bot.setProperties();
+
+                this.executedRefreshSchema = true;
+                this.executeRefreshSchemaTimeout = setTimeout(() => {
+                    this.lastExecutedRefreshSchemaTime = null;
+                    this.executedRefreshSchema = false;
+                    clearTimeout(this.executeRefreshSchemaTimeout);
+                }, 30 * 60 * 1000);
+
+                this.bot.sendMessage(steamID, '✅ Refresh schema success!');
+            });
+        }
+    }
 }

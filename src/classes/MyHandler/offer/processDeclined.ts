@@ -4,8 +4,6 @@ import Bot from '../../Bot';
 import * as t from '../../../lib/tools/export';
 import sendTradeDeclined from '../../../lib/DiscordWebhook/sendTradeDeclined';
 import { KeyPrices } from '../../../classes/Pricelist';
-import Autokeys, { OverallStatus } from '../../../classes/Autokeys/Autokeys';
-import { TradeSummary } from '../../Options';
 
 export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTradingKeys: boolean): void {
     const opt = bot.options;
@@ -28,6 +26,9 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
 
     if (offerReceived) {
         switch (offerReceived.reason) {
+            case 'MANUAL':
+                declined.reasonDescription = offerReceived.reason + ': Manually declined by the owner.';
+                break;
             case 'ESCROW':
                 declined.reasonDescription = offerReceived.reason + ': Partner has trade hold.';
                 break;
@@ -57,7 +58,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
                 declined.reasonDescription =
                     offerReceived.reason + ': Tried to take our high value items that we are not selling.';
                 //check our items to add tag
-                declined.highNotSellingItems.push(...meta.highValueName);
+                declined.highNotSellingItems.push(...meta?.highValueName);
                 break;
             case 'ONLY_METAL':
                 declined.reasonDescription = offerReceived.reason + ': Offer contains only metal.';
@@ -73,6 +74,11 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
                 break;
             case '🟥_INVALID_VALUE':
                 declined.reasonDescription = offerReceived.reason + ': We are paying more than them.';
+                break;
+            case 'COUNTER_INVALID_VALUE_FAILED':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    ': We are paying more than them and we failed to counter the offer, or Steam might be down, or private inventory (failed to load their inventory).';
                 break;
             case '🟫_DUPED_ITEMS':
                 declined.reasonDescription = offerReceived.reason + ': Offer contains duped items.';
@@ -167,7 +173,6 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
     if (isWebhookEnabled) {
         void sendTradeDeclined(offer, declined, bot, timeTakenToProcessOrConstruct, isTradingKeys, isOfferSent);
     } else {
-        const slots = bot.tf2.backpackSlots;
         const itemsName = {
             invalid: declined.invalidItems, // 🟨_INVALID_ITEMS
             disabled: declined.disabledItems, // 🟧_DISABLED_ITEMS
@@ -181,38 +186,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
         const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
-        const autokeys = bot.handler.autokeys;
-        const status = autokeys.getOverallStatus;
-
-        const tDec = bot.options.tradeSummary;
-        const cT = tDec.customText;
-        const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
-        const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
-        const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
-        const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
-
-        const customInitializer = bot.options.steamChat.customInitializer.declinedTradeSummary;
-        const isCustomPricer = bot.pricelist.isUseCustomPricer;
-
-        sendToAdmin(
-            bot,
-            offer,
-            customInitializer,
-            value,
-            itemList,
-            keyPrices,
-            isOfferSent,
-            isCustomPricer,
-            cTKeyRate,
-            autokeys,
-            status,
-            slots,
-            cTPureStock,
-            cTTotalItems,
-            cTTimeTaken,
-            timeTakenToProcessOrConstruct,
-            tDec
-        );
+        sendToAdmin(bot, offer, value, itemList, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
     }
     //else it's sent by us and they declined it so we don't care ?
 }
@@ -220,28 +194,34 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
 export function sendToAdmin(
     bot: Bot,
     offer: i.TradeOffer,
-    customInitializer: string,
     value: t.ValueDiff,
     itemList: string,
     keyPrices: KeyPrices,
     isOfferSent: boolean,
-    isCustomPricer: boolean,
-    cTKeyRate: string,
-    autokeys: Autokeys,
-    status: OverallStatus,
-    slots: number,
-    cTPureStock: string,
-    cTTotalItems: string,
-    cTTimeTaken: string,
-    timeTakenToProcessOrConstruct: number,
-    tSum: TradeSummary
+    timeTakenToProcessOrConstruct: number
 ): void {
+    const slots = bot.tf2.backpackSlots;
+    const autokeys = bot.handler.autokeys;
+    const status = autokeys.getOverallStatus;
+    const offerMessage = offer.message;
+
+    const tSum = bot.options.tradeSummary;
+    const cT = tSum.customText;
+    const cTKeyRate = cT.keyRate.steamChat ? cT.keyRate.steamChat : '🔑 Key rate:';
+    const cTPureStock = cT.pureStock.steamChat ? cT.pureStock.steamChat : '💰 Pure stock:';
+    const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
+    const cTTimeTaken = cT.timeTaken.steamChat ? cT.timeTaken.steamChat : '⏱ Time taken:';
+
+    const customInitializer = bot.options.steamChat.customInitializer.declinedTradeSummary;
+    const isCustomPricer = bot.pricelist.isUseCustomPricer;
+
     bot.messageAdmins(
         'trade',
         `${customInitializer ? customInitializer : '/me'} Trade #${
             offer.id
-        } with ${offer.partner.getSteamID64()} is declined. ❌` +
+        } with ${offer.partner.getSteamID64()} was declined. ❌` +
             t.summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true, isOfferSent) +
+            (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
             (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
             `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
             ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
@@ -261,6 +241,7 @@ export function sendToAdmin(
             `\n${cTTimeTaken} ${t.convertTime(
                 null,
                 timeTakenToProcessOrConstruct,
+                undefined,
                 isOfferSent,
                 tSum.showDetailedTimeTaken,
                 tSum.showTimeTakenInMS

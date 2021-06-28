@@ -7,6 +7,7 @@ import { MinimumItem } from '../../../types/TeamFortress2';
 import { fixItem } from '../../items';
 
 let isCrate = false;
+let isPainted = false;
 
 export = function (
     schema: SchemaManager.Schema,
@@ -18,15 +19,18 @@ export = function (
     normalizeStrangeParts: boolean,
     strangeParts: StrangeParts,
     strangePartsInOptions: string[]
-): string {
+): { sku: string; isPainted: boolean } {
     const self = this as EconItem;
+
+    isCrate = false;
+    isPainted = false;
 
     if (self.appid != 440) {
         if (self.type && self.market_name) {
-            return `${self.type}: ${self.market_name}`;
+            return { sku: `${self.type}: ${self.market_name}`, isPainted: false };
         }
 
-        return 'unknown';
+        return { sku: 'unknown', isPainted: false };
     }
 
     let item = Object.assign(
@@ -61,7 +65,7 @@ export = function (
         throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
     }
 
-    return SKU.fromObject(item);
+    return { sku: SKU.fromObject(item), isPainted };
 };
 
 /**
@@ -469,9 +473,9 @@ function getCrateSeries(item: EconItem): number | null {
             'Mann Co. Supply Crate Series #77': 77
         },
         is5068: {
-            'Salvaged Mann Co. Supply Crate #30': 30,
-            'Salvaged Mann Co. Supply Crate #40': 40,
-            'Salvaged Mann Co. Supply Crate #50': 50
+            'Salvaged Mann Co. Supply Crate Series #30': 30,
+            'Salvaged Mann Co. Supply Crate Series #40': 40,
+            'Salvaged Mann Co. Supply Crate Series #50': 50
         }
     };
 
@@ -491,7 +495,6 @@ function getCrateSeries(item: EconItem): number | null {
         isCrate = true;
         return series;
     } else {
-        isCrate = false;
         return null;
     }
 }
@@ -515,16 +518,18 @@ function getPainted(
 
             if (paintsInOptions.includes(name.toLowerCase())) {
                 const paintDecimal = +paints[name].replace('p', '');
+                isPainted = true;
                 return paintDecimal;
             }
         }
     }
 
     if (
-        !item.type.includes('Tool') && // Not a Paint Can
+        !item.type.includes('Tool') &&
         paintsInOptions.includes('legacy paint') &&
         item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
     ) {
+        isPainted = true;
         return 5801378;
     }
 

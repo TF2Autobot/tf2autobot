@@ -113,6 +113,15 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.customMessage.decline.manual;
         reply = custom ? custom : declined + ' by the owner.';
         //
+    } else if (offerReason.reason === 'COUNTER_INVALID_VALUE_FAILED') {
+        //
+        const custom = opt.customMessage.decline.failedToCounter;
+        reasonForInvalidValue = true;
+        reply = custom
+            ? custom
+            : declined +
+              '. Counteroffer is not possible because either one of us does not have enough pure,' +
+              ' or Steam might be down, or your inventory is private (failed to load your inventory).';
     } else if (
         offerReason.reason === 'ONLY_INVALID_VALUE' ||
         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)

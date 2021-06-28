@@ -1,4 +1,4 @@
-import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
+import { Action, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 import Bot from '../../classes/Bot';
 import * as t from '../tools/export';
@@ -18,6 +18,9 @@ export default async function sendTradeDeclined(
     const optDW = optBot.discordWebhook;
 
     const properName = bot.options.tradeSummary.showProperName;
+
+    const isCountered: boolean = (offer.data('action') as Action)?.action === 'counter';
+    const processCounterTime: number | undefined = offer.data('processCounterTime') as number;
 
     //Unsure if highValue will work or not
     const itemsName = properName
@@ -42,7 +45,7 @@ export default async function sendTradeDeclined(
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);
-    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, isOfferSent);
+    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, false, isOfferSent);
 
     log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
@@ -66,6 +69,7 @@ export default async function sendTradeDeclined(
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
     const partnerNameNoFormat = t.replace.specialChar(details.personaName);
+    const message = t.replace.specialChar(offer.message);
 
     const declinedDescription = declined.reasonDescription;
     const declinedTradeSummary: Webhook = {
@@ -81,18 +85,20 @@ export default async function sendTradeDeclined(
                     icon_url: details.avatarFull as string
                 },
                 description:
-                    `⛔ An offer sent by ${declinedDescription ? partnerNameNoFormat : 'us'} is declined.${
-                        declinedDescription ? '\nReason: ' + declinedDescription : ''
-                    }` +
+                    `⛔ An offer sent by ${declinedDescription ? partnerNameNoFormat : 'us'} was declined ${
+                        isCountered ? ' (countered)' : ''
+                    }${declinedDescription ? '\nReason: ' + declinedDescription : ''}` +
                     summary +
                     `\n${cTTimeTaken} ${t.convertTime(
                         null,
                         timeTakenToProcessOrConstruct,
+                        processCounterTime,
                         isOfferSent,
                         tDec.showDetailedTimeTaken,
                         tDec.showTimeTakenInMS
-                    )}\n\n` +
-                    (misc.showQuickLinks ? `${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
+                    )}` +
+                    (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
+                    (misc.showQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                 fields: [
                     {
                         name: '__Item list__',
@@ -182,7 +188,7 @@ export default async function sendTradeDeclined(
         sendWebhook(link, declinedTradeSummary, 'trade-declined', i)
             .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
             .catch(err => {
-                log.debug(
+                log.warn(
                     `❌ Failed to send trade-declined webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? `(${i + 1})` : ''
                     }: `,
@@ -190,33 +196,7 @@ export default async function sendTradeDeclined(
                 );
 
                 const itemListx = t.listItems(offer, bot, itemsName, true);
-
-                const chatOpt = bot.options.tradeSummary.customText;
-                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
-                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
-                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
-                const cTxTimeTaken = chatOpt.timeTaken.steamChat ? chatOpt.timeTaken.steamChat : '⏱ Time taken:';
-
-                //Not so sure about this if something goes wrong with discord and we get a lot of trades it'll be un🐻able
-                sendToAdmin(
-                    bot,
-                    offer,
-                    optBot.steamChat.customInitializer.declinedTradeSummary,
-                    value,
-                    itemListx,
-                    keyPrices,
-                    isOfferSent,
-                    isCustomPricer,
-                    cTxKeyRate,
-                    autokeys,
-                    status,
-                    slots,
-                    cTxPureStock,
-                    cTxTotalItems,
-                    cTxTimeTaken,
-                    timeTakenToProcessOrConstruct,
-                    tDec
-                );
+                sendToAdmin(bot, offer, value, itemListx, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
             });
     });
 }

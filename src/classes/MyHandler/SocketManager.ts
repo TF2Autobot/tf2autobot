@@ -1,8 +1,11 @@
-import io from 'socket.io-client';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
+import io from '@tf2autobot/socket.io-client';
 import log from '../../lib/logger';
 
 export default class SocketManager {
-    private socket: SocketIOClient.Socket;
+    private socket: any;
 
     constructor(public url: string, public key?: string) {}
 
@@ -18,7 +21,7 @@ export default class SocketManager {
 
     private socketUnauthorized() {
         return (err: Error) => {
-            log.debug('Failed to authenticate with socket server', {
+            log.warn('Failed to authenticate with socket server', {
                 error: err
             });
         };
@@ -40,6 +43,7 @@ export default class SocketManager {
     init(): Promise<void> {
         return new Promise(resolve => {
             this.shutDown();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
             this.socket = io(this.url, {
                 forceNew: true,
                 autoConnect: false
@@ -58,6 +62,10 @@ export default class SocketManager {
 
             this.socket.on('blocked', (blocked: { expire: number }) => {
                 log.warn(`Socket blocked. Expires in ${blocked.expire}`);
+            });
+
+            this.socket.on('connect_error', err => {
+                log.warn(`Couldn't connect to socket server`, err);
             });
 
             resolve(undefined);

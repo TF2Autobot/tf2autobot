@@ -14,6 +14,7 @@ export default async function sendTradeSummary(
     bot: Bot,
     timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
+    timeTakenToCounterOffer: number | undefined,
     isTradingKeys: boolean,
     isOfferSent: boolean | undefined
 ): Promise<void> {
@@ -79,8 +80,9 @@ export default async function sendTradeSummary(
     const isMentionHV = accepted.isMention;
 
     const mentionOwner =
-        IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
-            ? `<@!${optDW.ownerID}> - Accepted ${
+        (IVAmount > 0 || isMentionHV) && optDW.ownerID.length > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
+            ? optDW.ownerID.map(id => `<@!${id}>`).join(', ') +
+              ` - Accepted ${
                   IVAmount > 0 && isMentionHV
                       ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
                       : IVAmount > 0 && !isMentionHV
@@ -90,8 +92,9 @@ export default async function sendTradeSummary(
                       : ''
               } trade here!`
             : optDW.tradeSummary.mentionOwner.enable &&
+              optDW.ownerID.length > 0 &&
               (isMentionOurItems || isMentionTheirItems || isMentionOnGreaterValue)
-            ? `<@!${optDW.ownerID}>`
+            ? optDW.ownerID.map(id => `<@!${id}>`).join(', ')
             : '';
 
     log.debug('getting partner Avatar and Name...');
@@ -105,6 +108,7 @@ export default async function sendTradeSummary(
     const slots = bot.tf2.backpackSlots;
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
+    const isShowOfferMessage = optBot.tradeSummary.showOfferMessage;
 
     const tSum = optBot.tradeSummary;
     const cT = tSum.customText;
@@ -112,6 +116,9 @@ export default async function sendTradeSummary(
     const cTKeyRate = cT.keyRate.discordWebhook ? cT.keyRate.discordWebhook : '🔑 Key rate:';
     const cTPureStock = cT.pureStock.discordWebhook ? cT.pureStock.discordWebhook : '💰 Pure stock:';
     const cTTotalItems = cT.totalItems.discordWebhook ? cT.totalItems.discordWebhook : '🎒 Total items:';
+    const cTOfferMessage = cT.offerMessage.discordWebhook ? cT.offerMessage.discordWebhook : '💬 **Offer message:**';
+
+    const message = t.replace.specialChar(offer.message);
 
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
@@ -132,10 +139,14 @@ export default async function sendTradeSummary(
                     `\n${cTTimeTaken} ${t.convertTime(
                         timeTakenToComplete,
                         timeTakenToProcessOrConstruct,
+                        timeTakenToCounterOffer,
                         isOfferSent,
                         tSum.showDetailedTimeTaken,
                         tSum.showTimeTakenInMS
                     )}\n\n` +
+                    (isShowOfferMessage && message.length !== 0
+                        ? (cTOfferMessage ? cTOfferMessage : '💬 Offer message:') + ` "${message}"\n\n`
+                        : '') +
                     (misc.showQuickLinks ? `${quickLinks(t.replace.specialChar(details.personaName), links)}\n` : '\n'),
                 fields: [
                     {
@@ -226,7 +237,7 @@ export default async function sendTradeSummary(
         sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
             .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
             .catch(err => {
-                log.debug(
+                log.warn(
                     `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? `(${i + 1})` : ''
                     }: `,
@@ -235,31 +246,16 @@ export default async function sendTradeSummary(
 
                 const itemListx = t.listItems(offer, bot, itemsName, true);
 
-                const chatOpt = bot.options.tradeSummary.customText;
-                const cTxKeyRate = chatOpt.keyRate.steamChat ? chatOpt.keyRate.steamChat : '🔑 Key rate:';
-                const cTxPureStock = chatOpt.pureStock.steamChat ? chatOpt.pureStock.steamChat : '💰 Pure stock:';
-                const cTxTotalItems = chatOpt.totalItems.steamChat ? chatOpt.totalItems.steamChat : '🎒 Total items:';
-                const cTxTimeTaken = chatOpt.timeTaken.steamChat ? chatOpt.timeTaken.steamChat : '⏱ Time taken:';
-
-                sendToAdmin(
+                void sendToAdmin(
                     bot,
                     offer,
-                    optBot.steamChat.customInitializer.acceptedTradeSummary,
                     value,
                     itemListx,
                     keyPrices,
                     isOfferSent,
-                    isCustomPricer,
-                    cTxKeyRate,
-                    autokeys,
-                    status,
-                    slots,
-                    cTxPureStock,
-                    cTxTotalItems,
-                    cTxTimeTaken,
                     timeTakenToComplete,
                     timeTakenToProcessOrConstruct,
-                    tSum
+                    timeTakenToCounterOffer
                 );
             });
     });

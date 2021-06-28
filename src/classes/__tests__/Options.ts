@@ -154,3 +154,18 @@ test('loads prices.tf options', () => {
     result = Options.loadOptions({ steamAccountName: 'abc123', customPricerUrl: 'alternative.tf' });
     expect(result.customPricerUrl).toEqual('alternative.tf');
 });
+
+test('loads a subset of options', () => {
+    const filesPath = Options.getFilesPath('abc123');
+    cleanPath(filesPath);
+    const rawOptions = '{"miscSettings":{"addFriends":{"enable":false},"sendGroupInvite":{"enable":false}}}';
+    const optionsFilePath = path.join(filesPath, 'options.json');
+    mkdirSync(filesPath, { recursive: true });
+    writeFileSync(optionsFilePath, rawOptions, { encoding: 'utf8' });
+    const result = Options.loadOptions({
+        steamAccountName: 'abc123',
+        miscSettings: { addFriends: { enable: false }, sendGroupInvite: { enable: false } }
+    });
+    expect(result.miscSettings.addFriends.enable).toBeFalsy();
+    expect(result.miscSettings.sendGroupInvite.enable).toBeFalsy();
+});

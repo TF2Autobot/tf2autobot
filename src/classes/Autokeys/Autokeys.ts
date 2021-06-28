@@ -313,53 +313,57 @@ export default class Autokeys {
 
         const opt = this.bot.options;
 
+        const isBanking =
+            isBankingKeys &&
+            isEnableKeyBanking &&
+            (!this.status.alreadyUpdatedToBank ||
+                rKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
+                rKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
+                currKeys !== this.oldAmount.ofKeys);
+
+        const isTooManyRefWhileBanking =
+            isBankingBuyKeysWithEnoughRefs &&
+            isEnableKeyBanking &&
+            (!this.status.alreadyUpdatedToBuy ||
+                rKeysCanBankMax !== this.oldAmount.keysCanBuy ||
+                currKeys !== this.oldAmount.ofKeys);
+
+        const buyKeys =
+            isBuyingKeys &&
+            (!this.status.alreadyUpdatedToBuy ||
+                rKeysCanBuy !== this.oldAmount.keysCanBuy ||
+                currKeys !== this.oldAmount.ofKeys);
+
+        const sellKeys =
+            isSellingKeys &&
+            (!this.status.alreadyUpdatedToSell ||
+                rKeysCanSell !== this.oldAmount.keysCanSell ||
+                currKeys !== this.oldAmount.ofKeys);
+
         if (this.isActive) {
             // if Autokeys already running
-            if (
-                isBankingKeys &&
-                isEnableKeyBanking &&
-                (!this.status.alreadyUpdatedToBank ||
-                    rKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
-                    rKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
-                    currKeys !== this.oldAmount.ofKeys)
-            ) {
+            if (isBanking) {
                 // enable keys banking - if banking conditions to enable banking matched and banking is enabled
                 this.setOverallStatus = [false, true, false, true, false, false];
                 this.setOldAmount = [0, 0, rKeysCanBankMin, rKeysCanBankMax, currKeys];
                 this.setActiveStatus = true;
                 this.updateToBank(setMinKeys, setMaxKeys, currKeyPrice);
                 //
-            } else if (
-                isBankingBuyKeysWithEnoughRefs &&
-                isEnableKeyBanking &&
-                (!this.status.alreadyUpdatedToBuy ||
-                    rKeysCanBankMax !== this.oldAmount.keysCanBuy ||
-                    currKeys !== this.oldAmount.ofKeys)
-            ) {
+            } else if (isTooManyRefWhileBanking) {
                 // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
                 this.setOverallStatus = [true, false, false, false, true, false];
                 this.setOldAmount = [0, rKeysCanBankMax, 0, 0, currKeys];
                 this.setActiveStatus = true;
                 this.update(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                 //
-            } else if (
-                isBuyingKeys &&
-                (!this.status.alreadyUpdatedToBuy ||
-                    rKeysCanBuy !== this.oldAmount.keysCanBuy ||
-                    currKeys !== this.oldAmount.ofKeys)
-            ) {
+            } else if (buyKeys) {
                 // enable Autokeys - Buying - if buying keys conditions matched
                 this.setOverallStatus = [true, false, false, false, true, false];
                 this.setOldAmount = [0, rKeysCanBuy, 0, 0, currKeys];
                 this.setActiveStatus = true;
                 this.update(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                 //
-            } else if (
-                isSellingKeys &&
-                (!this.status.alreadyUpdatedToSell ||
-                    rKeysCanSell !== this.oldAmount.keysCanSell ||
-                    currKeys !== this.oldAmount.ofKeys)
-            ) {
+            } else if (sellKeys) {
                 // enable Autokeys - Selling - if selling keys conditions matched
                 this.setOverallStatus = [false, false, false, false, false, true];
                 this.setOldAmount = [rKeysCanSell, 0, 0, 0, currKeys];
@@ -440,51 +444,28 @@ export default class Autokeys {
                 }
             } else {
                 // if Mann Co. Supply Crate Key entry already in the pricelist.json
-                if (
-                    isBankingKeys &&
-                    isEnableKeyBanking &&
-                    (!this.status.alreadyUpdatedToBank ||
-                        rKeysCanBankMin !== this.oldAmount.keysCanBankMin ||
-                        rKeysCanBankMax !== this.oldAmount.keysCanBankMax ||
-                        currKeys !== this.oldAmount.ofKeys)
-                ) {
+                if (isBanking) {
                     // enable keys banking - if banking conditions to enable banking matched and banking is enabled
                     this.setOverallStatus = [false, true, false, true, false, false];
                     this.setOldAmount = [0, 0, rKeysCanBankMin, rKeysCanBankMax, currKeys];
                     this.setActiveStatus = true;
                     this.updateToBank(setMinKeys, setMaxKeys, currKeyPrice);
                     //
-                } else if (
-                    isBankingBuyKeysWithEnoughRefs &&
-                    isEnableKeyBanking &&
-                    (!this.status.alreadyUpdatedToBuy ||
-                        rKeysCanBankMax !== this.oldAmount.keysCanBuy ||
-                        currKeys !== this.oldAmount.ofKeys)
-                ) {
+                } else if (isTooManyRefWhileBanking) {
                     // enable keys banking - if refs > minRefs but Keys < minKeys, will buy keys.
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBankMax, 0, 0, currKeys];
                     this.setActiveStatus = true;
                     this.update(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                     //
-                } else if (
-                    isBuyingKeys &&
-                    (!this.status.alreadyUpdatedToBuy ||
-                        rKeysCanBuy !== this.oldAmount.keysCanBuy ||
-                        currKeys !== this.oldAmount.ofKeys)
-                ) {
+                } else if (buyKeys) {
                     // enable Autokeys - Buying - if buying keys conditions matched
                     this.setOverallStatus = [true, false, false, false, true, false];
                     this.setOldAmount = [0, rKeysCanBuy, 0, 0, currKeys];
                     this.setActiveStatus = true;
                     this.update(setMinKeys, setMaxKeys, currKeyPrice, 'buy');
                     //
-                } else if (
-                    isSellingKeys &&
-                    (!this.status.alreadyUpdatedToSell ||
-                        rKeysCanSell !== this.oldAmount.keysCanSell ||
-                        currKeys !== this.oldAmount.ofKeys)
-                ) {
+                } else if (sellKeys) {
                     // enable Autokeys - Selling - if selling keys conditions matched
                     this.setOverallStatus = [false, false, false, false, false, true];
                     this.setOldAmount = [rKeysCanSell, 0, 0, 0, currKeys];

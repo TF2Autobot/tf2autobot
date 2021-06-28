@@ -158,12 +158,7 @@ export default class MyHandler extends Handler {
 
     get customGameName(): string {
         const customGameName = this.opt.miscSettings.game.customName;
-
-        if (customGameName === '' || customGameName === 'TF2Autobot') {
-            return `TF2Autobot v${process.env.BOT_VERSION}`;
-        } else {
-            return customGameName;
-        }
+        return customGameName ? customGameName : `TF2Autobot`;
     }
 
     private isPremium = false;
@@ -326,16 +321,15 @@ export default class MyHandler extends Handler {
         // Send notification to admin/Discord Webhook if there's any partially priced item got reset on updateOldPrices
         const bulkUpdatedPartiallyPriced = this.bot.pricelist.partialPricedUpdateBulk;
 
-        if (bulkUpdatedPartiallyPriced.length > 0) {
+        const count = bulkUpdatedPartiallyPriced.length;
+        if (count > 0 && count < 20) {
+            // we send only if less than 20
             const dw = this.opt.discordWebhook.sendAlert;
             const isDwEnabled = dw.enable && dw.url !== '';
 
-            const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced
-                .map(sku => {
-                    const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
-                    return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
-                })
-                .join('\n\n• ')}`;
+            const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced.join(
+                '\n --- '
+            )}`;
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onBulkUpdatePartialPriced) {
                 if (isDwEnabled) {
@@ -347,15 +341,15 @@ export default class MyHandler extends Handler {
         }
 
         // Send notification to admin/Discord Webhook if there's any partially priced item got reset on updateOldPrices
-        const bulkPartiallyPriced = this.bot.pricelist.autoResetPartialPriceBulk;
+        const bulkResetPartiallyPriced = this.bot.pricelist.autoResetPartialPriceBulk;
 
-        if (bulkPartiallyPriced.length > 0) {
+        if (bulkResetPartiallyPriced.length > 0) {
             const dw = this.opt.discordWebhook.sendAlert;
             const isDwEnabled = dw.enable && dw.url !== '';
 
             const msg =
                 `All partially priced items below has been reset to use the current prices ` +
-                `because no longer in stock or exceed the threshold:\n\n• ${bulkPartiallyPriced
+                `because no longer in stock or exceed the threshold:\n\n• ${bulkResetPartiallyPriced
                     .map(sku => {
                         const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
                         return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
@@ -415,7 +409,7 @@ export default class MyHandler extends Handler {
 
                         void this.bot.listings.removeAll().asCallback(err => {
                             if (err) {
-                                log.warn('Failed to remove all listings: ', err);
+                                log.warn('Failed to remove all listings on shutdown (autokeys was enabled): ', err);
                             }
 
                             resolve();
@@ -429,7 +423,7 @@ export default class MyHandler extends Handler {
 
                 void this.bot.listings.removeAll().asCallback(err => {
                     if (err) {
-                        log.warn('Failed to remove all listings: ', err);
+                        log.warn('Failed to remove all listings on shutdown: ', err);
                     }
 
                     resolve();
@@ -563,9 +557,10 @@ export default class MyHandler extends Handler {
                 pricelistLength = 0;
                 log.debug('Running automatic check for missing listings...');
 
-                const listingsSKUs: string[] = [];
+                const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
                 this.bot.listingManager.getListings(async err => {
                     if (err) {
+                        log.warn('Error getting listings on auto-refresh listings operation:', err);
                         setTimeout(() => {
                             this.enableAutoRefreshListings();
                         }, 30 * 60 * 1000);
@@ -608,11 +603,21 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        listingsSKUs.push(listingSKU);
+                        if (listing.intent === 1 && match !== null && !match.enabled) {
+                            // Listings for selling exist, but the item is currently disabled, remove it.
+                            log.debug(`Intent sell, removed because not selling: ${match.sku}`);
+                            listing.remove();
+                        }
+
+                        if (listingsSKUs[listingSKU]) {
+                            listingsSKUs[listingSKU].intent.push(listing.intent);
+                        } else {
+                            listingsSKUs[listingSKU] = {
+                                intent: [listing.intent]
+                            };
+                        }
                     });
 
-                    // Remove duplicate elements
-                    const uniqueSKUs = [...new Set(listingsSKUs)];
                     const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
 
                     for (const sku in pricelist) {
@@ -620,18 +625,36 @@ export default class MyHandler extends Handler {
                             continue;
                         }
 
-                        if (uniqueSKUs.includes(sku)) {
-                            delete pricelist[sku];
+                        const entry = pricelist[sku];
+                        const listing = listingsSKUs[sku];
+
+                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                        const amountAvailable = inventory.getAmount(sku, false, true);
+
+                        if (listing) {
+                            if (
+                                listing.intent.length === 1 &&
+                                listing.intent[0] === 0 && // We only check if the only listing exist is buy order
+                                entry.max > 1 &&
+                                amountAvailable > 0 &&
+                                amountAvailable > entry.min
+                            ) {
+                                // here we only check if the bot already have that item
+                                log.debug(`Missing sell order listings: ${sku}`);
+                            } else {
+                                delete pricelist[sku];
+                            }
+
                             continue;
                         }
 
-                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                        // listing not exist
 
                         if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
-                            inventory.getAmount(sku, false, true) > 0
+                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
+                            amountAvailable > 0
                         ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
                             // return this entry
                             log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
                         } else {
@@ -639,17 +662,18 @@ export default class MyHandler extends Handler {
                         }
                     }
 
-                    const pricelistCount = Object.keys(pricelist).length;
+                    const skusToCheck = Object.keys(pricelist);
+                    const pricelistCount = skusToCheck.length;
 
                     if (pricelistCount > 0) {
                         log.debug(
                             'Checking listings for ' +
                                 pluralize('item', pricelistCount, true) +
-                                ` [${Object.keys(pricelist).join(', ')}]...`
+                                ` [${skusToCheck.join(', ')}]...`
                         );
 
                         await this.bot.listings.recursiveCheckPricelist(
-                            Object.keys(pricelist),
+                            skusToCheck,
                             pricelist,
                             true,
                             pricelistCount > 4000 ? 400 : 200,
@@ -722,6 +746,7 @@ export default class MyHandler extends Handler {
         clearTimeout(this.classWeaponsTimeout);
 
         const opt = this.opt;
+        const isAdmin = this.bot.isAdmin(offer.partner);
 
         const items = {
             our: Inventory.fromItems(
@@ -744,7 +769,7 @@ export default class MyHandler extends Handler {
                 this.bot.effects,
                 this.bot.paints,
                 this.bot.strangeParts,
-                'their'
+                isAdmin ? 'admin' : 'their'
             ).getItems
         };
 
@@ -859,7 +884,7 @@ export default class MyHandler extends Handler {
             Object.keys(getHighValue.our.items).length > 0 || Object.keys(getHighValue.their.items).length > 0;
 
         // Check if the offer is from an admin
-        if (this.bot.isAdmin(offer.partner)) {
+        if (isAdmin) {
             offer.log(
                 'trade',
                 `is from an admin, accepting. Summary:\n${JSON.stringify(
@@ -897,7 +922,7 @@ export default class MyHandler extends Handler {
 
             const optDw = opt.discordWebhook;
 
-            if (opt.sendAlert.unableToProcessOffer) {
+            if (opt.sendAlert.enable && opt.sendAlert.unableToProcessOffer) {
                 if (optDw.sendAlert.enable && optDw.sendAlert.url !== '') {
                     sendAlert('failed-processing-offer', this.bot, null, null, null, [
                         offer.partner.getSteamID64(),
@@ -983,7 +1008,11 @@ export default class MyHandler extends Handler {
                     return { action: 'decline', reason: 'GIFT_NO_NOTE' };
                 }
             }
-        } else if (itemsToGiveCount > 0 && itemsToReceiveCount === 0) {
+        } else if (
+            itemsToGiveCount > 0 &&
+            itemsToReceiveCount === 0 &&
+            !(opt.miscSettings.counterOffer.enable && exchange.contains.items)
+        ) {
             offer.log('info', 'is taking our items for free, declining...');
             return { action: 'decline', reason: 'CRIME_ATTEMPT' };
         }
@@ -1444,7 +1473,8 @@ export default class MyHandler extends Handler {
                 wrongAboutOffer.push({
                     reason: '🟥_INVALID_VALUE',
                     our: exchange.our.value,
-                    their: exchange.their.value
+                    their: exchange.their.value,
+                    missing: exchange.our.value - exchange.their.value
                 });
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
@@ -1566,7 +1596,7 @@ export default class MyHandler extends Handler {
                     }
                 }
             } catch (err) {
-                log.warn('Failed dupe check on ' + assetidsToCheck.join(', ') + ': ' + (err as Error).message);
+                log.error(`Failed dupe check on ${assetidsToCheck.join(', ')}`, err);
                 wrongAboutOffer.push({
                     reason: '🟪_DUPE_CHECK_FAILED',
                     withError: true,
@@ -1622,14 +1652,13 @@ export default class MyHandler extends Handler {
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
                         log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    }
-                    log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
+                    } else log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
                 });
 
                 return { action: 'decline', reason: 'BANNED' };
             }
         } catch (err) {
-            log.warn('Failed to check banned: ', err);
+            log.error('Failed to check banned: ', err);
 
             wrongAboutOffer.push({
                 reason: '⬜_BANNED_CHECK_FAILED'
@@ -1774,7 +1803,7 @@ export default class MyHandler extends Handler {
                     }
                 };
             } else if (
-                opt.offerReceived.invalidValue.autoDecline.enable &&
+                (opt.offerReceived.invalidValue.autoDecline.enable || opt.miscSettings.counterOffer.enable) &&
                 isInvalidValue &&
                 !(
                     isUnderstocked ||
@@ -1786,6 +1815,41 @@ export default class MyHandler extends Handler {
                 ) &&
                 this.hasInvalidValueException === false
             ) {
+                if (opt.miscSettings.counterOffer.enable) {
+                    // if counteroffer enabled
+                    if (opt.miscSettings.counterOffer.skipIncludeMessage && offerMessage) {
+                        // if skipIncludeMessage is set to true and offer contains message, skip for review
+                        offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
+
+                        return {
+                            action: 'skip',
+                            reason: 'REVIEW',
+                            meta: {
+                                uniqueReasons: uniqueReasons,
+                                reasons: wrongAboutOffer,
+                                highValue: isContainsHighValue ? highValueMeta : undefined
+                            }
+                        };
+                    }
+
+                    offer.log(
+                        'info',
+                        `offer need to counter.\nSummary:\n${JSON.stringify(
+                            summarize(offer, this.bot, 'summary-countering', false),
+                            null,
+                            4
+                        )}`
+                    );
+
+                    return {
+                        action: 'counter',
+                        reason: 'COUNTER_INVALID_VALUE',
+                        meta: {
+                            uniqueReasons: uniqueReasons,
+                            reasons: wrongAboutOffer
+                        }
+                    };
+                }
                 // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
             } else if (
@@ -1899,8 +1963,10 @@ export default class MyHandler extends Handler {
 
         if (offer.data('handledByUs') === true) {
             if (offer.data('notify') === true && offer.data('switchedState') !== offer.state) {
+                const notifyOpt = this.opt.steamChat.notifyTradePartner;
+
                 if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
-                    accepted(offer, this.bot);
+                    if (notifyOpt.onSuccessAccepted) accepted(offer, this.bot);
 
                     if (offer.data('donation')) {
                         this.bot.messageAdmins('✅ Success! Your donation has been sent and received!', []);
@@ -1908,16 +1974,15 @@ export default class MyHandler extends Handler {
                         this.bot.messageAdmins('✅ Success! Your premium purchase has been sent and received!', []);
                     }
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
-                    acceptEscrow(offer, this.bot);
+                    if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
-                    declined(offer, this.bot, this.isTradingKeys);
+                    if (notifyOpt.onDeclined) declined(offer, this.bot, this.isTradingKeys);
                     this.isTradingKeys = false; // reset
-                    MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
-                    cancelled(offer, oldState, this.bot);
+                    if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
                     MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
-                    invalid(offer, this.bot);
+                    if (notifyOpt.onTradedAway) invalid(offer, this.bot);
                     MyHandler.removePolldataKeys(offer);
                 }
             }
@@ -1951,6 +2016,7 @@ export default class MyHandler extends Handler {
                 this.sentSummary[offer.id] = true;
 
                 processDeclined(offer, this.bot, this.isTradingKeys);
+                MyHandler.removePolldataKeys(offer);
             }
         }
 
@@ -1994,13 +2060,19 @@ export default class MyHandler extends Handler {
         offer.data('meta', undefined);
     }
 
-    onOfferAction(offer: TradeOffer, action: 'accept' | 'decline' | 'skip', reason: string, meta: Meta): void {
+    onOfferAction(
+        offer: TradeOffer,
+        action: 'accept' | 'decline' | 'skip' | 'counter',
+        reason: string,
+        meta: Meta
+    ): void {
         if (offer.data('notify') !== true) {
             return;
         }
 
         if (action === 'skip') {
-            return sendReview(offer, this.bot, meta, this.isTradingKeys);
+            void sendReview(offer, this.bot, meta, this.isTradingKeys);
+            return;
         }
     }
 
@@ -2089,11 +2161,8 @@ export default class MyHandler extends Handler {
                         this.opt.customMessage.welcome
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
-                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                                  ` - TF2Autobot v${process.env.BOT_VERSION}`
-                            : `Hi! If you don't know how things work, please type "!` +
-                                  (isAdmin ? 'help' : 'how2trade') +
-                                  `" - TF2Autobot v${process.env.BOT_VERSION}`
+                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                            : `Hi! If you don't know how things work, please type "!` + (isAdmin ? 'help' : 'how2trade')
                     );
                 }
 
@@ -2112,11 +2181,9 @@ export default class MyHandler extends Handler {
                 this.opt.customMessage.welcome
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
-                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade') +
-                          ` - TF2Autobot v${process.env.BOT_VERSION}`
+                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
                     : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
-                          (isAdmin ? 'help' : 'how2trade') +
-                          `" - TF2Autobot v${process.env.BOT_VERSION}`
+                          (isAdmin ? 'help' : 'how2trade')
             );
         });
     }
@@ -2190,7 +2257,7 @@ export default class MyHandler extends Handler {
                 },
                 (err, reponse, body) => {
                     if (err) {
-                        log.debug('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
+                        log.error('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
@@ -2278,6 +2345,9 @@ export default class MyHandler extends Handler {
     }
 
     onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
+        if (pulse.client) {
+            delete pulse.client;
+        }
         log.debug('user-agent', pulse);
     }
 
@@ -2307,7 +2377,7 @@ interface OnRun {
 }
 
 interface OnNewTradeOffer {
-    action: 'accept' | 'decline' | 'skip';
+    action: 'accept' | 'decline' | 'skip' | 'counter';
     reason: string;
     meta?: Meta;
 }

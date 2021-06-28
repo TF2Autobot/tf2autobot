@@ -1,6 +1,6 @@
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
-import jsonlint from 'jsonlint';
+import jsonlint from '@tf2autobot/jsonlint';
 import * as path from 'path';
 import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
@@ -27,6 +27,10 @@ export const DEFAULTS: JsonOptions = {
         autobump: {
             enable: true
         },
+        counterOffer: {
+            enable: true,
+            skipIncludeMessage: false
+        },
         skipItemsInTrade: {
             enable: true
         },
@@ -40,7 +44,7 @@ export const DEFAULTS: JsonOptions = {
         },
         game: {
             playOnlyTF2: false,
-            customName: 'TF2Autobot'
+            customName: ''
         }
     },
 
@@ -122,6 +126,7 @@ export const DEFAULTS: JsonOptions = {
         showItemPrices: true,
         showPureInEmoji: false,
         showProperName: false,
+        showOfferMessage: false,
         customText: {
             summary: {
                 steamChat: 'Summary',
@@ -134,6 +139,10 @@ export const DEFAULTS: JsonOptions = {
             offered: {
                 steamChat: '• Offered:',
                 discordWebhook: '**• Offered:**'
+            },
+            offerMessage: {
+                steamChat: '💬 Offer message:',
+                discordWebhook: '💬 **Offer message:**'
             },
             profitFromOverpay: {
                 steamChat: '📈 Profit from overpay:',
@@ -177,16 +186,39 @@ export const DEFAULTS: JsonOptions = {
                 toOtherAdmins: '/quote'
                 // toTradePartner is in commands.message.customReply.fromOwner
             }
+        },
+        notifyTradePartner: {
+            onSuccessAccepted: true,
+            onSuccessAcceptedEscrow: true,
+            onDeclined: true,
+            onCancelled: true,
+            onTradedAway: true,
+            onOfferForReview: true
         }
     },
 
     highValue: {
         enableHold: true,
-        spells: [],
-        sheens: [],
-        killstreakers: [],
-        strangeParts: [],
-        painted: []
+        spells: {
+            names: [],
+            exceptionSkus: []
+        },
+        sheens: {
+            names: [],
+            exceptionSkus: []
+        },
+        killstreakers: {
+            names: [],
+            exceptionSkus: []
+        },
+        strangeParts: {
+            names: [],
+            exceptionSkus: []
+        },
+        painted: {
+            names: [],
+            exceptionSkus: []
+        }
     },
 
     normalize: {
@@ -393,7 +425,7 @@ export const DEFAULTS: JsonOptions = {
     },
 
     discordWebhook: {
-        ownerID: '',
+        ownerID: [],
         displayName: '',
         avatarURL: '',
         embedColor: '9171753',
@@ -462,6 +494,7 @@ export const DEFAULTS: JsonOptions = {
 
     customMessage: {
         sendOffer: '',
+        counterOffer: '',
         welcome: '',
         iDontKnowWhatYouMean: '',
         success: '',
@@ -480,7 +513,8 @@ export const DEFAULTS: JsonOptions = {
             notBuyingKeys: '',
             banned: '',
             escrow: '',
-            manual: ''
+            manual: '',
+            failedToCounter: ''
         },
         accepted: {
             automatic: {
@@ -1354,12 +1388,19 @@ interface Game {
     customName?: string;
 }
 
+// ------------ Counteroffer ------------
+
+interface Counteroffer extends OnlyEnable {
+    skipIncludeMessage?: boolean;
+}
+
 // --------- Misc Settings ----------
 
 interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
+    counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
     autobump?: OnlyEnable;
@@ -1449,6 +1490,7 @@ export interface TradeSummary {
     showItemPrices?: boolean;
     showPureInEmoji?: boolean;
     showProperName?: boolean;
+    showOfferMessage?: boolean;
     customText?: TradeSummaryCustomText;
 }
 
@@ -1456,6 +1498,7 @@ interface TradeSummaryCustomText {
     summary: SteamDiscord;
     asked: SteamDiscord;
     offered: SteamDiscord;
+    offerMessage: SteamDiscord;
     profitFromOverpay: SteamDiscord;
     lossFromUnderpay: SteamDiscord;
     timeTaken: SteamDiscord;
@@ -1478,6 +1521,7 @@ interface SteamDiscord {
 
 interface SteamChat {
     customInitializer?: CustomInitializer;
+    notifyTradePartner?: NotifyTradePartner;
 }
 
 interface CustomInitializer {
@@ -1492,15 +1536,29 @@ interface CustomInitializerMessage {
     toOtherAdmins?: string;
 }
 
+interface NotifyTradePartner {
+    onSuccessAccepted: boolean;
+    onSuccessAcceptedEscrow: boolean;
+    onDeclined: boolean;
+    onCancelled: boolean;
+    onTradedAway: boolean;
+    onOfferForReview: boolean;
+}
+
 // ------------ HighValue ------------
 
-interface HighValue {
+export interface HighValue {
     enableHold?: boolean;
-    spells?: string[];
-    sheens?: string[];
-    killstreakers?: string[];
-    strangeParts?: string[];
-    painted?: string[];
+    spells?: HighValueContent;
+    sheens?: HighValueContent;
+    killstreakers?: HighValueContent;
+    strangeParts?: HighValueContent;
+    painted?: HighValueContent;
+}
+
+interface HighValueContent {
+    names: string[];
+    exceptionSkus: string[];
 }
 
 // ------------ Normalize ------------
@@ -1690,7 +1748,7 @@ interface ManualReview extends OnlyEnable {
 // ------------ Discord Webhook ------------
 
 interface DiscordWebhook {
-    ownerID?: string;
+    ownerID?: string[];
     displayName?: string;
     avatarURL?: string;
     embedColor?: string;
@@ -1769,6 +1827,7 @@ interface SendStatsDW extends OnlyEnable {
 
 interface CustomMessage {
     sendOffer?: string;
+    counterOffer?: string;
     welcome?: string;
     iDontKnowWhatYouMean?: string;
     success?: string;
@@ -1796,6 +1855,7 @@ interface DeclineNote {
     banned?: string;
     escrow?: string;
     manual?: string;
+    failedToCounter?: string;
 }
 
 interface AcceptedNote {
@@ -2289,6 +2349,7 @@ function throwLintError(filepath: string, e: Error): void {
 function lintPath(filepath: string): void {
     const rawOptions = readFileSync(filepath, { encoding: 'utf8' });
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         jsonlint.parse(rawOptions);
     } catch (e) {
         throwLintError(filepath, e);
@@ -2311,12 +2372,18 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
     try {
         const rawOptions = readFileSync(optionsPath, { encoding: 'utf8' });
         try {
-            fileOptions = deepMerge({}, workingDefault, JSON.parse(rawOptions));
+            const parsedRaw = JSON.parse(rawOptions) as JsonOptions;
+            if (replaceOldProperties(parsedRaw)) {
+                writeFileSync(optionsPath, JSON.stringify(parsedRaw, null, 4), { encoding: 'utf8' });
+            }
+
+            fileOptions = deepMerge({}, workingDefault, parsedRaw);
             return deepMerge(fileOptions, incomingOptions);
         } catch (e) {
             if (e instanceof SyntaxError) {
                 // lint the rawOptions to give better feedback since it is SyntaxError
                 try {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     jsonlint.parse(rawOptions);
                 } catch (e) {
                     throwLintError(optionsPath, e);
@@ -2350,6 +2417,83 @@ export function removeCliOptions(incomingOptions: Options): void {
             .map(e => e.slice(18, -1))
             .map(e => delete incomingOptions[e]);
     }
+}
+
+function replaceOldProperties(options: Options): boolean {
+    // Automatically replace old properties
+    let isChanged = false;
+
+    // <= v4.1.5 → v4.2.0
+    const hv = options.highValue;
+    if (hv) {
+        const spells = hv.spells;
+        if (Array.isArray(spells)) {
+            options.highValue.spells = {
+                names: spells,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+
+        const sheens = hv.sheens;
+        if (Array.isArray(sheens)) {
+            options.highValue.sheens = {
+                names: sheens,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+
+        const killstreakers = hv.killstreakers;
+        if (Array.isArray(killstreakers)) {
+            options.highValue.killstreakers = {
+                names: killstreakers,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+
+        const strangeParts = hv.strangeParts;
+        if (Array.isArray(strangeParts)) {
+            options.highValue.strangeParts = {
+                names: strangeParts,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+
+        const painted = hv.painted;
+        if (Array.isArray(painted)) {
+            options.highValue.painted = {
+                names: painted,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+    }
+
+    // <= v4.2.0 → v4.2.1
+    if (options.discordWebhook) {
+        const ownerID = options.discordWebhook.ownerID;
+        if (!Array.isArray(ownerID)) {
+            options.discordWebhook.ownerID = ownerID === '' ? [] : [ownerID];
+            isChanged = true;
+        } else {
+            // Automatically remove first element if it's an emptry string
+            // (was accidentally added when updating from <= v4.2.0 to v4.2.4)
+            if (ownerID[0] === '') {
+                if (ownerID.length > 1) {
+                    options.discordWebhook.ownerID.shift();
+                } else {
+                    options.discordWebhook.ownerID.length = 0;
+                }
+
+                isChanged = true;
+            }
+        }
+    }
+
+    return isChanged;
 }
 
 export function loadOptions(options?: Options): Options {

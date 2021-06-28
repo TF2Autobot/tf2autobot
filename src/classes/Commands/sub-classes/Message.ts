@@ -1,6 +1,7 @@
 import SteamID from 'steamid';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
+import log from '../../../lib/logger';
 import { generateLinks, timeNow } from '../../../lib/tools/export';
 import { sendPartnerMessage, sendAdminMessage } from '../../../lib/DiscordWebhook/export';
 
@@ -40,6 +41,7 @@ export default class MessageCommand {
             try {
                 recipientSteamID = new SteamID(parts[0]);
             } catch (err) {
+                log.error('Wrong input (SteamID): ', err);
                 return this.bot.sendMessage(
                     steamID,
                     '❌ Your syntax is wrong or the SteamID is incorrectly formatted. Here\'s an example: "!message 76561198120070906 Hi"' +

@@ -17,7 +17,9 @@ export default function sendPartnerMessage(
     const discordPartnerMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-        content: `${opt.messages.isMention ? `<@!${opt.ownerID}>, ` : ''}new message! - ${steamID}`,
+        content: `${
+            opt.messages.isMention && opt.ownerID.length > 0 ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, ` : ''
+        }new message! - ${steamID}`,
         embeds: [
             {
                 author: {
@@ -42,7 +44,7 @@ export default function sendPartnerMessage(
             log.debug(`✅ Sent partner-message webhook (from ${their ? their.player_name : steamID}) to Discord.`)
         )
         .catch(err =>
-            log.debug(
+            log.warn(
                 `❌ Failed to send partner-message webhook (from ${their ? their.player_name : steamID}) to Discord: `,
                 err
             )

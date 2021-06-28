@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
-import { getItemAndAmount, fixSKU } from '../functions/utils';
+import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
@@ -46,11 +46,13 @@ export default class StatusCommands {
                     : String(trades.totalAcceptedTrades)) +
                 `\n\n--- Last 24 hours ---` +
                 `\n• Processed: ${trades.hours24.processed}` +
-                `\n• Accepted: ${trades.hours24.accepted.offer + trades.hours24.accepted.sent}` +
-                `\n---• Received offer: ${trades.hours24.accepted.offer}` +
+                `\n• Accepted: ${trades.hours24.accepted.offer.total + trades.hours24.accepted.sent}` +
+                `\n---• Received offer: ${trades.hours24.accepted.offer.total}` +
+                `\n------• Countered: ${trades.hours24.accepted.offer.countered}` +
                 `\n---• Sent offer: ${trades.hours24.accepted.sent}` +
-                `\n• Declined: ${trades.hours24.decline.offer + trades.hours24.decline.sent}` +
-                `\n---• Received offer: ${trades.hours24.decline.offer}` +
+                `\n• Declined: ${trades.hours24.decline.offer.total + trades.hours24.decline.sent}` +
+                `\n---• Received offer: ${trades.hours24.decline.offer.total}` +
+                `\n------• Countered: ${trades.hours24.decline.offer.countered}` +
                 `\n---• Sent offer: ${trades.hours24.decline.sent}` +
                 `\n• Skipped: ${trades.hours24.skipped}` +
                 `\n• Traded away: ${trades.hours24.invalid}` +
@@ -60,11 +62,13 @@ export default class StatusCommands {
                 `\n---• unknown reason: ${trades.hours24.canceled.unknown}` +
                 `\n\n--- Since beginning of today ---` +
                 `\n• Processed: ${trades.today.processed}` +
-                `\n• Accepted: ${trades.today.accepted.offer + trades.today.accepted.sent}` +
-                `\n---• Received offer: ${trades.today.accepted.offer}` +
+                `\n• Accepted: ${trades.today.accepted.offer.total + trades.today.accepted.sent}` +
+                `\n---• Received offer: ${trades.today.accepted.offer.total}` +
+                `\n------• Countered: ${trades.today.accepted.offer.countered}` +
                 `\n---• Sent offer: ${trades.today.accepted.sent}` +
-                `\n• Declined: ${trades.today.decline.offer + trades.today.decline.sent}` +
-                `\n---• Received offer: ${trades.today.decline.offer}` +
+                `\n• Declined: ${trades.today.decline.offer.total + trades.today.decline.sent}` +
+                `\n---• Received offer: ${trades.today.decline.offer.total}` +
+                `\n------• Countered: ${trades.today.decline.offer.countered}` +
                 `\n---• Sent offer: ${trades.today.decline.sent}` +
                 `\n• Skipped: ${trades.today.skipped}` +
                 `\n• Traded away: ${trades.today.invalid}` +
@@ -110,11 +114,14 @@ export default class StatusCommands {
         if (testSKU(message)) {
             sku = message;
         } else {
-            const info = getItemAndAmount(steamID, message, this.bot);
-            if (info === null) {
-                return;
+            sku = this.bot.schema.getSkuFromName(message);
+
+            if (sku.includes('null') || sku.includes('undefined')) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `Invalid item name. The sku generate was ${sku}. Please report this to us on our Discord server, or create an issue on Github.`
+                );
             }
-            sku = info.match.sku;
         }
 
         sku = fixSKU(sku);
@@ -331,25 +338,21 @@ export default class StatusCommands {
         );
 
         this.bot.checkForUpdates
-            .then(({ hasNewVersion, latestVersion, updateMessage }) => {
+            .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
                     this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                            `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
-                            (process.env.pm_id !== undefined
-                                ? `\n\nYou're running the bot with PM2!\n\n🔄 Update message:\n${updateMessage}`
-                                : `\n\nNavigate to your bot folder and run ` +
-                                  `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
-                                  `and then restart your bot.`) +
-                            '\n\nContact IdiNium if you have any other problem. Thank you.'
+                            `Release note: https://github.com/TF2Autobot/tf2autobot/releases`
                     );
                 }
             })
             .catch(err => {
-                this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`);
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${errMessage}`);
             });
     }
 }
