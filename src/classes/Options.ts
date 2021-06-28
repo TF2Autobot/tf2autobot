@@ -2099,8 +2099,20 @@ function replaceOldProperties(options: Options): boolean {
     if (options.discordWebhook) {
         const ownerID = options.discordWebhook.ownerID;
         if (!Array.isArray(ownerID)) {
-            options.discordWebhook.ownerID = [ownerID];
+            options.discordWebhook.ownerID = ownerID === '' ? [] : [ownerID];
             isChanged = true;
+        } else {
+            // Automatically remove first element if it's an emptry string
+            // (was accidentally added when updating from <= v4.2.0 to v4.2.4)
+            if (ownerID[0] === '') {
+                if (ownerID.length > 1) {
+                    options.discordWebhook.ownerID.shift();
+                } else {
+                    options.discordWebhook.ownerID.length = 0;
+                }
+
+                isChanged = true;
+            }
         }
     }
 
