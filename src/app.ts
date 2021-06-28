@@ -85,7 +85,10 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
             const sendAlertWebhook: Webhook = {
                 username: optDW.displayName ? optDW.displayName : 'Your beloved bot',
                 avatar_url: optDW.avatarURL ? optDW.avatarURL : '',
-                content: optDW.sendAlert.isMention ? optDW.ownerID.map(id => `<@!${id}>`).join(', ') : '',
+                content:
+                    optDW.sendAlert.isMention && optDW.ownerID.length > 0
+                        ? optDW.ownerID.map(id => `<@!${id}>`).join(', ')
+                        : '',
                 embeds: [
                     {
                         title: 'Bot crashed!',
