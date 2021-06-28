@@ -854,11 +854,14 @@ export default class MyHandler extends Handler {
                     } else if (item.isFullUses !== undefined) {
                         getHighValue[which].items[sku] = { isFull: item.isFullUses };
 
-                        if (sku === '241;6' && item.isFullUses === false) {
-                            isDuelingNotFullUses = true;
-                        } else if (noiseMakers.has(sku) && item.isFullUses === false) {
-                            isNoiseMakerNotFullUses = true;
-                            noiseMakerNotFullSKUs.push(sku);
+                        if (which === 'their') {
+                            // Only check for their side
+                            if (sku === '241;6' && item.isFullUses === false) {
+                                isDuelingNotFullUses = true;
+                            } else if (noiseMakers.has(sku) && item.isFullUses === false) {
+                                isNoiseMakerNotFullUses = true;
+                                noiseMakerNotFullSKUs.push(sku);
+                            }
                         }
                     }
                 });
