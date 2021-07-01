@@ -95,7 +95,7 @@
         "prettier": "^2.3.2",
         "socket.io-mock": "^1.3.2",
         "ts-jest": "^27.0.3",
-        "typescript": "^4.3.4"
+        "typescript": "^4.3.5"
     },
     "private": true,
     "_moduleAliases": {
