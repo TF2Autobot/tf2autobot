@@ -19,7 +19,7 @@ declare module '@tf2autobot/tf2' {
 
         sortBackpack(sortType: number): void;
 
-        removeItemAttribute(item: string, attribute: string): void;
+        removeItemAttribute(item: string, attribute: number): void;
 
         // Maybe just add
         applyStrangePart(item: string, strangPartItemID: string): void;
