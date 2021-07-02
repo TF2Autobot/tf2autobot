@@ -1,4 +1,4 @@
-declare module 'tf2' {
+declare module '@tf2autobot/tf2' {
     import SteamUser from 'steam-user';
     import EventEmitter from 'events';
 
