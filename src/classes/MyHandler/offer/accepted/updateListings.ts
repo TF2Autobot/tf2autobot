@@ -525,6 +525,10 @@ export default function updateListings(
         } else {
             addToQueu(sku, isNotPure, existInPricelist);
         }
+
+        if ([474, 619, 623, 625].includes(item.defindex)) {
+            // Flair!, Photo Badge, Clan Pride, or Conscientious Objector
+        }
     }
 
     if (skus.length > 0) {
