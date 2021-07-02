@@ -18,6 +18,13 @@ declare module '@tf2autobot/tf2' {
         useItem(item: string): void;
 
         sortBackpack(sortType: number): void;
+
+        removeItemAttribute(item: string, attribute: string): void;
+
+        // Maybe just add
+        applyStrangePart(item: string, strangPartItemID: string): void;
+
+        applyStrangifierOrUnusualifier(item: string, strangifierOrUnusualifierID: string): void;
     }
 
     export = TF2;
