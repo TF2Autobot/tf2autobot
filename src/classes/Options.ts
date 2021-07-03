@@ -236,6 +236,11 @@ export const DEFAULTS: JsonOptions = {
             our: true,
             their: true,
             amountIncludeNonPainted: false
+        },
+        strangeParts: {
+            our: true,
+            their: true,
+            amountIncludeNoParts: false
         }
     },
 
@@ -982,60 +987,373 @@ export const DEFAULTS: JsonOptions = {
         },
         /**
          * Custom string to be shown in listing note if details.highValue.showStrangeParts set to true
+         * TODO: REFACTOR INTO A SEPARATE INDIVIDUAL FILE!
          */
         strangeParts: {
-            'Robots Destroyed': '',
-            Kills: '',
-            'Airborne Enemy Kills': '',
-            'Damage Dealt': '',
-            Dominations: '',
-            'Snipers Killed': '',
-            'Buildings Destroyed': '',
-            'Projectiles Reflected': '',
-            'Headshot Kills': '',
-            'Medics Killed': '',
-            'Fires Survived': '',
-            'Teammates Extinguished': '',
-            'Freezecam Taunt Appearances': '',
-            'Spies Killed': '',
-            'Allied Healing Done': '',
-            'Sappers Removed': '',
-            'Players Hit': '',
-            'Gib Kills': '',
-            'Scouts Killed': '',
-            'Taunt Kills': '',
-            'Point Blank Kills': '',
-            'Soldiers Killed': '',
-            'Long-Distance Kills': '',
-            'Giant Robots Destroyed': '',
-            'Critical Kills': '',
-            'Demomen Killed': '',
-            'Unusual-Wearing Player Kills': '',
-            Assists: '',
-            'Medics Killed That Have Full ÜberCharge': '',
-            'Cloaked Spies Killed': '',
-            'Engineers Killed': '',
-            'Kills While Explosive-Jumping': '',
-            'Kills While Low Health': '',
-            'Burning Player Kills': '',
-            'Kills While Invuln ÜberCharged': '',
-            'Posthumous Kills': '',
-            'Not Crit nor MiniCrit Kills': '',
-            'Full Health Kills': '',
-            'Killstreaks Ended': '',
-            'Defenders Killed': '',
-            Revenges: '',
-            'Robot Scouts Destroyed': '',
-            'Heavies Killed': '',
-            'Tanks Destroyed': '',
-            'Kills During Halloween': '',
-            'Pyros Killed': '',
-            'Submerged Enemy Kills': '',
-            'Kills During Victory Time': '',
-            'Taunting Player Kills': '',
-            'Robot Spies Destroyed': '',
-            'Kills Under A Full Moon': '',
-            'Robots Killed During Halloween': ''
+            'Robots Destroyed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            Kills: {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Airborne Enemy Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Damage Dealt': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            Dominations: {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Snipers Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Buildings Destroyed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Projectiles Reflected': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Headshot Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Medics Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Fires Survived': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Teammates Extinguished': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Freezecam Taunt Appearances': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Spies Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Allied Healing Done': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Sappers Removed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Players Hit': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Gib Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Scouts Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Taunt Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Point Blank Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Soldiers Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Long-Distance Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Giant Robots Destroyed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Critical Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Demomen Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Unusual-Wearing Player Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            Assists: {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Medics Killed That Have Full ÜberCharge': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Cloaked Spies Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Engineers Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Kills While Explosive-Jumping': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Kills While Low Health': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Burning Player Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Kills While Invuln ÜberCharged': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Posthumous Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Not Crit nor MiniCrit Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Full Health Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Killstreaks Ended': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Defenders Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            Revenges: {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Robot Scouts Destroyed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Heavies Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Tanks Destroyed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Kills During Halloween': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Pyros Killed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Submerged Enemy Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Kills During Victory Time': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Taunting Player Kills': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Robot Spies Destroyed': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Kills Under A Full Moon': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            },
+            'Robots Killed During Halloween': {
+                stringNote: '',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
+            }
         }
     }
 };
@@ -1249,6 +1567,7 @@ interface Normalize {
     festivized?: NormalizeFestivized;
     strangeAsSecondQuality?: NormalizeStrange;
     painted?: NormalizePainted;
+    strangeParts?: NormalizeStrangeParts;
 }
 
 interface NormalizeOurOrTheir {
@@ -1266,6 +1585,10 @@ interface NormalizeStrange extends NormalizeOurOrTheir {
 
 interface NormalizePainted extends NormalizeOurOrTheir {
     amountIncludeNonPainted?: boolean;
+}
+
+interface NormalizeStrangeParts extends NormalizeOurOrTheir {
+    amountIncludeNoParts?: boolean;
 }
 
 // ------------ Details ------------
@@ -1765,42 +2088,42 @@ interface Killstreakers {
     Tornado?: string;
 }
 
-interface PaintedProperties {
+interface NoteAndPriceProperties {
     stringNote?: string;
     price?: Currency;
 }
 
 interface Painted {
-    'A Color Similar to Slate'?: PaintedProperties;
-    'A Deep Commitment to Purple'?: PaintedProperties;
-    'A Distinctive Lack of Hue'?: PaintedProperties;
-    "A Mann's Mint"?: PaintedProperties;
-    'After Eight'?: PaintedProperties;
-    'Aged Moustache Grey'?: PaintedProperties;
-    'An Extraordinary Abundance of Tinge'?: PaintedProperties;
-    'Australium Gold'?: PaintedProperties;
-    'Color No. 216-190-216'?: PaintedProperties;
-    'Dark Salmon Injustice'?: PaintedProperties;
-    'Drably Olive'?: PaintedProperties;
-    'Indubitably Green'?: PaintedProperties;
-    'Mann Co. Orange'?: PaintedProperties;
-    Muskelmannbraun?: PaintedProperties;
-    "Noble Hatter's Violet"?: PaintedProperties;
-    'Peculiarly Drab Tincture'?: PaintedProperties;
-    'Pink as Hell'?: PaintedProperties;
-    'Radigan Conagher Brown'?: PaintedProperties;
-    'The Bitter Taste of Defeat and Lime'?: PaintedProperties;
-    "The Color of a Gentlemann's Business Pants"?: PaintedProperties;
-    'Ye Olde Rustic Colour'?: PaintedProperties;
-    "Zepheniah's Greed"?: PaintedProperties;
-    'An Air of Debonair'?: PaintedProperties;
-    'Balaclavas Are Forever'?: PaintedProperties;
-    "Operator's Overalls"?: PaintedProperties;
-    'Cream Spirit'?: PaintedProperties;
-    'Team Spirit'?: PaintedProperties;
-    'The Value of Teamwork'?: PaintedProperties;
-    'Waterlogged Lab Coat'?: PaintedProperties;
-    'Legacy Paint'?: PaintedProperties;
+    'A Color Similar to Slate'?: NoteAndPriceProperties;
+    'A Deep Commitment to Purple'?: NoteAndPriceProperties;
+    'A Distinctive Lack of Hue'?: NoteAndPriceProperties;
+    "A Mann's Mint"?: NoteAndPriceProperties;
+    'After Eight'?: NoteAndPriceProperties;
+    'Aged Moustache Grey'?: NoteAndPriceProperties;
+    'An Extraordinary Abundance of Tinge'?: NoteAndPriceProperties;
+    'Australium Gold'?: NoteAndPriceProperties;
+    'Color No. 216-190-216'?: NoteAndPriceProperties;
+    'Dark Salmon Injustice'?: NoteAndPriceProperties;
+    'Drably Olive'?: NoteAndPriceProperties;
+    'Indubitably Green'?: NoteAndPriceProperties;
+    'Mann Co. Orange'?: NoteAndPriceProperties;
+    Muskelmannbraun?: NoteAndPriceProperties;
+    "Noble Hatter's Violet"?: NoteAndPriceProperties;
+    'Peculiarly Drab Tincture'?: NoteAndPriceProperties;
+    'Pink as Hell'?: NoteAndPriceProperties;
+    'Radigan Conagher Brown'?: NoteAndPriceProperties;
+    'The Bitter Taste of Defeat and Lime'?: NoteAndPriceProperties;
+    "The Color of a Gentlemann's Business Pants"?: NoteAndPriceProperties;
+    'Ye Olde Rustic Colour'?: NoteAndPriceProperties;
+    "Zepheniah's Greed"?: NoteAndPriceProperties;
+    'An Air of Debonair'?: NoteAndPriceProperties;
+    'Balaclavas Are Forever'?: NoteAndPriceProperties;
+    "Operator's Overalls"?: NoteAndPriceProperties;
+    'Cream Spirit'?: NoteAndPriceProperties;
+    'Team Spirit'?: NoteAndPriceProperties;
+    'The Value of Teamwork'?: NoteAndPriceProperties;
+    'Waterlogged Lab Coat'?: NoteAndPriceProperties;
+    'Legacy Paint'?: NoteAndPriceProperties;
 }
 
 export type PaintedNames =
@@ -1836,59 +2159,113 @@ export type PaintedNames =
     | 'Legacy Paint';
 
 interface StrangeParts {
-    'Robots Destroyed'?: string;
-    Kills?: string;
-    'Airborne Enemy Kills'?: string;
-    'Damage Dealt'?: string;
-    Dominations?: string;
-    'Snipers Killed'?: string;
-    'Buildings Destroyed'?: string;
-    'Projectiles Reflected'?: string;
-    'Headshot Kills'?: string;
-    'Medics Killed'?: string;
-    'Fires Survived'?: string;
-    'Teammates Extinguished'?: string;
-    'Freezecam Taunt Appearances'?: string;
-    'Spies Killed'?: string;
-    'Allied Healing Done'?: string;
-    'Sappers Removed'?: string;
-    'Players Hit'?: string;
-    'Gib Kills'?: string;
-    'Scouts Killed'?: string;
-    'Taunt Kills'?: string;
-    'Point Blank Kills'?: string;
-    'Soldiers Killed'?: string;
-    'Long-Distance Kills'?: string;
-    'Giant Robots Destroyed'?: string;
-    'Critical Kills'?: string;
-    'Demomen Killed'?: string;
-    'Unusual-Wearing Player Kills'?: string;
-    Assists?: string;
-    'Medics Killed That Have Full ÜberCharge'?: string;
-    'Cloaked Spies Killed'?: string;
-    'Engineers Killed': string;
-    'Kills While Explosive-Jumping': string;
-    'Kills While Low Health': string;
-    'Burning Player Kills': string;
-    'Kills While Invuln ÜberCharged': string;
-    'Posthumous Kills'?: string;
-    'Not Crit nor MiniCrit Kills'?: string;
-    'Full Health Kills'?: string;
-    'Killstreaks Ended'?: string;
-    'Defenders Killed'?: string;
-    Revenges?: string;
-    'Robot Scouts Destroyed'?: string;
-    'Heavies Killed'?: string;
-    'Tanks Destroyed'?: string;
-    'Kills During Halloween'?: string;
-    'Pyros Killed'?: string;
-    'Submerged Enemy Kills'?: string;
-    'Kills During Victory Time'?: string;
-    'Taunting Player Kills'?: string;
-    'Robot Spies Destroyed'?: string;
-    'Kills Under A Full Moon'?: string;
-    'Robots Killed During Halloween'?: string;
+    'Robots Destroyed'?: NoteAndPriceProperties;
+    Kills?: NoteAndPriceProperties;
+    'Airborne Enemy Kills'?: NoteAndPriceProperties;
+    'Damage Dealt'?: NoteAndPriceProperties;
+    Dominations?: NoteAndPriceProperties;
+    'Snipers Killed'?: NoteAndPriceProperties;
+    'Buildings Destroyed'?: NoteAndPriceProperties;
+    'Projectiles Reflected'?: NoteAndPriceProperties;
+    'Headshot Kills'?: NoteAndPriceProperties;
+    'Medics Killed'?: NoteAndPriceProperties;
+    'Fires Survived'?: NoteAndPriceProperties;
+    'Teammates Extinguished'?: NoteAndPriceProperties;
+    'Freezecam Taunt Appearances'?: NoteAndPriceProperties;
+    'Spies Killed'?: NoteAndPriceProperties;
+    'Allied Healing Done'?: NoteAndPriceProperties;
+    'Sappers Removed'?: NoteAndPriceProperties;
+    'Players Hit'?: NoteAndPriceProperties;
+    'Gib Kills'?: NoteAndPriceProperties;
+    'Scouts Killed'?: NoteAndPriceProperties;
+    'Taunt Kills'?: NoteAndPriceProperties;
+    'Point Blank Kills'?: NoteAndPriceProperties;
+    'Soldiers Killed'?: NoteAndPriceProperties;
+    'Long-Distance Kills'?: NoteAndPriceProperties;
+    'Giant Robots Destroyed'?: NoteAndPriceProperties;
+    'Critical Kills'?: NoteAndPriceProperties;
+    'Demomen Killed'?: NoteAndPriceProperties;
+    'Unusual-Wearing Player Kills'?: NoteAndPriceProperties;
+    Assists?: NoteAndPriceProperties;
+    'Medics Killed That Have Full ÜberCharge'?: NoteAndPriceProperties;
+    'Cloaked Spies Killed'?: NoteAndPriceProperties;
+    'Engineers Killed': NoteAndPriceProperties;
+    'Kills While Explosive-Jumping': NoteAndPriceProperties;
+    'Kills While Low Health': NoteAndPriceProperties;
+    'Burning Player Kills': NoteAndPriceProperties;
+    'Kills While Invuln ÜberCharged': NoteAndPriceProperties;
+    'Posthumous Kills'?: NoteAndPriceProperties;
+    'Not Crit nor MiniCrit Kills'?: NoteAndPriceProperties;
+    'Full Health Kills'?: NoteAndPriceProperties;
+    'Killstreaks Ended'?: NoteAndPriceProperties;
+    'Defenders Killed'?: NoteAndPriceProperties;
+    Revenges?: NoteAndPriceProperties;
+    'Robot Scouts Destroyed'?: NoteAndPriceProperties;
+    'Heavies Killed'?: NoteAndPriceProperties;
+    'Tanks Destroyed'?: NoteAndPriceProperties;
+    'Kills During Halloween'?: NoteAndPriceProperties;
+    'Pyros Killed'?: NoteAndPriceProperties;
+    'Submerged Enemy Kills'?: NoteAndPriceProperties;
+    'Kills During Victory Time'?: NoteAndPriceProperties;
+    'Taunting Player Kills'?: NoteAndPriceProperties;
+    'Robot Spies Destroyed'?: NoteAndPriceProperties;
+    'Kills Under A Full Moon'?: NoteAndPriceProperties;
+    'Robots Killed During Halloween'?: NoteAndPriceProperties;
 }
+
+export type StrangePartNames =
+    | 'Robots Destroyed'
+    | 'Kills'
+    | 'Airborne Enemy Kills'
+    | 'Damage Dealt'
+    | 'Dominations'
+    | 'Snipers Killed'
+    | 'Buildings Destroyed'
+    | 'Projectiles Reflected'
+    | 'Headshot Kills'
+    | 'Medics Killed'
+    | 'Fires Survived'
+    | 'Teammates Extinguished'
+    | 'Freezecam Taunt Appearances'
+    | 'Spies Killed'
+    | 'Allied Healing Done'
+    | 'Sappers Removed'
+    | 'Players Hit'
+    | 'Gib Kills'
+    | 'Scouts Killed'
+    | 'Taunt Kills'
+    | 'Point Blank Kills'
+    | 'Soldiers Killed'
+    | 'Long-Distance Kills'
+    | 'Giant Robots Destroyed'
+    | 'Critical Kills'
+    | 'Demomen Killed'
+    | 'Unusual-Wearing Player Kills'
+    | 'Assists'
+    | 'Medics Killed That Have Full ÜberCharge'
+    | 'Cloaked Spies Killed'
+    | 'Engineers Killed'
+    | 'Kills While Explosive-Jumping'
+    | 'Kills While Low Health'
+    | 'Burning Player Kills'
+    | 'Kills While Invuln ÜberCharged'
+    | 'Posthumous Kills'
+    | 'Not Crit nor MiniCrit Kills'
+    | 'Full Health Kills'
+    | 'Killstreaks Ended'
+    | 'Defenders Killed'
+    | 'Revenges'
+    | 'Robot Scouts Destroyed'
+    | 'Heavies Killed'
+    | 'Tanks Destroyed'
+    | 'Kills During Halloween'
+    | 'Pyros Killed'
+    | 'Submerged Enemy Kills'
+    | 'Kills During Victory Time'
+    | 'Taunting Player Kills'
+    | 'Robot Spies Destroyed'
+    | 'Kills Under A Full Moon'
+    | 'Robots Killed During Halloween';
 
 // ------------ JsonOptions ------------
 

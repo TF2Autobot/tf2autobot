@@ -12,7 +12,7 @@ import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { DictItem } from './Inventory';
-import { PaintedNames } from './Options';
+import { PaintedNames, StrangePartNames } from './Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export default class Listings {
@@ -580,12 +580,8 @@ export default class Listings {
 
                                 if (attachment === 'sp' && hv[attachment as Attachment][pSKU] === true) {
                                     const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);
-                                    toJoin.push(
-                                        `${name.replace(
-                                            name,
-                                            optR.strangeParts[name] ? optR.strangeParts[name] : name
-                                        )}`
-                                    );
+                                    const fromOpt = optR.strangeParts[name as StrangePartNames].stringNote;
+                                    toJoin.push(`${fromOpt ? name.replace(name, fromOpt) : name}`);
                                 } else {
                                     if (attachment !== 'sp') {
                                         const name = getAttachmentName(attachment, pSKU, getPaints, getStrangeParts);

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
-import SchemaManager, { Paints } from 'tf2-schema-2';
+import SchemaManager, { Paints, StrangeParts } from 'tf2-schema-2';
 import SKU from 'tf2-sku-2';
 import url from 'url';
 import { MinimumItem } from '../../../types/TeamFortress2';
@@ -15,7 +15,10 @@ export = function (
     normalizeStrangeAsSecondQuality: boolean,
     normalizePainted: boolean,
     paints: Paints,
-    paintsInOptions: string[]
+    paintsInOptions: string[],
+    normalizeStrangeParts: boolean,
+    strangeParts: StrangeParts,
+    strangePartsInOptions: string[]
 ): { sku: string; isPainted: boolean } {
     const self = this as EconItem;
 
@@ -43,7 +46,8 @@ export = function (
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, schema, normalizeStrangeAsSecondQuality),
             crateseries: getCrateSeries(self),
-            paint: getPainted(self, normalizePainted, paints, paintsInOptions)
+            paint: getPainted(self, normalizePainted, paints, paintsInOptions),
+            strangeParts: getStrangeParts(self, normalizeStrangeParts, strangeParts, strangePartsInOptions)
         },
         getOutput(self, schema)
     ) as MinimumItem;
@@ -527,6 +531,50 @@ function getPainted(
     ) {
         isPainted = true;
         return 5801378;
+    }
+
+    return null;
+}
+
+function getStrangeParts(
+    item: EconItem,
+    normalizeStrangeParts: boolean,
+    strangeParts: StrangeParts,
+    strangePartsInOptions: string[]
+): number[] | null {
+    if (normalizeStrangeParts) {
+        return null;
+    }
+
+    const descriptions = item.descriptions;
+    const descriptionCount = descriptions.length;
+
+    const strangePartIds: number[] = [];
+
+    for (let i = 0; i < descriptionCount; i++) {
+        const desc = descriptions[i];
+        const strangePartName = desc.value
+            .replace('(', '')
+            .replace(/: \d+\)/g, '')
+            .trim();
+
+        if (
+            (['Kills', 'Assists'].includes(strangePartName)
+                ? item.getItemTag('Type') === 'Cosmetic'
+                : Object.keys(strangeParts).includes(strangePartName)) &&
+            desc.color === '756b5e'
+        ) {
+            // Valid Strange Parts
+            if (strangePartsInOptions.includes(strangePartName.toLowerCase())) {
+                // Strange Parts included in highValue.strangeParts (or that value is set to default [])
+                const strangePartId = +strangeParts[strangePartName].replace('sp', '');
+                strangePartIds.push(strangePartId);
+            }
+        }
+    }
+
+    if (strangePartIds.length > 0) {
+        return strangePartIds;
     }
 
     return null;
