@@ -414,6 +414,9 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['playOnlyTF2', 'customName'],
                     additionalProperties: false
+                },
+                alwaysRemoveDecalImages: {
+                    $ref: '#/definitions/only-enable'
                 }
             },
             required: [
@@ -427,7 +430,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'skipItemsInTrade',
                 'weaponsAsCurrency',
                 'checkUses',
-                'game'
+                'game',
+                'alwaysRemoveDecalImages'
             ],
             additionalProperties: false
         },

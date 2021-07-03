@@ -1,4 +1,4 @@
-import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
+import { Items, TradeOffer, ItemsDict } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
@@ -526,8 +526,13 @@ export default function updateListings(
             addToQueu(sku, isNotPure, existInPricelist);
         }
 
-        if ([474, 619, 623, 625].includes(item.defindex)) {
+        if ([474, 619, 623, 625].includes(item.defindex) && opt.miscSettings.alwaysRemoveDecalImages.enable) {
             // Flair!, Photo Badge, Clan Pride, or Conscientious Objector
+
+            const dict = offer.data('dict') as ItemsDict;
+            if (dict.their[sku] !== undefined) {
+                // Something here
+            }
         }
     }
 

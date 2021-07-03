@@ -45,6 +45,9 @@ export const DEFAULTS: JsonOptions = {
         game: {
             playOnlyTF2: false,
             customName: ''
+        },
+        alwaysRemoveDecalImages: {
+            enable: false
         }
     },
 
@@ -1090,6 +1093,7 @@ interface MiscSettings {
     weaponsAsCurrency?: WeaponsAsCurrency;
     checkUses?: CheckUses;
     game?: Game;
+    alwaysRemoveDecalImages?: OnlyEnable;
 }
 
 // ------------ SendAlert ------------
