@@ -174,7 +174,7 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid, true));
+                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid));
 
                 // Add items gained
                 itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
@@ -205,7 +205,7 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid, true));
+                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid));
 
                 // Add items gained
                 itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
@@ -237,8 +237,8 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                this.bot.inventoryManager.getInventory.removeItem(id1, true);
-                this.bot.inventoryManager.getInventory.removeItem(id2, true);
+                this.bot.inventoryManager.getInventory.removeItem(id1);
+                this.bot.inventoryManager.getInventory.removeItem(id2);
 
                 // Add items gained
                 itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
@@ -274,8 +274,7 @@ export default class TF2GC {
 
                 log.debug('itemRemoved', item);
 
-                const isNotTradable = item.attribute.some(attr => attr.def_index === 153);
-                this.bot.inventoryManager.getInventory.removeItem(item.id, !isNotTradable);
+                this.bot.inventoryManager.getInventory.removeItem(item.id);
 
                 // Clear fail timeout
                 return { success: false, clearTimeout: true };
@@ -310,6 +309,7 @@ export default class TF2GC {
                         assetid: item.id
                     });
 
+                    // this is fine
                     const isNotTradable = item.attribute.some(attr => attr.def_index === 153);
 
                     this.bot.inventoryManager.getInventory[isNotTradable ? 'addNonTradableItem' : 'addItem'](
