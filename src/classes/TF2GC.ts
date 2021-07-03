@@ -2,7 +2,15 @@ import Bot from './Bot';
 import log from '../lib/logger';
 
 type Job = {
-    type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort';
+    type:
+        | 'smelt'
+        | 'combine'
+        | 'combineWeapon'
+        | 'combineClassWeapon'
+        | 'use'
+        | 'delete'
+        | 'sort'
+        | 'removeCustomTexture';
     defindex?: number;
     sku?: string;
     skus?: string[];
@@ -91,6 +99,12 @@ export default class TF2GC {
         this.newJob({ type: 'sort', sortType: type, callback: callback });
     }
 
+    removeDecal(sku: string, assetid: string, callback?: (err: Error | null) => void): void {
+        log.debug('Enqueueing removeCustomTexture job for ' + assetid);
+
+        this.newJob({ type: 'removeCustomTexture', sku: sku, assetid: assetid, callback: callback });
+    }
+
     private newJob(job: Job): void {
         this.jobs.push(job);
         this.handleJobQueue();
@@ -144,6 +158,8 @@ export default class TF2GC {
                 func = this.handleUseOrDeleteJob.bind(this, job);
             } else if (job.type === 'sort') {
                 func = this.handleSortJob.bind(this, job);
+            } else if (job.type === 'removeCustomTexture') {
+                func = this.handleRemoveDecal.bind(this, job);
             }
 
             if (func) {
@@ -160,7 +176,9 @@ export default class TF2GC {
             return this.finishedProcessingJob(new Error("Can't process job"));
         }
 
-        const assetids = this.bot.inventoryManager.getInventory
+        const inventory = this.bot.inventoryManager.getInventory;
+
+        const assetids = inventory
             .findBySKU(String(job.defindex) + ';6', true)
             .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
@@ -174,10 +192,10 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid));
+                ids.forEach(assetid => inventory.removeItem(assetid));
 
                 // Add items gained
-                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
+                itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
             },
@@ -192,9 +210,9 @@ export default class TF2GC {
             return this.finishedProcessingJob(new Error("Can't process weapon crafting job"));
         }
 
-        const assetids = this.bot.inventoryManager.getInventory
-            .findBySKU(job.sku, true)
-            .filter(assetid => !this.bot.trades.isInTrade(assetid));
+        const inventory = this.bot.inventoryManager.getInventory;
+
+        const assetids = inventory.findBySKU(job.sku, true).filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const ids = assetids.splice(0, 2);
         log.debug('Sending weapon craft request');
@@ -205,10 +223,10 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                ids.forEach(assetid => this.bot.inventoryManager.getInventory.removeItem(assetid));
+                ids.forEach(assetid => inventory.removeItem(assetid));
 
                 // Add items gained
-                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
+                itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
             },
@@ -237,11 +255,11 @@ export default class TF2GC {
             'craftingComplete',
             (recipe: number, itemsGained: string[]) => {
                 // Remove items used for recipe
-                this.bot.inventoryManager.getInventory.removeItem(id1);
-                this.bot.inventoryManager.getInventory.removeItem(id2);
+                inventory.removeItem(id1);
+                inventory.removeItem(id2);
 
                 // Add items gained
-                itemsGained.forEach(assetid => this.bot.inventoryManager.getInventory.addItem(gainSKU, assetid));
+                itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
             },
@@ -370,6 +388,58 @@ export default class TF2GC {
         );
     }
 
+    private handleRemoveDecal(job: Job): void {
+        log.debug('Sending ' + job.type + ' request');
+
+        try {
+            this.bot.tf2.removeItemAttribute(job.assetid, 1051);
+        } catch (err) {
+            return this.finishedProcessingJob(
+                new Error(
+                    `Unable to process removeCustomTexture job for ${job.sku} (${job.assetid}): ${JSON.stringify(err)}`
+                )
+            );
+        }
+
+        let timeout: NodeJS.Timeout;
+
+        const cancel = this.listenForEvent(
+            'itemChanged',
+            (oldItem: TF2GCItem, newItem: TF2GCItem) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    // 1 second after the last item has changed we will mark the job as finished
+                    cancel();
+                    this.finishedProcessingJob();
+                }, 1000);
+
+                log.debug('itemChanged on removeCustomTexture', {
+                    oldItemData: oldItem,
+                    newItemData: newItem
+                });
+
+                const inventory = this.bot.inventoryManager.getInventory;
+                inventory.removeItem(oldItem.id);
+                inventory.addItem(job.sku, newItem.id);
+
+                // Clear fail timeout
+                return { success: false, clearTimeout: true };
+            },
+            () => {
+                this.finishedProcessingJob();
+            },
+            err => {
+                if (err.message === 'Canceled') {
+                    // Was canceled because of timeout
+                    this.finishedProcessingJob();
+                } else {
+                    // Job failed
+                    this.finishedProcessingJob(err);
+                }
+            }
+        );
+    }
+
     /**
      * Listens for GC event
      *
@@ -475,8 +545,10 @@ export default class TF2GC {
     }
 
     private canProcessJob(job: Job): boolean {
+        const inventory = this.bot.inventoryManager.getInventory;
+
         if (['smelt', 'combine'].includes(job.type)) {
-            const assetids = this.bot.inventoryManager.getInventory
+            const assetids = inventory
                 .findBySKU(String(job.defindex) + ';6', true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
@@ -484,24 +556,23 @@ export default class TF2GC {
 
             return (job.type === 'smelt' && assetidsCount > 0) || (job.type === 'combine' && assetidsCount >= 3);
         } else if (['use', 'delete'].includes(job.type)) {
-            return this.bot.inventoryManager.getInventory.findByAssetid(job.assetid) !== null;
+            return inventory.findByAssetid(job.assetid) !== null;
         }
 
         return true;
     }
 
     private canProcessJobWeapon(job: Job): boolean {
+        const inventory = this.bot.inventoryManager.getInventory;
         if (job.type === 'combineWeapon') {
-            const assetids = this.bot.inventoryManager.getInventory
-                .findBySKU(job.sku, true)
-                .filter(assetid => !this.bot.trades.isInTrade(assetid));
+            const assetids = inventory.findBySKU(job.sku, true).filter(assetid => !this.bot.trades.isInTrade(assetid));
 
             return job.type === 'combineWeapon' && assetids.length >= 2;
         } else if (job.type === 'combineClassWeapon') {
-            const assetids1 = this.bot.inventoryManager.getInventory
+            const assetids1 = inventory
                 .findBySKU(job.skus[0], true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
-            const assetids2 = this.bot.inventoryManager.getInventory
+            const assetids2 = inventory
                 .findBySKU(job.skus[1], true)
                 .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
