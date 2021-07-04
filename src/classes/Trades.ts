@@ -1108,14 +1108,14 @@ export default class Trades {
                 // Filter out trade items from inventories
                 // Now try to match this on the trade offer
                 Object.keys(theirItems).forEach(sku => {
-                    theirInventoryItems[sku] = theirInventoryItems[sku].filter(
-                        i => !theirItems[sku]?.find(i2 => i2.id === i.id) ?? true
+                    theirInventoryItems[sku] = theirInventoryItems[sku]?.filter(
+                        i => !theirItems[sku]?.find(i2 => i2.id === i.id)
                     );
                 });
 
                 Object.keys(ourItems).forEach(sku => {
-                    ourInventoryItems[sku] = ourInventoryItems[sku].filter(
-                        i => !ourItems[sku]?.find(i2 => i2.id === i.id) ?? true
+                    ourInventoryItems[sku] = ourInventoryItems[sku]?.filter(
+                        i => !ourItems[sku]?.find(i2 => i2.id === i.id)
                     );
                 });
 
