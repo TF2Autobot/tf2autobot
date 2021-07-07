@@ -71,11 +71,11 @@
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.14.5",
-        "@types/async": "^3.2.6",
+        "@types/async": "^3.2.7",
         "@types/bluebird-global": "^3.5.12",
         "@types/cheerio": "^0.22.29",
         "@types/death": "^1.1.1",
-        "@types/express": "^4.17.12",
+        "@types/express": "^4.17.13",
         "@types/graceful-fs": "^4.1.5",
         "@types/jest": "^26.0.23",
         "@types/pluralize": "0.0.29",
