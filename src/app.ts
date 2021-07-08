@@ -44,12 +44,22 @@ if (process.env.pm_id === undefined) {
     );
 }
 
+interface PricerOptions {
+    pricerUrl: string;
+    pricerApiToken?: string;
+}
+
 import BotManager from './classes/BotManager';
 function _getPricer(): Pricer {
-    return (getPricer as GetPricerFn)({
-        pricerUrl: options.customPricerUrl,
-        pricerApiToken: options.customPricerApiToken === '' ? undefined : options.customPricerApiToken
-    });
+    const pricerOptions: PricerOptions = {
+        pricerUrl: options.customPricerUrl
+    };
+
+    if (options.customPricerApiToken !== '') {
+        pricerOptions['pricerApiToken'] = options.customPricerApiToken;
+    }
+
+    return (getPricer as GetPricerFn)(pricerOptions);
 }
 const botManager = new BotManager(_getPricer());
 
