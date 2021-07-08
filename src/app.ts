@@ -48,7 +48,7 @@ import BotManager from './classes/BotManager';
 function _getPricer(): Pricer {
     return (getPricer as GetPricerFn)({
         pricerUrl: options.customPricerUrl,
-        pricerApiToken: options.customPricerApiToken
+        pricerApiToken: options.customPricerApiToken === '' ? undefined : options.customPricerApiToken
     });
 }
 const botManager = new BotManager(_getPricer());
