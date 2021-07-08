@@ -453,6 +453,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     async addPrice(
+        priceKey: string,
         entryData: EntryData,
         emitChange: boolean,
         src: PricelistChangedSource = PricelistChangedSource.Other,
@@ -463,7 +464,7 @@ export default class Pricelist extends EventEmitter {
         const errors = validator(entryData, 'pricelist-add');
 
         if (errors !== null) {
-            return Promise.reject(new Error(errors.join(', ')));
+            throw new Error(errors.join(', '));
         }
         if (this.hasPrice(entryData.sku, false)) {
             throw new Error('Item is already priced');
@@ -491,10 +492,10 @@ export default class Pricelist extends EventEmitter {
 
         await this.validateEntry(entry, src, isBulk);
         // Add new price
-        this.prices[entry.sku] = entry;
+        this.prices[priceKey] = entry;
 
         if (emitChange) {
-            this.priceChanged(entry.sku, entry);
+            this.priceChanged(priceKey, entry);
         }
 
         if (isBulk && isLast) {

@@ -189,7 +189,7 @@ export default function updateListings(
             const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice(priceKey, entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
@@ -272,7 +272,7 @@ export default function updateListings(
             const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice(priceKey, entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${name} (${sku}) to sell.` +
@@ -327,7 +327,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice(priceKey, entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
                     addToQueu(sku, isNotPure, existInPricelist);

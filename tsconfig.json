@@ -13,6 +13,7 @@
         "noImplicitAny": false,
         "noImplicitThis": false,
         "strictNullChecks": false,
+        "sourceMap": true,
         "typeRoots": ["./types/modules", "./node_modules/@types"],
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
