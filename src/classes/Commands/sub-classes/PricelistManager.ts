@@ -25,6 +25,8 @@ export default class PricelistManagerCommands {
 
     static isSending = false;
 
+    static isBulkOperation = false;
+
     constructor(private readonly bot: Bot, private priceSource: Pricer) {
         this.bot = bot;
     }
@@ -186,6 +188,13 @@ export default class PricelistManagerCommands {
     }
 
     async addbulkCommand(steamID: SteamID, message: string): Promise<void> {
+        if (PricelistManagerCommands.isBulkOperation) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Bulk operation is still in progress. Please wait until it's completed.`
+            );
+        }
+
         const commandRemoved = CommandParser.removeCommand(removeLinkProtocol(message));
 
         if (!commandRemoved.includes('\n')) {
@@ -400,6 +409,8 @@ export default class PricelistManagerCommands {
             }
         }
 
+        PricelistManagerCommands.isBulkOperation = true;
+
         if (isHasAutoprice) {
             try {
                 this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
@@ -432,6 +443,8 @@ export default class PricelistManagerCommands {
                                 );
 
                                 void sendErrors(this.bot);
+
+                                PricelistManagerCommands.isBulkOperation = false;
                             }
                         });
                 }
@@ -463,6 +476,8 @@ export default class PricelistManagerCommands {
                             this.bot.sendMessage(steamID, `✅ Bulk add successful: ${added} added, ${failed} failed`);
 
                             void sendErrors(this.bot);
+
+                            PricelistManagerCommands.isBulkOperation = false;
                         }
                     });
             }
@@ -1096,6 +1111,13 @@ export default class PricelistManagerCommands {
     }
 
     async updatebulkCommand(steamID: SteamID, message: string): Promise<void> {
+        if (PricelistManagerCommands.isBulkOperation) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Bulk operation is still in progress. Please wait until it's completed.`
+            );
+        }
+
         const commandRemoved = CommandParser.removeCommand(removeLinkProtocol(message));
 
         if (!commandRemoved.includes('\n')) {
@@ -1389,6 +1411,8 @@ export default class PricelistManagerCommands {
             }
         }
 
+        PricelistManagerCommands.isBulkOperation = true;
+
         if (isHasAutoprice) {
             try {
                 this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
@@ -1421,6 +1445,8 @@ export default class PricelistManagerCommands {
                                 );
 
                                 void sendErrors(this.bot);
+
+                                PricelistManagerCommands.isBulkOperation = false;
                             }
                         });
                 }
@@ -1457,6 +1483,8 @@ export default class PricelistManagerCommands {
                             );
 
                             void sendErrors(this.bot);
+
+                            PricelistManagerCommands.isBulkOperation = false;
                         }
                     });
             }
@@ -1635,6 +1663,13 @@ export default class PricelistManagerCommands {
     }
 
     removebulkCommand(steamID: SteamID, message: string): void {
+        if (PricelistManagerCommands.isBulkOperation) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Bulk operation is still in progress. Please wait until it's completed.`
+            );
+        }
+
         const commandRemoved = CommandParser.removeCommand(removeLinkProtocol(message));
 
         if (!commandRemoved.includes('\n')) {
@@ -1744,6 +1779,8 @@ export default class PricelistManagerCommands {
             );
         }
 
+        PricelistManagerCommands.isBulkOperation = true;
+
         const count2 = skusToRemove.length;
 
         for (let i = 0; i < count2; i++) {
@@ -1770,6 +1807,8 @@ export default class PricelistManagerCommands {
                         );
 
                         void sendErrors(this.bot);
+
+                        PricelistManagerCommands.isBulkOperation = false;
                     }
                 });
         }
