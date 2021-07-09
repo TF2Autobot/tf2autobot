@@ -382,7 +382,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(2000);
+                    await sleepasync().Promise.sleep(3000);
                 }
             }
 
@@ -1364,7 +1364,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(2000);
+                    await sleepasync().Promise.sleep(3000);
                 }
             }
 
@@ -1730,7 +1730,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(2000);
+                    await sleepasync().Promise.sleep(3000);
                 }
             }
 
@@ -1904,7 +1904,7 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-            await sleepasync().Promise.sleep(2000);
+            await sleepasync().Promise.sleep(3000);
         }
 
         PricelistManagerCommands.isSending = false;
@@ -1993,7 +1993,7 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-            await sleepasync().Promise.sleep(2000);
+            await sleepasync().Promise.sleep(3000);
         }
 
         PricelistManagerCommands.isSending = false;
@@ -2182,7 +2182,7 @@ export default class PricelistManagerCommands {
 
                 this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-                await sleepasync().Promise.sleep(2000);
+                await sleepasync().Promise.sleep(3000);
             }
 
             PricelistManagerCommands.isSending = false;
