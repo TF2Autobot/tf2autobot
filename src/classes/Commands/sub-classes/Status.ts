@@ -2,6 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from 'tf2-currencies-2';
 import SKU from 'tf2-sku-2';
+import sleepasync from 'sleep-async';
 import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -125,6 +126,10 @@ export default class StatusCommands {
         }
 
         sku = fixSKU(sku);
+        let isSendSeparately = false;
+        let boughtMessage = '';
+        let soldMessage = '';
+        let adminOnlyMessage = '';
 
         let reply = `Recorded sales for ${this.bot.schema.getName(SKU.fromString(sku))}\n\n`;
 
@@ -201,28 +206,6 @@ export default class StatusCommands {
                     }, '');
                 });
 
-                const past60MinutesBoughtCount = boughtLastX[0].length;
-                const past24HoursBoughtCount = boughtLastX[1].length;
-                const pastWeekBoughtCount = boughtLastX[2].length;
-                const past4WeeksBoughtCount = boughtLastX[3].length;
-
-                reply +=
-                    `⬅️ ${totalBought} bought\n\n` +
-                    (past60MinutesBoughtCount ? 'Past 60 Minutes\n' + boughtLastX[0] : '') +
-                    (past24HoursBoughtCount
-                        ? (past60MinutesBoughtCount ? '\n' : '') + 'Past 24 hours\n' + boughtLastX[1]
-                        : '') +
-                    (pastWeekBoughtCount
-                        ? (past60MinutesBoughtCount || past24HoursBoughtCount ? '\n' : '') +
-                          'Past 7 days\n' +
-                          boughtLastX[2]
-                        : '') +
-                    (past4WeeksBoughtCount
-                        ? (past60MinutesBoughtCount || past24HoursBoughtCount || pastWeekBoughtCount ? '\n' : '') +
-                          'Past 4 weeks\n' +
-                          boughtLastX[3]
-                        : '');
-
                 // ----------------------Sold calculations----------------------
 
                 let soldTime = Object.keys(sold).sort((a, b) => {
@@ -278,12 +261,36 @@ export default class StatusCommands {
                     }, '');
                 });
 
+                // ----------------------Sending message(s)----------------------
+
+                const past60MinutesBoughtCount = boughtLastX[0].length;
+                const past24HoursBoughtCount = boughtLastX[1].length;
+                const pastWeekBoughtCount = boughtLastX[2].length;
+                const past4WeeksBoughtCount = boughtLastX[3].length;
+
+                boughtMessage =
+                    `⬅️ ${totalBought} bought\n\n` +
+                    (past60MinutesBoughtCount ? 'Past 60 Minutes\n' + boughtLastX[0] : '') +
+                    (past24HoursBoughtCount
+                        ? (past60MinutesBoughtCount ? '\n' : '') + 'Past 24 hours\n' + boughtLastX[1]
+                        : '') +
+                    (pastWeekBoughtCount
+                        ? (past60MinutesBoughtCount || past24HoursBoughtCount ? '\n' : '') +
+                          'Past 7 days\n' +
+                          boughtLastX[2]
+                        : '') +
+                    (past4WeeksBoughtCount
+                        ? (past60MinutesBoughtCount || past24HoursBoughtCount || pastWeekBoughtCount ? '\n' : '') +
+                          'Past 4 weeks\n' +
+                          boughtLastX[3]
+                        : '');
+
                 const past60MinutesSoldCount = soldLastX[0].length;
                 const past24HoursSoldCount = soldLastX[1].length;
                 const pastWeekSoldCount = soldLastX[2].length;
                 const past4WeeksSoldCount = soldLastX[3].length;
 
-                reply +=
+                soldMessage =
                     `\n---------------------\n\n➡️ ${totalSold} sold\n\n` +
                     (past60MinutesSoldCount ? 'Past 60 minutes\n' + soldLastX[0] : '') +
                     (past24HoursSoldCount
@@ -298,6 +305,15 @@ export default class StatusCommands {
                           soldLastX[3]
                         : '');
 
+                const all = boughtMessage + soldMessage;
+
+                const mustSendSeperately = all.length > 4000;
+                if (mustSendSeperately) {
+                    isSendSeparately = true;
+                } else {
+                    reply += boughtMessage + soldMessage;
+                }
+
                 if (this.bot.isAdmin(steamID)) {
                     // Admin only
                     const boughtValue = Currencies.toCurrencies(totalBoughtValue, keyPrice);
@@ -307,19 +323,24 @@ export default class StatusCommands {
                     const netProfit = Currencies.toCurrencies(totalSoldValue - totalBoughtValue, keyPrice);
                     const netProfitToString = netProfit.toString();
 
-                    reply += '\n\nOverall past 30 days summary:';
-                    reply += `\n• Total bought value: ${boughtValueToString}${
-                        boughtValueToString.includes('key') ? ` (${Currencies.toRefined(totalBoughtValue)} ref)` : ''
-                    }`;
-                    reply += `\n• Total sold value: ${soldValueToString}${
-                        soldValueToString.includes('key') ? ` (${Currencies.toRefined(totalSoldValue)} ref)` : ''
-                    }`;
-                    reply += `\n• Net profit: ${netProfitToString}${
-                        netProfitToString.includes('key')
-                            ? ` (${Currencies.toRefined(totalSoldValue - totalBoughtValue)} ref)`
-                            : ''
-                    }`;
-                    reply += `\n• Current key rate: ${keyPrices.buy.metal} ref/${keyPrices.sell.metal} ref`;
+                    adminOnlyMessage =
+                        '\n\nOverall past 30 days summary:' +
+                        `\n• Total bought value: ${boughtValueToString}${
+                            boughtValueToString.includes('key')
+                                ? ` (${Currencies.toRefined(totalBoughtValue)} ref)`
+                                : ''
+                        }` +
+                        `\n• Total sold value: ${soldValueToString}${
+                            soldValueToString.includes('key') ? ` (${Currencies.toRefined(totalSoldValue)} ref)` : ''
+                        }` +
+                        `\n• Net profit: ${netProfitToString}${
+                            netProfitToString.includes('key')
+                                ? ` (${Currencies.toRefined(totalSoldValue - totalBoughtValue)} ref)`
+                                : ''
+                        }` +
+                        `\n• Current key rate: ${keyPrices.buy.metal} ref/${keyPrices.sell.metal} ref`;
+
+                    if (!mustSendSeperately) reply += adminOnlyMessage;
                 }
             } catch (err) {
                 reply = err as string;
@@ -328,7 +349,18 @@ export default class StatusCommands {
             reply = 'Stats for currency is not enabled.';
         }
 
-        this.bot.sendMessage(steamID, reply);
+        if (isSendSeparately) {
+            this.bot.sendMessage(steamID, reply);
+            await sleepasync().Promise.sleep(1000);
+            this.bot.sendMessage(steamID, boughtMessage);
+            await sleepasync().Promise.sleep(3000);
+            this.bot.sendMessage(steamID, soldMessage);
+
+            if (adminOnlyMessage) {
+                await sleepasync().Promise.sleep(3000);
+                this.bot.sendMessage(steamID, adminOnlyMessage);
+            }
+        } else this.bot.sendMessage(steamID, reply);
     }
 
     versionCommand(steamID: SteamID): void {
