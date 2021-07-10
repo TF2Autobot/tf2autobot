@@ -96,8 +96,9 @@ it('can run id commands', async () => {
 🔰 Group: all`
     );
     expect(spyAddPrice).toBeCalledWith(
+        '10345786776',
         {
-            assetid: 10345786776,
+            assetid: '10345786776',
             autoprice: false,
             buy: { keys: 0, metal: 0 },
             enabled: true,

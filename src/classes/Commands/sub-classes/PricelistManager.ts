@@ -15,6 +15,8 @@ import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 import validator from '../../../lib/validator';
 import { testSKU } from '../../../lib/tools/export';
 import Pricer from '../../Pricer';
+import InventoryManager from '../../InventoryManager';
+import SchemaManager from 'tf2-schema-2';
 
 // Pricelist manager
 
@@ -31,160 +33,36 @@ export default class PricelistManagerCommands {
         this.bot = bot;
     }
 
-    addCommand(steamID: SteamID, message: string): void {
+    async addCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
-
-        if (params.enabled === undefined) {
-            params.enabled = true;
+        let priceKey: string = undefined;
+        const isPremium: boolean = this.bot.handler.getBotInfo.premium;
+        const parseError: string | null = PricelistManagerCommands.parseParamsWith(params, [
+            params => PricelistManagerCommands.parseGenericParams(params),
+            params => PricelistManagerCommands.parsePremiumParams(params, isPremium),
+            params => PricelistManagerCommands.parseAssetId(params, this.bot.inventoryManager, true),
+            params => PricelistManagerCommands.parseSku(params, this.bot.schema)
+        ]);
+        if (parseError) {
+            return this.bot.sendMessage(steamID, parseError);
+        }
+        if (params.assetid) {
+            priceKey = params.assetid;
         }
 
-        if (params.min === undefined) {
-            params.min = 0;
-        }
-
-        if (params.max === undefined) {
-            params.max = 1;
-        }
-
-        if (params.intent === undefined) {
-            params.intent = 2;
-        } else if (typeof params.intent === 'string') {
-            const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
-
-            if (intent !== -1) {
-                params.intent = intent;
-            }
-        }
-
-        if (typeof params.buy === 'object') {
-            params.buy.keys = params.buy.keys || 0;
-            params.buy.metal = params.buy.metal || 0;
-
-            if (params.autoprice === undefined) {
-                params.autoprice = false;
-            }
-        } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
-            params['buy'] = {
-                keys: 0,
-                metal: 0
-            };
-        }
-
-        if (typeof params.sell === 'object') {
-            params.sell.keys = params.sell.keys || 0;
-            params.sell.metal = params.sell.metal || 0;
-
-            if (params.autoprice === undefined) {
-                params.autoprice = false;
-            }
-        } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
-            params['sell'] = {
-                keys: 0,
-                metal: 0
-            };
-        }
-
-        const isPremium = this.bot.handler.getBotInfo.premium;
-        if (params.promoted !== undefined) {
-            if (!isPremium) {
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ This account is not Backpack.tf Premium. You can't use "promoted" parameter.`
-                );
-            }
-
-            if (typeof params.promoted === 'boolean') {
-                if (params.promoted === true) {
-                    params.promoted = 1;
-                } else {
-                    params.promoted = 0;
-                }
-            } else {
-                if (typeof params.promoted !== 'number') {
-                    return this.bot.sendMessage(
+        try {
+            priceKey = priceKey ? priceKey : params.sku;
+            await this.bot.pricelist
+                .addPrice(priceKey, params as EntryData, true, PricelistChangedSource.Command)
+                .then(entry => {
+                    this.bot.sendMessage(
                         steamID,
-                        '❌ "promoted" parameter must be either 0 (false) or 1 (true)'
+                        `✅ Added "${entry.name}" (${priceKey})` + generateAddedReply(this.bot, isPremium, entry)
                     );
-                } else if (params.promoted < 0 || params.promoted > 1) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        '❌ "promoted" parameter must be either 0 (false) or 1 (true)'
-                    );
-                }
-            }
-        } else {
-            params['promoted'] = 0;
+                });
+        } catch (err) {
+            this.bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${(err as Error).message}`);
         }
-
-        if (typeof params.note === 'object') {
-            params.note.buy = params.note.buy || null;
-            params.note.sell = params.note.sell || null;
-        }
-
-        if (params.note === undefined) {
-            // If note parameter is not defined, set both note.buy and note.sell to null.
-            params['note'] = { buy: null, sell: null };
-        }
-
-        if (params.group && typeof params.group !== 'string') {
-            // if group parameter is defined, convert anything to string
-            params.group = String(params.group);
-        }
-
-        if (params.group === undefined) {
-            // If group parameter is not defined, set it to null.
-            params['group'] = 'all';
-        }
-
-        if (params.autoprice === undefined) {
-            params.autoprice = true;
-        }
-
-        if (params.isPartialPriced === undefined) {
-            params.isPartialPriced = false;
-        }
-
-        if (params.sku !== undefined && !testSKU(params.sku as string)) {
-            return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
-        }
-
-        if (params.sku === undefined) {
-            if (params.item !== undefined) {
-                params.sku = this.bot.schema.getSkuFromName(params.item);
-
-                if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ The sku for "${params.item as string}" returned "${params.sku as string}".` +
-                            `\nIf the item name is correct, please let us know in our Discord server.`
-                    );
-                }
-
-                delete params.item;
-            } else {
-                const item = getItemFromParams(steamID, params, this.bot);
-
-                if (item === null) {
-                    return;
-                }
-
-                params.sku = SKU.fromObject(item);
-            }
-        }
-
-        params.sku = fixSKU(params.sku);
-
-        this.bot.pricelist
-            .addPrice(params as EntryData, true, PricelistChangedSource.Command)
-            .then(entry => {
-                this.bot.sendMessage(
-                    steamID,
-                    `✅ Added "${entry.name}" (${entry.sku})` + generateAddedReply(this.bot, isPremium, entry)
-                );
-            })
-            .catch(err => {
-                this.bot.sendMessage(steamID, `❌ Failed to add the item to the pricelist: ${(err as Error).message}`);
-            });
     }
 
     async addbulkCommand(steamID: SteamID, message: string): Promise<void> {
@@ -208,7 +86,7 @@ export default class PricelistManagerCommands {
 
         const itemsToAdd = commandRemoved.split('\n').filter(itemString => itemString !== '');
         const count = itemsToAdd.length;
-        const errorMessage: string[] = [];
+        const errorMessages: string[] = [];
         const savedParams: EntryData[] = [];
         let failed = 0;
         let failedNotUsingItemOrSkuParam = 0;
@@ -219,10 +97,11 @@ export default class PricelistManagerCommands {
 
             const params = CommandParser.parseParams(itemToAdd);
 
-            if (params.sku !== undefined && !testSKU(params.sku as string)) {
-                errorMessage.push(
-                    `❌ Failed to add ${params.sku as string}: "sku" should not be empty or wrong format.`
-                );
+            const errorMessage: string | null = PricelistManagerCommands.parseParamsWith(params, [
+                params => PricelistManagerCommands.parseSku(params, this.bot.schema)
+            ]);
+            if (errorMessage) {
+                errorMessages.push(errorMessage);
                 failed++;
                 continue;
             }
@@ -232,7 +111,7 @@ export default class PricelistManagerCommands {
                     params.sku = this.bot.schema.getSkuFromName(params.item);
 
                     if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
-                        errorMessage.push(
+                        errorMessages.push(
                             `❌ Failed to add ${params.sku as string}: The sku for "${
                                 params.item as string
                             }" returned "${params.sku as string}".` +
@@ -244,7 +123,7 @@ export default class PricelistManagerCommands {
 
                     delete params.item;
                 } else {
-                    errorMessage.push(
+                    errorMessages.push(
                         `❌ Failed to add "${itemToAdd}": Please only use "sku" or "item" parameter, ` +
                             `OR check if you have missing something. Thank you.`
                     );
@@ -256,59 +135,17 @@ export default class PricelistManagerCommands {
 
             params.sku = fixSKU(params.sku);
 
-            if (params.enabled === undefined) {
-                params.enabled = true;
-            }
-
-            if (params.min === undefined) {
-                params.min = 0;
-            }
-
-            if (params.max === undefined) {
-                params.max = 1;
-            }
-
-            if (params.intent === undefined) {
-                params.intent = 2;
-            } else if (typeof params.intent === 'string') {
-                const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
-
-                if (intent !== -1) {
-                    params.intent = intent;
-                }
-            }
-
-            if (typeof params.buy === 'object') {
-                params.buy.keys = params.buy.keys || 0;
-                params.buy.metal = params.buy.metal || 0;
-
-                if (params.autoprice === undefined) {
-                    params.autoprice = false;
-                }
-            } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
-                params['buy'] = {
-                    keys: 0,
-                    metal: 0
-                };
-            }
-
-            if (typeof params.sell === 'object') {
-                params.sell.keys = params.sell.keys || 0;
-                params.sell.metal = params.sell.metal || 0;
-
-                if (params.autoprice === undefined) {
-                    params.autoprice = false;
-                }
-            } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
-                params['sell'] = {
-                    keys: 0,
-                    metal: 0
-                };
+            const parseError: string | null = PricelistManagerCommands.parseParamsWith(params, [
+                params => PricelistManagerCommands.parseGenericParams(params),
+                params => PricelistManagerCommands.parsePremiumParams(params, this.bot.handler.getBotInfo.premium)
+            ]);
+            if (parseError) {
+                return this.bot.sendMessage(steamID, parseError);
             }
 
             if (params.promoted !== undefined) {
                 if (!isPremium) {
-                    errorMessage.push(
+                    errorMessages.push(
                         `❌ Failed to add ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
                             params.sku as string
                         }): This account is not Backpack.tf Premium. You can't use "promoted" parameter.`
@@ -324,7 +161,7 @@ export default class PricelistManagerCommands {
                         params.promoted = 0;
                     }
                 } else if (typeof params.promoted !== 'number' || params.promoted < 0 || params.promoted > 1) {
-                    errorMessage.push(
+                    errorMessages.push(
                         `❌ Failed to add ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
                             params.sku as string
                         }): "promoted" parameter must be either 0 (false) or 1 (true)`
@@ -334,34 +171,6 @@ export default class PricelistManagerCommands {
                 }
             } else {
                 params['promoted'] = 0;
-            }
-
-            if (typeof params.note === 'object') {
-                params.note.buy = params.note.buy || null;
-                params.note.sell = params.note.sell || null;
-            }
-
-            if (params.note === undefined) {
-                // If note parameter is not defined, set both note.buy and note.sell to null.
-                params['note'] = { buy: null, sell: null };
-            }
-
-            if (params.group && typeof params.group !== 'string') {
-                // if group parameter is defined, convert anything to string
-                params.group = String(params.group);
-            }
-
-            if (params.group === undefined) {
-                // If group parameter is not defined, set it to null.
-                params['group'] = 'all';
-            }
-
-            if (params.autoprice === undefined) {
-                params.autoprice = true;
-            }
-
-            if (params.isPartialPriced === undefined) {
-                params.isPartialPriced = false;
             }
 
             savedParams.push(params as EntryData);
@@ -377,7 +186,7 @@ export default class PricelistManagerCommands {
         let added = 0;
 
         async function sendErrors(bot: Bot): Promise<void> {
-            const errorCount = errorMessage.length;
+            const errorCount = errorMessages.length;
             if (errorCount > 0) {
                 const limit = 10;
 
@@ -389,7 +198,7 @@ export default class PricelistManagerCommands {
 
                     const firstOrLast = i < 1 ? limit : i10 + (errorCount - i10);
 
-                    bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
+                    bot.sendMessage(steamID, errorMessages.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
                     await sleepasync().Promise.sleep(3000);
                 }
@@ -424,10 +233,10 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .addPrice(params, true, PricelistChangedSource.Command, true, items, isLast)
+                        .addPrice(params.sku, params, true, PricelistChangedSource.Command, true, items, isLast)
                         .then(() => added++)
                         .catch(err => {
-                            errorMessage.push(
+                            errorMessages.push(
                                 `❌ Error adding ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
                                     params.sku
                                 }): ${(err as Error)?.message}`
@@ -460,10 +269,10 @@ export default class PricelistManagerCommands {
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .addPrice(params, true, PricelistChangedSource.Command, true)
+                    .addPrice(params.sku, params, true, PricelistChangedSource.Command, true)
                     .then(() => added++)
                     .catch(err => {
-                        errorMessage.push(
+                        errorMessages.push(
                             `❌ Error adding ${this.bot.schema.getName(SKU.fromString(params.sku))} (${params.sku}): ${
                                 (err as Error)?.message
                             }`
@@ -506,120 +315,14 @@ export default class PricelistManagerCommands {
             this.bot.sendMessage(steamID, `⏳ Adding all items with default settings...`);
         }
 
-        if (params.enabled === undefined) {
-            params.enabled = true;
-        }
-
-        if (params.min === undefined) {
-            params.min = 0;
-        }
-
-        if (params.max === undefined) {
-            params.max = 1;
-        }
-
-        if (params.intent === undefined) {
-            params.intent = 2;
-        } else if (typeof params.intent === 'string') {
-            const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
-
-            if (intent !== -1) {
-                params.intent = intent;
-            }
-        }
-
-        if (typeof params.buy === 'object') {
-            params.buy.keys = params.buy.keys || 0;
-            params.buy.metal = params.buy.metal || 0;
-
-            if (params.autoprice === undefined) {
-                params.autoprice = false;
-            }
-        } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
-            params['buy'] = {
-                keys: 0,
-                metal: 0
-            };
-        }
-
-        if (typeof params.sell === 'object') {
-            params.sell.keys = params.sell.keys || 0;
-            params.sell.metal = params.sell.metal || 0;
-
-            if (params.autoprice === undefined) {
-                params.autoprice = false;
-            }
-        } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
-            params['sell'] = {
-                keys: 0,
-                metal: 0
-            };
-        }
-
-        if (
-            (params.sell !== undefined && params.buy === undefined) ||
-            (params.sell === undefined && params.buy !== undefined)
-        ) {
-            return this.bot.sendMessage(steamID, `❌ Please set both buy and sell prices.`);
-        }
-
         const isPremium = this.bot.handler.getBotInfo.premium;
-
-        if (params.promoted !== undefined) {
-            if (!isPremium) {
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`
-                );
-            }
-
-            if (typeof params.promoted === 'boolean') {
-                if (params.promoted === true) {
-                    params.promoted = 1;
-                } else {
-                    params.promoted = 0;
-                }
-            } else {
-                if (typeof params.promoted !== 'number') {
-                    return this.bot.sendMessage(
-                        steamID,
-                        '❌ "promoted" parameter must be either 0 (false) or 1 (true)'
-                    );
-                }
-
-                if (params.promoted < 0 || params.promoted > 1) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        '❌ "promoted" parameter must be either 0 (false) or 1 (true)'
-                    );
-                }
-            }
-        } else {
-            params['promoted'] = 0;
-        }
-
-        if (typeof params.note === 'object') {
-            params.note.buy = params.note.buy || null;
-            params.note.sell = params.note.sell || null;
-        }
-
-        if (params.note === undefined) {
-            // If note parameter is not defined, set both note.buy and note.sell to null.
-            params['note'] = { buy: null, sell: null };
-        }
-
-        if (params.group && typeof params.group !== 'string') {
-            // if group parameter is defined, convert anything to string
-            params.group = String(params.group);
-        }
-
-        if (params.group === undefined) {
-            // If group parameter is not defined, set it to null.
-            params['group'] = 'all';
-        }
-
-        if (params.autoprice === undefined) {
-            params.autoprice = true;
+        const parseError: string | null = PricelistManagerCommands.parseParamsWith(params, [
+            params => PricelistManagerCommands.parseGenericParams(params),
+            params => PricelistManagerCommands.checkBuyAndSellSet(params),
+            params => PricelistManagerCommands.parsePremiumParams(params, isPremium)
+        ]);
+        if (parseError) {
+            return this.bot.sendMessage(steamID, parseError);
         }
 
         const pricelist = this.bot.pricelist.getPrices;
@@ -973,13 +676,15 @@ export default class PricelistManagerCommands {
             delete params.item;
             params.sku = match.sku;
         } else if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         }
 
         params.sku = fixSKU(params.sku);
@@ -1094,7 +799,7 @@ export default class PricelistManagerCommands {
         }
 
         this.bot.pricelist
-            .updatePrice(entryData, true, PricelistChangedSource.Command)
+            .updatePrice(params.sku, entryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
@@ -1426,7 +1131,7 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .updatePrice(params, true, PricelistChangedSource.Command, true, items, isLast)
+                        .updatePrice(params.sku, params, true, PricelistChangedSource.Command, true, items, isLast)
                         .then(() => updated++)
                         .catch(err => {
                             errorMessage.push(
@@ -1464,7 +1169,7 @@ export default class PricelistManagerCommands {
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .updatePrice(params, true, PricelistChangedSource.Command, true)
+                    .updatePrice(params.sku, params, true, PricelistChangedSource.Command, true)
                     .then(() => updated++)
                     .catch(err => {
                         errorMessage.push(
@@ -1641,13 +1346,16 @@ export default class PricelistManagerCommands {
             delete params.item;
             params.sku = match.sku;
         } else if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
 
-            if (item === null) {
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         }
 
         params.sku = fixSKU(params.sku);
@@ -1857,13 +1565,16 @@ export default class PricelistManagerCommands {
             delete params.item;
             params.sku = match.sku;
         } else if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
 
-            if (item === null) {
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         }
 
         if (params.sku === undefined) {
@@ -2227,6 +1938,188 @@ export default class PricelistManagerCommands {
             PricelistManagerCommands.isSending = false;
         }
     }
+
+    private static parseParamsWith(
+        params: UnknownDictionary<any>,
+        parseFns: Array<(params: UnknownDictionary<any>) => string | null>
+    ): string | null {
+        let error: string = null;
+        error = parseFns.reduce((errorReturn, parseFn) => {
+            if (!errorReturn) {
+                return parseFn(params);
+            } else {
+                return errorReturn;
+            }
+        }, error);
+        return error;
+    }
+
+    private static parseAssetId(
+        params: UnknownDictionary<any>,
+        inventoryManager: InventoryManager,
+        assetRequired: boolean
+    ): string | null {
+        if (params.assetid !== undefined) {
+            const sku = inventoryManager.getInventory.findByAssetid(String(params.assetid));
+            const missingMessage = `❌ item with assetid "${String(params.assetid)}" was not found.`;
+            if ((!sku && assetRequired) || sku.includes('null') || sku.includes('undefined')) {
+                return missingMessage;
+            } else {
+                params.sku = sku;
+            }
+            params.assetid = String(params.assetid);
+        }
+    }
+
+    private static parseGenericParams(params: UnknownDictionary<any>): string | null {
+        if (params.enabled === undefined) {
+            params.enabled = true;
+        }
+
+        if (params.min === undefined) {
+            params.min = 0;
+        }
+
+        if (params.max === undefined) {
+            params.max = 1;
+        }
+
+        if (params.intent === undefined) {
+            params.intent = 2;
+        } else if (typeof params.intent === 'string') {
+            const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
+
+            if (intent !== -1) {
+                params.intent = intent;
+            }
+        }
+
+        if (typeof params.buy === 'object') {
+            params.buy.keys = params.buy.keys || 0;
+            params.buy.metal = params.buy.metal || 0;
+
+            if (params.autoprice === undefined) {
+                params.autoprice = false;
+            }
+        } else if (typeof params.buy !== 'object' && typeof params.sell === 'object') {
+            params['buy'] = {
+                keys: 0,
+                metal: 0
+            };
+        }
+
+        if (typeof params.sell === 'object') {
+            params.sell.keys = params.sell.keys || 0;
+            params.sell.metal = params.sell.metal || 0;
+
+            if (params.autoprice === undefined) {
+                params.autoprice = false;
+            }
+        } else if (typeof params.sell !== 'object' && typeof params.buy === 'object') {
+            params['sell'] = {
+                keys: 0,
+                metal: 0
+            };
+        }
+
+        if (typeof params.note === 'object') {
+            params.note.buy = params.note.buy || null;
+            params.note.sell = params.note.sell || null;
+        }
+
+        if (params.note === undefined) {
+            // If note parameter is not defined, set both note.buy and note.sell to null.
+            params['note'] = { buy: null, sell: null };
+        }
+
+        if (params.group && typeof params.group !== 'string') {
+            // if group parameter is defined, convert anything to string
+            params.group = String(params.group);
+        }
+
+        if (params.group === undefined) {
+            // If group parameter is not defined, set it to null.
+            params['group'] = 'all';
+        }
+
+        if (params.autoprice === undefined) {
+            params.autoprice = true;
+        }
+
+        if (params.isPartialPriced === undefined) {
+            params.isPartialPriced = false;
+        }
+        return;
+    }
+
+    private static parsePremiumParams(params: UnknownDictionary<any>, isPremium: boolean): string | null {
+        if (params.promoted !== undefined) {
+            if (!isPremium) {
+                return `❌ This account is not Backpack.tf Premium. You can't use "promoted" parameter.`;
+            }
+
+            if (typeof params.promoted === 'boolean') {
+                if (params.promoted === true) {
+                    params.promoted = 1;
+                } else {
+                    params.promoted = 0;
+                }
+            } else {
+                if (typeof params.promoted !== 'number') {
+                    return '❌ "promoted" parameter must be either 0 (false) or 1 (true)';
+                } else if (params.promoted < 0 || params.promoted > 1) {
+                    return '❌ "promoted" parameter must be either 0 (false) or 1 (true)';
+                }
+            }
+        } else {
+            params['promoted'] = 0;
+        }
+        return;
+    }
+
+    private static parseSku(params: UnknownDictionary<any>, schema: SchemaManager.Schema): string | null {
+        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            return `❌ Failed to add ${params.sku as string}: "sku" should not be empty or wrong format.`;
+        }
+        if (params.sku === undefined) {
+            if (params.item !== undefined) {
+                params.sku = schema.getSkuFromName(params.item);
+
+                if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
+                    return (
+                        `❌ The sku for "${params.item as string}" returned "${params.sku as string}".` +
+                        `\nIf the item name is correct, please let us know in our Discord server.`
+                    );
+                }
+
+                delete params.item;
+            } else {
+                const response = getItemFromParams(params, schema);
+                if (response.errorMessage) {
+                    return response.errorMessage;
+                }
+
+                if (response.item === null) {
+                    return;
+                }
+
+                params.sku = SKU.fromObject(response.item);
+            }
+        }
+
+        params.sku = fixSKU(params.sku);
+        return;
+    }
+
+    private static checkBuyAndSellSet(params: UnknownDictionary<any>): string | null {
+        if (
+            (params.sell !== undefined && params.buy === undefined) ||
+            (params.sell === undefined && params.buy !== undefined)
+        ) {
+            return `❌ Please set both buy and sell prices.`;
+        }
+        return;
+    }
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
@@ -2311,7 +2204,7 @@ class AutoAddQueue {
             void this.executeAutoAdd();
         } else {
             this.bot.pricelist
-                .addPrice(this.params as EntryData, true, PricelistChangedSource.Command)
+                .addPrice(this.sku, this.params as EntryData, true, PricelistChangedSource.Command)
                 .then(entry => {
                     this.added++;
                     const remaining = this.total - this.added - this.skipped - this.failed;

@@ -5,7 +5,7 @@ import Currencies from 'tf2-currencies-2';
 import dayjs from 'dayjs';
 
 import * as c from './sub-classes/export';
-import { removeLinkProtocol, getItemFromParams, getItemAndAmount, fixSKU } from './functions/utils';
+import { fixSKU, getItemAndAmount, getItemFromParams, removeLinkProtocol } from './functions/utils';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
@@ -311,9 +311,21 @@ export default class Commands {
             }
         }
 
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
-        if (info === null) {
+        const response = getItemAndAmount(
+            CommandParser.removeCommand(message),
+            this.bot.pricelist,
+            this.bot.effects,
+            this.bot.options
+        );
+        if (response.errorMessage) {
+            return this.bot.sendMessage(steamID, response.errorMessage);
+        }
+        if (response.info === null) {
             return;
+        }
+        const info = response.info;
+        if (info.message) {
+            this.bot.sendMessage(steamID, response.info.message);
         }
 
         const match = info.match;
@@ -398,15 +410,22 @@ export default class Commands {
             }
         }
 
-        const info = getItemAndAmount(
-            steamID,
+        const response = getItemAndAmount(
             CommandParser.removeCommand(message),
-            this.bot,
+            this.bot.pricelist,
+            this.bot.effects,
+            this.bot.options,
             command === 'b' ? 'buy' : command === 's' ? 'sell' : command
         );
-
-        if (info === null) {
+        if (response.errorMessage) {
+            return this.bot.sendMessage(steamID, response.errorMessage);
+        }
+        if (response.info === null) {
             return;
+        }
+        const info = response.info;
+        if (info.message) {
+            this.bot.sendMessage(steamID, response.info.message);
         }
 
         const cart = new UserCart(
@@ -443,10 +462,22 @@ export default class Commands {
             }
         }
 
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'buycart');
-
-        if (info === null) {
+        const response = getItemAndAmount(
+            CommandParser.removeCommand(message),
+            this.bot.pricelist,
+            this.bot.effects,
+            this.bot.options,
+            'buycart'
+        );
+        if (response.errorMessage) {
+            return this.bot.sendMessage(steamID, response.errorMessage);
+        }
+        if (response.info === null) {
             return;
+        }
+        const info = response.info;
+        if (info.message) {
+            this.bot.sendMessage(steamID, response.info.message);
         }
 
         let amount = info.amount;
@@ -519,9 +550,22 @@ export default class Commands {
             }
         }
 
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'sellcart');
-        if (info === null) {
+        const response = getItemAndAmount(
+            CommandParser.removeCommand(message),
+            this.bot.pricelist,
+            this.bot.effects,
+            this.bot.options,
+            'sellcart'
+        );
+        if (response.errorMessage) {
+            return this.bot.sendMessage(steamID, response.errorMessage);
+        }
+        if (response.info === null) {
             return;
+        }
+        const info = response.info;
+        if (info.message) {
+            this.bot.sendMessage(steamID, response.info.message);
         }
 
         let amount = info.amount;
@@ -796,12 +840,14 @@ export default class Commands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
-
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
@@ -899,12 +945,15 @@ export default class Commands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
@@ -977,12 +1026,15 @@ export default class Commands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }

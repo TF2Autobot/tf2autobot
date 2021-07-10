@@ -189,7 +189,7 @@ export default function updateListings(
             const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
             bot.pricelist
-                .addPrice(priceKey, entry, true)
+                .addPrice(paintedSKU, entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
@@ -272,7 +272,7 @@ export default function updateListings(
             const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
             bot.pricelist
-                .addPrice(priceKey, entry, true)
+                .addPrice(sku, entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${name} (${sku}) to sell.` +
@@ -327,7 +327,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(priceKey, entry, true)
+                .addPrice(sku, entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
                     addToQueu(sku, isNotPure, existInPricelist);
@@ -404,7 +404,7 @@ export default function updateListings(
             }
 
             bot.pricelist
-                .updatePrice(entry, true)
+                .updatePrice(entry.sku, entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
 
@@ -483,7 +483,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .updatePrice(entry, true)
+                .updatePrice(entry.sku, entry, true)
                 .then(data => {
                     const msg =
                         `${dwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})\n▸ ` +

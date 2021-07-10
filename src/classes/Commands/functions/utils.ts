@@ -1,22 +1,37 @@
-import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
 import SchemaManager from 'tf2-schema-2';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { MinimumItem } from '../../../types/TeamFortress2';
-import Bot from '../../Bot';
-import { Entry } from '../../Pricelist';
+import Pricelist, { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
-import { fixItem } from '../../../lib/items';
+import { fixItem, standardizeItem } from '../../../lib/items';
 import { testSKU } from '../../../lib/tools/export';
+import Options from '../../Options';
+
+export interface GetItemAndAmountResponse {
+    info: {
+        match: Entry;
+        amount: number;
+        message?: string;
+    } | null;
+    errorMessage?: string;
+}
 
 export function getItemAndAmount(
-    steamID: SteamID,
     message: string,
-    bot: Bot,
-    from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
-): { match: Entry; amount: number } | null {
+    pricelist: Pricelist,
+    effects: SchemaManager.Effect[],
+    options: Options,
+    cartType?: 'buy' | 'sell' | 'buycart' | 'sellcart'
+): GetItemAndAmountResponse {
+    const errMsg = (message: string): GetItemAndAmountResponse => {
+        return {
+            info: null,
+            errorMessage: message
+        };
+    };
     let name = removeLinkProtocol(message);
     let amount = 1;
     if (/^[-]?\d+$/.test(name.split(' ')[0])) {
@@ -30,8 +45,7 @@ export function getItemAndAmount(
     }
 
     if (['!price', '!sellcart', '!buycart', '!sell', '!buy', '!pc', '!s', '!b'].includes(name)) {
-        bot.sendMessage(
-            steamID,
+        return errMsg(
             '⚠️ You forgot to add a name. Here\'s an example: "' +
                 (name.includes('!price')
                     ? '!price'
@@ -50,21 +64,19 @@ export function getItemAndAmount(
                     : '!b') +
                 ' Team Captain"'
         );
-        return null;
     }
 
-    let match = testSKU(name) ? bot.pricelist.getPrice(name, true) : bot.pricelist.searchByName(name, true);
-    if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
-        const opt = bot.options.commands;
+    let match = testSKU(name) ? pricelist.getPrice(name, true) : pricelist.searchByName(name, true);
+    if (match !== null && match instanceof Entry && typeof cartType !== 'undefined') {
+        const opt = options.commands;
 
-        if (opt[from].enable === false && opt[from].disableForSKU.includes(match.sku)) {
-            const custom = opt[from].customReply.disabledForSKU;
-            bot.sendMessage(
-                steamID,
-                custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`
+        if (opt[cartType].enable === false && opt[cartType].disableForSKU.includes(match.sku)) {
+            const custom = opt[cartType].customReply.disabledForSKU;
+            return errMsg(
+                custom
+                    ? custom.replace(/%itemName%/g, match.name)
+                    : `❌ ${cartType} command is disabled for ${match.name}.`
             );
-
-            return null;
         }
     }
 
@@ -75,14 +87,14 @@ export function getItemAndAmount(
         let closestMatch: Entry = null;
         let closestUnusualMatch: Entry = null;
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
-        const genericEffect = genericNameAndMatch(name, bot.effects);
-        const pricelist = bot.pricelist.getPrices;
-        for (const sku in pricelist) {
-            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+        const genericEffect = genericNameAndMatch(name, effects);
+        const prices = pricelist.getPrices;
+        for (const sku in prices) {
+            if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
                 continue;
             }
 
-            const pricedItem = pricelist[sku];
+            const pricedItem = prices[sku];
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {
@@ -102,8 +114,7 @@ export function getItemAndAmount(
         }
 
         if (closestMatch === null) {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
                     '\n\nAlternatively, please try to:\n• ' +
                     [
@@ -119,8 +130,6 @@ export function getItemAndAmount(
                         `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
-
-            return null;
         }
 
         let matchName = closestMatch.name;
@@ -145,18 +154,15 @@ export function getItemAndAmount(
 
         // If we found an item that is different in 3-characters or less
         if (lowestDistance <= 3) {
-            bot.sendMessage(
-                steamID,
-                `❓ I could not find any item names in my pricelist with an exact match for "${name}". Using closest item name match "${matchName}" instead.`
-            );
-
             return {
-                amount: amount,
-                match: closestMatch
+                info: {
+                    amount,
+                    match: closestMatch,
+                    message: `❓ I could not find any item names in my pricelist with an exact match for "${name}". Using closest item name match "${matchName}" instead.`
+                }
             };
         } else {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
                     '\n\nAlternatively, please try to:\n• ' +
                     [
@@ -172,8 +178,6 @@ export function getItemAndAmount(
                         `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
-
-            return null;
         }
     } else if (Array.isArray(match)) {
         const matchCount = match.length;
@@ -188,21 +192,32 @@ export function getItemAndAmount(
             reply += `,\nand ${other} other ${pluralize('item', other)}.`;
         }
 
-        bot.sendMessage(steamID, reply);
-        return null;
+        return errMsg(reply);
     }
 
     return {
-        amount: amount,
-        match: match
+        info: {
+            amount,
+            match
+        }
     };
 }
 
+export interface GetItemFromParamsResponse {
+    item: MinimumItem | null;
+    errorMessage?: string;
+}
+
 export function getItemFromParams(
-    steamID: SteamID | string,
     params: UnknownDictionaryKnownValues,
-    bot: Bot
-): MinimumItem | null {
+    schema: SchemaManager.Schema
+): GetItemFromParamsResponse {
+    const errMsg = (message: string): GetItemFromParamsResponse => {
+        return {
+            item: null,
+            errorMessage: message
+        };
+    };
     const item = SKU.fromString('');
     delete item.craftnumber;
 
@@ -210,24 +225,22 @@ export function getItemFromParams(
     if (params.item !== undefined) {
         foundSomething = true;
 
-        const sku = bot.schema.getSkuFromName(params.item);
+        const sku = schema.getSkuFromName(params.item);
 
         if (sku.includes('null') || sku.includes('undefined')) {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `Invalid item name. The sku generate was ${sku}. Please report this to us on our Discord server, or create an issue on Github.`
             );
-            return null;
         }
 
-        return SKU.fromString(sku);
+        return { item: SKU.fromString(sku) };
     } else if (params.name !== undefined) {
         foundSomething = true;
         // Look for all items that have the same name
 
         const match: SchemaManager.SchemaItem[] = [];
 
-        const items = bot.schema.raw.schema.items;
+        const items = schema.raw.schema.items;
         const itemsCount = items.length;
 
         for (let i = 0; i < itemsCount; i++) {
@@ -246,11 +259,7 @@ export function getItemFromParams(
         const matchCount = match.length;
 
         if (matchCount === 0) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find an item in the schema with the name "${params.name as string}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find an item in the schema with the name "${params.name as string}".`);
         } else if (matchCount !== 1) {
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
             const parsedCount = parsed.length;
@@ -264,8 +273,7 @@ export function getItemFromParams(
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
             }
 
-            bot.sendMessage(steamID, reply);
-            return null;
+            return errMsg(reply);
         }
 
         item.defindex = match[0].defindex;
@@ -286,21 +294,15 @@ export function getItemFromParams(
     }
 
     if (!foundSomething) {
-        bot.sendMessage(
-            steamID,
+        return errMsg(
             '⚠️ Missing item properties. Please refer to: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist'
         );
-        return null;
     }
 
     if (params.defindex !== undefined) {
-        const schemaItem = bot.schema.getItemByDefindex(params.defindex as number);
+        const schemaItem = schema.getItemByDefindex(params.defindex as number);
         if (schemaItem === null) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find an item in the schema with the defindex "${params.defindex as number}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find an item in the schema with the defindex "${params.defindex as number}".`);
         }
 
         item.defindex = schemaItem.defindex;
@@ -310,134 +312,54 @@ export function getItemFromParams(
         }
     }
 
-    if (
-        [
-            5726, // Rocket Launcher
-            5727, // Scattergun
-            5728, // Sniper Rifle
-            5729, // Shotgun
-            5730, // Ubersaw
-            5731, // GRU
-            5732, // Spy-cicle
-            5733, // Axtinguisher
-            5743, // Sticky Launcher
-            5744, // Minigun
-            5745, // Direct Hit
-            5746, // Huntsman
-            5747, // Backburner
-            5748, // Backscatter
-            5749, // Kritzkrieg
-            5750, // Ambassador
-            5751, // Frontier Justice
-            5793, // Flaregun
-            5794, // Wrench
-            5795, // Revolver
-            5796, // Machina
-            5797, // Baby Face Blaster
-            5798, // Huo Long Heatmaker
-            5799, // Loose Cannon
-            5800, // Vaccinator
-            5801 // Air Strike
-        ].includes(item.defindex)
-    ) {
-        // Standardize all specific Basic Killstreak Kit
-        item.defindex = 6527;
-    } else if (item.defindex === 5738) {
-        // Standardize different versions of Mann Co. Stockpile Crate
-        item.defindex = 5737;
-    } else if (
-        [
-            5661, // Pomson 6000 Strangifier
-            5721, // Pretty Boy's Pocket Pistol Strangifier
-            5722, // Phlogistinator Strangifier
-            5723, // Cleaner's Carbine Strangifier
-            5724, // Private Eye Strangifier
-            5725, // Big Chief Strangifier
-            5753, // Air Strike Strangifier
-            5754, // Classic Strangifier
-            5755, // Manmelter Strangifier
-            5756, // Vaccinator Strangifier
-            5757, // Widowmaker Strangifier
-            5758, // Anger Strangifier
-            5759, // Apparition's Aspect Strangifier
-            5783, // Cow Mangler 5000 Strangifier
-            5784, // Third Degree Strangifier
-            5804 // Righteous Bison Strangifier
-        ].includes(item.defindex)
-    ) {
-        // Standardize defindex for Strangifier
-        item.defindex = 6522;
-    } else if (
-        [
-            20001, // Cosmetic Strangifier Recipe 1 Rare
-            20005, // Cosmetic Strangifier Recipe 2
-            20008, // Rebuild Strange Weapon Recipe
-            20009 // Cosmetic Strangifier Recipe 3
-        ].includes(item.defindex)
-    ) {
-        // Standardize defindex for Strangifier Chemistry Set
-        item.defindex = 20000;
-    }
+    standardizeItem(item);
 
     if (typeof params.quality === 'number') {
         // user gave quality in number
         if (params.quality < 0 || params.quality > 15) {
-            bot.sendMessage(steamID, `Unknown quality "${params.quality}", it must in between 0 - 15.`);
-            return null;
+            return errMsg(`Unknown quality "${params.quality}", it must in between 0 - 15.`);
         }
 
         item.quality = params.quality;
     } else if (params.quality !== undefined) {
-        const quality = bot.schema.getQualityIdByName(params.quality as string);
+        const quality = schema.getQualityIdByName(params.quality as string);
         if (quality === null) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find a quality in the schema with the name "${params.quality as string}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find a quality in the schema with the name "${params.quality as string}".`);
         }
         item.quality = quality;
     }
 
     if (params.craftable !== undefined) {
         if (typeof params.craftable !== 'boolean') {
-            bot.sendMessage(steamID, `Craftable must be "true" or "false".`);
-            return null;
+            return errMsg(`Craftable must be "true" or "false".`);
         }
         item.craftable = params.craftable;
     }
 
     if (typeof params.paint === 'number') {
-        const paint = bot.schema.getPaintNameByDecimal(params.paint);
+        const paint = schema.getPaintNameByDecimal(params.paint);
         if (paint === null) {
-            bot.sendMessage(steamID, `❌ Could not find a paint in the schema with the decimal "${params.paint}".`);
-            return null;
+            return errMsg(`❌ Could not find a paint in the schema with the decimal "${params.paint}".`);
         }
         item.paint = params.paint;
     } else if (params.paint !== undefined) {
-        const paint = bot.schema.getPaintDecimalByName(params.paint as string);
+        const paint = schema.getPaintDecimalByName(params.paint as string);
         if (paint === null) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find a paint in the schema with the name "${params.paint as string}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find a paint in the schema with the name "${params.paint as string}".`);
         }
         item.paint = paint;
     }
 
     if (params.festive !== undefined) {
         if (typeof params.festive !== 'boolean') {
-            bot.sendMessage(steamID, `"festive" (for Festivized item) must be "true" or "false".`);
-            return null;
+            return errMsg(`"festive" (for Festivized item) must be "true" or "false".`);
         }
         item.festive = params.festive;
     }
 
     if (params.australium !== undefined) {
         if (typeof params.australium !== 'boolean') {
-            bot.sendMessage(steamID, `Australium must be "true" or "false".`);
-            return null;
+            return errMsg(`Australium must be "true" or "false".`);
         }
         item.australium = params.australium;
     }
@@ -445,11 +367,9 @@ export function getItemFromParams(
     if (typeof params.killstreak === 'number') {
         // user gave killstreak in number
         if (params.killstreak < 1 || params.killstreak > 3) {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `Unknown killstreak "${params.killstreak}", it must either be 1 (Killstreak), 2 (Specialized Killstreak) or 3 (Professional Killstreak).`
             );
-            return null;
         }
 
         item.killstreak = params.killstreak;
@@ -462,60 +382,49 @@ export function getItemFromParams(
             .indexOf(params.killstreak as string);
 
         if (ksCaseSensitive === -1 && ksCaseInsensitive === -1) {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `Unknown killstreak "${
                     params.killstreak as string
                 }", it must either be "Killstreak", "Specialized Killstreak", "Professional Killstreak".`
             );
-            return null;
         }
 
         item.killstreak = ksCaseSensitive !== -1 ? ksCaseSensitive + 1 : ksCaseInsensitive + 1;
     }
 
     if (typeof params.effect === 'number') {
-        const effect = bot.schema.getEffectById(params.effect);
+        const effect = schema.getEffectById(params.effect);
         if (effect === null) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find an unusual effect in the schema with the id "${params.effect}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find an unusual effect in the schema with the id "${params.effect}".`);
         }
-        item.effect = bot.schema.getEffectIdByName(effect);
+        item.effect = schema.getEffectIdByName(effect);
     } else if (params.effect !== undefined) {
-        const effect = bot.schema.getEffectIdByName(params.effect as string);
+        const effect = schema.getEffectIdByName(params.effect as string);
         if (effect === null) {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `❌ Could not find an unusual effect in the schema with the name "${params.effect as string}".`
             );
-            return null;
         }
         item.effect = effect;
     }
 
     if (typeof params.paintkit === 'number') {
-        const paintkit = bot.schema.getSkinById(params.paintkit);
+        const paintkit = schema.getSkinById(params.paintkit);
         if (paintkit === null) {
-            bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the id "${item.paintkit}".`);
-            return null;
+            return errMsg(`❌ Could not find a skin in the schema with the id "${item.paintkit}".`);
         }
-        item.paintkit = bot.schema.getSkinIdByName(paintkit);
+        item.paintkit = schema.getSkinIdByName(paintkit);
     } else if (params.paintkit !== undefined) {
-        const paintkit = bot.schema.getSkinIdByName(params.paintkit as string);
+        const paintkit = schema.getSkinIdByName(params.paintkit as string);
         if (paintkit === null) {
-            bot.sendMessage(steamID, `❌ Could not find a skin in the schema with the name "${item.paintkit}".`);
-            return null;
+            return errMsg(`❌ Could not find a skin in the schema with the name "${item.paintkit}".`);
         }
         item.paintkit = paintkit;
     }
 
     if (params.quality2 !== undefined) {
         if (typeof params.quality2 !== 'boolean') {
-            bot.sendMessage(steamID, `❌ "quality2" must only be type boolean (true or false).`);
-            return null;
+            return errMsg(`❌ "quality2" must only be type boolean (true or false).`);
         }
 
         item.quality2 = params.quality2 ? 11 : null;
@@ -524,11 +433,9 @@ export function getItemFromParams(
     if (typeof params.wear === 'number') {
         // user gave wear in number
         if (params.wear < 1 || params.wear > 5) {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `Unknown wear "${params.wear}", it must either be 1 (Factory New), 2 (Minimal Wear), 3 (Field-Tested), 4 (Well-Worn), or 5 (Battle Scarred).`
             );
-            return null;
         }
 
         item.wear = params.wear;
@@ -539,37 +446,27 @@ export function getItemFromParams(
         const wearCaseInsensitive = wears.map(wear => wear.toLowerCase()).indexOf(params.wear as string);
 
         if (wearCaseSensitive === -1 && wearCaseInsensitive === -1) {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `Unknown wear "${
                     params.wear as string
                 }", it must either be "Factory New", "Minimal Wear", "Field-Tested", "Well-Worn", or "Battle Scarred".`
             );
-            return null;
         }
 
         item.wear = wearCaseSensitive !== -1 ? wearCaseSensitive + 1 : wearCaseInsensitive + 1;
     }
 
     if (typeof params.target === 'number') {
-        const schemaItem = bot.schema.getItemByDefindex(params.target);
+        const schemaItem = schema.getItemByDefindex(params.target);
         if (schemaItem === null) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find an item in the schema with the target defindex "${params.target}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find an item in the schema with the target defindex "${params.target}".`);
         }
 
         item.target = schemaItem.defindex;
     } else if (params.target !== undefined) {
-        const schemaItem = bot.schema.getItemByItemName(params.target as string);
+        const schemaItem = schema.getItemByItemName(params.target as string);
         if (schemaItem === null) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find an item in the schema with the target name "${params.target as string}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find an item in the schema with the target name "${params.target as string}".`);
         }
 
         item.target = schemaItem.defindex;
@@ -577,13 +474,9 @@ export function getItemFromParams(
 
     if (typeof params.output === 'number') {
         // User gave defindex
-        const schemaItem = bot.schema.getItemByDefindex(params.output);
+        const schemaItem = schema.getItemByDefindex(params.output);
         if (schemaItem === null) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find an item in the schema with a defindex of "${params.defindex as number}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find an item in the schema with a defindex of "${params.defindex as number}".`);
         }
 
         if (item.outputQuality === null) {
@@ -593,8 +486,8 @@ export function getItemFromParams(
         // Look for all items that have the same name
         const match: SchemaManager.SchemaItem[] = [];
 
-        const items = bot.schema.raw.schema.items;
-        const itemsCount = bot.schema.raw.schema.items.length;
+        const items = schema.raw.schema.items;
+        const itemsCount = schema.raw.schema.items.length;
 
         for (let i = 0; i < itemsCount; i++) {
             if (items[i].item_name === params.name) {
@@ -605,11 +498,7 @@ export function getItemFromParams(
         const matchCount = match.length;
 
         if (matchCount === 0) {
-            bot.sendMessage(
-                steamID,
-                `❌ Could not find an item in the schema with the name "${params.name as string}".`
-            );
-            return null;
+            return errMsg(`❌ Could not find an item in the schema with the name "${params.name as string}".`);
         } else if (matchCount !== 1) {
             const parsed = match.splice(0, 20).map(schemaItem => `${schemaItem.defindex} (${schemaItem.name})`);
             const parsedCount = parsed.length;
@@ -623,8 +512,7 @@ export function getItemFromParams(
                 reply += `,\nand ${other} other ${pluralize('item', other)}.`;
             }
 
-            bot.sendMessage(steamID, reply);
-            return null;
+            return errMsg(reply);
         }
 
         item.output = match[0].defindex;
@@ -634,21 +522,18 @@ export function getItemFromParams(
     }
 
     if (params.outputQuality !== undefined) {
-        const quality = bot.schema.getQualityIdByName(params.outputQuality as string);
+        const quality = schema.getQualityIdByName(params.outputQuality as string);
         if (quality === null) {
-            bot.sendMessage(
-                steamID,
+            return errMsg(
                 `❌ Could not find a quality in the schema with the name "${params.outputQuality as string}".`
             );
-            return null;
         }
         item.outputQuality = quality;
     }
 
     if (params.crateseries !== undefined) {
         if (typeof params.crateseries !== 'number') {
-            bot.sendMessage(steamID, `❌ crateseries must only be type number!.`);
-            return null;
+            return errMsg(`❌ crateseries must only be type number!.`);
         }
 
         if ([1, 3, 7, 12, 13, 18, 19, 23, 26, 31, 34, 39, 43, 47, 54, 57, 75].includes(params.crateseries)) {
@@ -675,7 +560,7 @@ export function getItemFromParams(
     }
 
     delete params.name;
-    return fixItem(item, bot.schema);
+    return { item: fixItem(item, schema) };
 }
 
 export function fixSKU(sku: string): string {

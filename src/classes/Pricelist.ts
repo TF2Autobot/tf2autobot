@@ -238,21 +238,21 @@ export default class Pricelist extends EventEmitter {
         this.socketManager.on('price', this.boundHandlePriceChange);
     }
 
-    hasPrice(sku: string, onlyEnabled = false): boolean {
-        if (!this.prices[sku]) {
+    hasPrice(priceKey: string, onlyEnabled = false): boolean {
+        if (!this.prices[priceKey]) {
             return false;
         }
 
-        return this.prices[sku].enabled || !onlyEnabled;
+        return this.prices[priceKey].enabled || !onlyEnabled;
     }
 
-    getPrice(sku: string, onlyEnabled = false, generics = false): Entry | null {
-        if (this.hasPrice(sku, onlyEnabled)) {
-            return this.prices[sku];
+    getPrice(priceKey: string, onlyEnabled = false, generics = false): Entry | null {
+        if (this.hasPrice(priceKey, onlyEnabled)) {
+            return this.prices[priceKey];
         }
 
         if (generics) {
-            const gSku = generics ? sku.replace(/;u\d+/, '') : null;
+            const gSku = generics ? priceKey.replace(/;u\d+/, '') : null;
             if (this.hasPrice(gSku, onlyEnabled)) {
                 return this.prices[gSku];
             }
@@ -466,7 +466,7 @@ export default class Pricelist extends EventEmitter {
         if (errors !== null) {
             throw new Error(errors.join(', '));
         }
-        if (this.hasPrice(entryData.sku, false)) {
+        if (this.hasPrice(priceKey, false)) {
             throw new Error('Item is already priced');
         }
 
@@ -506,6 +506,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     async updatePrice(
+        priceKey: string,
         entryData: EntryData,
         emitChange: boolean,
         src: PricelistChangedSource = PricelistChangedSource.Other,
@@ -578,17 +579,17 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    removePrice(sku: string, emitChange: boolean): Promise<Entry> {
+    removePrice(priceKey: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
-            if (!this.hasPrice(sku)) {
+            if (!this.hasPrice(priceKey)) {
                 return reject(new Error('Item is not priced'));
             }
 
-            const entry = Object.assign({}, this.prices[sku]); //TODO: do we need to copy it ?
-            delete this.prices[sku];
+            const entry = Object.assign({}, this.prices[priceKey]); //TODO: do we need to copy it ?
+            delete this.prices[priceKey];
 
             if (emitChange) {
-                this.priceChanged(sku, entry);
+                this.priceChanged(priceKey, entry);
             }
 
             return resolve(entry);
@@ -1166,8 +1167,8 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    private priceChanged(sku: string, entry: Entry): void {
-        this.emit('price', sku, entry);
+    private priceChanged(priceKey: string, entry: Entry): void {
+        this.emit('price', priceKey, entry);
         this.emit('pricelist', this.prices);
     }
 

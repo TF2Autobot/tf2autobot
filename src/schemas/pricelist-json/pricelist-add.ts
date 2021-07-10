@@ -6,8 +6,7 @@ export const addSchema: jsonschema.Schema = {
     properties: {
         assetid: {
             // current assetid of the item
-            type: 'integer',
-            minimum: 0
+            type: 'string'
         },
         sku: {
             // sku of the item
