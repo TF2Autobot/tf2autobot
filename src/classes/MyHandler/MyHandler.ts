@@ -977,7 +977,14 @@ export default class MyHandler extends Handler {
                 'awesome',
                 'rep',
                 'joy',
-                'cute' // right?
+                'cute', // right?
+                'enjoy',
+                'prize',
+                'free',
+                'tnx',
+                'ty',
+                'love',
+                '<3'
             ].some(word => offerMessage.includes(word));
 
             if (isGift) {
