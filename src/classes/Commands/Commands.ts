@@ -5,7 +5,7 @@ import Currencies from 'tf2-currencies-2';
 import dayjs from 'dayjs';
 
 import * as c from './sub-classes/export';
-import { removeLinkProtocol, getItemFromParams, getItemAndAmount, fixSKU } from './functions/utils';
+import { fixSKU, getItemAndAmount, getItemFromParams, removeLinkProtocol } from './functions/utils';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
@@ -84,7 +84,7 @@ export default class Commands {
         this.opt.updateOptionsCommand(steamID, message);
     }
 
-    processMessage(steamID: SteamID, message: string): void {
+    async processMessage(steamID: SteamID, message: string): Promise<void> {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
         const isWhitelisted = this.bot.isWhitelisted(steamID);
@@ -151,7 +151,7 @@ export default class Commands {
         };
 
         if (command === 'help') {
-            void this.help.helpCommand(steamID);
+            await this.help.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.help.howToTradeCommand(steamID);
         } else if (['price', 'pc'].includes(command)) {
@@ -185,31 +185,31 @@ export default class Commands {
         } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
             void this.misc.weaponCommand(steamID, command as CraftUncraft);
         } else if (command === 'snapshots' && isAdmin) {
-            void this.request.getSnapshotsCommand(steamID, message);
+            await this.request.getSnapshotsCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
-            void this.depositCommand(steamID, message);
+            await this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
-            this.pManager.addCommand(steamID, message);
+            await this.pManager.addCommand(steamID, message);
         } else if (command === 'addbulk' && isAdmin) {
-            void this.pManager.addbulkCommand(steamID, message);
+            await this.pManager.addbulkCommand(steamID, message);
         } else if (command === 'update' && isAdmin) {
-            void this.pManager.updateCommand(steamID, message);
+            await this.pManager.updateCommand(steamID, message);
         } else if (command === 'updatebulk' && isAdmin) {
-            void this.pManager.updatebulkCommand(steamID, message);
+            await this.pManager.updatebulkCommand(steamID, message);
         } else if (command === 'remove' && isAdmin) {
-            void this.pManager.removeCommand(steamID, message);
+            await this.pManager.removeCommand(steamID, message);
         } else if (command === 'removebulk' && isAdmin) {
             this.pManager.removebulkCommand(steamID, message);
         } else if (command === 'get' && isAdmin) {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
-            void this.pManager.getAllCommand(steamID, message);
+            await this.pManager.getAllCommand(steamID, message);
         } else if (command === 'ppu' && isAdmin) {
-            void this.pManager.partialPriceUpdateCommand(steamID, message);
+            await this.pManager.partialPriceUpdateCommand(steamID, message);
         } else if (['getslots', 'listings'].includes(command) && isAdmin) {
-            void this.pManager.getSlotsCommand(steamID);
+            this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
             this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
@@ -221,7 +221,7 @@ export default class Commands {
         } else if (['block', 'unblock'].includes(command) && isAdmin) {
             this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
         } else if (command === 'clearfriends' && isAdmin) {
-            void this.manager.clearFriendsCommand(steamID);
+            await this.manager.clearFriendsCommand(steamID);
         } else if (command === 'stop' && isAdmin) {
             this.manager.stopCommand(steamID);
         } else if (command === 'restart' && isAdmin) {
@@ -231,11 +231,11 @@ export default class Commands {
         } else if (command === 'refreshlist' && isAdmin) {
             this.manager.refreshListingsCommand(steamID);
         } else if (command === 'stats' && isAdmin) {
-            void this.status.statsCommand(steamID);
+            await this.status.statsCommand(steamID);
         } else if (command === 'statsdw' && isAdmin) {
             this.status.statsDWCommand(steamID);
         } else if (command === 'itemstats' && (isAdmin || isWhitelisted)) {
-            void this.status.itemStatsCommand(steamID, message);
+            await this.status.itemStatsCommand(steamID, message);
         } else if (command === 'inventory' && isAdmin) {
             this.status.inventoryCommand(steamID);
         } else if (command === 'version' && isAdmin) {
@@ -245,21 +245,21 @@ export default class Commands {
         } else if (command === 'trade' && isAdmin) {
             this.review.tradeCommand(steamID, message);
         } else if (['accepttrade', 'accept', 'declinetrade', 'decline'].includes(command) && isAdmin) {
-            void this.review.actionOnTradeCommand(steamID, message, command as ActionOnTrade);
+            await this.review.actionOnTradeCommand(steamID, message, command as ActionOnTrade);
         } else if (['faccept', 'fdecline'].includes(command) && isAdmin) {
-            void this.review.forceAction(steamID, message, command as ForceAction);
+            await this.review.forceAction(steamID, message, command as ForceAction);
         } else if (command === 'offerinfo' && isAdmin) {
             this.review.offerInfo(steamID, message);
         } else if (command === 'pricecheck' && isAdmin) {
             this.request.pricecheckCommand(steamID, message);
         } else if (command === 'pricecheckall' && isAdmin) {
-            void this.request.pricecheckAllCommand(steamID);
+            this.request.pricecheckAllCommand(steamID);
         } else if (command === 'check' && isAdmin) {
-            void this.request.checkCommand(steamID, message);
+            await this.request.checkCommand(steamID, message);
         } else if (command === 'find' && isAdmin) {
-            void this.pManager.findCommand(steamID, message);
+            await this.pManager.findCommand(steamID, message);
         } else if (command === 'options' && isAdmin) {
-            void this.opt.optionsCommand(steamID, message);
+            await this.opt.optionsCommand(steamID, message);
         } else if (command === 'config' && isAdmin) {
             this.opt.updateOptionsCommand(steamID, message);
         } else if (command === 'cleararray' && isAdmin) {
@@ -311,9 +311,21 @@ export default class Commands {
             }
         }
 
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot);
-        if (info === null) {
+        const response = getItemAndAmount(
+            CommandParser.removeCommand(message),
+            this.bot.pricelist,
+            this.bot.effects,
+            this.bot.options
+        );
+        if (response.errorMessage) {
+            return this.bot.sendMessage(steamID, response.errorMessage);
+        }
+        if (response.info === null) {
             return;
+        }
+        const info = response.info;
+        if (info.message) {
+            this.bot.sendMessage(steamID, response.info.message);
         }
 
         const match = info.match;
@@ -398,15 +410,22 @@ export default class Commands {
             }
         }
 
-        const info = getItemAndAmount(
-            steamID,
+        const response = getItemAndAmount(
             CommandParser.removeCommand(message),
-            this.bot,
+            this.bot.pricelist,
+            this.bot.effects,
+            this.bot.options,
             command === 'b' ? 'buy' : command === 's' ? 'sell' : command
         );
-
-        if (info === null) {
+        if (response.errorMessage) {
+            return this.bot.sendMessage(steamID, response.errorMessage);
+        }
+        if (response.info === null) {
             return;
+        }
+        const info = response.info;
+        if (info.message) {
+            this.bot.sendMessage(steamID, response.info.message);
         }
 
         const cart = new UserCart(
@@ -443,10 +462,22 @@ export default class Commands {
             }
         }
 
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'buycart');
-
-        if (info === null) {
+        const response = getItemAndAmount(
+            CommandParser.removeCommand(message),
+            this.bot.pricelist,
+            this.bot.effects,
+            this.bot.options,
+            'buycart'
+        );
+        if (response.errorMessage) {
+            return this.bot.sendMessage(steamID, response.errorMessage);
+        }
+        if (response.info === null) {
             return;
+        }
+        const info = response.info;
+        if (info.message) {
+            this.bot.sendMessage(steamID, response.info.message);
         }
 
         let amount = info.amount;
@@ -519,9 +550,22 @@ export default class Commands {
             }
         }
 
-        const info = getItemAndAmount(steamID, CommandParser.removeCommand(message), this.bot, 'sellcart');
-        if (info === null) {
+        const response = getItemAndAmount(
+            CommandParser.removeCommand(message),
+            this.bot.pricelist,
+            this.bot.effects,
+            this.bot.options,
+            'sellcart'
+        );
+        if (response.errorMessage) {
+            return this.bot.sendMessage(steamID, response.errorMessage);
+        }
+        if (response.info === null) {
             return;
+        }
+        const info = response.info;
+        if (info.message) {
+            this.bot.sendMessage(steamID, response.info.message);
         }
 
         let amount = info.amount;
@@ -796,12 +840,14 @@ export default class Commands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
-
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
@@ -899,12 +945,15 @@ export default class Commands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
@@ -977,12 +1026,15 @@ export default class Commands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }

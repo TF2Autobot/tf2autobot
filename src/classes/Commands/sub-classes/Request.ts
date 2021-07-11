@@ -37,13 +37,15 @@ export default class RequestCommands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
         }
@@ -126,12 +128,15 @@ export default class RequestCommands {
         }
 
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
         }
@@ -194,12 +199,15 @@ export default class RequestCommands {
         }
 
         if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-            if (item === null) {
+            const response = getItemFromParams(params, this.bot.schema);
+            if (response.errorMessage) {
+                return this.bot.sendMessage(steamID, response.errorMessage);
+            }
+            if (response.item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            params.sku = SKU.fromObject(response.item);
         } else {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
         }

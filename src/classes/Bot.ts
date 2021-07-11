@@ -307,7 +307,12 @@ export default class Bot {
         let cookies: string[];
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
-        this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
+        this.addListener(
+            this.client,
+            'friendMessage',
+            (steamID: SteamID, message: string) => void this.onMessage(steamID, message).catch(err => log.error(err)),
+            true
+        );
         this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
@@ -855,12 +860,12 @@ export default class Bot {
         return this.ready && !this.botManager.isStopping;
     }
 
-    private onMessage(steamID: SteamID, message: string): void {
+    async onMessage(steamID: SteamID, message: string): Promise<void> {
         if (message.startsWith('[tradeoffer sender=') && message.endsWith('[/tradeoffer]')) {
             return;
         }
 
-        this.handler.onMessage(steamID, message);
+        await this.handler.onMessage(steamID, message);
     }
 
     private onWebSession(sessionID: string, cookies: string[]): void {
