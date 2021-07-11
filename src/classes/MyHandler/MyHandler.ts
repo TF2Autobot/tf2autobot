@@ -1856,7 +1856,8 @@ export default class MyHandler extends Handler {
                         reason: 'COUNTER_INVALID_VALUE',
                         meta: {
                             uniqueReasons: uniqueReasons,
-                            reasons: wrongAboutOffer
+                            reasons: wrongAboutOffer,
+                            highValue: isContainsHighValue ? highValueMeta : undefined
                         }
                     };
                 }
