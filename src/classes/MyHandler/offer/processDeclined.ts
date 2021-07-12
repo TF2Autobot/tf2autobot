@@ -96,6 +96,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case 'ONLY_DISABLED_ITEMS':
             case 'ONLY_OVERSTOCKED':
             case 'ONLY_UNDERSTOCKED':
+            case 'ONLY_DUPED_ITEM':
+            case 'ONLY_DUPE_CHECK_FAILED':
                 //It was probably faster to make them by hand but :/
                 declined.reasonDescription =
                     offerReceived.reason +

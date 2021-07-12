@@ -1111,9 +1111,7 @@ export default class MyHandler extends Handler {
         const itemPrices: Prices = {};
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
-        let hasOverstock = false;
         let hasOverstockAndIsPartialPriced = false;
-        let hasUnderstock = false;
 
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: WrongAboutOffer[] = [];
@@ -1216,8 +1214,6 @@ export default class MyHandler extends Handler {
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
                             if (match.enabled) {
                                 // User is offering too many
-                                hasOverstock = true;
-
                                 if (match.isPartialPriced) {
                                     hasOverstockAndIsPartialPriced = true;
                                 }
@@ -1250,7 +1246,6 @@ export default class MyHandler extends Handler {
                         ) {
                             if (match.enabled) {
                                 // User is taking too many
-                                hasUnderstock = true;
 
                                 wrongAboutOffer.push({
                                     reason: '🟩_UNDERSTOCKED',
@@ -1418,7 +1413,6 @@ export default class MyHandler extends Handler {
 
                 if (diff !== 0 && amountCanTrade < diff) {
                     // User is offering too many
-                    hasOverstock = true;
                     wrongAboutOffer.push({
                         reason: '🟦_OVERSTOCKED',
                         sku: '5021;6',
@@ -1434,8 +1428,6 @@ export default class MyHandler extends Handler {
                 const acceptUnderstock = opt.autokeys.accept.understock;
                 if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && !acceptUnderstock) {
                     // User is taking too many
-                    hasUnderstock = true;
-
                     wrongAboutOffer.push({
                         reason: '🟩_UNDERSTOCKED',
                         sku: '5021;6',
@@ -1473,12 +1465,10 @@ export default class MyHandler extends Handler {
 
         const isExcept = isOurItems || isTheirItems;
 
-        let hasInvalidValue = false;
         if (exchange.our.value > exchange.their.value) {
             if (!isExcept || (isExcept && exchange.our.value - exchange.their.value >= exceptionValue)) {
                 // Check if the values are correct and is not include the exception sku
                 // OR include the exception sku but the invalid value is more than or equal to exception value
-                hasInvalidValue = true;
                 this.hasInvalidValueException = false;
                 wrongAboutOffer.push({
                     reason: '🟥_INVALID_VALUE',
@@ -1498,61 +1488,14 @@ export default class MyHandler extends Handler {
             }
         }
 
-        const manualReviewEnabled = opt.manualReview.enable;
-        if (!manualReviewEnabled) {
-            if (hasOverstock) {
-                offer.log('info', 'is offering too many, declining...');
-                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
-
-                return {
-                    action: 'decline',
-                    reason: '🟦_OVERSTOCKED',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer
-                    }
-                };
-            }
-
-            if (hasUnderstock) {
-                offer.log('info', 'is taking too many, declining...');
-                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
-
-                return {
-                    action: 'decline',
-                    reason: '🟩_UNDERSTOCKED',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer
-                    }
-                };
-            }
-
-            if (hasInvalidValue) {
-                // We are offering more than them, decline the offer
-                offer.log('info', 'is not offering enough, declining...');
-                const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-                const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
-
-                return {
-                    action: 'decline',
-                    reason: '🟥_INVALID_VALUE',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer
-                    }
-                };
-            }
-        }
-
         if (exchange.our.value < exchange.their.value && !opt.bypass.overpay.allow) {
             offer.log('info', 'is offering more than needed, declining...');
             return { action: 'decline', reason: 'OVERPAY' };
         }
 
         const assetidsToCheckCount = assetidsToCheck.length;
+
+        let metaDupedItem: Meta;
 
         if (this.dupeCheckEnabled && assetidsToCheckCount > 0) {
             offer.log('info', 'checking ' + pluralize('item', assetidsToCheckCount, true) + ' for dupes...');
@@ -1574,27 +1517,18 @@ export default class MyHandler extends Handler {
                 });
                 log.debug('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
 
-                const declineDupes = opt.offerReceived.duped.autoDecline.enable;
                 const resultCount = result.length;
 
                 for (let i = 0; i < resultCount; i++) {
                     if (result[i] === true) {
                         // Found duped item
-                        if (declineDupes) {
-                            // Offer contains duped items, decline it
-                            return {
-                                action: 'decline',
-                                reason: '🟫_DUPED_ITEMS',
-                                meta: { assetids: assetidsToCheck, sku: skuToCheck, result: result }
-                            };
-                        } else {
-                            // Offer contains duped items but we don't decline duped items, instead add it to the wrong about offer list and continue
-                            wrongAboutOffer.push({
-                                reason: '🟫_DUPED_ITEMS',
-                                assetid: assetidsToCheck[i],
-                                sku: skuToCheck[i]
-                            });
-                        }
+                        // Offer contains duped items but we don't decline duped items, instead add it to the wrong about offer list and continue
+                        metaDupedItem = { assetids: assetidsToCheck, sku: skuToCheck, result: result };
+                        wrongAboutOffer.push({
+                            reason: '🟫_DUPED_ITEMS',
+                            assetid: assetidsToCheck[i],
+                            sku: skuToCheck[i]
+                        });
                     } else if (result[i] === null) {
                         // Could not determine if the item was duped, make the offer be pending for review
                         wrongAboutOffer.push({
@@ -1657,20 +1591,21 @@ export default class MyHandler extends Handler {
             });
         }
 
+        const manualReviewEnabled = opt.manualReview.enable;
+
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = filterReasons(reasons.filter(reason => reasons.includes(reason)));
 
-            const isInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
-            const isInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
-            const isDisabledItem = uniqueReasons.includes('🟧_DISABLED_ITEMS');
-            const isOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
-            const isUnderstocked = uniqueReasons.includes('🟩_UNDERSTOCKED');
-            const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
-            const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
-
-            const isEscrowCheckFailed = uniqueReasons.includes('⬜_ESCROW_CHECK_FAILED');
-            const isBannedCheckFailed = uniqueReasons.includes('⬜_BANNED_CHECK_FAILED');
+            const hasInvalidValue = uniqueReasons.includes('🟥_INVALID_VALUE');
+            const hasInvalidItem = uniqueReasons.includes('🟨_INVALID_ITEMS');
+            const hasDisabledItem = uniqueReasons.includes('🟧_DISABLED_ITEMS');
+            const hasOverstocked = uniqueReasons.includes('🟦_OVERSTOCKED');
+            const hasUnderstocked = uniqueReasons.includes('🟩_UNDERSTOCKED');
+            const hasDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
+            const hasDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
+            const hasEscrowCheckFailed = uniqueReasons.includes('⬜_ESCROW_CHECK_FAILED');
+            const hasBannedCheckFailed = uniqueReasons.includes('⬜_BANNED_CHECK_FAILED');
 
             const canAcceptInvalidItemsOverpay = opt.offerReceived.invalidItems.autoAcceptOverpay;
             const canAcceptDisabledItemsOverpay = opt.offerReceived.disabledItems.autoAcceptOverpay;
@@ -1682,133 +1617,169 @@ export default class MyHandler extends Handler {
 
             // accepting 🟨_INVALID_ITEMS overpay
             const isAcceptInvalidItems =
-                isInvalidItem &&
+                hasInvalidItem &&
                 canAcceptInvalidItemsOverpay &&
                 !hasInvalidItemsOur &&
                 (exchange.our.value < exchange.their.value ||
                     (exchange.our.value === exchange.their.value && hasNoPrice)) &&
-                (isOverstocked ? canAcceptOverstockedOverpay : true) &&
-                (isUnderstocked ? canAcceptUnderstockedOverpay : true) &&
-                (isDisabledItem ? canAcceptDisabledItemsOverpay : true);
+                (hasOverstocked ? canAcceptOverstockedOverpay : true) &&
+                (hasUnderstocked ? canAcceptUnderstockedOverpay : true) &&
+                (hasDisabledItem ? canAcceptDisabledItemsOverpay : true);
 
             // accepting 🟧_DISABLED_ITEMS overpay
             const isAcceptDisabledItems =
-                isDisabledItem &&
+                hasDisabledItem &&
                 canAcceptDisabledItemsOverpay &&
                 exchange.our.value < exchange.their.value &&
-                (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
-                (isOverstocked ? canAcceptOverstockedOverpay : true) &&
-                (isUnderstocked ? canAcceptUnderstockedOverpay : true);
+                (hasInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
+                (hasOverstocked ? canAcceptOverstockedOverpay : true) &&
+                (hasUnderstocked ? canAcceptUnderstockedOverpay : true);
 
             // accepting 🟦_OVERSTOCKED overpay
             const isAcceptOverstocked =
-                isOverstocked &&
+                hasOverstocked &&
                 canAcceptOverstockedOverpay &&
                 !hasOverstockAndIsPartialPriced && // because partial priced will use old buying prices
                 exchange.our.value < exchange.their.value &&
-                (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
-                (isUnderstocked ? canAcceptUnderstockedOverpay : true) &&
-                (isDisabledItem ? canAcceptDisabledItemsOverpay : true);
+                (hasInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
+                (hasUnderstocked ? canAcceptUnderstockedOverpay : true) &&
+                (hasDisabledItem ? canAcceptDisabledItemsOverpay : true);
 
             // accepting 🟩_UNDERSTOCKED overpay
             const isAcceptUnderstocked =
-                isUnderstocked &&
+                hasUnderstocked &&
                 canAcceptUnderstockedOverpay &&
                 exchange.our.value < exchange.their.value &&
-                (isInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
-                (isOverstocked ? canAcceptOverstockedOverpay : true) &&
-                (isDisabledItem ? canAcceptDisabledItemsOverpay : true);
+                (hasInvalidItem ? canAcceptInvalidItemsOverpay : true) &&
+                (hasOverstocked ? canAcceptOverstockedOverpay : true) &&
+                (hasDisabledItem ? canAcceptDisabledItemsOverpay : true);
 
             const isOnlyInvalidValue =
-                isInvalidValue &&
+                hasInvalidValue &&
                 !(
-                    isInvalidItem ||
-                    isDisabledItem ||
-                    isOverstocked ||
-                    isUnderstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed ||
-                    isEscrowCheckFailed ||
-                    isBannedCheckFailed
+                    hasInvalidItem ||
+                    hasDisabledItem ||
+                    hasOverstocked ||
+                    hasUnderstocked ||
+                    hasDupedItem ||
+                    hasDupedCheckFailed ||
+                    hasEscrowCheckFailed ||
+                    hasBannedCheckFailed
                 );
 
             const isOnlyInvalidItem =
-                isInvalidItem &&
+                hasInvalidItem &&
                 !(
-                    isInvalidValue ||
-                    isDisabledItem ||
-                    isOverstocked ||
-                    isUnderstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed ||
-                    isEscrowCheckFailed ||
-                    isBannedCheckFailed
+                    hasInvalidValue ||
+                    hasDisabledItem ||
+                    hasOverstocked ||
+                    hasUnderstocked ||
+                    hasDupedItem ||
+                    hasDupedCheckFailed ||
+                    hasEscrowCheckFailed ||
+                    hasBannedCheckFailed
                 );
 
             const isOnlyDisabledItem =
-                isDisabledItem && // if contains 🟥_INVALID_VALUE too, this will pass
+                hasDisabledItem && // if contains 🟥_INVALID_VALUE too, this will pass
                 !(
-                    isInvalidItem ||
-                    isOverstocked ||
-                    isUnderstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed ||
-                    isEscrowCheckFailed ||
-                    isBannedCheckFailed
+                    hasInvalidItem ||
+                    hasOverstocked ||
+                    hasUnderstocked ||
+                    hasDupedItem ||
+                    hasDupedCheckFailed ||
+                    hasEscrowCheckFailed ||
+                    hasBannedCheckFailed
                 );
 
             const isOnlyOverstocked =
-                isOverstocked && // if contains 🟥_INVALID_VALUE too, this will pass
+                hasOverstocked && // if contains 🟥_INVALID_VALUE too, this will pass
                 !(
-                    isInvalidItem ||
-                    isDisabledItem ||
-                    isUnderstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed ||
-                    isEscrowCheckFailed ||
-                    isBannedCheckFailed
+                    hasInvalidItem ||
+                    hasDisabledItem ||
+                    hasUnderstocked ||
+                    hasDupedItem ||
+                    hasDupedCheckFailed ||
+                    hasEscrowCheckFailed ||
+                    hasBannedCheckFailed
                 );
 
             const isOnlyUnderstocked =
-                isUnderstocked && // if contains 🟥_INVALID_VALUE too, this will pass
+                hasUnderstocked && // if contains 🟥_INVALID_VALUE too, this will pass
                 !(
-                    isInvalidItem ||
-                    isOverstocked ||
-                    isDisabledItem ||
-                    isDupedItem ||
-                    isDupedCheckFailed ||
-                    isEscrowCheckFailed ||
-                    isBannedCheckFailed
+                    hasInvalidItem ||
+                    hasOverstocked ||
+                    hasDisabledItem ||
+                    hasDupedItem ||
+                    hasDupedCheckFailed ||
+                    hasEscrowCheckFailed ||
+                    hasBannedCheckFailed
+                );
+
+            const isOnlyDupedItem =
+                hasDupedItem && // if contains 🟥_INVALID_VALUE too, this will pass
+                !(
+                    hasInvalidItem ||
+                    hasOverstocked ||
+                    hasUnderstocked ||
+                    hasDisabledItem ||
+                    hasDupedCheckFailed ||
+                    hasEscrowCheckFailed ||
+                    hasBannedCheckFailed
+                );
+
+            const isOnlyFailedToCheckDupedItem =
+                hasDupedCheckFailed && // if contains 🟥_INVALID_VALUE too, this will pass
+                !(
+                    hasInvalidItem ||
+                    hasOverstocked ||
+                    hasUnderstocked ||
+                    hasDisabledItem ||
+                    hasDupedItem ||
+                    hasEscrowCheckFailed ||
+                    hasBannedCheckFailed
                 );
 
             const isOnlyEscrowCheckFailed =
-                isEscrowCheckFailed && // if contains 🟥_INVALID_VALUE too, this will pass
+                hasEscrowCheckFailed && // if contains 🟥_INVALID_VALUE too, this will pass
                 !(
-                    isInvalidItem ||
-                    isDisabledItem ||
-                    isOverstocked ||
-                    isUnderstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed ||
-                    isBannedCheckFailed
+                    hasInvalidItem ||
+                    hasDisabledItem ||
+                    hasOverstocked ||
+                    hasUnderstocked ||
+                    hasDupedItem ||
+                    hasDupedCheckFailed ||
+                    hasBannedCheckFailed
                 );
 
             const isOnlyBannedCheckFailed =
-                isBannedCheckFailed && // if contains 🟥_INVALID_VALUE too, this will pass
+                hasBannedCheckFailed && // if contains 🟥_INVALID_VALUE too, this will pass
                 !(
-                    isInvalidItem ||
-                    isDisabledItem ||
-                    isOverstocked ||
-                    isUnderstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed ||
-                    isEscrowCheckFailed
+                    hasInvalidItem ||
+                    hasDisabledItem ||
+                    hasOverstocked ||
+                    hasUnderstocked ||
+                    hasDupedItem ||
+                    hasDupedCheckFailed ||
+                    hasEscrowCheckFailed
                 );
+
+            const meta = {
+                uniqueReasons: uniqueReasons,
+                reasons: wrongAboutOffer,
+                highValue: isContainsHighValue ? highValueMeta : undefined
+            };
 
             if (
                 (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked || isAcceptDisabledItems) &&
                 exchange.our.value !== 0 &&
-                !(isInvalidValue || isDupedItem || isDupedCheckFailed || isEscrowCheckFailed || isBannedCheckFailed)
+                !(
+                    hasInvalidValue ||
+                    hasDupedItem ||
+                    hasDupedCheckFailed ||
+                    hasEscrowCheckFailed ||
+                    hasBannedCheckFailed
+                )
             ) {
                 // if the offer is Invalid_items/disabled_items/over/understocked and accepting overpay enabled, but the offer is not
                 // includes Invalid_value, duped or duped check failed, true for acceptTradeCondition and our side not empty,
@@ -1847,11 +1818,7 @@ export default class MyHandler extends Handler {
                 return {
                     action: 'accept',
                     reason: 'VALID_WITH_OVERPAY',
-                    meta: {
-                        uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer,
-                        highValue: isContainsHighValue ? highValueMeta : undefined
-                    }
+                    meta: meta
                 };
             } else if (
                 (opt.offerReceived.invalidValue.autoDecline.enable || opt.miscSettings.counterOffer.enable) &&
@@ -1860,18 +1827,14 @@ export default class MyHandler extends Handler {
             ) {
                 if (opt.miscSettings.counterOffer.enable) {
                     // if counteroffer enabled
-                    if (opt.miscSettings.counterOffer.skipIncludeMessage && offerMessage) {
+                    if (manualReviewEnabled && opt.miscSettings.counterOffer.skipIncludeMessage && offerMessage) {
                         // if skipIncludeMessage is set to true and offer contains message, skip for review
                         offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 
                         return {
                             action: 'skip',
                             reason: 'REVIEW',
-                            meta: {
-                                uniqueReasons: uniqueReasons,
-                                reasons: wrongAboutOffer,
-                                highValue: isContainsHighValue ? highValueMeta : undefined
-                            }
+                            meta: meta
                         };
                     }
 
@@ -1887,11 +1850,7 @@ export default class MyHandler extends Handler {
                     return {
                         action: 'counter',
                         reason: 'COUNTER_INVALID_VALUE',
-                        meta: {
-                            uniqueReasons: uniqueReasons,
-                            reasons: wrongAboutOffer,
-                            highValue: isContainsHighValue ? highValueMeta : undefined
-                        }
+                        meta: meta
                     };
                 }
 
@@ -1901,32 +1860,109 @@ export default class MyHandler extends Handler {
                 // If only 🟨_INVALID_ITEMS and Auto-decline INVALID_ITEMS enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_ITEMS' };
             } else if (opt.offerReceived.disabledItems.autoDecline.enable && isOnlyDisabledItem) {
-                // If only 🟧_DISABLED_ITEMS and Auto-decline DISABLED_ITEMS enabled, will just decline the trade.
+                // If only 🟧_DISABLED_ITEMS (and with 🟥_INVALID_VALUE)
+                // and Auto-decline DISABLED_ITEMS enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_DISABLED_ITEMS' };
             } else if (opt.offerReceived.overstocked.autoDecline.enable && isOnlyOverstocked) {
-                // If only 🟦_OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
+                // If only 🟦_OVERSTOCKED (and with 🟥_INVALID_VALUE)
+                // and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
             } else if (opt.offerReceived.understocked.autoDecline.enable && isOnlyUnderstocked) {
-                // If only 🟩_UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
+                // If only 🟩_UNDERSTOCKED (and with 🟥_INVALID_VALUE)
+                // and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
+            } else if (opt.offerReceived.duped.autoDecline.enable && isOnlyDupedItem) {
+                // If only 🟫_DUPED_ITEMS (and with 🟥_INVALID_VALUE)
+                // and Auto-decline DUPED_ITEMS enabled, will just decline the trade.
+                return {
+                    action: 'decline',
+                    reason: 'ONLY_DUPED_ITEM',
+                    meta: metaDupedItem
+                };
+            } else if (opt.offerReceived.failedToCheckDuped.autoDecline.enable && isOnlyFailedToCheckDupedItem) {
+                // If only 🟪_DUPE_CHECK_FAILED (and with 🟥_INVALID_VALUE)
+                // and Auto-decline DUPE_CHECK_FAILED enabled, will just decline the trade.
+                return {
+                    action: 'decline',
+                    reason: 'ONLY_DUPE_CHECK_FAILED',
+                    meta: meta
+                };
             } else if (isIgnoreEscrowCheckFailed && isOnlyEscrowCheckFailed) {
-                // If only ⬜_ESCROW_CHECK_FAILED and always ignore enabled, will do nothing.
+                // If only ⬜_ESCROW_CHECK_FAILED (and with 🟥_INVALID_VALUE)
+                // and always ignore enabled, will do nothing.
                 // Blank
             } else if (isIgnoreBannedCheckFailed && isOnlyBannedCheckFailed) {
-                // If only ⬜_BANNED_CHECK_FAILED and always ignore enabled, will do nothing.
+                // If only ⬜_BANNED_CHECK_FAILED  (and with 🟥_INVALID_VALUE)
+                // and always ignore enabled, will do nothing.
                 // Blank
-            } else {
+            } else if (manualReviewEnabled) {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 
                 return {
                     action: 'skip',
                     reason: 'REVIEW',
-                    meta: {
-                        uniqueReasons: uniqueReasons,
-                        reasons: wrongAboutOffer,
-                        highValue: isContainsHighValue ? highValueMeta : undefined
-                    }
+                    meta: meta
                 };
+            } else {
+                // hhhmmmmm should we combine this?
+                if (hasOverstocked) {
+                    offer.log('info', 'is offering too many, declining...');
+
+                    return {
+                        action: 'decline',
+                        reason: '🟦_OVERSTOCKED',
+                        meta: meta
+                    };
+                } else if (hasUnderstocked) {
+                    offer.log('info', 'is taking too many, declining...');
+
+                    return {
+                        action: 'decline',
+                        reason: '🟩_UNDERSTOCKED',
+                        meta: meta
+                    };
+                } else if (hasDisabledItem) {
+                    offer.log('info', 'is taking disabled item(s), declining...');
+
+                    return {
+                        action: 'decline',
+                        reason: '🟧_DISABLED_ITEMS',
+                        meta: meta
+                    };
+                } else if (hasInvalidItem) {
+                    offer.log('info', 'contains invalid item(s), declining...');
+
+                    return {
+                        action: 'decline',
+                        reason: '🟨_INVALID_ITEMS',
+                        meta: meta
+                    };
+                } else if (hasDupedItem) {
+                    offer.log('info', 'contains duped item(s), declining...');
+
+                    return {
+                        action: 'decline',
+                        reason: '🟫_DUPED_ITEMS',
+                        meta: metaDupedItem
+                    };
+                } else if (hasDupedCheckFailed) {
+                    offer.log('info', 'failed to check for duped item, declining...');
+
+                    return {
+                        action: 'decline',
+                        reason: '🟪_DUPE_CHECK_FAILED',
+                        meta: meta
+                    };
+                } else if (hasInvalidValue) {
+                    // We are offering more than them, decline the offer
+                    offer.log('info', 'is not offering enough, declining...');
+
+                    return {
+                        action: 'decline',
+                        reason: '🟥_INVALID_VALUE',
+                        meta: meta
+                    };
+                }
             }
         }
 

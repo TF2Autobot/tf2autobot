@@ -364,6 +364,13 @@ export const DEFAULTS: JsonOptions = {
                 declineReply: ''
             }
         },
+        // 🟪_DUPE_CHECK_FAILED
+        failedToCheckDuped: {
+            autoDecline: {
+                enable: false,
+                declineReply: ''
+            }
+        },
         // ⬜_ESCROW_CHECK_FAILED
         escrowCheckFailed: {
             ignoreFailed: false
@@ -1366,6 +1373,7 @@ interface OfferReceived {
     overstocked?: AutoAcceptOverpayAndAutoDecline;
     understocked?: AutoAcceptOverpayAndAutoDecline;
     duped?: Duped;
+    failedToCheckDuped: FailedToCheckDuped;
     escrowCheckFailed?: EscrowBannedCheckFailed;
     bannedCheckFailed?: EscrowBannedCheckFailed;
 }
@@ -1396,6 +1404,10 @@ interface InvalidItems extends AutoAcceptOverpayAndAutoDecline {
 interface Duped {
     enableCheck?: boolean;
     minKeys?: number;
+    autoDecline?: DeclineReply;
+}
+
+interface FailedToCheckDuped {
     autoDecline?: DeclineReply;
 }
 
