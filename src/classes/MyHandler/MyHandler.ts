@@ -1495,8 +1495,6 @@ export default class MyHandler extends Handler {
 
         const assetidsToCheckCount = assetidsToCheck.length;
 
-        let metaDupedItem: Meta;
-
         if (this.dupeCheckEnabled && assetidsToCheckCount > 0) {
             offer.log('info', 'checking ' + pluralize('item', assetidsToCheckCount, true) + ' for dupes...');
             const inventory = new TF2Inventory(offer.partner, this.bot.manager);
@@ -1523,7 +1521,6 @@ export default class MyHandler extends Handler {
                     if (result[i] === true) {
                         // Found duped item
                         // Offer contains duped items but we don't decline duped items, instead add it to the wrong about offer list and continue
-                        metaDupedItem = { assetids: assetidsToCheck, sku: skuToCheck, result: result };
                         wrongAboutOffer.push({
                             reason: '🟫_DUPED_ITEMS',
                             assetid: assetidsToCheck[i],
@@ -1877,7 +1874,7 @@ export default class MyHandler extends Handler {
                 return {
                     action: 'decline',
                     reason: 'ONLY_DUPED_ITEM',
-                    meta: metaDupedItem
+                    meta: meta
                 };
             } else if (opt.offerReceived.failedToCheckDuped.autoDecline.enable && isOnlyFailedToCheckDupedItem) {
                 // If only 🟪_DUPE_CHECK_FAILED (and with 🟥_INVALID_VALUE)
@@ -1943,7 +1940,7 @@ export default class MyHandler extends Handler {
                     return {
                         action: 'decline',
                         reason: '🟫_DUPED_ITEMS',
-                        meta: metaDupedItem
+                        meta: meta
                     };
                 } else if (hasDupedCheckFailed) {
                     offer.log('info', 'failed to check for duped item, declining...');
