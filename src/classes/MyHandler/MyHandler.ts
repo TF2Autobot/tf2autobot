@@ -1015,7 +1015,11 @@ export default class MyHandler extends Handler {
                     };
                 } else {
                     offer.log('info', 'is a gift offer without any offer message, declining...');
-                    return { action: 'decline', reason: 'GIFT_NO_NOTE' };
+                    return {
+                        action: 'decline',
+                        reason: 'GIFT_NO_NOTE',
+                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                    };
                 }
             }
         } else if (
@@ -1024,7 +1028,11 @@ export default class MyHandler extends Handler {
             !(opt.miscSettings.counterOffer.enable && exchange.contains.items)
         ) {
             offer.log('info', 'is taking our items for free, declining...');
-            return { action: 'decline', reason: 'CRIME_ATTEMPT' };
+            return {
+                action: 'decline',
+                reason: 'CRIME_ATTEMPT',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
         }
 
         // Check for Dueling Mini-Game and/or Noise maker for 5x/25x Uses only when enabled
@@ -1036,7 +1044,11 @@ export default class MyHandler extends Handler {
             if (checkExist.getPrice('241;6', true) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
                 offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses.');
-                return { action: 'decline', reason: 'DUELING_NOT_5_USES' };
+                return {
+                    action: 'decline',
+                    reason: 'DUELING_NOT_5_USES',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
             }
         }
 
@@ -1045,7 +1057,11 @@ export default class MyHandler extends Handler {
             if (isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
                 offer.log('info', 'contains Noise Maker that does not have 25 uses.');
-                return { action: 'decline', reason: 'NOISE_MAKER_NOT_25_USES' };
+                return {
+                    action: 'decline',
+                    reason: 'NOISE_MAKER_NOT_25_USES',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
             }
         }
 
@@ -1490,7 +1506,11 @@ export default class MyHandler extends Handler {
 
         if (exchange.our.value < exchange.their.value && !opt.bypass.overpay.allow) {
             offer.log('info', 'is offering more than needed, declining...');
-            return { action: 'decline', reason: 'OVERPAY' };
+            return {
+                action: 'decline',
+                reason: 'OVERPAY',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
         }
 
         const assetidsToCheckCount = assetidsToCheck.length;
@@ -1555,7 +1575,11 @@ export default class MyHandler extends Handler {
 
             if (hasEscrow) {
                 offer.log('info', 'would be held if accepted, declining...');
-                return { action: 'decline', reason: 'ESCROW' };
+                return {
+                    action: 'decline',
+                    reason: 'ESCROW',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
             }
         } catch (err) {
             log.warn('Failed to check escrow: ', err);
@@ -1578,7 +1602,11 @@ export default class MyHandler extends Handler {
                     } else log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
                 });
 
-                return { action: 'decline', reason: 'BANNED' };
+                return {
+                    action: 'decline',
+                    reason: 'BANNED',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
             }
         } catch (err) {
             log.error('Failed to check banned: ', err);
@@ -1852,22 +1880,22 @@ export default class MyHandler extends Handler {
                 }
 
                 // If only 🟥_INVALID_VALUE and did not matched exception value, will just decline the trade.
-                return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
+                return { action: 'decline', reason: 'ONLY_INVALID_VALUE', meta: meta };
             } else if (opt.offerReceived.invalidItems.autoDecline.enable && isOnlyInvalidItem) {
                 // If only 🟨_INVALID_ITEMS and Auto-decline INVALID_ITEMS enabled, will just decline the trade.
-                return { action: 'decline', reason: 'ONLY_INVALID_ITEMS' };
+                return { action: 'decline', reason: 'ONLY_INVALID_ITEMS', meta: meta };
             } else if (opt.offerReceived.disabledItems.autoDecline.enable && isOnlyDisabledItem) {
                 // If only 🟧_DISABLED_ITEMS (and with 🟥_INVALID_VALUE)
                 // and Auto-decline DISABLED_ITEMS enabled, will just decline the trade.
-                return { action: 'decline', reason: 'ONLY_DISABLED_ITEMS' };
+                return { action: 'decline', reason: 'ONLY_DISABLED_ITEMS', meta: meta };
             } else if (opt.offerReceived.overstocked.autoDecline.enable && isOnlyOverstocked) {
                 // If only 🟦_OVERSTOCKED (and with 🟥_INVALID_VALUE)
                 // and Auto-decline OVERSTOCKED enabled, will just decline the trade.
-                return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
+                return { action: 'decline', reason: 'ONLY_OVERSTOCKED', meta: meta };
             } else if (opt.offerReceived.understocked.autoDecline.enable && isOnlyUnderstocked) {
                 // If only 🟩_UNDERSTOCKED (and with 🟥_INVALID_VALUE)
                 // and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
-                return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
+                return { action: 'decline', reason: 'ONLY_UNDERSTOCKED', meta: meta };
             } else if (opt.offerReceived.duped.autoDecline.enable && isOnlyDupedItem) {
                 // If only 🟫_DUPED_ITEMS (and with 🟥_INVALID_VALUE)
                 // and Auto-decline DUPED_ITEMS enabled, will just decline the trade.

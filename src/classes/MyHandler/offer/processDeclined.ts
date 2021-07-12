@@ -16,11 +16,13 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
         invalidItems: [],
         disabledItems: [],
         dupedItems: [],
-        reasonDescription: ''
+        reasonDescription: '',
+        highValue: []
     };
 
     const offerReceived = offer.data('action') as i.Action;
     const meta = offer.data('meta') as i.Meta;
+    const highValue = offer.data('highValue') as i.HighValueOutput; // can be both offer received and offer sent
 
     const isWebhookEnabled = opt.discordWebhook.declinedTrade.enable && opt.discordWebhook.declinedTrade.url.length > 0;
 
@@ -179,6 +181,60 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
                     break;
             }
         });
+
+        if (highValue && highValue['has'] === undefined) {
+            if (Object.keys(highValue.items.their).length > 0) {
+                // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
+                const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
+
+                for (const name in itemsName) {
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                        continue;
+                    }
+
+                    declined.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+                }
+            }
+
+            if (Object.keys(highValue.items.our).length > 0) {
+                // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
+                const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
+
+                for (const name in itemsName) {
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                        continue;
+                    }
+
+                    declined.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+                }
+            }
+        }
+    } else if (highValue && highValue['has'] === undefined) {
+        // This is for offer that bot created from commands
+
+        if (highValue.items && Object.keys(highValue.items.their).length > 0) {
+            const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
+
+            for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
+
+                declined.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+            }
+        }
+
+        if (highValue.items && Object.keys(highValue.items.our).length > 0) {
+            const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
+
+            for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
+
+                declined.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+            }
+        }
     }
 
     const isOfferSent = offer.data('action') === undefined;
@@ -195,7 +251,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             understock: declined.understocked, // 🟩_UNDERSTOCKED
             duped: declined.dupedItems, // '🟫_DUPED_ITEMS'
             dupedFailed: [],
-            highValue: declined.highNotSellingItems
+            highValue: declined.highValue.concat(declined.highNotSellingItems)
         };
         const keyPrices = bot.pricelist.getKeyPrices;
         const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
@@ -275,4 +331,5 @@ interface Declined {
     disabledItems: string[];
     dupedItems: string[];
     reasonDescription: string;
+    highValue: string[];
 }
