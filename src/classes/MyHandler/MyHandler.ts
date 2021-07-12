@@ -47,7 +47,7 @@ import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/e
 
 import genPaths from '../../resources/paths';
 import Pricer, { RequestCheckFn } from '../Pricer';
-import Options from '../Options';
+import Options, { OfferType } from '../Options';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -1632,24 +1632,6 @@ export default class MyHandler extends Handler {
             wrongAboutOffer.push({
                 reason: '⬜_ESCROW_CHECK_FAILED'
             });
-
-            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
-
-            if (!opt.offerReceived.escrowCheckFailed.ignoreFailed) {
-                return {
-                    action: 'skip',
-                    reason: '⬜_ESCROW_CHECK_FAILED',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer,
-                        highValue: isContainsHighValue ? highValueMeta : undefined
-                    }
-                };
-            } else {
-                // Do nothing. bad.
-                return;
-            }
         }
 
         offer.log('info', 'checking bans...');
@@ -1673,27 +1655,7 @@ export default class MyHandler extends Handler {
             wrongAboutOffer.push({
                 reason: '⬜_BANNED_CHECK_FAILED'
             });
-
-            const reasons = wrongAboutOffer.map(wrong => wrong.reason);
-            const uniqueReasons = reasons.filter(reason => reasons.includes(reason));
-
-            if (!opt.offerReceived.bannedCheckFailed.ignoreFailed) {
-                return {
-                    action: 'skip',
-                    reason: '⬜_BANNED_CHECK_FAILED',
-                    meta: {
-                        uniqueReasons: filterReasons(uniqueReasons),
-                        reasons: wrongAboutOffer,
-                        highValue: isContainsHighValue ? highValueMeta : undefined
-                    }
-                };
-            } else {
-                // Do nothing. bad.
-                return;
-            }
         }
-
-        // TO DO: Counter offer?
 
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
@@ -1707,10 +1669,16 @@ export default class MyHandler extends Handler {
             const isDupedItem = uniqueReasons.includes('🟫_DUPED_ITEMS');
             const isDupedCheckFailed = uniqueReasons.includes('🟪_DUPE_CHECK_FAILED');
 
+            const isEscrowCheckFailed = uniqueReasons.includes('⬜_ESCROW_CHECK_FAILED');
+            const isBannedCheckFailed = uniqueReasons.includes('⬜_BANNED_CHECK_FAILED');
+
             const canAcceptInvalidItemsOverpay = opt.offerReceived.invalidItems.autoAcceptOverpay;
             const canAcceptDisabledItemsOverpay = opt.offerReceived.disabledItems.autoAcceptOverpay;
             const canAcceptOverstockedOverpay = opt.offerReceived.overstocked.autoAcceptOverpay;
             const canAcceptUnderstockedOverpay = opt.offerReceived.understocked.autoAcceptOverpay;
+
+            const isIgnoreEscrowCheckFailed = opt.offerReceived.escrowCheckFailed.ignoreFailed;
+            const isIgnoreBannedCheckFailed = opt.offerReceived.bannedCheckFailed.ignoreFailed;
 
             // accepting 🟨_INVALID_ITEMS overpay
             const isAcceptInvalidItems =
@@ -1751,10 +1719,96 @@ export default class MyHandler extends Handler {
                 (isOverstocked ? canAcceptOverstockedOverpay : true) &&
                 (isDisabledItem ? canAcceptDisabledItemsOverpay : true);
 
+            const isOnlyInvalidValue =
+                isInvalidValue &&
+                !(
+                    isInvalidItem ||
+                    isDisabledItem ||
+                    isOverstocked ||
+                    isUnderstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed ||
+                    isEscrowCheckFailed ||
+                    isBannedCheckFailed
+                );
+
+            const isOnlyInvalidItem =
+                isInvalidItem &&
+                !(
+                    isInvalidValue ||
+                    isDisabledItem ||
+                    isOverstocked ||
+                    isUnderstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed ||
+                    isEscrowCheckFailed ||
+                    isBannedCheckFailed
+                );
+
+            const isOnlyDisabledItem =
+                isDisabledItem && // if contains 🟥_INVALID_VALUE too, this will pass
+                !(
+                    isInvalidItem ||
+                    isOverstocked ||
+                    isUnderstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed ||
+                    isEscrowCheckFailed ||
+                    isBannedCheckFailed
+                );
+
+            const isOnlyOverstocked =
+                isOverstocked && // if contains 🟥_INVALID_VALUE too, this will pass
+                !(
+                    isInvalidItem ||
+                    isDisabledItem ||
+                    isUnderstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed ||
+                    isEscrowCheckFailed ||
+                    isBannedCheckFailed
+                );
+
+            const isOnlyUnderstocked =
+                isUnderstocked && // if contains 🟥_INVALID_VALUE too, this will pass
+                !(
+                    isInvalidItem ||
+                    isOverstocked ||
+                    isDisabledItem ||
+                    isDupedItem ||
+                    isDupedCheckFailed ||
+                    isEscrowCheckFailed ||
+                    isBannedCheckFailed
+                );
+
+            const isOnlyEscrowCheckFailed =
+                isEscrowCheckFailed && // if contains 🟥_INVALID_VALUE too, this will pass
+                !(
+                    isInvalidItem ||
+                    isDisabledItem ||
+                    isOverstocked ||
+                    isUnderstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed ||
+                    isBannedCheckFailed
+                );
+
+            const isOnlyBannedCheckFailed =
+                isBannedCheckFailed && // if contains 🟥_INVALID_VALUE too, this will pass
+                !(
+                    isInvalidItem ||
+                    isDisabledItem ||
+                    isOverstocked ||
+                    isUnderstocked ||
+                    isDupedItem ||
+                    isDupedCheckFailed ||
+                    isEscrowCheckFailed
+                );
+
             if (
                 (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked || isAcceptDisabledItems) &&
                 exchange.our.value !== 0 &&
-                !(isInvalidValue || isDupedItem || isDupedCheckFailed)
+                !(isInvalidValue || isDupedItem || isDupedCheckFailed || isEscrowCheckFailed || isBannedCheckFailed)
             ) {
                 // if the offer is Invalid_items/disabled_items/over/understocked and accepting overpay enabled, but the offer is not
                 // includes Invalid_value, duped or duped check failed, true for acceptTradeCondition and our side not empty,
@@ -1782,25 +1836,12 @@ export default class MyHandler extends Handler {
                 if (opt.offerReceived.sendPreAcceptMessage.enable) {
                     const preAcceptMessage = opt.customMessage.accepted.automatic;
 
-                    if (itemsToGiveCount + itemsToReceiveCount > 50) {
-                        this.bot.sendMessage(
-                            offer.partner,
-                            preAcceptMessage.largeOffer
-                                ? preAcceptMessage.largeOffer
-                                : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                                      ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
-                                      'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                        );
-                    } else {
-                        this.bot.sendMessage(
-                            offer.partner,
-                            preAcceptMessage.smallOffer
-                                ? preAcceptMessage.smallOffer
-                                : 'I have accepted your offer. The trade should be finalized shortly.' +
-                                      ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
-                                      'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                        );
-                    }
+                    MyHandler.sendPreAcceptedMessage(
+                        this.bot,
+                        offer.partner,
+                        preAcceptMessage,
+                        itemsToGiveCount + itemsToReceiveCount > 50
+                    );
                 }
 
                 return {
@@ -1814,15 +1855,7 @@ export default class MyHandler extends Handler {
                 };
             } else if (
                 (opt.offerReceived.invalidValue.autoDecline.enable || opt.miscSettings.counterOffer.enable) &&
-                isInvalidValue &&
-                !(
-                    isUnderstocked ||
-                    isInvalidItem ||
-                    isDisabledItem ||
-                    isOverstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed
-                ) &&
+                isOnlyInvalidValue &&
                 this.hasInvalidValueException === false
             ) {
                 if (opt.miscSettings.counterOffer.enable) {
@@ -1861,50 +1894,27 @@ export default class MyHandler extends Handler {
                         }
                     };
                 }
-                // If only INVALID_VALUE and did not matched exception value, will just decline the trade.
+
+                // If only 🟥_INVALID_VALUE and did not matched exception value, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_VALUE' };
-            } else if (
-                opt.offerReceived.invalidItems.autoDecline.enable &&
-                isInvalidItem &&
-                !(
-                    isDisabledItem ||
-                    isUnderstocked ||
-                    isInvalidValue ||
-                    isOverstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed
-                )
-            ) {
-                // If only INVALID_ITEMS and Auto-decline INVALID_ITEMS enabled, will just decline the trade.
+            } else if (opt.offerReceived.invalidItems.autoDecline.enable && isOnlyInvalidItem) {
+                // If only 🟨_INVALID_ITEMS and Auto-decline INVALID_ITEMS enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_INVALID_ITEMS' };
-            } else if (
-                opt.offerReceived.disabledItems.autoDecline.enable &&
-                isDisabledItem &&
-                !(
-                    isInvalidItem ||
-                    isUnderstocked ||
-                    isInvalidValue ||
-                    isOverstocked ||
-                    isDupedItem ||
-                    isDupedCheckFailed
-                )
-            ) {
-                // If only DISABLED_ITEMS and Auto-decline DISABLED_ITEMS enabled, will just decline the trade.
+            } else if (opt.offerReceived.disabledItems.autoDecline.enable && isOnlyDisabledItem) {
+                // If only 🟧_DISABLED_ITEMS and Auto-decline DISABLED_ITEMS enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_DISABLED_ITEMS' };
-            } else if (
-                opt.offerReceived.overstocked.autoDecline.enable &&
-                isOverstocked &&
-                !(isInvalidItem || isDisabledItem || isDupedItem || isDupedCheckFailed)
-            ) {
-                // If only OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
+            } else if (opt.offerReceived.overstocked.autoDecline.enable && isOnlyOverstocked) {
+                // If only 🟦_OVERSTOCKED and Auto-decline OVERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_OVERSTOCKED' };
-            } else if (
-                opt.offerReceived.understocked.autoDecline.enable &&
-                isUnderstocked &&
-                !(isInvalidItem || isDisabledItem || isDupedItem || isDupedCheckFailed)
-            ) {
-                // If only UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
+            } else if (opt.offerReceived.understocked.autoDecline.enable && isOnlyUnderstocked) {
+                // If only 🟩_UNDERSTOCKED and Auto-decline UNDERSTOCKED enabled, will just decline the trade.
                 return { action: 'decline', reason: 'ONLY_UNDERSTOCKED' };
+            } else if (isIgnoreEscrowCheckFailed && isOnlyEscrowCheckFailed) {
+                // If only ⬜_ESCROW_CHECK_FAILED and always ignore enabled, will do nothing.
+                // Blank
+            } else if (isIgnoreBannedCheckFailed && isOnlyBannedCheckFailed) {
+                // If only ⬜_BANNED_CHECK_FAILED and always ignore enabled, will do nothing.
+                // Blank
             } else {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 
@@ -1928,25 +1938,12 @@ export default class MyHandler extends Handler {
         if (opt.offerReceived.sendPreAcceptMessage.enable) {
             const preAcceptMessage = opt.customMessage.accepted.automatic;
 
-            if (itemsToGiveCount + itemsToReceiveCount > 50) {
-                this.bot.sendMessage(
-                    offer.partner,
-                    preAcceptMessage.largeOffer
-                        ? preAcceptMessage.largeOffer
-                        : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
-                              ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
-                              'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                );
-            } else {
-                this.bot.sendMessage(
-                    offer.partner,
-                    preAcceptMessage.smallOffer
-                        ? preAcceptMessage.smallOffer
-                        : 'I have accepted your offer. The trade will be finalized shortly.' +
-                              ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
-                              'or add me and use the !sell/!sellcart or !buy/!buycart command.'
-                );
-            }
+            MyHandler.sendPreAcceptedMessage(
+                this.bot,
+                offer.partner,
+                preAcceptMessage,
+                itemsToGiveCount + itemsToReceiveCount > 50
+            );
         }
 
         return {
@@ -1954,6 +1951,33 @@ export default class MyHandler extends Handler {
             reason: 'VALID',
             meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
         };
+    }
+
+    private static sendPreAcceptedMessage(
+        bot: Bot,
+        steamID: SteamID,
+        preAcceptMessageOpt: OfferType,
+        itemsLarge: boolean
+    ): void {
+        if (itemsLarge) {
+            bot.sendMessage(
+                steamID,
+                preAcceptMessageOpt.largeOffer
+                    ? preAcceptMessageOpt.largeOffer
+                    : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
+                          ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
+                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+            );
+        } else {
+            bot.sendMessage(
+                steamID,
+                preAcceptMessageOpt.smallOffer
+                    ? preAcceptMessageOpt.smallOffer
+                    : 'I have accepted your offer. The trade will be finalized shortly.' +
+                          ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
+                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+            );
+        }
     }
 
     onTradeOfferChanged(offer: TradeOffer, oldState: number, timeTakenToComplete?: number): void {

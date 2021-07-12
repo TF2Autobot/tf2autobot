@@ -1540,7 +1540,7 @@ interface AcceptedNote {
     manual?: OfferType;
 }
 
-interface OfferType {
+export interface OfferType {
     largeOffer: string;
     smallOffer: string;
 }
