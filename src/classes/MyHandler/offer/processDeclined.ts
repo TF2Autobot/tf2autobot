@@ -60,7 +60,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
                 declined.reasonDescription =
                     offerReceived.reason + ': Tried to take our high value items that we are not selling.';
                 //check our items to add tag
-                declined.highNotSellingItems.push(...meta?.highValueName);
+                if (meta?.highValueName) declined.highNotSellingItems.push(...meta.highValueName);
                 break;
             case 'ONLY_METAL':
                 declined.reasonDescription = offerReceived.reason + ': Offer contains only metal.';
