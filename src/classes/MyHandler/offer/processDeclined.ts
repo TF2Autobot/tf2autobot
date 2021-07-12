@@ -72,17 +72,6 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case 'NOT_BUYING_KEYS':
                 declined.reasonDescription = offerReceived.reason + ': We are not buying keys.';
                 break;
-            case '🟥_INVALID_VALUE':
-                declined.reasonDescription = offerReceived.reason + ': We are paying more than them.';
-                break;
-            case 'COUNTER_INVALID_VALUE_FAILED':
-                declined.reasonDescription =
-                    offerReceived.reason +
-                    ': We are paying more than them and we failed to counter the offer, or Steam might be down, or private inventory (failed to load their inventory).';
-                break;
-            case '🟫_DUPED_ITEMS':
-                declined.reasonDescription = offerReceived.reason + ': Offer contains duped items.';
-                break;
             case '🟦_OVERSTOCKED':
                 declined.reasonDescription =
                     offerReceived.reason + ": Offer contains items that'll make us overstocked.";
@@ -90,6 +79,30 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case '🟩_UNDERSTOCKED':
                 declined.reasonDescription =
                     offerReceived.reason + ": Offer contains items that'll make us understocked.";
+                break;
+            case '🟧_DISABLED_ITEMS':
+                declined.reasonDescription = offerReceived.reason + ': Offer contains disabled items.';
+                break;
+            case '🟨_INVALID_ITEMS':
+                declined.reasonDescription = offerReceived.reason + ': Offer contains invalid items.';
+                break;
+            case '🟫_DUPED_ITEMS':
+                declined.reasonDescription = offerReceived.reason + ': Offer contains duped items.';
+                break;
+            case '🟪_DUPE_CHECK_FAILED':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    `: Offer contains item(s) that is worth more than ${opt.offerReceived.duped.minKeys} keys, and I was unable ` +
+                    `to determine if this item is duped or not. Please make sure your inventory is public, and your backpack.tf inventory ` +
+                    `is refreshed with no fallback mode and try again later.`;
+                break;
+            case '🟥_INVALID_VALUE':
+                declined.reasonDescription = offerReceived.reason + ': We are paying more than them.';
+                break;
+            case 'COUNTER_INVALID_VALUE_FAILED':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    ': We are paying more than them and we failed to counter the offer, or Steam might be down, or private inventory (failed to load their inventory).';
                 break;
             case 'ONLY_INVALID_VALUE':
             case 'ONLY_INVALID_ITEMS':
