@@ -25,6 +25,8 @@ export default class PricelistManagerCommands {
 
     static isSending = false;
 
+    static isBulkOperation = false;
+
     constructor(private readonly bot: Bot, private priceSource: Pricer) {
         this.bot = bot;
     }
@@ -186,6 +188,13 @@ export default class PricelistManagerCommands {
     }
 
     async addbulkCommand(steamID: SteamID, message: string): Promise<void> {
+        if (PricelistManagerCommands.isBulkOperation) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Bulk operation is still in progress. Please wait until it's completed.`
+            );
+        }
+
         const commandRemoved = CommandParser.removeCommand(removeLinkProtocol(message));
 
         if (!commandRemoved.includes('\n')) {
@@ -382,7 +391,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(2000);
+                    await sleepasync().Promise.sleep(3000);
                 }
             }
 
@@ -399,6 +408,8 @@ export default class PricelistManagerCommands {
                 break;
             }
         }
+
+        PricelistManagerCommands.isBulkOperation = true;
 
         if (isHasAutoprice) {
             try {
@@ -432,6 +443,8 @@ export default class PricelistManagerCommands {
                                 );
 
                                 void sendErrors(this.bot);
+
+                                PricelistManagerCommands.isBulkOperation = false;
                             }
                         });
                 }
@@ -463,6 +476,8 @@ export default class PricelistManagerCommands {
                             this.bot.sendMessage(steamID, `✅ Bulk add successful: ${added} added, ${failed} failed`);
 
                             void sendErrors(this.bot);
+
+                            PricelistManagerCommands.isBulkOperation = false;
                         }
                     });
             }
@@ -1096,6 +1111,13 @@ export default class PricelistManagerCommands {
     }
 
     async updatebulkCommand(steamID: SteamID, message: string): Promise<void> {
+        if (PricelistManagerCommands.isBulkOperation) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Bulk operation is still in progress. Please wait until it's completed.`
+            );
+        }
+
         const commandRemoved = CommandParser.removeCommand(removeLinkProtocol(message));
 
         if (!commandRemoved.includes('\n')) {
@@ -1364,7 +1386,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(2000);
+                    await sleepasync().Promise.sleep(3000);
                 }
             }
 
@@ -1388,6 +1410,8 @@ export default class PricelistManagerCommands {
                 break;
             }
         }
+
+        PricelistManagerCommands.isBulkOperation = true;
 
         if (isHasAutoprice) {
             try {
@@ -1421,6 +1445,8 @@ export default class PricelistManagerCommands {
                                 );
 
                                 void sendErrors(this.bot);
+
+                                PricelistManagerCommands.isBulkOperation = false;
                             }
                         });
                 }
@@ -1457,6 +1483,8 @@ export default class PricelistManagerCommands {
                             );
 
                             void sendErrors(this.bot);
+
+                            PricelistManagerCommands.isBulkOperation = false;
                         }
                     });
             }
@@ -1635,6 +1663,13 @@ export default class PricelistManagerCommands {
     }
 
     removebulkCommand(steamID: SteamID, message: string): void {
+        if (PricelistManagerCommands.isBulkOperation) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Bulk operation is still in progress. Please wait until it's completed.`
+            );
+        }
+
         const commandRemoved = CommandParser.removeCommand(removeLinkProtocol(message));
 
         if (!commandRemoved.includes('\n')) {
@@ -1730,7 +1765,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(2000);
+                    await sleepasync().Promise.sleep(3000);
                 }
             }
 
@@ -1743,6 +1778,8 @@ export default class PricelistManagerCommands {
                 `❌ Bulk remove operation aborted: Please only use "sku" or "item" as the item identifying paramater. Thank you.`
             );
         }
+
+        PricelistManagerCommands.isBulkOperation = true;
 
         const count2 = skusToRemove.length;
 
@@ -1770,6 +1807,8 @@ export default class PricelistManagerCommands {
                         );
 
                         void sendErrors(this.bot);
+
+                        PricelistManagerCommands.isBulkOperation = false;
                     }
                 });
         }
@@ -1904,7 +1943,7 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-            await sleepasync().Promise.sleep(2000);
+            await sleepasync().Promise.sleep(3000);
         }
 
         PricelistManagerCommands.isSending = false;
@@ -1993,7 +2032,7 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-            await sleepasync().Promise.sleep(2000);
+            await sleepasync().Promise.sleep(3000);
         }
 
         PricelistManagerCommands.isSending = false;
@@ -2182,7 +2221,7 @@ export default class PricelistManagerCommands {
 
                 this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-                await sleepasync().Promise.sleep(2000);
+                await sleepasync().Promise.sleep(3000);
             }
 
             PricelistManagerCommands.isSending = false;

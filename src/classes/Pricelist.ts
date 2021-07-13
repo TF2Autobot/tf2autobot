@@ -225,7 +225,8 @@ export default class Pricelist extends EventEmitter {
     }
 
     get isUseCustomPricer(): boolean {
-        return this.options.customPricerUrl !== '' && this.options.customPricerApiToken !== '';
+        if (this.options.customPricerUrl) return this.options.customPricerUrl !== '';
+        return false;
     }
 
     get isDwAlertEnabled(): boolean {

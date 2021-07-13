@@ -2,23 +2,27 @@ import request from 'request-retry-dayjs';
 import SteamID from 'steamid';
 import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
 
-export async function isBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
+export async function isBanned(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<boolean> {
     const steamID64 = steamID.toString();
     const [bptf, steamrep] = await Promise.all([
-        isBptfBanned(steamID64, bptfApiKey),
-        isSteamRepMarked(steamID64, bptfApiKey)
+        isBptfBanned(steamID64, bptfApiKey, userID),
+        isSteamRepMarked(steamID64, bptfApiKey, userID)
     ]);
 
     return bptf || steamrep;
 }
 
-export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
+export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<boolean> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
         void request(
             {
                 url: 'https://backpack.tf/api/users/info/v1',
+                headers: {
+                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                    Cookie: 'user-id=' + userID
+                },
                 qs: {
                     key: bptfApiKey,
                     steamids: steamID64
@@ -39,7 +43,7 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string): Pro
     });
 }
 
-function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
+function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<boolean> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
@@ -49,6 +53,10 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string): Pr
                 qs: {
                     key: bptfApiKey,
                     steamids: steamID64
+                },
+                headers: {
+                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                    Cookie: 'user-id=' + userID
                 },
                 gzip: true,
                 json: true
@@ -67,7 +75,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string): Pr
     });
 }
 
-function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string): Promise<boolean> {
+function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<boolean> {
     const steamID64 = steamID.toString();
 
     return new Promise(resolve => {
@@ -82,7 +90,7 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string): Promis
             },
             (err, response, body: SteamRep) => {
                 if (err) {
-                    resolve(isBptfSteamRepBanned(steamID64, bptfApiKey));
+                    resolve(isBptfSteamRepBanned(steamID64, bptfApiKey, userID));
                 }
 
                 resolve(body.steamrep.reputation.summary.toLowerCase().indexOf('scammer') !== -1);

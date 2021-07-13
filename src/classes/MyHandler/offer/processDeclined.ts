@@ -16,11 +16,13 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
         invalidItems: [],
         disabledItems: [],
         dupedItems: [],
-        reasonDescription: ''
+        reasonDescription: '',
+        highValue: []
     };
 
     const offerReceived = offer.data('action') as i.Action;
     const meta = offer.data('meta') as i.Meta;
+    const highValue = offer.data('highValue') as i.HighValueOutput; // can be both offer received and offer sent
 
     const isWebhookEnabled = opt.discordWebhook.declinedTrade.enable && opt.discordWebhook.declinedTrade.url.length > 0;
 
@@ -58,7 +60,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
                 declined.reasonDescription =
                     offerReceived.reason + ': Tried to take our high value items that we are not selling.';
                 //check our items to add tag
-                declined.highNotSellingItems.push(...meta?.highValueName);
+                if (meta?.highValueName) declined.highNotSellingItems.push(...meta.highValueName);
                 break;
             case 'ONLY_METAL':
                 declined.reasonDescription = offerReceived.reason + ': Offer contains only metal.';
@@ -72,17 +74,6 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case 'NOT_BUYING_KEYS':
                 declined.reasonDescription = offerReceived.reason + ': We are not buying keys.';
                 break;
-            case '🟥_INVALID_VALUE':
-                declined.reasonDescription = offerReceived.reason + ': We are paying more than them.';
-                break;
-            case 'COUNTER_INVALID_VALUE_FAILED':
-                declined.reasonDescription =
-                    offerReceived.reason +
-                    ': We are paying more than them and we failed to counter the offer, or Steam might be down, or private inventory (failed to load their inventory).';
-                break;
-            case '🟫_DUPED_ITEMS':
-                declined.reasonDescription = offerReceived.reason + ': Offer contains duped items.';
-                break;
             case '🟦_OVERSTOCKED':
                 declined.reasonDescription =
                     offerReceived.reason + ": Offer contains items that'll make us overstocked.";
@@ -91,11 +82,37 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
                 declined.reasonDescription =
                     offerReceived.reason + ": Offer contains items that'll make us understocked.";
                 break;
+            case '🟧_DISABLED_ITEMS':
+                declined.reasonDescription = offerReceived.reason + ': Offer contains disabled items.';
+                break;
+            case '🟨_INVALID_ITEMS':
+                declined.reasonDescription = offerReceived.reason + ': Offer contains invalid items.';
+                break;
+            case '🟫_DUPED_ITEMS':
+                declined.reasonDescription = offerReceived.reason + ': Offer contains duped items.';
+                break;
+            case '🟪_DUPE_CHECK_FAILED':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    `: Offer contains item(s) that is worth more than ${opt.offerReceived.duped.minKeys} keys, and I was unable ` +
+                    `to determine if this item is duped or not. Please make sure your inventory is public, and your backpack.tf inventory ` +
+                    `is refreshed with no fallback mode and try again later.`;
+                break;
+            case '🟥_INVALID_VALUE':
+                declined.reasonDescription = offerReceived.reason + ': We are paying more than them.';
+                break;
+            case 'COUNTER_INVALID_VALUE_FAILED':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    ': We are paying more than them and we failed to counter the offer, or Steam might be down, or private inventory (failed to load their inventory).';
+                break;
             case 'ONLY_INVALID_VALUE':
             case 'ONLY_INVALID_ITEMS':
             case 'ONLY_DISABLED_ITEMS':
             case 'ONLY_OVERSTOCKED':
             case 'ONLY_UNDERSTOCKED':
+            case 'ONLY_DUPED_ITEM':
+            case 'ONLY_DUPE_CHECK_FAILED':
                 //It was probably faster to make them by hand but :/
                 declined.reasonDescription =
                     offerReceived.reason +
@@ -164,6 +181,60 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
                     break;
             }
         });
+
+        if (highValue && highValue['has'] === undefined) {
+            if (Object.keys(highValue.items.their).length > 0) {
+                // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
+                const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
+
+                for (const name in itemsName) {
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                        continue;
+                    }
+
+                    declined.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+                }
+            }
+
+            if (Object.keys(highValue.items.our).length > 0) {
+                // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
+                const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
+
+                for (const name in itemsName) {
+                    if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                        continue;
+                    }
+
+                    declined.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+                }
+            }
+        }
+    } else if (highValue && highValue['has'] === undefined) {
+        // This is for offer that bot created from commands
+
+        if (highValue.items && Object.keys(highValue.items.their).length > 0) {
+            const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
+
+            for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
+
+                declined.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+            }
+        }
+
+        if (highValue.items && Object.keys(highValue.items.our).length > 0) {
+            const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
+
+            for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
+
+                declined.highValue.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+            }
+        }
     }
 
     const isOfferSent = offer.data('action') === undefined;
@@ -180,7 +251,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             understock: declined.understocked, // 🟩_UNDERSTOCKED
             duped: declined.dupedItems, // '🟫_DUPED_ITEMS'
             dupedFailed: [],
-            highValue: declined.highNotSellingItems
+            highValue: declined.highValue.concat(declined.highNotSellingItems)
         };
         const keyPrices = bot.pricelist.getKeyPrices;
         const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
@@ -260,4 +331,5 @@ interface Declined {
     disabledItems: string[];
     dupedItems: string[];
     reasonDescription: string;
+    highValue: string[];
 }

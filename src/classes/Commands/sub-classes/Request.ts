@@ -31,7 +31,7 @@ export default class RequestCommands {
     }
 
     async getSnapshotsCommand(steamID: SteamID, message: string): Promise<void> {
-        if (this.bot.options.customPricerUrl !== '' && this.bot.options.customPricerApiToken !== '') {
+        if (this.bot.options.customPricerUrl !== '') {
             return this.bot.sendMessage(steamID, '❌ This command is disabled for custom pricer.');
         }
 

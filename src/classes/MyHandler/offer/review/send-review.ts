@@ -99,6 +99,18 @@ export default async function sendReview(
                 highValueItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
             }
         }
+
+        if (Object.keys(meta.highValue.items.our).length > 0) {
+            const itemsName = t.getHighValueItems(meta.highValue.items.our, bot, bot.paints, bot.strangeParts);
+
+            for (const name in itemsName) {
+                if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
+                    continue;
+                }
+
+                highValueItems.push(`${isWebhookEnabled ? `_${name}_` : name}` + itemsName[name]);
+            }
+        }
     }
 
     const items = {
