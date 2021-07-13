@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import TradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import request from 'request-retry-dayjs';
 import cheerio from 'cheerio';
-import { uid } from 'rand-token';
+// import { uid } from 'rand-token';
 
 type TF2Attribute = {
     defindex: number;
@@ -60,9 +60,9 @@ export default class TF2Inventory {
         return this.slots;
     }
 
-    async isDuped(assetid: string): Promise<boolean | null> {
+    async isDuped(assetid: string, userID: string): Promise<boolean | null> {
         // Check if the item exists on backpack.tf and if it is duped
-        const history = await TF2Inventory.getItemHistory(assetid);
+        const history = await TF2Inventory.getItemHistory(assetid, userID);
 
         if (history.recorded === true) {
             return history.isDuped;
@@ -84,7 +84,7 @@ export default class TF2Inventory {
         // Could not find the item in the inventory, failed to check if the item is duped
 
         // Get history using original id
-        const historyFromOriginal = await TF2Inventory.getItemHistory(item.original_id.toString());
+        const historyFromOriginal = await TF2Inventory.getItemHistory(item.original_id.toString(), userID);
 
         if (historyFromOriginal.recorded === true) {
             return historyFromOriginal.isDuped;
@@ -129,7 +129,10 @@ export default class TF2Inventory {
         });
     }
 
-    private static getItemHistory(assetid: string): Promise<{
+    private static getItemHistory(
+        assetid: string,
+        userID: string
+    ): Promise<{
         recorded: boolean;
         isDuped?: boolean;
         history?: [];
@@ -140,7 +143,8 @@ export default class TF2Inventory {
                     url: 'https://backpack.tf/item/' + assetid,
                     method: 'GET',
                     headers: {
-                        Cookie: 'user-id=' + uid(12)
+                        'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                        Cookie: 'user-id=' + userID // uid(12)
                     }
                 },
                 (err, response, body) => {

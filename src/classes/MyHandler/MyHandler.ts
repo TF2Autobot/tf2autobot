@@ -1522,7 +1522,7 @@ export default class MyHandler extends Handler {
             const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug('Dupe checking ' + assetid + '...');
-                    void Promise.resolve(inventory.isDuped(assetid)).asCallback((err, result) => {
+                    void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug('Dupe check for ' + assetid + ' done');
                         callback(err, result);
                     });
@@ -2344,6 +2344,10 @@ export default class MyHandler extends Handler {
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',
+                    headers: {
+                        'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                        Cookie: 'user-id=' + this.bot.userID
+                    },
                     qs: {
                         key: this.opt.bptfAPIKey,
                         steamids: steamID64
