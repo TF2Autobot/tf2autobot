@@ -339,6 +339,12 @@
                 "declineReply": ""
             }
         },
+        "failedToCheckDuped": {
+            "autoDecline": {
+                "enable": false,
+                "declineReply": ""
+            }
+        },
         "escrowCheckFailed": {
             "ignoreFailed": false
         },
