@@ -83,7 +83,7 @@
         "@types/retry": "^0.12.1",
         "@types/semver": "^7.3.7",
         "@types/valid-url": "^1.0.3",
-        "@typescript-eslint/eslint-plugin": "^4.28.2",
+        "@typescript-eslint/eslint-plugin": "^4.28.3",
         "@typescript-eslint/parser": "^4.28.2",
         "eslint": "^7.30.0",
         "eslint-config-prettier": "^8.3.0",
