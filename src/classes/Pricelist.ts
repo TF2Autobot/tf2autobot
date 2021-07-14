@@ -225,8 +225,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     get isUseCustomPricer(): boolean {
-        if (this.options.customPricerUrl) return this.options.customPricerUrl !== '';
-        return false;
+        return this.options.customPricerUrl !== 'https://api.prices.tf';
     }
 
     get isDwAlertEnabled(): boolean {
