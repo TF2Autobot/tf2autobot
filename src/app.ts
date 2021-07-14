@@ -44,22 +44,12 @@ if (process.env.pm_id === undefined) {
     );
 }
 
-interface PricerOptions {
-    pricerUrl: string;
-    pricerApiToken?: string;
-}
-
 import BotManager from './classes/BotManager';
 function _getPricer(): Pricer {
-    const pricerOptions: PricerOptions = {
-        pricerUrl: options.customPricerUrl
-    };
-
-    if (options.customPricerApiToken !== '') {
-        pricerOptions['pricerApiToken'] = options.customPricerApiToken;
-    }
-
-    return (getPricer as GetPricerFn)(pricerOptions);
+    return (getPricer as GetPricerFn)({
+        pricerUrl: options.customPricerUrl,
+        pricerApiToken: options.customPricerApiToken
+    });
 }
 const botManager = new BotManager(_getPricer());
 
