@@ -1,6 +1,7 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
+import sleepasync from 'sleep-async';
 import Bot from '../../Bot';
 import { Discord, Stock } from '../../Options';
 import { pure, timeNow, uptime } from '../../../lib/tools/export';
@@ -183,7 +184,7 @@ export default class MiscCommands {
         }
     }
 
-    weaponCommand(steamID: SteamID, type: CraftUncraft): void {
+    async weaponCommand(steamID: SteamID, type: CraftUncraft): Promise<void> {
         const opt = this.bot.options.commands[type];
         if (!opt.enable) {
             if (!this.bot.isAdmin(steamID)) {
@@ -198,7 +199,30 @@ export default class MiscCommands {
         );
 
         let reply: string;
-        if (weaponStock.length > 0) {
+        if (weaponStock.length > 15) {
+            const custom = opt.customReply.have;
+
+            reply = custom
+                ? custom.replace(/%list%/g, '')
+                : `📃 Here's a list of all ${
+                      type === 'craftweapon' ? 'craft' : 'uncraft'
+                  } weapons stock in my inventory:\n\n`;
+
+            const listCount = weaponStock.length;
+            const limit = 15;
+            const loops = Math.ceil(listCount / 15);
+
+            for (let i = 0; i < loops; i++) {
+                const last = loops - i === 1;
+                const i15 = i * 15;
+
+                const firstOrLast = i < 1 ? limit : i15 + (listCount - i15);
+
+                this.bot.sendMessage(steamID, weaponStock.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
+
+                await sleepasync().Promise.sleep(3000);
+            }
+        } else if (weaponStock.length > 0) {
             const custom = opt.customReply.have;
             reply = custom
                 ? custom.replace(/%list%/g, weaponStock.join(', \n'))

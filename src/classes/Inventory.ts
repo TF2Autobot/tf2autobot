@@ -287,10 +287,27 @@ export default class Inventory {
         } = {};
 
         ['5021;6', '5002;6', '5001;6', '5000;6'].concat(weapons).forEach(sku => {
-            toObject[sku] = this.findBySKU(sku, true);
+            toObject[sku] = this.currenciesFindBySKU(sku);
         });
 
         return toObject;
+    }
+
+    currenciesFindBySKU(sku: string): string[] {
+        const tradable = (this.tradable[sku] || [])
+            .filter(item => {
+                if (item) {
+                    if (item.hv !== undefined) {
+                        // if craft weapons has high value attributes, ignore
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            })
+            .map(item => item?.id);
+
+        return tradable.slice(0);
     }
 
     private static paintedOptions: string[];

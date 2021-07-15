@@ -1210,6 +1210,16 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['enableCheck', 'minKeys', 'autoDecline'],
                     additionalProperties: false
                 },
+                failedToCheckDuped: {
+                    type: 'object',
+                    properties: {
+                        autoDecline: {
+                            $ref: '#/definitions/only-enable-declineReply'
+                        }
+                    },
+                    required: ['autoDecline'],
+                    additionalProperties: false
+                },
                 escrowCheckFailed: {
                     $ref: '#/definitions/only-ignore-failed'
                 },

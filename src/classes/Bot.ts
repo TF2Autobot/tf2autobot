@@ -108,6 +108,8 @@ export default class Bot {
 
     private ready = false;
 
+    public userID: string;
+
     constructor(public readonly botManager: BotManager, public options: Options, private priceSource: Pricer) {
         this.botManager = botManager;
 
@@ -176,7 +178,7 @@ export default class Bot {
             return Promise.resolve(false);
         }
 
-        return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey));
+        return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey, this.userID));
     }
 
     get alertTypes(): string[] {
@@ -437,8 +439,12 @@ export default class Bot {
                         );
                         this.inventoryManager = new InventoryManager(this.pricelist);
 
+                        const userID = this.bptf._getUserID();
+                        this.userID = userID;
+
                         this.listingManager = new ListingManager({
                             token: this.options.bptfAccessToken,
+                            userID,
                             userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
                             batchSize: 25,
                             waitTime: 100,
@@ -608,6 +614,12 @@ export default class Bot {
     setCookies(cookies: string[]): Promise<void> {
         this.bptf.setCookies(cookies);
         this.community.setCookies(cookies);
+
+        if (this.listingManager) {
+            const userID = this.bptf._getUserID();
+            this.userID = userID;
+            this.listingManager.setUserID(userID);
+        }
 
         return new Promise((resolve, reject) => {
             this.manager.setCookies(cookies, err => {
