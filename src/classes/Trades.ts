@@ -1108,14 +1108,14 @@ export default class Trades {
                 // Filter out trade items from inventories
                 // Now try to match this on the trade offer
                 Object.keys(theirItems).forEach(sku => {
-                    theirInventoryItems[sku] = theirInventoryItems[sku].filter(
-                        i => !theirItems[sku]?.find(i2 => i2.id === i.id) ?? true
+                    theirInventoryItems[sku] = theirInventoryItems[sku]?.filter(
+                        i => !theirItems[sku]?.find(i2 => i2.id === i.id)
                     );
                 });
 
                 Object.keys(ourItems).forEach(sku => {
-                    ourInventoryItems[sku] = ourInventoryItems[sku].filter(
-                        i => !ourItems[sku]?.find(i2 => i2.id === i.id) ?? true
+                    ourInventoryItems[sku] = ourInventoryItems[sku]?.filter(
+                        i => !ourItems[sku]?.find(i2 => i2.id === i.id)
                     );
                 });
 
@@ -1410,7 +1410,7 @@ export default class Trades {
             // determine whether it's good time to restart or not
             try {
                 // test if backpack.tf is alive by performing bptf banned check request
-                await isBptfBanned(steamID, this.bot.options.bptfAPIKey);
+                await isBptfBanned(steamID, this.bot.options.bptfAPIKey, this.bot.userID);
             } catch (err) {
                 // do not restart, try again after 3 minutes
                 clearTimeout(this.restartOnEscrowCheckFailed);
@@ -1583,7 +1583,7 @@ export default class Trades {
 
         offer.data('isAccepted', true);
 
-        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid, true));
+        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
 
         // Exit all running apps ("TF2Autobot" or custom, and Team Fortress 2)
         // Will play again after craft/smelt/sort inventory job

@@ -22,7 +22,6 @@ export default async function sendTradeDeclined(
     const isCountered: boolean = (offer.data('action') as Action)?.action === 'counter';
     const processCounterTime: number | undefined = offer.data('processCounterTime') as number;
 
-    //Unsure if highValue will work or not
     const itemsName = properName
         ? {
               invalid: declined.invalidItems,
@@ -31,7 +30,7 @@ export default async function sendTradeDeclined(
               understock: declined.understocked,
               duped: declined.dupedItems,
               dupedFailed: [],
-              highValue: declined.highNotSellingItems
+              highValue: declined.highValue.concat(declined.highNotSellingItems)
           }
         : {
               invalid: declined.invalidItems.map(name => t.replace.itemName(name)), // 🟨_INVALID_ITEMS
@@ -40,7 +39,7 @@ export default async function sendTradeDeclined(
               understock: declined.understocked.map(name => t.replace.itemName(name)), // 🟩_UNDERSTOCKED
               duped: declined.dupedItems.map(name => t.replace.itemName(name)), // '🟫_DUPED_ITEMS'
               dupedFailed: [],
-              highValue: declined.highNotSellingItems.map(name => t.replace.itemName(name))
+              highValue: declined.highValue.concat(declined.highNotSellingItems).map(name => t.replace.itemName(name))
           };
 
     const keyPrices = bot.pricelist.getKeyPrices;
@@ -210,4 +209,5 @@ interface Declined {
     disabledItems: string[];
     dupedItems: string[];
     reasonDescription: string;
+    highValue: string[];
 }

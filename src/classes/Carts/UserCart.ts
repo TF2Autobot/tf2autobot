@@ -61,7 +61,7 @@ export default class UserCart extends Cart {
             const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug(`Dupe checking ${assetid}...`);
-                    void Promise.resolve(inventory.isDuped(assetid)).asCallback((err, result) => {
+                    void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug(`Dupe check for ${assetid} done`);
                         callback(err, result);
                     });

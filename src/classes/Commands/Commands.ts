@@ -183,7 +183,7 @@ export default class Commands {
         } else if (command === 'message') {
             this.message.message(steamID, message);
         } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
-            this.misc.weaponCommand(steamID, command as CraftUncraft);
+            void this.misc.weaponCommand(steamID, command as CraftUncraft);
         } else if (command === 'snapshots' && isAdmin) {
             void this.request.getSnapshotsCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {

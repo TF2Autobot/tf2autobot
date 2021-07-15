@@ -31,7 +31,7 @@ export default class RequestCommands {
     }
 
     async getSnapshotsCommand(steamID: SteamID, message: string): Promise<void> {
-        if (this.bot.options.customPricerUrl !== '' && this.bot.options.customPricerApiToken !== '') {
+        if (this.bot.options.customPricerUrl !== 'https://api.prices.tf') {
             return this.bot.sendMessage(steamID, '❌ This command is disabled for custom pricer.');
         }
 
@@ -216,7 +216,7 @@ export default class RequestCommands {
             this.bot.sendMessage(
                 steamID,
                 `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\n${
-                    customUrl ? `Link: ${customUrl}` : 'Prices.TF: https://prices.tf'
+                    customUrl !== 'https://api.prices.tf' ? `Link: ${customUrl}` : 'Prices.TF: https://prices.tf'
                 }/items/${params.sku as string}`
             );
         } catch (err) {

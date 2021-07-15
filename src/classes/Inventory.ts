@@ -86,25 +86,43 @@ export default class Inventory {
         (this.nonTradable[sku] = this.nonTradable[sku] || []).push({ id: assetid });
     }
 
-    removeItem(assetid: string, tradable: boolean): void;
+    removeItem(assetid: string): void;
 
     removeItem(item: EconItem): void;
 
-    removeItem(...args: [string, boolean] | [EconItem]): void {
+    removeItem(...args: [string] | [EconItem]): void {
         const assetid = typeof args[0] === 'string' ? args[0] : args[0].id;
-        const isTradable = typeof args[0] === 'string' ? args[1] : args[0].tradable;
 
-        const items = isTradable ? this.tradable : this.nonTradable;
+        const itemsTradable = this.tradable;
+        const itemsNonTradable = this.nonTradable;
 
-        for (const sku in items) {
-            if (Object.prototype.hasOwnProperty.call(items, sku)) {
-                const assetids = items[sku].map(item => item.id);
+        // instead of only check for tradable or non-tradable, we check both.
+
+        for (const sku in itemsTradable) {
+            if (Object.prototype.hasOwnProperty.call(itemsTradable, sku)) {
+                const assetids = itemsTradable[sku].map(item => item.id);
                 const index = assetids.indexOf(assetid);
 
                 if (index !== -1) {
-                    isTradable ? this.tradable[sku].splice(index, 1) : this.nonTradable[sku].splice(index, 1);
-                    if (assetids.length === 0) {
-                        isTradable ? delete this.tradable[sku] : delete this.nonTradable[sku];
+                    this.tradable[sku].splice(index, 1);
+                    if (this.tradable[sku].length === 0) {
+                        delete this.tradable[sku];
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        for (const sku in itemsNonTradable) {
+            if (Object.prototype.hasOwnProperty.call(itemsNonTradable, sku)) {
+                const assetids = itemsNonTradable[sku].map(item => item.id);
+                const index = assetids.indexOf(assetid);
+
+                if (index !== -1) {
+                    this.nonTradable[sku].splice(index, 1);
+                    if (this.nonTradable[sku].length === 0) {
+                        delete this.nonTradable[sku];
                     }
 
                     break;
@@ -269,10 +287,27 @@ export default class Inventory {
         } = {};
 
         ['5021;6', '5002;6', '5001;6', '5000;6'].concat(weapons).forEach(sku => {
-            toObject[sku] = this.findBySKU(sku, true);
+            toObject[sku] = this.currenciesFindBySKU(sku);
         });
 
         return toObject;
+    }
+
+    currenciesFindBySKU(sku: string): string[] {
+        const tradable = (this.tradable[sku] || [])
+            .filter(item => {
+                if (item) {
+                    if (item.hv !== undefined) {
+                        // if craft weapons has high value attributes, ignore
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            })
+            .map(item => item?.id);
+
+        return tradable.slice(0);
     }
 
     private static paintedOptions: string[];
