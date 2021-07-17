@@ -154,12 +154,10 @@ export default class TF2GC {
                 func = this.handleCraftJobClassWeapon.bind(this, job);
             } else if (['smelt', 'combine'].includes(job.type)) {
                 func = this.handleCraftJob.bind(this, job);
-            } else if (['use', 'delete'].includes(job.type)) {
-                func = this.handleUseOrDeleteJob.bind(this, job);
+            } else if (['use', 'delete', 'removeCustomTexture'].includes(job.type)) {
+                func = this.handleUseOrDeleteOrRemoveCustomTextureJob.bind(this, job);
             } else if (job.type === 'sort') {
                 func = this.handleSortJob.bind(this, job);
-            } else if (job.type === 'removeCustomTexture') {
-                func = this.handleRemoveDecal.bind(this, job);
             }
 
             if (func) {
@@ -269,22 +267,34 @@ export default class TF2GC {
         );
     }
 
-    private handleUseOrDeleteJob(job: Job): void {
+    private handleUseOrDeleteOrRemoveCustomTextureJob(job: Job): void {
         log.debug('Sending ' + job.type + ' request');
 
         if (job.type === 'use') {
             this.bot.tf2.useItem(job.assetid);
         } else if (job.type === 'delete') {
             this.bot.tf2.deleteItem(job.assetid);
+        } else if (job.type === 'removeCustomTexture') {
+            try {
+                this.bot.tf2.removeItemAttribute(job.assetid, 1051);
+            } catch (err) {
+                return this.finishedProcessingJob(
+                    new Error(
+                        `Unable to process removeCustomTexture job for ${job.sku} (${job.assetid}): ${JSON.stringify(
+                            err
+                        )}`
+                    )
+                );
+            }
         }
 
-        let timeout: NodeJS.Timeout;
+        let timeoutDelete: NodeJS.Timeout;
 
         const cancelDelete = this.listenForEvent(
             'itemRemoved',
             (item: TF2GCItem) => {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
+                clearTimeout(timeoutDelete);
+                timeoutDelete = setTimeout(() => {
                     // 1 second after the last item removed, we will mark the job as finished
                     cancelDelete();
                     this.finishedProcessingJob();
@@ -311,27 +321,31 @@ export default class TF2GC {
             }
         );
 
-        if (job.type === 'use') {
+        if (['use', 'removeCustomTexture'].includes(job.type)) {
+            let timeoutUse: NodeJS.Timeout;
             const cancelUse = this.listenForEvent(
                 'itemAcquired',
                 (item: TF2GCItem) => {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => {
+                    clearTimeout(timeoutUse);
+                    timeoutUse = setTimeout(() => {
                         // 1 second after the last item acquired, we will mark the job as finished
                         cancelUse();
                         this.finishedProcessingJob();
                     }, 1000);
 
+                    const sku = job.type === 'removeCustomTexture' ? job.sku : `${item.def_index};${item.quality}`;
+
                     log.debug('itemAcquired', {
-                        sku: `${item.def_index};${item.quality}`,
-                        assetid: item.id
+                        sku,
+                        assetid: item.id,
+                        item
                     });
 
                     // this is fine
                     const isNotTradable = item.attribute.some(attr => attr.def_index === 153);
 
                     this.bot.inventoryManager.getInventory[isNotTradable ? 'addNonTradableItem' : 'addItem'](
-                        `${item.def_index};${item.quality}`,
+                        sku,
                         item.id
                     );
 
@@ -369,58 +383,6 @@ export default class TF2GC {
                     cancel();
                     this.finishedProcessingJob();
                 }, 1000);
-
-                // Clear fail timeout
-                return { success: false, clearTimeout: true };
-            },
-            () => {
-                this.finishedProcessingJob();
-            },
-            err => {
-                if (err.message === 'Canceled') {
-                    // Was canceled because of timeout
-                    this.finishedProcessingJob();
-                } else {
-                    // Job failed
-                    this.finishedProcessingJob(err);
-                }
-            }
-        );
-    }
-
-    private handleRemoveDecal(job: Job): void {
-        log.debug('Sending ' + job.type + ' request');
-
-        try {
-            this.bot.tf2.removeItemAttribute(job.assetid, 1051);
-        } catch (err) {
-            return this.finishedProcessingJob(
-                new Error(
-                    `Unable to process removeCustomTexture job for ${job.sku} (${job.assetid}): ${JSON.stringify(err)}`
-                )
-            );
-        }
-
-        let timeout: NodeJS.Timeout;
-
-        const cancel = this.listenForEvent(
-            'itemChanged',
-            (oldItem: TF2GCItem, newItem: TF2GCItem) => {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    // 1 second after the last item has changed we will mark the job as finished
-                    cancel();
-                    this.finishedProcessingJob();
-                }, 1000);
-
-                log.debug('itemChanged on removeCustomTexture', {
-                    oldItemData: oldItem,
-                    newItemData: newItem
-                });
-
-                const inventory = this.bot.inventoryManager.getInventory;
-                inventory.removeItem(oldItem.id);
-                inventory.addItem(job.sku, newItem.id);
 
                 // Clear fail timeout
                 return { success: false, clearTimeout: true };
