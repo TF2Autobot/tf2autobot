@@ -527,8 +527,11 @@ export default function updateListings(
             addToQueu(sku, isNotPure, existInPricelist);
         }
 
-        if ([474, 619, 623, 625].includes(item.defindex) && opt.miscSettings.alwaysRemoveDecalImages.enable) {
-            // Flair!, Photo Badge, Clan Pride, or Conscientious Objector
+        if (
+            [474, 619, 623, 625].includes(item.defindex) &&
+            opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable
+        ) {
+            // Conscientious Objector, Flair!, Photo Badge, or Clan Pride
 
             const dict = offer.data('dict') as ItemsDict;
             if (dict.their[sku] !== undefined) {

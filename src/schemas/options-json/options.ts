@@ -415,8 +415,15 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['playOnlyTF2', 'customName'],
                     additionalProperties: false
                 },
-                alwaysRemoveDecalImages: {
-                    $ref: '#/definitions/only-enable'
+                alwaysRemoveItemAttributes: {
+                    type: 'object',
+                    properties: {
+                        customTexture: {
+                            $ref: '#/definitions/only-enable'
+                        }
+                    },
+                    required: ['customTexture'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -431,7 +438,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'weaponsAsCurrency',
                 'checkUses',
                 'game',
-                'alwaysRemoveDecalImages'
+                'alwaysRemoveItemAttributes'
             ],
             additionalProperties: false
         },
