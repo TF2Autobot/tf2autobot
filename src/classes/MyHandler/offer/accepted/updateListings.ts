@@ -1,10 +1,11 @@
-import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
+import { Items, TradeOffer, ItemsDict } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 
 import PriceCheckQueue from './requestPriceCheck';
+import RemoveCustomTextureQueue from './removeCustomTexture';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import log from '../../../../lib/logger';
@@ -524,6 +525,26 @@ export default function updateListings(
                 });
         } else {
             addToQueu(sku, isNotPure, existInPricelist);
+        }
+
+        if (
+            [474, 619, 623, 625].includes(item.defindex) &&
+            opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable
+        ) {
+            // Conscientious Objector, Flair!, Photo Badge, or Clan Pride
+
+            const dict = offer.data('dict') as ItemsDict;
+            if (dict.their[sku] !== undefined) {
+                const amountTraded = dict.their[sku];
+                const assetids = inventory.findBySKU(sku, true).sort((a, b) => parseInt(b) - parseInt(a)); // descending order
+                const assetidsTraded = assetids.slice(0).splice(0, amountTraded);
+
+                log.debug(`Adding ${sku} (${assetidsTraded.join(', ')}) to the queue to remove custom texture...`);
+
+                assetidsTraded.forEach(assetid => {
+                    RemoveCustomTextureQueue.enqueue(sku, assetid);
+                });
+            }
         }
     }
 
