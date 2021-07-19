@@ -704,9 +704,10 @@ export default class UserCart extends Cart {
             let assetids = theirInventory.findBySKU(sku, true);
 
             const addToDupeCheckList =
-                SKU.fromString(sku).effect !== null &&
-                this.bot.pricelist.getPrice(sku, true, true).buy.toValue(keyPrice.metal) >
-                    this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
+                this.bot.pricelist
+                    .getPrice(sku, true, SKU.fromString(sku).effect !== null ? true : false)
+                    ?.buy.toValue(keyPrice.metal) >
+                this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
             this.theirItemsCount += amount;
             let missing = amount;
