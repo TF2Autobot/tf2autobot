@@ -29,6 +29,7 @@ export default function updateListings(
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
+    const dict = offer.data('dict') as ItemsDict;
     const weapons = opt.miscSettings.weaponsAsCurrency.enable
         ? opt.miscSettings.weaponsAsCurrency.withUncraft
             ? bot.craftWeapons.concat(bot.uncraftWeapons)
@@ -527,7 +528,6 @@ export default function updateListings(
             addToQueu(sku, isNotPure, existInPricelist);
         }
 
-        const dict = offer.data('dict') as ItemsDict;
         if (dict.their[sku] !== undefined) {
             const amountTraded = dict.their[sku];
             const assetids = inventory.findBySKU(sku, true).sort((a, b) => parseInt(b) - parseInt(a)); // descending order
