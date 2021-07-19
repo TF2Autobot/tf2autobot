@@ -20,12 +20,7 @@ import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
-import {
-    processAccepted,
-    updateListings,
-    PriceCheckQueue,
-    RemoveCustomTextureQueue
-} from './offer/accepted/exportAccepted';
+import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
 import processDeclined from './offer/processDeclined';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
@@ -228,8 +223,6 @@ export default class MyHandler extends Handler {
 
         PriceCheckQueue.setBot(this.bot);
         PriceCheckQueue.setRequestCheckFn(this.requestCheck);
-
-        RemoveCustomTextureQueue.setBot(this.bot);
     }
 
     onRun(): Promise<OnRun> {
