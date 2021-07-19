@@ -1,5 +1,6 @@
 import Bot from './Bot';
 import log from '../lib/logger';
+import { RemoveItemAttribute } from '@tf2autobot/tf2';
 
 type Job = {
     type:
@@ -276,7 +277,7 @@ export default class TF2GC {
             this.bot.tf2.deleteItem(job.assetid);
         } else if (job.type === 'removeCustomTexture') {
             try {
-                this.bot.tf2.removeItemAttribute(job.assetid, 1051);
+                this.bot.tf2.removeItemAttribute(job.assetid, RemoveItemAttribute.CustomTexture);
             } catch (err) {
                 return this.finishedProcessingJob(
                     new Error(
