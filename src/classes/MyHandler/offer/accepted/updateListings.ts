@@ -45,6 +45,8 @@ export default function updateListings(
     const normalizePainted = opt.normalize.painted;
     const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
     const pure = ['5000;6', '5001;6', '5002;6'];
+    const pureWithWeapons = pure.concat(weapons);
+    const isAdmin = bot.isAdmin(offer.partner);
 
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
@@ -59,12 +61,10 @@ export default function updateListings(
         const name = bot.schema.getName(item, false);
 
         const isNotPure = !pure.includes(sku);
-        const isNotPureOrWeapons = !pure.concat(weapons).includes(sku);
+        const isNotPureOrWeapons = !pureWithWeapons.includes(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
         const existInPricelist = inPrice !== null;
         const amount = inventory.getAmount(sku, false, true);
-
-        const isAdmin = bot.isAdmin(offer.partner);
 
         const itemNoPaint = SKU.fromString(sku);
         itemNoPaint.paint = null;
