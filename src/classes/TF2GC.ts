@@ -3,20 +3,13 @@ import log from '../lib/logger';
 import { RemoveItemAttribute } from '@tf2autobot/tf2';
 
 type Job = {
-    type:
-        | 'smelt'
-        | 'combine'
-        | 'combineWeapon'
-        | 'combineClassWeapon'
-        | 'use'
-        | 'delete'
-        | 'sort'
-        | 'removeCustomTexture';
+    type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort' | 'removeAttributes';
     defindex?: number;
     sku?: string;
     skus?: string[];
     assetid?: string;
     sortType?: number;
+    attribute?: RemoveItemAttribute;
     callback?: (err?: Error) => void;
 };
 
@@ -100,10 +93,15 @@ export default class TF2GC {
         this.newJob({ type: 'sort', sortType: type, callback: callback });
     }
 
-    removeDecal(sku: string, assetid: string, callback?: (err: Error | null) => void): void {
-        log.debug('Enqueueing removeCustomTexture job for ' + assetid);
+    removeAttributes(
+        sku: string,
+        assetid: string,
+        attribute: RemoveItemAttribute,
+        callback?: (err: Error | null) => void
+    ): void {
+        log.debug(`Enqueueing removeAttributes (${attribute}) job for ` + assetid);
 
-        this.newJob({ type: 'removeCustomTexture', sku: sku, assetid: assetid, callback: callback });
+        this.newJob({ type: 'removeAttributes', sku: sku, assetid: assetid, callback: callback });
     }
 
     private newJob(job: Job): void {
@@ -155,8 +153,8 @@ export default class TF2GC {
                 func = this.handleCraftJobClassWeapon.bind(this, job);
             } else if (['smelt', 'combine'].includes(job.type)) {
                 func = this.handleCraftJob.bind(this, job);
-            } else if (['use', 'delete', 'removeCustomTexture'].includes(job.type)) {
-                func = this.handleUseOrDeleteOrRemoveCustomTextureJob.bind(this, job);
+            } else if (['use', 'delete', 'removeAttributes'].includes(job.type)) {
+                func = this.handleUseOrDeleteOrRemoveAttributesJob.bind(this, job);
             } else if (job.type === 'sort') {
                 func = this.handleSortJob.bind(this, job);
             }
@@ -268,22 +266,22 @@ export default class TF2GC {
         );
     }
 
-    private handleUseOrDeleteOrRemoveCustomTextureJob(job: Job): void {
+    private handleUseOrDeleteOrRemoveAttributesJob(job: Job): void {
         log.debug('Sending ' + job.type + ' request');
 
         if (job.type === 'use') {
             this.bot.tf2.useItem(job.assetid);
         } else if (job.type === 'delete') {
             this.bot.tf2.deleteItem(job.assetid);
-        } else if (job.type === 'removeCustomTexture') {
+        } else if (job.type === 'removeAttributes') {
             try {
-                this.bot.tf2.removeItemAttribute(job.assetid, RemoveItemAttribute.CustomTexture);
+                this.bot.tf2.removeItemAttribute(job.assetid, job.attribute);
             } catch (err) {
                 return this.finishedProcessingJob(
                     new Error(
-                        `Unable to process removeCustomTexture job for ${job.sku} (${job.assetid}): ${JSON.stringify(
-                            err
-                        )}`
+                        `Unable to process removeAttributes (${job.attribute}) job for ${job.sku} (${
+                            job.assetid
+                        }): ${JSON.stringify(err)}`
                     )
                 );
             }
@@ -322,7 +320,7 @@ export default class TF2GC {
             }
         );
 
-        if (['use', 'removeCustomTexture'].includes(job.type)) {
+        if (['use', 'removeAttributes'].includes(job.type)) {
             let timeoutUse: NodeJS.Timeout;
             const cancelUse = this.listenForEvent(
                 'itemAcquired',
@@ -334,7 +332,7 @@ export default class TF2GC {
                         this.finishedProcessingJob();
                     }, 1000);
 
-                    const sku = job.type === 'removeCustomTexture' ? job.sku : `${item.def_index};${item.quality}`;
+                    const sku = job.type === 'removeAttributes' ? job.sku : `${item.def_index};${item.quality}`;
 
                     log.debug('itemAcquired', {
                         sku,

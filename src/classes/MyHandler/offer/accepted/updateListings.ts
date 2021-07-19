@@ -3,6 +3,7 @@ import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
+import { RemoveItemAttribute } from '@tf2autobot/tf2';
 
 import PriceCheckQueue from './requestPriceCheck';
 import Bot from '../../../Bot';
@@ -526,23 +527,29 @@ export default function updateListings(
             addToQueu(sku, isNotPure, existInPricelist);
         }
 
-        if (
-            [474, 619, 623, 625].includes(item.defindex) &&
-            opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable
-        ) {
-            // Conscientious Objector, Flair!, Photo Badge, or Clan Pride
+        const dict = offer.data('dict') as ItemsDict;
+        if (dict.their[sku] !== undefined) {
+            const amountTraded = dict.their[sku];
+            const assetids = inventory.findBySKU(sku, true).sort((a, b) => parseInt(b) - parseInt(a)); // descending order
+            const assetidsTraded = assetids.slice(0).splice(0, amountTraded);
 
-            const dict = offer.data('dict') as ItemsDict;
-            if (dict.their[sku] !== undefined) {
-                const amountTraded = dict.their[sku];
-                const assetids = inventory.findBySKU(sku, true).sort((a, b) => parseInt(b) - parseInt(a)); // descending order
-                const assetidsTraded = assetids.slice(0).splice(0, amountTraded);
-
+            if (
+                [474, 619, 623, 625].includes(item.defindex) &&
+                opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable
+            ) {
                 log.debug(`Adding ${sku} (${assetidsTraded.join(', ')}) to the queue to remove custom texture...`);
 
                 assetidsTraded.forEach(assetid => {
-                    bot.tf2gc.removeDecal(sku, assetid, err => {
-                        log.error(`Error remove custom texture for ${sku} (${assetid})`, err);
+                    bot.tf2gc.removeAttributes(sku, assetid, RemoveItemAttribute.CustomTexture, err => {
+                        log.debug(`Error remove custom texture for ${sku} (${assetid})`, err);
+                    });
+                });
+            }
+
+            if (opt.miscSettings.alwaysRemoveItemAttributes.giftedByTag.enable) {
+                assetidsTraded.forEach(assetid => {
+                    bot.tf2gc.removeAttributes(sku, assetid, RemoveItemAttribute.GiftedBy, err => {
+                        log.debug(`Error remove giftedBy tag for ${sku} (${assetid})`, err);
                     });
                 });
             }
