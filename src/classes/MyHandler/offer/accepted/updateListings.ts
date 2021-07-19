@@ -5,7 +5,6 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 
 import PriceCheckQueue from './requestPriceCheck';
-import RemoveCustomTextureQueue from './removeCustomTexture';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
 import log from '../../../../lib/logger';
@@ -542,7 +541,9 @@ export default function updateListings(
                 log.debug(`Adding ${sku} (${assetidsTraded.join(', ')}) to the queue to remove custom texture...`);
 
                 assetidsTraded.forEach(assetid => {
-                    RemoveCustomTextureQueue.enqueue(sku, assetid);
+                    bot.tf2gc.removeDecal(sku, assetid, err => {
+                        log.error(`Error remove custom texture for ${sku} (${assetid})`, err);
+                    });
                 });
             }
         }
