@@ -48,7 +48,7 @@ export const DEFAULTS: JsonOptions = {
         },
         alwaysRemoveItemAttributes: {
             customTexture: {
-                enable: false
+                enable: true
             }
         }
     },
