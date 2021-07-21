@@ -208,6 +208,8 @@ export default class MiscCommands {
                       type === 'craftweapon' ? 'craft' : 'uncraft'
                   } weapons stock in my inventory:\n\n`;
 
+            this.bot.sendMessage(steamID, reply);
+
             const listCount = weaponStock.length;
             const limit = 15;
             const loops = Math.ceil(listCount / 15);
@@ -222,6 +224,8 @@ export default class MiscCommands {
 
                 await sleepasync().Promise.sleep(3000);
             }
+
+            return;
         } else if (weaponStock.length > 0) {
             const custom = opt.customReply.have;
             reply = custom
