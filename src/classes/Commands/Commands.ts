@@ -182,8 +182,15 @@ export default class Commands {
             this.manager.autokeysCommand(steamID);
         } else if (command === 'message') {
             this.message.message(steamID, message);
-        } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
-            void this.misc.weaponCommand(steamID, command as CraftUncraft);
+        } else if (['craftweapon', 'craftweapons', 'uncraftweapon', 'uncraftweapons'].includes(command)) {
+            void this.misc.weaponCommand(
+                steamID,
+                command === 'craftweapons'
+                    ? 'craftweapon'
+                    : command === 'uncraftweapons'
+                    ? 'uncraftweapon'
+                    : (command as CraftUncraft)
+            );
         } else if (command === 'snapshots' && isAdmin) {
             void this.request.getSnapshotsCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
