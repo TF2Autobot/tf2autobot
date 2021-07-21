@@ -535,6 +535,12 @@ export default class ManagerCommands {
 
                     // listing not exist
 
+                    if (!entry.enabled) {
+                        delete pricelist[sku];
+                        log.debug(`${sku} disabled, skipping...`);
+                        continue;
+                    }
+
                     if (
                         (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
                         amountAvailable > 0
