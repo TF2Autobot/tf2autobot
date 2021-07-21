@@ -38,6 +38,7 @@ export default function updateListings(
 
     craftWeapons = weapons;
 
+    const alwaysRemoveCustomTexture = opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable;
     const skus: string[] = [];
 
     const inventory = bot.inventoryManager.getInventory;
@@ -528,23 +529,22 @@ export default function updateListings(
             addToQueu(sku, isNotPure, existInPricelist);
         }
 
-        if (dict.their[sku] !== undefined) {
+        if (
+            [474, 619, 623, 625].includes(item.defindex) &&
+            alwaysRemoveCustomTexture &&
+            dict.their[sku] !== undefined
+        ) {
             const amountTraded = dict.their[sku];
             const assetids = inventory.findBySKU(sku, true).sort((a, b) => parseInt(b) - parseInt(a)); // descending order
             const assetidsTraded = assetids.slice(0).splice(0, amountTraded);
 
-            if (
-                [474, 619, 623, 625].includes(item.defindex) &&
-                opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable
-            ) {
-                log.debug(`Adding ${sku} (${assetidsTraded.join(', ')}) to the queue to remove custom texture...`);
+            log.debug(`Adding ${sku} (${assetidsTraded.join(', ')}) to the queue to remove custom texture...`);
 
-                assetidsTraded.forEach(assetid => {
-                    bot.tf2gc.removeAttributes(sku, assetid, Attributes.CustomTexture, err => {
-                        if (err) log.debug(`Error remove custom texture for ${sku} (${assetid})`, err);
-                    });
+            assetidsTraded.forEach(assetid => {
+                bot.tf2gc.removeAttributes(sku, assetid, Attributes.CustomTexture, err => {
+                    if (err) log.debug(`Error remove custom texture for ${sku} (${assetid})`, err);
                 });
-            }
+            });
 
             // if (opt.miscSettings.alwaysRemoveItemAttributes.giftedByTag.enable) {
             //     assetidsTraded.forEach(assetid => {
