@@ -541,7 +541,7 @@ export default function updateListings(
 
                 assetidsTraded.forEach(assetid => {
                     bot.tf2gc.removeAttributes(sku, assetid, Attributes.CustomTexture, err => {
-                        log.debug(`Error remove custom texture for ${sku} (${assetid})`, err);
+                        if (err) log.debug(`Error remove custom texture for ${sku} (${assetid})`, err);
                     });
                 });
             }
@@ -549,7 +549,7 @@ export default function updateListings(
             if (opt.miscSettings.alwaysRemoveItemAttributes.giftedByTag.enable) {
                 assetidsTraded.forEach(assetid => {
                     bot.tf2gc.removeAttributes(sku, assetid, Attributes.GiftedBy, err => {
-                        log.debug(`Error remove giftedBy tag for ${sku} (${assetid})`, err);
+                        if (err) log.debug(`Error remove giftedBy tag for ${sku} (${assetid})`, err);
                     });
                 });
             }
