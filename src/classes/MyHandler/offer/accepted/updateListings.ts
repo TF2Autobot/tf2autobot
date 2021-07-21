@@ -3,11 +3,11 @@ import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
-import { Attributes } from '@tf2autobot/tf2';
 
 import PriceCheckQueue from './requestPriceCheck';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
+import { Attributes } from '../../../TF2GC';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';

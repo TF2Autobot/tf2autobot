@@ -1,6 +1,14 @@
 import Bot from './Bot';
 import log from '../lib/logger';
-import { Attributes } from '@tf2autobot/tf2';
+
+export enum Attributes {
+    Paint = 1031,
+    CustomTexture = 1051,
+    MakersMark = 1053,
+    Killstreak = 1094,
+    GiftedBy = 2570,
+    Festivizer = 2572
+}
 
 type Job = {
     type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort' | 'removeAttributes';
