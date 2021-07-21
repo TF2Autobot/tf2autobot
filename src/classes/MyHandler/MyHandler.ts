@@ -161,6 +161,10 @@ export default class MyHandler extends Handler {
         return customGameName ? customGameName : `TF2Autobot`;
     }
 
+    private get isCraftingManual(): boolean {
+        return this.opt.crafting.manual;
+    }
+
     private isPremium = false;
 
     private botName = '';
@@ -259,17 +263,19 @@ export default class MyHandler extends Handler {
         // Get Premium info from backpack.tf
         void this.getBPTFAccountInfo();
 
-        // Smelt / combine metal if needed
-        keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
+        if (this.isCraftingManual === false) {
+            // Smelt / combine metal if needed
+            keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
-        // Craft duplicate weapons
-        void craftDuplicateWeapons(this.bot);
+            // Craft duplicate weapons
+            void craftDuplicateWeapons(this.bot);
 
-        // Craft class weapons
-        this.classWeaponsTimeout = setTimeout(() => {
-            // called after 5 seconds to craft metals and duplicated weapons first.
-            void craftClassWeapons(this.bot);
-        }, 5 * 1000);
+            // Craft class weapons
+            this.classWeaponsTimeout = setTimeout(() => {
+                // called after 5 seconds to craft metals and duplicated weapons first.
+                void craftClassWeapons(this.bot);
+            }, 5 * 1000);
+        }
 
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
@@ -2132,16 +2138,18 @@ export default class MyHandler extends Handler {
         if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
             // Offer is accepted
 
-            // Smelt / combine metal
-            keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
+            if (this.isCraftingManual === false) {
+                // Smelt / combine metal
+                keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
-            // Craft duplicated weapons
-            void craftDuplicateWeapons(this.bot);
+                // Craft duplicated weapons
+                void craftDuplicateWeapons(this.bot);
 
-            this.classWeaponsTimeout = setTimeout(() => {
-                // called after 5 second to craft metals and duplicated weapons first.
-                void craftClassWeapons(this.bot);
-            }, 5 * 1000);
+                this.classWeaponsTimeout = setTimeout(() => {
+                    // called after 5 second to craft metals and duplicated weapons first.
+                    void craftClassWeapons(this.bot);
+                }, 5 * 1000);
+            }
 
             // Sort inventory
             this.sortInventory();
