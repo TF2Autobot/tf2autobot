@@ -3,7 +3,7 @@ import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
-import { RemoveItemAttribute } from '@tf2autobot/tf2';
+import { Attributes } from '@tf2autobot/tf2';
 
 import PriceCheckQueue from './requestPriceCheck';
 import Bot from '../../../Bot';
@@ -540,7 +540,7 @@ export default function updateListings(
                 log.debug(`Adding ${sku} (${assetidsTraded.join(', ')}) to the queue to remove custom texture...`);
 
                 assetidsTraded.forEach(assetid => {
-                    bot.tf2gc.removeAttributes(sku, assetid, RemoveItemAttribute.CustomTexture, err => {
+                    bot.tf2gc.removeAttributes(sku, assetid, Attributes.CustomTexture, err => {
                         log.debug(`Error remove custom texture for ${sku} (${assetid})`, err);
                     });
                 });
@@ -548,7 +548,7 @@ export default function updateListings(
 
             if (opt.miscSettings.alwaysRemoveItemAttributes.giftedByTag.enable) {
                 assetidsTraded.forEach(assetid => {
-                    bot.tf2gc.removeAttributes(sku, assetid, RemoveItemAttribute.GiftedBy, err => {
+                    bot.tf2gc.removeAttributes(sku, assetid, Attributes.GiftedBy, err => {
                         log.debug(`Error remove giftedBy tag for ${sku} (${assetid})`, err);
                     });
                 });

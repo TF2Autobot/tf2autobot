@@ -1,6 +1,6 @@
 import Bot from './Bot';
 import log from '../lib/logger';
-import { RemoveItemAttribute } from '@tf2autobot/tf2';
+import { Attributes } from '@tf2autobot/tf2';
 
 type Job = {
     type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort' | 'removeAttributes';
@@ -9,7 +9,7 @@ type Job = {
     skus?: string[];
     assetid?: string;
     sortType?: number;
-    attribute?: RemoveItemAttribute;
+    attribute?: Attributes;
     callback?: (err?: Error) => void;
 };
 
@@ -96,7 +96,7 @@ export default class TF2GC {
     removeAttributes(
         sku: string,
         assetid: string,
-        attribute: RemoveItemAttribute,
+        attribute: Attributes,
         callback?: (err: Error | null) => void
     ): void {
         log.debug(`Enqueueing removeAttributes (${attribute}) job for ` + assetid);
