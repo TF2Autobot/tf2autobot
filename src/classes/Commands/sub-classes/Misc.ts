@@ -194,7 +194,7 @@ export default class MiscCommands {
         }
 
         const weaponStock = this.getWeaponsStock(
-            this.bot,
+            opt.showOnlyExist,
             type === 'craftweapon' ? this.bot.craftWeapons : this.bot.uncraftWeapons
         );
 
@@ -249,18 +249,30 @@ export default class MiscCommands {
         this.bot.sendMessage(steamID, '/code ' + JSON.stringify(this.bot.paints, null, 4));
     }
 
-    private getWeaponsStock(bot: Bot, type: string[]): string[] {
+    private getWeaponsStock(showOnlyExist: boolean, weapons: string[]): string[] {
         const items: { amount: number; name: string }[] = [];
+        const inventory = this.bot.inventoryManager.getInventory;
+        const schema = this.bot.schema;
 
-        type.forEach(sku => {
-            const amount = bot.inventoryManager.getInventory.getAmount(sku, false);
-            if (amount > 0) {
+        if (showOnlyExist) {
+            weapons.forEach(sku => {
+                const amount = inventory.getAmount(sku, false);
+                if (amount > 0) {
+                    items.push({
+                        name: schema.getName(SKU.fromString(sku), false),
+                        amount: amount
+                    });
+                }
+            });
+        } else {
+            weapons.forEach(sku => {
+                const amount = inventory.getAmount(sku, false);
                 items.push({
-                    name: bot.schema.getName(SKU.fromString(sku), false),
+                    name: schema.getName(SKU.fromString(sku), false),
                     amount: amount
                 });
-            }
-        });
+            });
+        }
 
         items.sort((a, b) => {
             if (a.amount === b.amount) {
