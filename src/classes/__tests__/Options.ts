@@ -82,6 +82,7 @@ test('Parsing Options', () => {
     });
     result = Options.loadOptions({ steamAccountName: 'abc123' });
     expect(result.crafting).toEqual({
+        manual: false,
         weapons: {
             enable: true
         },
