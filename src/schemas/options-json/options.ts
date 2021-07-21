@@ -206,6 +206,9 @@ export const optionsSchema: jsonschema.Schema = {
                 enable: {
                     type: 'boolean'
                 },
+                showOnlyExist: {
+                    type: 'boolean'
+                },
                 customReply: {
                     type: 'object',
                     properties: {

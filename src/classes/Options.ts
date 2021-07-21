@@ -717,6 +717,7 @@ export const DEFAULTS: JsonOptions = {
         },
         craftweapon: {
             enable: true,
+            showOnlyExist: true,
             customReply: {
                 disabled: '',
                 dontHave: '',
@@ -725,6 +726,7 @@ export const DEFAULTS: JsonOptions = {
         },
         uncraftweapon: {
             enable: true,
+            showOnlyExist: true,
             customReply: {
                 disabled: '',
                 dontHave: '',
@@ -1734,6 +1736,7 @@ export interface Stock extends OnlyEnable {
 
 interface Weapons extends OnlyEnable {
     customReply?: HaveOrNo;
+    showOnlyExist?: boolean;
 }
 
 interface HaveOrNo {
