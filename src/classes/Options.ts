@@ -49,10 +49,10 @@ export const DEFAULTS: JsonOptions = {
         alwaysRemoveItemAttributes: {
             customTexture: {
                 enable: true
-            },
-            giftedByTag: {
-                enable: true
             }
+            // giftedByTag: {
+            //     enable: true
+            // }
         }
     },
 
@@ -1112,7 +1112,7 @@ interface MiscSettings {
 
 interface AlwaysRemoveItemAttributes {
     customTexture?: OnlyEnable;
-    giftedByTag?: OnlyEnable;
+    // giftedByTag?: OnlyEnable;
 }
 
 // ------------ SendAlert ------------
