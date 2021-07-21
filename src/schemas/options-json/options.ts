@@ -423,12 +423,12 @@ export const optionsSchema: jsonschema.Schema = {
                     properties: {
                         customTexture: {
                             $ref: '#/definitions/only-enable'
-                        },
-                        giftedByTag: {
-                            $ref: '#/definitions/only-enable'
                         }
+                        // giftedByTag: {
+                        //     $ref: '#/definitions/only-enable'
+                        // }
                     },
-                    required: ['customTexture', 'giftedByTag'],
+                    required: ['customTexture'], // 'giftedByTag'
                     additionalProperties: false
                 }
             },

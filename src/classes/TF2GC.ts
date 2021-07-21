@@ -1,6 +1,14 @@
 import Bot from './Bot';
 import log from '../lib/logger';
-import { RemoveItemAttribute } from '@tf2autobot/tf2';
+
+export enum Attributes {
+    Paint = 1031,
+    CustomTexture = 1051,
+    MakersMark = 1053,
+    Killstreak = 1094,
+    GiftedBy = 2570,
+    Festivizer = 2572
+}
 
 type Job = {
     type:
@@ -18,7 +26,7 @@ type Job = {
     skus?: string[];
     assetid?: string;
     sortType?: number;
-    attribute?: RemoveItemAttribute;
+    attribute?: Attributes;
     callback?: (err?: Error) => void;
 };
 
@@ -121,7 +129,7 @@ export default class TF2GC {
     removeAttributes(
         sku: string,
         assetid: string,
-        attribute: RemoveItemAttribute,
+        attribute: Attributes,
         callback?: (err: Error | null) => void
     ): void {
         log.debug(`Enqueueing removeAttributes (${attribute}) job for ` + assetid);
