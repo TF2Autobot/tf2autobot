@@ -241,6 +241,7 @@ export default class TF2GC {
                 ids.forEach(assetid => inventory.removeItem(assetid));
 
                 // Add items gained
+                log.debug('itemsGained', itemsGained);
                 itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
@@ -311,6 +312,7 @@ export default class TF2GC {
                 job.assetids.forEach(assetid => inventory.removeItem(assetid));
 
                 // Add items gained
+                log.debug('itemsGained', itemsGained);
                 itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
@@ -342,6 +344,7 @@ export default class TF2GC {
                 ids.forEach(assetid => inventory.removeItem(assetid));
 
                 // Add items gained
+                log.debug('itemsGained', itemsGained);
                 itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
@@ -375,6 +378,7 @@ export default class TF2GC {
                 inventory.removeItem(id2);
 
                 // Add items gained
+                log.debug('itemsGained', itemsGained);
                 itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
