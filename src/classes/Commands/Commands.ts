@@ -227,6 +227,8 @@ export default class Commands {
             this.manager.nameAvatarCommand(steamID, message, command as NameAvatar);
         } else if (['block', 'unblock'].includes(command) && isAdmin) {
             this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
+        } else if (['blockedlist', 'blocklist', 'blist'] && isAdmin) {
+            void this.manager.blockedListCommand(steamID);
         } else if (command === 'clearfriends' && isAdmin) {
             void this.manager.clearFriendsCommand(steamID);
         } else if (command === 'stop' && isAdmin) {
