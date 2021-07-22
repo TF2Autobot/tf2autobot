@@ -255,7 +255,7 @@ export default class TF2GC {
         const inventory = this.bot.inventoryManager.getInventory;
 
         log.debug(`Sending craft token (${job.tokenType} - ${job.subTokenType}) request`);
-        this.bot.tf2.craft(job.assetids);
+        this.bot.tf2.craft(job.assetids, job.tokenType === 'class' ? 7 : 8);
 
         let gainSKU = '';
         if (job.tokenType === 'class') {
