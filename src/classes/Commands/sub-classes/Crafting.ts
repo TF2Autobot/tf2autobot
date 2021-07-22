@@ -139,7 +139,7 @@ export default class CraftingCommands {
         let crafted = 0;
         let callbackIndex = 0;
         for (let i = 0; i < amountCanCraft; i++) {
-            const assetidsToCraft = assetids.splice(0, 2);
+            const assetidsToCraft = assetids.splice(0, 3);
             this.bot.tf2gc.craftToken(assetidsToCraft, tokenType as TokenType, subTokenType as SubTokenType, err => {
                 if (err) {
                     log.debug(
