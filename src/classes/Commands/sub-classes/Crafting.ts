@@ -121,7 +121,7 @@ export default class CraftingCommands {
         }
 
         const availableAmount = assetids.length;
-        const amountCanCraft = Math.ceil(availableAmount / 3);
+        const amountCanCraft = Math.floor(availableAmount / 3);
         const capTokenType = capitalize(tokenType);
         const capSubTokenType = capitalize(subTokenType);
 
