@@ -101,6 +101,13 @@ export default class HelpCommands {
             await sleepasync().Promise.sleep(2000);
             this.bot.sendMessage(
                 steamID,
+                '.\n✨=== Crafting ===✨\n- !craftToken <tokenType> <subTokenType> <amount> - Craft Class or Slot Tokens 🔨'
+                // [''].join('\n- ')
+            );
+
+            await sleepasync().Promise.sleep(2000);
+            this.bot.sendMessage(
+                steamID,
                 '.\n✨=== Bot status ===✨\n- ' +
                     [
                         '!stats - Get statistics for accepted trades 📊',

@@ -51,6 +51,8 @@ export default class Commands {
 
     private status: c.StatusCommands;
 
+    private crafting: c.CraftingCommands;
+
     adminInventory: UnknownDictionary<Inventory> = {};
 
     constructor(private readonly bot: Bot, private readonly pricer: Pricer) {
@@ -63,6 +65,7 @@ export default class Commands {
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
+        this.crafting = new c.CraftingCommands(bot);
     }
 
     private get cartQueue(): CartQueue {
@@ -285,6 +288,8 @@ export default class Commands {
             this.getSKU(steamID, message);
         } else if (command === 'refreshschema' && isAdmin) {
             this.manager.refreshSchema(steamID);
+        } else if (command === 'crafttoken' && isAdmin) {
+            this.crafting.craftTokenCommand(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))

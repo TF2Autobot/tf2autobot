@@ -5,7 +5,17 @@ import { TokenType, SubTokenType } from '../../TF2GC';
 
 import log from '../../../lib/logger';
 
+interface CraftWeaponsBySlot {
+    [slot: string]: string[];
+}
+
+type SlotsForCraftableWeapons = 'primary' | 'secondary' | 'melee' | 'pda2';
+
 export default class CraftingCommands {
+    private craftWeaponsBySlot: CraftWeaponsBySlot;
+
+    private isCrafting = false;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -16,6 +26,13 @@ export default class CraftingCommands {
             return this.bot.sendMessage(
                 steamID,
                 '❌ Please set crafting.manual option to false in order to use this command.'
+            );
+        }
+
+        if (this.isCrafting) {
+            return this.bot.sendMessage(
+                steamID,
+                "❌ Crafting token still in progress. Please wait until it's completed."
             );
         }
 
@@ -51,86 +68,104 @@ export default class CraftingCommands {
         if (tokenType === 'class' && !classes.includes(subTokenType)) {
             return this.bot.sendMessage(
                 steamID,
-                '❌ subTokenType must be one of 9 TF2 class character since your tokenType is class!'
+                '❌ subTokenType must be one of 9 TF2 class character since your tokenType is "class"!'
             );
         } else if (tokenType === 'slot' && !slotType.includes(subTokenType)) {
             return this.bot.sendMessage(
                 steamID,
-                '❌ subTokenType must only be either "primary", "secondary", "melee", or "pda2" since your tokenType is slot!'
+                '❌ subTokenType must only be either "primary", "secondary", "melee", or "pda2" since your tokenType is "slot"!'
             );
         }
 
+        if (tokenType === 'slot' && this.craftWeaponsBySlot === undefined) {
+            // only load on demand
+            this.craftWeaponsBySlot = {
+                primary: [],
+                secondary: [],
+                melee: [],
+                pda2: []
+            };
+            const craftableWeapons = this.bot.schema.getCraftableWeaponsSchema();
+            const count = craftableWeapons.length;
+
+            for (let i = 0; i < count; i++) {
+                const item = craftableWeapons[i];
+
+                if (['primary', 'secondary', 'melee', 'pda2'].includes(item.item_slot)) {
+                    this.craftWeaponsBySlot[item.item_slot as SlotsForCraftableWeapons].push(`${item.defindex};6`);
+                }
+            }
+        }
+
         const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+        const assetids: string[] = [];
 
-        if (tokenType === 'class') {
-            const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
-                this.bot.craftWeaponsByClass[subTokenType]
+        const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
+            tokenType === 'class'
+                ? this.bot.craftWeaponsByClass[subTokenType]
+                : this.craftWeaponsBySlot[subTokenType as SlotsForCraftableWeapons]
+        );
+
+        for (const sku in craftableItems) {
+            if (!Object.prototype.hasOwnProperty.call(craftableItems, sku)) {
+                continue;
+            }
+
+            if (craftableItems[sku].length === 0) {
+                delete craftableItems[sku];
+                continue;
+            }
+
+            assetids.push(...craftableItems[sku]);
+        }
+
+        const availableAmount = assetids.length;
+        const amountCanCraft = Math.ceil(availableAmount / 3);
+        const capTokenType = capitalize(tokenType);
+        const capSubTokenType = capitalize(subTokenType);
+
+        if (amount > amountCanCraft) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ I can only craft  ${amountCanCraft} ${capTokenType} Token - ${capSubTokenType} at the moment, since I only` +
+                    `have ${availableAmount} of ${capSubTokenType} ${subTokenType} items.`
             );
+        }
 
-            const assetids: string[] = [];
+        this.bot.sendMessage(steamID, '⏳ Crafting 🔨...');
+        this.isCrafting = true;
 
-            for (const sku in craftableItems) {
-                if (!Object.prototype.hasOwnProperty.call(craftableItems, sku)) {
-                    continue;
+        let crafted = 0;
+        let callbackIndex = 0;
+        for (let i = 0; i < amountCanCraft; i++) {
+            const assetidsToCraft = assetids.splice(0, 2);
+            this.bot.tf2gc.craftToken(assetidsToCraft, tokenType as TokenType, subTokenType as SubTokenType, err => {
+                if (err) {
+                    log.debug(
+                        `Error crafting ${assetidsToCraft.join(', ')} for ${capTokenType} Token - ${capSubTokenType}`
+                    );
+                    crafted--;
                 }
 
-                if (craftableItems[sku].length === 0) {
-                    delete craftableItems[sku];
-                    continue;
-                }
+                callbackIndex++;
+                crafted++;
 
-                assetids.push(...craftableItems[sku]);
-            }
+                if (amountCanCraft - callbackIndex === 1) {
+                    this.isCrafting = false;
 
-            const availableAmount = assetids.length;
-            const amountCanCraft = Math.ceil(availableAmount / 3);
-            const theClass = capitalize(subTokenType);
-
-            if (amount > amountCanCraft) {
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ I can only craft  ${amountCanCraft} Class Token - ${theClass} at the moment, since I only` +
-                        `have ${availableAmount} of ${theClass} class items.`
-                );
-            }
-
-            this.bot.sendMessage(steamID, '⏳ Crafting 🔨...');
-
-            let crafted = 0;
-            let callbackIndex = 0;
-            for (let i = 0; i < amountCanCraft; i++) {
-                const assetidsToCraft = assetids.splice(0, 2);
-                this.bot.tf2gc.craftToken(
-                    assetidsToCraft,
-                    tokenType as TokenType,
-                    subTokenType as SubTokenType,
-                    err => {
-                        if (err) {
-                            log.debug(`Error crafting ${assetidsToCraft.join(', ')} for Class Token - ${theClass}`);
-                            crafted--;
-                        }
-
-                        callbackIndex++;
-                        crafted++;
-
-                        if (amountCanCraft - callbackIndex === 1) {
-                            if (crafted < amountCanCraft) {
-                                return this.bot.sendMessage(
-                                    steamID,
-                                    `✅ Successfully crafted ${crafted} Class Token - ${theClass} (there were some error while crafting).`
-                                );
-                            }
-
-                            return this.bot.sendMessage(
-                                steamID,
-                                `✅ Successfully crafted ${crafted} Class Token - ${theClass}!`
-                            );
-                        }
+                    if (crafted < amountCanCraft) {
+                        return this.bot.sendMessage(
+                            steamID,
+                            `✅ Successfully crafted ${crafted} ${capTokenType} Token - ${capSubTokenType} (there were some error while crafting).`
+                        );
                     }
-                );
-            }
-        } else {
-            // To be continued (for slot token)
+
+                    return this.bot.sendMessage(
+                        steamID,
+                        `✅ Successfully crafted ${crafted} ${capTokenType} Token - ${capSubTokenType}!`
+                    );
+                }
+            });
         }
     }
 }
