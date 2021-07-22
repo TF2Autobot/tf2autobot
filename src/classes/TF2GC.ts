@@ -256,6 +256,8 @@ export default class TF2GC {
         const inventory = this.bot.inventoryManager.getInventory;
 
         log.debug(`Sending craft token (${job.tokenType} - ${job.subTokenType}) request`);
+        // recipe reference: https://github.com/DontAskM8/TF2-Crafting-Recipe/blob/c9201943c81e26e4feb3f96945c8fbfe5c7186dc/craftRecipe.json
+        // credit @Preport
         this.bot.tf2.craft(job.assetids, job.tokenType === 'class' ? 7 : 8);
 
         let gainSKU = '';
