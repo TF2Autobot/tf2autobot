@@ -11,7 +11,16 @@ export enum Attributes {
 }
 
 type Job = {
-    type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort' | 'removeAttributes';
+    type:
+        | 'smelt'
+        | 'combine'
+        | 'combineWeapon'
+        | 'combineClassWeapon'
+        | 'use'
+        | 'delete'
+        | 'sort'
+        | 'removeAttributes'
+        | 'craftToken';
     defindex?: number;
     sku?: string;
     skus?: string[];
@@ -20,6 +29,22 @@ type Job = {
     attribute?: Attributes;
     callback?: (err?: Error) => void;
 };
+
+type TokenType = 'class' | 'slot';
+type SubTokenType =
+    | 'scout'
+    | 'soldier'
+    | 'pyro'
+    | 'demoman'
+    | 'heavy'
+    | 'engineer'
+    | 'medic'
+    | 'sniper'
+    | 'spy'
+    | 'primary'
+    | 'secondary'
+    | 'melee'
+    | 'pda';
 
 type ListenForEvent =
     | [string, (...args: any[]) => void, (err: Error) => void]
@@ -110,6 +135,10 @@ export default class TF2GC {
         log.debug(`Enqueueing removeAttributes (${attribute}) job for ` + assetid);
 
         this.newJob({ type: 'removeAttributes', sku: sku, assetid: assetid, callback: callback });
+    }
+
+    craftToken(assetids: string[], tokenType: TokenType, subTokenType: SubTokenType): void {
+        // To be continued
     }
 
     private newJob(job: Job): void {

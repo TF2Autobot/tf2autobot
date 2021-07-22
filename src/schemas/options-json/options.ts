@@ -1124,6 +1124,9 @@ export const optionsSchema: jsonschema.Schema = {
         crafting: {
             type: 'object',
             properties: {
+                manual: {
+                    type: 'boolean'
+                },
                 weapons: {
                     $ref: '#/definitions/only-enable'
                 },
