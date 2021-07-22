@@ -84,6 +84,7 @@ export default class HelpCommands {
                         '!message <steamid> <your message> - Send a message to a specific user 💬',
                         '!block <steamid> - Block a specific user',
                         '!unblock <steamid> - Unblock a specific user',
+                        '!blockedList - Get a list of blocked users',
                         '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
                         '!stop - Stop the bot 🔴',
                         '!restart - Restart the bot 🔄',

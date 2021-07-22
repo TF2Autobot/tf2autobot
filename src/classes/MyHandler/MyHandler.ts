@@ -650,6 +650,12 @@ export default class MyHandler extends Handler {
 
                         // listing not exist
 
+                        if (!entry.enabled) {
+                            delete pricelist[sku];
+                            log.debug(`${sku} disabled, skipping...`);
+                            continue;
+                        }
+
                         if (
                             (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
                             amountAvailable > 0
@@ -1221,11 +1227,8 @@ export default class MyHandler extends Handler {
                         const diff = itemsDiff[sku] as number | null;
 
                         const isBuying = diff > 0; // is buying if true.
-                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(
-                            sku,
-                            isBuying,
-                            which === 'their'
-                        ); // return a number
+                        const inventoryManager = this.bot.inventoryManager;
+                        const amountCanTrade = inventoryManager.amountCanTrade(sku, isBuying, which === 'their'); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
                             if (match.enabled) {
@@ -1260,19 +1263,23 @@ export default class MyHandler extends Handler {
                             amountCanTrade < Math.abs(diff) &&
                             notIncludeCraftweapons
                         ) {
-                            if (match.enabled) {
+                            if (match.enabled && match.min !== 0) {
                                 // User is taking too many
 
-                                wrongAboutOffer.push({
-                                    reason: '🟩_UNDERSTOCKED',
-                                    sku: sku,
-                                    selling: !isBuying,
-                                    diff: diff,
-                                    amountCanTrade: amountCanTrade,
-                                    amountTaking: amount
-                                });
+                                const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
 
-                                this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
+                                if (amountInInventory > 0) {
+                                    wrongAboutOffer.push({
+                                        reason: '🟩_UNDERSTOCKED',
+                                        sku: sku,
+                                        selling: !isBuying,
+                                        diff: diff,
+                                        amountCanTrade: amountCanTrade,
+                                        amountTaking: amount
+                                    });
+
+                                    this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
+                                }
                             } else {
                                 // Item was disabled
                                 wrongAboutOffer.push({
@@ -1425,7 +1432,8 @@ export default class MyHandler extends Handler {
                 // If the diff is greater than 0 then we are buying, less than is selling
                 this.isTradingKeys = true;
                 const isBuying = diff > 0;
-                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying);
+                const inventoryManager = this.bot.inventoryManager;
+                const amountCanTrade = inventoryManager.amountCanTrade('5021;6', isBuying);
 
                 if (diff !== 0 && amountCanTrade < diff) {
                     // User is offering too many
@@ -1442,18 +1450,29 @@ export default class MyHandler extends Handler {
                 }
 
                 const acceptUnderstock = opt.autokeys.accept.understock;
-                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && !acceptUnderstock) {
+                if (
+                    diff !== 0 &&
+                    !isBuying &&
+                    amountCanTrade < Math.abs(diff) &&
+                    !acceptUnderstock &&
+                    priceEntry.min !== 0
+                ) {
                     // User is taking too many
-                    wrongAboutOffer.push({
-                        reason: '🟩_UNDERSTOCKED',
-                        sku: '5021;6',
-                        selling: !isBuying,
-                        diff: diff,
-                        amountCanTrade: amountCanTrade,
-                        amountTaking: itemsDict['our']['5021;6']
-                    });
 
-                    this.bot.listings.checkBySKU('5021;6', null, false, true);
+                    const amountInInventory = inventoryManager.getInventory.getAmount('5021;6', false);
+
+                    if (amountInInventory > 0) {
+                        wrongAboutOffer.push({
+                            reason: '🟩_UNDERSTOCKED',
+                            sku: '5021;6',
+                            selling: !isBuying,
+                            diff: diff,
+                            amountCanTrade: amountCanTrade,
+                            amountTaking: itemsDict['our']['5021;6']
+                        });
+
+                        this.bot.listings.checkBySKU('5021;6', null, false, true);
+                    }
                 }
             }
         }

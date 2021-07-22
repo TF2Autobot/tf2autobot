@@ -47,15 +47,9 @@ export default class UserCart extends Cart {
             );
         }
 
-        const keyPrice = this.bot.pricelist.getKeyPrice;
+        const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
 
-        if (
-            this.bot.handler.dupeCheckEnabled &&
-            this.getWhichCurrencies('their').toValue(keyPrice.metal) > // theirItemsValue > minimumKeysDupeCheck
-                this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue()
-        ) {
-            const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
-
+        if (this.bot.handler.dupeCheckEnabled && assetidsToCheck.length > 0) {
             const inventory = new TF2Inventory(this.partner, this.bot.manager);
 
             const requests = assetidsToCheck.map(assetid => {
@@ -92,7 +86,7 @@ export default class UserCart extends Cart {
             }
         }
 
-        this.offer.data('_dupeCheck', undefined);
+        // this.offer.data('_dupeCheck', undefined);
     }
 
     private get canUseKeys(): boolean {
@@ -704,9 +698,10 @@ export default class UserCart extends Cart {
             let assetids = theirInventory.findBySKU(sku, true);
 
             const addToDupeCheckList =
-                SKU.fromString(sku).effect !== null &&
-                this.bot.pricelist.getPrice(sku, true, true).buy.toValue(keyPrice.metal) >
-                    this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
+                this.bot.pricelist
+                    .getPrice(sku, true, SKU.fromString(sku).effect !== null ? true : false)
+                    ?.buy.toValue(keyPrice.metal) >
+                this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
             this.theirItemsCount += amount;
             let missing = amount;
