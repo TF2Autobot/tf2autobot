@@ -11,6 +11,8 @@ interface CraftWeaponsBySlot {
 
 type SlotsForCraftableWeapons = 'primary' | 'secondary' | 'melee' | 'pda2';
 
+const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+
 export default class CraftingCommands {
     private craftWeaponsBySlot: CraftWeaponsBySlot;
 
@@ -39,6 +41,12 @@ export default class CraftingCommands {
         message = CommandParser.removeCommand(message).trim();
         const parts = message.toLowerCase().split(' ');
         // !craftToken <tokenType (class/slot)> <subTokenType (scout, soldier, etc)> <amount>
+
+        if (parts.length === 1 && ['check', 'info'].includes(parts[0])) {
+            // !craftToken check
+            // !craftToken info
+            return this.getCraftTokenInfo(steamID);
+        }
 
         if (parts.length < 3) {
             return this.bot.sendMessage(
@@ -77,27 +85,11 @@ export default class CraftingCommands {
             );
         }
 
-        if (tokenType === 'slot' && this.craftWeaponsBySlot === undefined) {
+        if (tokenType === 'slot') {
             // only load on demand
-            this.craftWeaponsBySlot = {
-                primary: [],
-                secondary: [],
-                melee: [],
-                pda2: []
-            };
-            const craftableWeapons = this.bot.schema.getCraftableWeaponsSchema();
-            const count = craftableWeapons.length;
-
-            for (let i = 0; i < count; i++) {
-                const item = craftableWeapons[i];
-
-                if (['primary', 'secondary', 'melee', 'pda2'].includes(item.item_slot)) {
-                    this.craftWeaponsBySlot[item.item_slot as SlotsForCraftableWeapons].push(`${item.defindex};6`);
-                }
-            }
+            this.defineCraftWeaponsBySlots();
         }
 
-        const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
         const assetids: string[] = [];
 
         const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
@@ -172,6 +164,103 @@ export default class CraftingCommands {
                     );
                 }
             });
+        }
+    }
+
+    private getCraftTokenInfo(steamID: SteamID): void {
+        this.defineCraftWeaponsBySlots();
+
+        const reply: string[] = [];
+        const craftWeaponsByClass = this.bot.craftWeaponsByClass;
+
+        for (const charClass in craftWeaponsByClass) {
+            if (!Object.prototype.hasOwnProperty.call(craftWeaponsByClass, charClass)) {
+                continue;
+            }
+
+            const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
+                craftWeaponsByClass[charClass],
+                false
+            );
+
+            const assetids: string[] = [];
+
+            for (const sku in craftableItems) {
+                if (!Object.prototype.hasOwnProperty.call(craftableItems, sku)) {
+                    continue;
+                }
+
+                if (craftableItems[sku].length === 0) {
+                    delete craftableItems[sku];
+                    continue;
+                }
+
+                assetids.push(...craftableItems[sku]);
+            }
+
+            const availableAmount = assetids.length;
+            const amountCanCraft = Math.floor(availableAmount / 3);
+            const capSubTokenType = capitalize(charClass);
+
+            reply.push(`Class Token - ${capSubTokenType}: can craft ${amountCanCraft} (${availableAmount} items)`);
+        }
+
+        const craftWeaponsBySlots = this.craftWeaponsBySlot;
+
+        for (const slot in craftWeaponsBySlots) {
+            if (!Object.prototype.hasOwnProperty.call(craftWeaponsBySlots, slot)) {
+                continue;
+            }
+
+            const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
+                craftWeaponsBySlots[slot],
+                false
+            );
+
+            const assetids: string[] = [];
+
+            for (const sku in craftableItems) {
+                if (!Object.prototype.hasOwnProperty.call(craftableItems, sku)) {
+                    continue;
+                }
+
+                if (craftableItems[sku].length === 0) {
+                    delete craftableItems[sku];
+                    continue;
+                }
+
+                assetids.push(...craftableItems[sku]);
+            }
+
+            const availableAmount = assetids.length;
+            const amountCanCraft = Math.floor(availableAmount / 3);
+            const capSubTokenType = slot === 'pda2' ? 'PDA2' : capitalize(slot);
+
+            reply.push(`Slot Token - ${capSubTokenType}: can craft ${amountCanCraft} (${availableAmount} items)`);
+        }
+
+        this.bot.sendMessage(steamID, '🔨 Crafting token info:\n\n- ' + reply.join('\n- '));
+    }
+
+    private defineCraftWeaponsBySlots(): void {
+        if (this.craftWeaponsBySlot === undefined) {
+            // only load on demand
+            this.craftWeaponsBySlot = {
+                primary: [],
+                secondary: [],
+                melee: [],
+                pda2: []
+            };
+            const craftableWeapons = this.bot.schema.getCraftableWeaponsSchema();
+            const count = craftableWeapons.length;
+
+            for (let i = 0; i < count; i++) {
+                const item = craftableWeapons[i];
+
+                if (['primary', 'secondary', 'melee', 'pda2'].includes(item.item_slot)) {
+                    this.craftWeaponsBySlot[item.item_slot as SlotsForCraftableWeapons].push(`${item.defindex};6`);
+                }
+            }
         }
     }
 }
