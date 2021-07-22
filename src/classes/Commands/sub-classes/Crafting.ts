@@ -114,8 +114,8 @@ export default class CraftingCommands {
 
         const availableAmount = assetids.length;
         const amountCanCraft = Math.floor(availableAmount / 3);
-        const capTokenType = tokenType === 'pda2' ? 'PDA2' : capitalize(tokenType);
-        const capSubTokenType = capitalize(subTokenType);
+        const capTokenType = capitalize(tokenType);
+        const capSubTokenType = subTokenType === 'pda2' ? 'PDA2' : capitalize(subTokenType);
 
         if (amount > amountCanCraft) {
             return this.bot.sendMessage(
