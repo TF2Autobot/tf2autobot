@@ -5,6 +5,7 @@ import Currencies from 'tf2-currencies-2';
 import validUrl from 'valid-url';
 import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
+import { EFriendRelationship } from 'steam-user';
 import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -270,6 +271,35 @@ export default class ManagerCommands {
                 this.bot.sendMessage(steamID, '✅ Successfully uploaded a new avatar.');
             });
         }
+    }
+
+    blockedListCommand(steamID: SteamID): void {
+        this.bot.community.getFriendsList((err, friendlist) => {
+            if (err) {
+                return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
+            }
+
+            const friendIDs = Object.keys(friendlist);
+            if (friendIDs.length === 0) {
+                return this.bot.sendMessage(steamID, `❌ I don't have any friends :sadcat:`);
+            }
+
+            const blockedFriends = friendIDs.filter(friendID =>
+                [EFriendRelationship.Blocked, EFriendRelationship.Ignored, EFriendRelationship.IgnoredFriend].includes(
+                    friendlist[friendID]
+                )
+            );
+
+            if (blockedFriends.length === 0) {
+                return this.bot.sendMessage(steamID, `❌ I don't have any blocked friends.`);
+            }
+
+            this.bot.sendMessage(
+                steamID,
+                // use rep.tf for shorter link - prevent Steam rate limit :(
+                `Blocked friends:\n- ${blockedFriends.map(id => `https://rep.tf/${id}`).join('\n- ')}`
+            );
+        });
     }
 
     blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock): void {
