@@ -297,7 +297,7 @@ export default class ManagerCommands {
             this.bot.sendMessage(
                 steamID,
                 // use rep.tf for shorter link - prevent Steam rate limit :(
-                `Blocked friends (SteamID):\n- ${blockedFriends.map(id => `https://rep.tf/${id}`).join('\n- ')}`
+                `Blocked friends:\n- ${blockedFriends.map(id => `https://rep.tf/${id}`).join('\n- ')}`
             );
         });
     }
