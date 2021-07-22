@@ -151,7 +151,7 @@ export default class CraftingCommands {
                 callbackIndex++;
                 crafted++;
 
-                if (amountCanCraft - callbackIndex === 1) {
+                if (amountCanCraft - callbackIndex === 0) {
                     this.isCrafting = false;
 
                     if (crafted < amountCanCraft) {
