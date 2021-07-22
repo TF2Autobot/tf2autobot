@@ -128,8 +128,8 @@ export default class CraftingCommands {
         if (amount > amountCanCraft) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ I can only craft  ${amountCanCraft} ${capTokenType} Token - ${capSubTokenType} at the moment, since I only` +
-                    `have ${availableAmount} of ${capSubTokenType} ${subTokenType} items.`
+                `❌ I can only craft  ${amountCanCraft} ${capTokenType} Token - ${capSubTokenType} at the moment, since I only ` +
+                    `have ${availableAmount} of ${capSubTokenType} ${tokenType} items.`
             );
         }
 
