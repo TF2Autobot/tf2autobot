@@ -154,6 +154,11 @@ export default class CraftingCommands {
                 if (amountCanCraft - callbackIndex === 0) {
                     this.isCrafting = false;
 
+                    this.bot.client.gamesPlayed([]);
+                    this.bot.client.gamesPlayed(
+                        this.bot.options.miscSettings.game.playOnlyTF2 ? 440 : [this.bot.handler.customGameName, 440]
+                    );
+
                     if (crafted < amountCanCraft) {
                         return this.bot.sendMessage(
                             steamID,
