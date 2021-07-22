@@ -103,7 +103,8 @@ export default class CraftingCommands {
         const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
             tokenType === 'class'
                 ? this.bot.craftWeaponsByClass[subTokenType]
-                : this.craftWeaponsBySlot[subTokenType as SlotsForCraftableWeapons]
+                : this.craftWeaponsBySlot[subTokenType as SlotsForCraftableWeapons],
+            false
         );
 
         for (const sku in craftableItems) {

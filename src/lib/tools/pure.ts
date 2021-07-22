@@ -52,7 +52,7 @@ interface CurrentPure {
 }
 
 export function currPure(bot: Bot): CurrentPure {
-    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons);
+    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons, true);
 
     const currKeys = currencies['5021;6'].length;
     const currScrap = currencies['5000;6'].length;

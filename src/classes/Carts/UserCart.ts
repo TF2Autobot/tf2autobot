@@ -558,7 +558,15 @@ export default class UserCart extends Cart {
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? ourInventory : theirInventory;
 
-        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory, []) < 1) {
+        if (
+            this.bot.inventoryManager.amountCanAfford(
+                this.canUseKeys,
+                currencies,
+                buyerInventory,
+                [],
+                opt.miscSettings.weaponsAsCurrency.enable
+            ) < 1
+        ) {
             // Buyer can't afford the items
             theirInventory.clearFetch();
 
@@ -585,7 +593,8 @@ export default class UserCart extends Cart {
         // Figure out what pure to pick from the buyer, and if change is needed
 
         const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(
-            this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+            this.isWeaponsAsCurrencyEnabled ? this.weapons : [],
+            true
         );
 
         const buyerCurrenciesCount = {
@@ -842,7 +851,8 @@ export default class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
             const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(
-                this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+                this.isWeaponsAsCurrencyEnabled ? this.weapons : [],
+                true
             ); // sellerInventory
 
             // We won't use keys when giving change
