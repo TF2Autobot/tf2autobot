@@ -63,10 +63,8 @@ export default class CraftingCommands {
         const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
         if (tokenType === 'class') {
-            const theClass = capitalize(subTokenType);
-
             const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
-                this.bot.craftWeaponsByClass[theClass]
+                this.bot.craftWeaponsByClass[subTokenType]
             );
 
             const assetids: string[] = [];
@@ -86,6 +84,7 @@ export default class CraftingCommands {
 
             const availableAmount = assetids.length;
             const amountCanCraft = Math.ceil(availableAmount / 3);
+            const theClass = capitalize(subTokenType);
 
             if (amount > amountCanCraft) {
                 return this.bot.sendMessage(
