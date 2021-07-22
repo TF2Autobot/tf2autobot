@@ -78,6 +78,7 @@ export default class CraftingCommands {
 
                 if (craftableItems[sku].length === 0) {
                     delete craftableItems[sku];
+                    continue;
                 }
 
                 assetids.push(...craftableItems[sku]);
