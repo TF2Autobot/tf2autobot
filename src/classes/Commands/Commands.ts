@@ -51,6 +51,8 @@ export default class Commands {
 
     private status: c.StatusCommands;
 
+    private crafting: c.CraftingCommands;
+
     adminInventory: UnknownDictionary<Inventory> = {};
 
     constructor(private readonly bot: Bot, private readonly pricer: Pricer) {
@@ -63,6 +65,7 @@ export default class Commands {
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
+        this.crafting = new c.CraftingCommands(bot);
     }
 
     private get cartQueue(): CartQueue {
@@ -227,7 +230,7 @@ export default class Commands {
             this.manager.nameAvatarCommand(steamID, message, command as NameAvatar);
         } else if (['block', 'unblock'].includes(command) && isAdmin) {
             this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
-        } else if (['blockedlist', 'blocklist', 'blist'] && isAdmin) {
+        } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
             void this.manager.blockedListCommand(steamID);
         } else if (command === 'clearfriends' && isAdmin) {
             void this.manager.clearFriendsCommand(steamID);
@@ -285,6 +288,8 @@ export default class Commands {
             this.getSKU(steamID, message);
         } else if (command === 'refreshschema' && isAdmin) {
             this.manager.refreshSchema(steamID);
+        } else if (command === 'crafttoken' && isAdmin) {
+            this.crafting.craftTokenCommand(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))

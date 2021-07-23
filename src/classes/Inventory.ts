@@ -281,12 +281,16 @@ export default class Inventory {
         }
     }
 
-    getCurrencies(weapons: string[]): { [sku: string]: string[] } {
+    getCurrencies(weapons: string[], withPure: boolean): { [sku: string]: string[] } {
         const toObject: {
             [sku: string]: string[];
         } = {};
 
-        ['5021;6', '5002;6', '5001;6', '5000;6'].concat(weapons).forEach(sku => {
+        if (withPure) {
+            weapons = ['5021;6', '5002;6', '5001;6', '5000;6'].concat(weapons);
+        }
+
+        weapons.forEach(sku => {
             toObject[sku] = this.currenciesFindBySKU(sku);
         });
 

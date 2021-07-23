@@ -585,7 +585,8 @@ export default class UserCart extends Cart {
         // Figure out what pure to pick from the buyer, and if change is needed
 
         const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(
-            this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+            this.isWeaponsAsCurrencyEnabled ? this.weapons : [],
+            true
         );
 
         const buyerCurrenciesCount = {
@@ -842,7 +843,8 @@ export default class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
             const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(
-                this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+                this.isWeaponsAsCurrencyEnabled ? this.weapons : [],
+                true
             ); // sellerInventory
 
             // We won't use keys when giving change

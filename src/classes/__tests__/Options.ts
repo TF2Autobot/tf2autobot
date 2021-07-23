@@ -74,7 +74,7 @@ test('Parsing Options', () => {
     const defaults = deepMerge({}, defaultOptions);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     delete defaults.crafting.metals;
-    expect(defaults.crafting).toEqual({ weapons: { enable: true } });
+    expect(defaults.crafting).toEqual({ manual: false, weapons: { enable: true } });
     const optionsPath = Options.getOptionsPath('abc123');
     mkdirSync(path.dirname(optionsPath), { recursive: true });
     writeFileSync(optionsPath, JSON.stringify(defaults, null, 4), {
@@ -82,6 +82,7 @@ test('Parsing Options', () => {
     });
     result = Options.loadOptions({ steamAccountName: 'abc123' });
     expect(result.crafting).toEqual({
+        manual: false,
         weapons: {
             enable: true
         },

@@ -7,6 +7,7 @@ import ReviewCommands from './Review';
 import OptionsCommand from './Options';
 import ManagerCommands from './Manager';
 import RequestCommands from './Request';
+import CraftingCommands from './Crafting';
 
 export {
     StatusCommands,
@@ -17,5 +18,6 @@ export {
     ReviewCommands,
     OptionsCommand,
     ManagerCommands,
-    RequestCommands
+    RequestCommands,
+    CraftingCommands
 };

@@ -10,12 +10,40 @@ export enum Attributes {
     Festivizer = 2572
 }
 
+export type TokenType = 'class' | 'slot';
+export type SubTokenType =
+    | 'scout'
+    | 'soldier'
+    | 'pyro'
+    | 'demoman'
+    | 'heavy'
+    | 'engineer'
+    | 'medic'
+    | 'sniper'
+    | 'spy'
+    | 'primary'
+    | 'secondary'
+    | 'melee'
+    | 'pda2';
+
 type Job = {
-    type: 'smelt' | 'combine' | 'combineWeapon' | 'combineClassWeapon' | 'use' | 'delete' | 'sort' | 'removeAttributes';
+    type:
+        | 'smelt'
+        | 'combine'
+        | 'combineWeapon'
+        | 'combineClassWeapon'
+        | 'use'
+        | 'delete'
+        | 'sort'
+        | 'removeAttributes'
+        | 'craftToken';
     defindex?: number;
     sku?: string;
     skus?: string[];
     assetid?: string;
+    assetids?: string[];
+    tokenType?: TokenType;
+    subTokenType?: SubTokenType;
     sortType?: number;
     attribute?: Attributes;
     callback?: (err?: Error) => void;
@@ -112,6 +140,17 @@ export default class TF2GC {
         this.newJob({ type: 'removeAttributes', sku: sku, assetid: assetid, callback: callback });
     }
 
+    craftToken(
+        assetids: string[],
+        tokenType: TokenType,
+        subTokenType: SubTokenType,
+        callback?: (err: Error | null) => void
+    ): void {
+        log.debug(`Enqueueing craftToken (${tokenType} - ${subTokenType}) job for ` + assetids.join(','));
+
+        this.newJob({ type: 'craftToken', assetids, tokenType, subTokenType, callback: callback });
+    }
+
     private newJob(job: Job): void {
         this.jobs.push(job);
         this.handleJobQueue();
@@ -165,6 +204,8 @@ export default class TF2GC {
                 func = this.handleUseOrDeleteOrRemoveAttributesJob.bind(this, job);
             } else if (job.type === 'sort') {
                 func = this.handleSortJob.bind(this, job);
+            } else if (job.type === 'craftToken') {
+                func = this.handleCraftTokenJob.bind(this, job);
             }
 
             if (func) {
@@ -200,6 +241,80 @@ export default class TF2GC {
                 ids.forEach(assetid => inventory.removeItem(assetid));
 
                 // Add items gained
+                log.debug('itemsGained', itemsGained);
+                itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
+
+                this.finishedProcessingJob();
+            },
+            err => {
+                this.finishedProcessingJob(err);
+            }
+        );
+    }
+
+    private handleCraftTokenJob(job: Job): void {
+        const inventory = this.bot.inventoryManager.getInventory;
+
+        log.debug(`Sending craft token (${job.tokenType} - ${job.subTokenType}) request`);
+        // recipe reference: https://github.com/DontAskM8/TF2-Crafting-Recipe/blob/c9201943c81e26e4feb3f96945c8fbfe5c7186dc/craftRecipe.json
+        // credit @Preport
+        this.bot.tf2.craft(job.assetids, job.tokenType === 'class' ? 7 : 8);
+
+        let gainSKU = '';
+        if (job.tokenType === 'class') {
+            switch (job.subTokenType) {
+                case 'scout':
+                    gainSKU = '5003;6';
+                    break;
+                case 'soldier':
+                    gainSKU = '5005;6';
+                    break;
+                case 'pyro':
+                    gainSKU = '5009;6';
+                    break;
+                case 'demoman':
+                    gainSKU = '5006;6';
+                    break;
+                case 'heavy':
+                    gainSKU = '5007;6';
+                    break;
+                case 'engineer':
+                    gainSKU = '5011;6';
+                    break;
+                case 'medic':
+                    gainSKU = '5008;6';
+                    break;
+                case 'sniper':
+                    gainSKU = '5004;6';
+                    break;
+                case 'spy':
+                    gainSKU = '5010;6';
+            }
+        } else {
+            switch (job.subTokenType) {
+                case 'primary':
+                    gainSKU = '5012;6';
+                    break;
+                case 'secondary':
+                    gainSKU = '5013;6';
+                    break;
+                case 'melee':
+                    gainSKU = '5014;6';
+                    break;
+                case 'pda2':
+                    gainSKU = '5018;6';
+                    break;
+            }
+        }
+
+        this.listenForEvent(
+            'craftingComplete',
+            (recipe: number, itemsGained: string[]) => {
+                // Remove items used for recipe
+                job.assetids.forEach(assetid => inventory.removeItem(assetid));
+
+                // Add items gained
+                log.debug('itemsGained', itemsGained);
                 itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
@@ -231,6 +346,7 @@ export default class TF2GC {
                 ids.forEach(assetid => inventory.removeItem(assetid));
 
                 // Add items gained
+                log.debug('itemsGained', itemsGained);
                 itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();
@@ -264,6 +380,7 @@ export default class TF2GC {
                 inventory.removeItem(id2);
 
                 // Add items gained
+                log.debug('itemsGained', itemsGained);
                 itemsGained.forEach(assetid => inventory.addItem(gainSKU, assetid));
 
                 this.finishedProcessingJob();

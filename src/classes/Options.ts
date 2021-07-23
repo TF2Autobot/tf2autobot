@@ -303,6 +303,7 @@ export const DEFAULTS: JsonOptions = {
     },
 
     crafting: {
+        manual: false,
         weapons: {
             enable: true
         },
@@ -1368,6 +1369,7 @@ interface Accept {
 // ------------ Crafting ------------
 
 interface Crafting {
+    manual?: boolean;
     weapons?: OnlyEnable;
     metals?: Metals;
 }
