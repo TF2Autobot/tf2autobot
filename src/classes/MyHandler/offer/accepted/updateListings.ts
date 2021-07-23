@@ -1,4 +1,4 @@
-import { Items, TradeOffer } from '@tf2autobot/tradeoffer-manager';
+import { Items, TradeOffer, ItemsDict } from '@tf2autobot/tradeoffer-manager';
 import SKU from 'tf2-sku-2';
 import Currencies from 'tf2-currencies-2';
 import pluralize from 'pluralize';
@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import PriceCheckQueue from './requestPriceCheck';
 import Bot from '../../../Bot';
 import { EntryData } from '../../../Pricelist';
+import { Attributes } from '../../../TF2GC';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';
@@ -28,6 +29,7 @@ export default function updateListings(
 ): void {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
+    const dict = offer.data('dict') as ItemsDict;
     const weapons = opt.miscSettings.weaponsAsCurrency.enable
         ? opt.miscSettings.weaponsAsCurrency.withUncraft
             ? bot.craftWeapons.concat(bot.uncraftWeapons)
@@ -36,6 +38,7 @@ export default function updateListings(
 
     craftWeapons = weapons;
 
+    const alwaysRemoveCustomTexture = opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable;
     const skus: string[] = [];
 
     const inventory = bot.inventoryManager.getInventory;
@@ -43,6 +46,8 @@ export default function updateListings(
     const normalizePainted = opt.normalize.painted;
     const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
     const pure = ['5000;6', '5001;6', '5002;6'];
+    const pureWithWeapons = pure.concat(weapons);
+    const isAdmin = bot.isAdmin(offer.partner);
 
     for (const sku in diff) {
         if (!Object.prototype.hasOwnProperty.call(diff, sku)) {
@@ -57,12 +62,10 @@ export default function updateListings(
         const name = bot.schema.getName(item, false);
 
         const isNotPure = !pure.includes(sku);
-        const isNotPureOrWeapons = !pure.concat(weapons).includes(sku);
+        const isNotPureOrWeapons = !pureWithWeapons.includes(sku);
         const inPrice = bot.pricelist.getPrice(sku, false);
         const existInPricelist = inPrice !== null;
         const amount = inventory.getAmount(sku, false, true);
-
-        const isAdmin = bot.isAdmin(offer.partner);
 
         const itemNoPaint = SKU.fromString(sku);
         itemNoPaint.paint = null;
@@ -524,6 +527,32 @@ export default function updateListings(
                 });
         } else {
             addToQueu(sku, isNotPure, existInPricelist);
+        }
+
+        if (
+            [474, 619, 623, 625].includes(item.defindex) &&
+            alwaysRemoveCustomTexture &&
+            dict.their[sku] !== undefined
+        ) {
+            const amountTraded = dict.their[sku];
+            const assetids = inventory.findBySKU(sku, true).sort((a, b) => parseInt(b) - parseInt(a)); // descending order
+            const assetidsTraded = assetids.slice(0).splice(0, amountTraded);
+
+            log.debug(`Adding ${sku} (${assetidsTraded.join(', ')}) to the queue to remove custom texture...`);
+
+            assetidsTraded.forEach(assetid => {
+                bot.tf2gc.removeAttributes(sku, assetid, Attributes.CustomTexture, err => {
+                    if (err) log.debug(`Error remove custom texture for ${sku} (${assetid})`, err);
+                });
+            });
+
+            // if (opt.miscSettings.alwaysRemoveItemAttributes.giftedByTag.enable) {
+            //     assetidsTraded.forEach(assetid => {
+            //         bot.tf2gc.removeAttributes(sku, assetid, Attributes.GiftedBy, err => {
+            //             if (err) log.debug(`Error remove giftedBy tag for ${sku} (${assetid})`, err);
+            //         });
+            //     });
+            // }
         }
     }
 

@@ -84,6 +84,7 @@ export default class HelpCommands {
                         '!message <steamid> <your message> - Send a message to a specific user 💬',
                         '!block <steamid> - Block a specific user',
                         '!unblock <steamid> - Unblock a specific user',
+                        '!blockedList - Get a list of blocked users',
                         '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
                         '!stop - Stop the bot 🔴',
                         '!restart - Restart the bot 🔄',
@@ -94,6 +95,16 @@ export default class HelpCommands {
                         '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
                         '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑',
                         '!refreshSchema - Force refresh TF2 Schema when new update arrived (do not spam this)'
+                    ].join('\n- ')
+            );
+
+            await sleepasync().Promise.sleep(2000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== Crafting ===✨\n-' +
+                    [
+                        '!craftToken <info|check> - Check the availability to craft tokens ℹ️🔨',
+                        '!craftToken <tokenType> <subTokenType> <amount> - Craft Class or Slot Tokens 🔨'
                     ].join('\n- ')
             );
 

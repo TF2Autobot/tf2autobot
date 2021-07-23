@@ -206,6 +206,9 @@ export const optionsSchema: jsonschema.Schema = {
                 enable: {
                     type: 'boolean'
                 },
+                showOnlyExist: {
+                    type: 'boolean'
+                },
                 customReply: {
                     type: 'object',
                     properties: {
@@ -414,6 +417,19 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['playOnlyTF2', 'customName'],
                     additionalProperties: false
+                },
+                alwaysRemoveItemAttributes: {
+                    type: 'object',
+                    properties: {
+                        customTexture: {
+                            $ref: '#/definitions/only-enable'
+                        }
+                        // giftedByTag: {
+                        //     $ref: '#/definitions/only-enable'
+                        // }
+                    },
+                    required: ['customTexture'], // 'giftedByTag'
+                    additionalProperties: false
                 }
             },
             required: [
@@ -427,7 +443,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'skipItemsInTrade',
                 'weaponsAsCurrency',
                 'checkUses',
-                'game'
+                'game',
+                'alwaysRemoveItemAttributes'
             ],
             additionalProperties: false
         },
@@ -1107,6 +1124,9 @@ export const optionsSchema: jsonschema.Schema = {
         crafting: {
             type: 'object',
             properties: {
+                manual: {
+                    type: 'boolean'
+                },
                 weapons: {
                     $ref: '#/definitions/only-enable'
                 },

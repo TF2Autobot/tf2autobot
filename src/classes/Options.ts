@@ -45,6 +45,14 @@ export const DEFAULTS: JsonOptions = {
         game: {
             playOnlyTF2: false,
             customName: ''
+        },
+        alwaysRemoveItemAttributes: {
+            customTexture: {
+                enable: true
+            }
+            // giftedByTag: {
+            //     enable: true
+            // }
         }
     },
 
@@ -295,6 +303,7 @@ export const DEFAULTS: JsonOptions = {
     },
 
     crafting: {
+        manual: false,
         weapons: {
             enable: true
         },
@@ -709,6 +718,7 @@ export const DEFAULTS: JsonOptions = {
         },
         craftweapon: {
             enable: true,
+            showOnlyExist: true,
             customReply: {
                 disabled: '',
                 dontHave: '',
@@ -717,6 +727,7 @@ export const DEFAULTS: JsonOptions = {
         },
         uncraftweapon: {
             enable: true,
+            showOnlyExist: true,
             customReply: {
                 disabled: '',
                 dontHave: '',
@@ -1097,6 +1108,12 @@ interface MiscSettings {
     weaponsAsCurrency?: WeaponsAsCurrency;
     checkUses?: CheckUses;
     game?: Game;
+    alwaysRemoveItemAttributes?: AlwaysRemoveItemAttributes;
+}
+
+interface AlwaysRemoveItemAttributes {
+    customTexture?: OnlyEnable;
+    // giftedByTag?: OnlyEnable;
 }
 
 // ------------ SendAlert ------------
@@ -1352,6 +1369,7 @@ interface Accept {
 // ------------ Crafting ------------
 
 interface Crafting {
+    manual?: boolean;
     weapons?: OnlyEnable;
     metals?: Metals;
 }
@@ -1720,6 +1738,7 @@ export interface Stock extends OnlyEnable {
 
 interface Weapons extends OnlyEnable {
     customReply?: HaveOrNo;
+    showOnlyExist?: boolean;
 }
 
 interface HaveOrNo {

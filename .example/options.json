@@ -37,6 +37,11 @@
         "game": {
             "playOnlyTF2": false,
             "customName": ""
+        },
+        "alwaysRemoveItemAttributes": {
+            "customTexture": {
+                "enable": true
+            }
         }
     },
     "sendAlert": {
@@ -277,6 +282,7 @@
         }
     },
     "crafting": {
+        "manual": false,
         "weapons": {
             "enable": true
         },
@@ -664,6 +670,7 @@
         },
         "craftweapon": {
             "enable": true,
+            "showOnlyExist": true,
             "customReply": {
                 "disabled": "",
                 "dontHave": "",
@@ -672,6 +679,7 @@
         },
         "uncraftweapon": {
             "enable": true,
+            "showOnlyExist": true,
             "customReply": {
                 "disabled": "",
                 "dontHave": "",

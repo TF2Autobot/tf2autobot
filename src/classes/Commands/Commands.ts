@@ -51,6 +51,8 @@ export default class Commands {
 
     private status: c.StatusCommands;
 
+    private crafting: c.CraftingCommands;
+
     adminInventory: UnknownDictionary<Inventory> = {};
 
     constructor(private readonly bot: Bot, private readonly pricer: Pricer) {
@@ -63,6 +65,7 @@ export default class Commands {
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
+        this.crafting = new c.CraftingCommands(bot);
     }
 
     private get cartQueue(): CartQueue {
@@ -182,8 +185,15 @@ export default class Commands {
             this.manager.autokeysCommand(steamID);
         } else if (command === 'message') {
             this.message.message(steamID, message);
-        } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
-            void this.misc.weaponCommand(steamID, command as CraftUncraft);
+        } else if (['craftweapon', 'craftweapons', 'uncraftweapon', 'uncraftweapons'].includes(command)) {
+            void this.misc.weaponCommand(
+                steamID,
+                command === 'craftweapons'
+                    ? 'craftweapon'
+                    : command === 'uncraftweapons'
+                    ? 'uncraftweapon'
+                    : (command as CraftUncraft)
+            );
         } else if (command === 'snapshots' && isAdmin) {
             void this.request.getSnapshotsCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
@@ -220,6 +230,8 @@ export default class Commands {
             this.manager.nameAvatarCommand(steamID, message, command as NameAvatar);
         } else if (['block', 'unblock'].includes(command) && isAdmin) {
             this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
+        } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
+            void this.manager.blockedListCommand(steamID);
         } else if (command === 'clearfriends' && isAdmin) {
             void this.manager.clearFriendsCommand(steamID);
         } else if (command === 'stop' && isAdmin) {
@@ -276,6 +288,8 @@ export default class Commands {
             this.getSKU(steamID, message);
         } else if (command === 'refreshschema' && isAdmin) {
             this.manager.refreshSchema(steamID);
+        } else if (command === 'crafttoken' && isAdmin) {
+            this.crafting.craftTokenCommand(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))

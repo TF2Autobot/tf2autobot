@@ -21,7 +21,7 @@ export default class InventoryManager {
 
     get getPureValue(): { keys: number; metal: number } {
         const keyPrice = this.pricelist.getKeyPrice;
-        const currencies = this.inventory.getCurrencies([]);
+        const currencies = this.inventory.getCurrencies([], true);
 
         return {
             keys: currencies['5021;6'].length * keyPrice.toValue(),
@@ -81,7 +81,7 @@ export default class InventoryManager {
         const buyingKeysValue = buyingPrice.keys * keyPrice.toValue();
         const buyingMetalValue = Currencies.toScrap(buyingPrice.metal);
 
-        const avaiableCurrencies = inventory.getCurrencies([]);
+        const avaiableCurrencies = inventory.getCurrencies([], true);
 
         const availableKeysValue = avaiableCurrencies['5021;6'].length * keyPrice.toValue();
         const availableMetalsValue =
@@ -98,7 +98,7 @@ export default class InventoryManager {
     amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory, weapons: string[]): number {
         const keyPrice = this.pricelist.getKeyPrice;
         const value = price.toValue(keyPrice.metal);
-        const buyerCurrencies = inventory.getCurrencies(weapons);
+        const buyerCurrencies = inventory.getCurrencies(weapons, true);
 
         let totalValue =
             buyerCurrencies['5002;6'].length * 9 +

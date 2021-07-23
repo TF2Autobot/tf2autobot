@@ -161,6 +161,10 @@ export default class MyHandler extends Handler {
         return customGameName ? customGameName : `TF2Autobot`;
     }
 
+    private get isCraftingManual(): boolean {
+        return this.opt.crafting.manual;
+    }
+
     private isPremium = false;
 
     private botName = '';
@@ -259,17 +263,19 @@ export default class MyHandler extends Handler {
         // Get Premium info from backpack.tf
         void this.getBPTFAccountInfo();
 
-        // Smelt / combine metal if needed
-        keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
+        if (this.isCraftingManual === false) {
+            // Smelt / combine metal if needed
+            keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
-        // Craft duplicate weapons
-        void craftDuplicateWeapons(this.bot);
+            // Craft duplicate weapons
+            void craftDuplicateWeapons(this.bot);
 
-        // Craft class weapons
-        this.classWeaponsTimeout = setTimeout(() => {
-            // called after 5 seconds to craft metals and duplicated weapons first.
-            void craftClassWeapons(this.bot);
-        }, 5 * 1000);
+            // Craft class weapons
+            this.classWeaponsTimeout = setTimeout(() => {
+                // called after 5 seconds to craft metals and duplicated weapons first.
+                void craftClassWeapons(this.bot);
+            }, 5 * 1000);
+        }
 
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
@@ -649,6 +655,12 @@ export default class MyHandler extends Handler {
                         }
 
                         // listing not exist
+
+                        if (!entry.enabled) {
+                            delete pricelist[sku];
+                            log.debug(`${sku} disabled, skipping...`);
+                            continue;
+                        }
 
                         if (
                             (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
@@ -1221,11 +1233,8 @@ export default class MyHandler extends Handler {
                         const diff = itemsDiff[sku] as number | null;
 
                         const isBuying = diff > 0; // is buying if true.
-                        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(
-                            sku,
-                            isBuying,
-                            which === 'their'
-                        ); // return a number
+                        const inventoryManager = this.bot.inventoryManager;
+                        const amountCanTrade = inventoryManager.amountCanTrade(sku, isBuying, which === 'their'); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
                             if (match.enabled) {
@@ -1260,19 +1269,23 @@ export default class MyHandler extends Handler {
                             amountCanTrade < Math.abs(diff) &&
                             notIncludeCraftweapons
                         ) {
-                            if (match.enabled) {
+                            if (match.enabled && match.min !== 0) {
                                 // User is taking too many
 
-                                wrongAboutOffer.push({
-                                    reason: '🟩_UNDERSTOCKED',
-                                    sku: sku,
-                                    selling: !isBuying,
-                                    diff: diff,
-                                    amountCanTrade: amountCanTrade,
-                                    amountTaking: amount
-                                });
+                                const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
 
-                                this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
+                                if (amountInInventory > 0) {
+                                    wrongAboutOffer.push({
+                                        reason: '🟩_UNDERSTOCKED',
+                                        sku: sku,
+                                        selling: !isBuying,
+                                        diff: diff,
+                                        amountCanTrade: amountCanTrade,
+                                        amountTaking: amount
+                                    });
+
+                                    this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
+                                }
                             } else {
                                 // Item was disabled
                                 wrongAboutOffer.push({
@@ -1425,7 +1438,8 @@ export default class MyHandler extends Handler {
                 // If the diff is greater than 0 then we are buying, less than is selling
                 this.isTradingKeys = true;
                 const isBuying = diff > 0;
-                const amountCanTrade = this.bot.inventoryManager.amountCanTrade('5021;6', isBuying);
+                const inventoryManager = this.bot.inventoryManager;
+                const amountCanTrade = inventoryManager.amountCanTrade('5021;6', isBuying);
 
                 if (diff !== 0 && amountCanTrade < diff) {
                     // User is offering too many
@@ -1442,18 +1456,29 @@ export default class MyHandler extends Handler {
                 }
 
                 const acceptUnderstock = opt.autokeys.accept.understock;
-                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && !acceptUnderstock) {
+                if (
+                    diff !== 0 &&
+                    !isBuying &&
+                    amountCanTrade < Math.abs(diff) &&
+                    !acceptUnderstock &&
+                    priceEntry.min !== 0
+                ) {
                     // User is taking too many
-                    wrongAboutOffer.push({
-                        reason: '🟩_UNDERSTOCKED',
-                        sku: '5021;6',
-                        selling: !isBuying,
-                        diff: diff,
-                        amountCanTrade: amountCanTrade,
-                        amountTaking: itemsDict['our']['5021;6']
-                    });
 
-                    this.bot.listings.checkBySKU('5021;6', null, false, true);
+                    const amountInInventory = inventoryManager.getInventory.getAmount('5021;6', false);
+
+                    if (amountInInventory > 0) {
+                        wrongAboutOffer.push({
+                            reason: '🟩_UNDERSTOCKED',
+                            sku: '5021;6',
+                            selling: !isBuying,
+                            diff: diff,
+                            amountCanTrade: amountCanTrade,
+                            amountTaking: itemsDict['our']['5021;6']
+                        });
+
+                        this.bot.listings.checkBySKU('5021;6', null, false, true);
+                    }
                 }
             }
         }
@@ -2119,16 +2144,18 @@ export default class MyHandler extends Handler {
         if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
             // Offer is accepted
 
-            // Smelt / combine metal
-            keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
+            if (this.isCraftingManual === false) {
+                // Smelt / combine metal
+                keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
-            // Craft duplicated weapons
-            void craftDuplicateWeapons(this.bot);
+                // Craft duplicated weapons
+                void craftDuplicateWeapons(this.bot);
 
-            this.classWeaponsTimeout = setTimeout(() => {
-                // called after 5 second to craft metals and duplicated weapons first.
-                void craftClassWeapons(this.bot);
-            }, 5 * 1000);
+                this.classWeaponsTimeout = setTimeout(() => {
+                    // called after 5 second to craft metals and duplicated weapons first.
+                    void craftClassWeapons(this.bot);
+                }, 5 * 1000);
+            }
 
             // Sort inventory
             this.sortInventory();
