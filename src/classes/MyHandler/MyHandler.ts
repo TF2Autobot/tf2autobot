@@ -1269,22 +1269,25 @@ export default class MyHandler extends Handler {
                             amountCanTrade < Math.abs(diff) &&
                             notIncludeCraftweapons
                         ) {
-                            if (match.enabled && match.min !== 0) {
+                            if (match.enabled) {
                                 // User is taking too many
 
-                                const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
+                                if (match.min !== 0) {
+                                    // If min is set to 0, how come it can be understocked right?
+                                    const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
 
-                                if (amountInInventory > 0) {
-                                    wrongAboutOffer.push({
-                                        reason: '🟩_UNDERSTOCKED',
-                                        sku: sku,
-                                        selling: !isBuying,
-                                        diff: diff,
-                                        amountCanTrade: amountCanTrade,
-                                        amountTaking: amount
-                                    });
+                                    if (amountInInventory > 0) {
+                                        wrongAboutOffer.push({
+                                            reason: '🟩_UNDERSTOCKED',
+                                            sku: sku,
+                                            selling: !isBuying,
+                                            diff: diff,
+                                            amountCanTrade: amountCanTrade,
+                                            amountTaking: amount
+                                        });
 
-                                    this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
+                                        this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
+                                    }
                                 }
                             } else {
                                 // Item was disabled
@@ -1456,28 +1459,24 @@ export default class MyHandler extends Handler {
                 }
 
                 const acceptUnderstock = opt.autokeys.accept.understock;
-                if (
-                    diff !== 0 &&
-                    !isBuying &&
-                    amountCanTrade < Math.abs(diff) &&
-                    !acceptUnderstock &&
-                    priceEntry.min !== 0
-                ) {
+                if (diff !== 0 && !isBuying && amountCanTrade < Math.abs(diff) && !acceptUnderstock) {
                     // User is taking too many
 
-                    const amountInInventory = inventoryManager.getInventory.getAmount('5021;6', false);
+                    if (priceEntry.min !== 0) {
+                        const amountInInventory = inventoryManager.getInventory.getAmount('5021;6', false);
 
-                    if (amountInInventory > 0) {
-                        wrongAboutOffer.push({
-                            reason: '🟩_UNDERSTOCKED',
-                            sku: '5021;6',
-                            selling: !isBuying,
-                            diff: diff,
-                            amountCanTrade: amountCanTrade,
-                            amountTaking: itemsDict['our']['5021;6']
-                        });
+                        if (amountInInventory > 0) {
+                            wrongAboutOffer.push({
+                                reason: '🟩_UNDERSTOCKED',
+                                sku: '5021;6',
+                                selling: !isBuying,
+                                diff: diff,
+                                amountCanTrade: amountCanTrade,
+                                amountTaking: itemsDict['our']['5021;6']
+                            });
 
-                        this.bot.listings.checkBySKU('5021;6', null, false, true);
+                            this.bot.listings.checkBySKU('5021;6', null, false, true);
+                        }
                     }
                 }
             }
