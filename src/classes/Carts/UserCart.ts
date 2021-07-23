@@ -558,15 +558,7 @@ export default class UserCart extends Cart {
         // We now know who the buyer is, now get their inventory
         const buyerInventory = isBuyer ? ourInventory : theirInventory;
 
-        if (
-            this.bot.inventoryManager.amountCanAfford(
-                this.canUseKeys,
-                currencies,
-                buyerInventory,
-                [],
-                opt.miscSettings.weaponsAsCurrency.enable
-            ) < 1
-        ) {
+        if (this.bot.inventoryManager.amountCanAfford(this.canUseKeys, currencies, buyerInventory, []) < 1) {
             // Buyer can't afford the items
             theirInventory.clearFetch();
 

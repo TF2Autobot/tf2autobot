@@ -95,16 +95,10 @@ export default class InventoryManager {
         );
     }
 
-    amountCanAfford(
-        useKeys: boolean,
-        price: Currencies,
-        inventory: Inventory,
-        weapons: string[],
-        weaponsAsCurrency: boolean
-    ): number {
+    amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory, weapons: string[]): number {
         const keyPrice = this.pricelist.getKeyPrice;
         const value = price.toValue(keyPrice.metal);
-        const buyerCurrencies = inventory.getCurrencies(weapons, weaponsAsCurrency);
+        const buyerCurrencies = inventory.getCurrencies(weapons, true);
 
         let totalValue =
             buyerCurrencies['5002;6'].length * 9 +
