@@ -130,7 +130,7 @@ export default class CraftingCommands {
 
         let crafted = 0;
         let callbackIndex = 0;
-        for (let i = 0; i < amountCanCraft; i++) {
+        for (let i = 0; i < amount; i++) {
             const assetidsToCraft = assetids.splice(0, 3);
             this.bot.tf2gc.craftToken(assetidsToCraft, tokenType as TokenType, subTokenType as SubTokenType, err => {
                 if (err) {
@@ -143,7 +143,7 @@ export default class CraftingCommands {
                 callbackIndex++;
                 crafted++;
 
-                if (amountCanCraft - callbackIndex === 0) {
+                if (amount - callbackIndex === 0) {
                     this.isCrafting = false;
 
                     this.bot.client.gamesPlayed([]);
@@ -151,7 +151,7 @@ export default class CraftingCommands {
                         this.bot.options.miscSettings.game.playOnlyTF2 ? 440 : [this.bot.handler.customGameName, 440]
                     );
 
-                    if (crafted < amountCanCraft) {
+                    if (crafted < amount) {
                         return this.bot.sendMessage(
                             steamID,
                             `✅ Successfully crafted ${crafted} ${capTokenType} Token - ${capSubTokenType} (there were some error while crafting).`
