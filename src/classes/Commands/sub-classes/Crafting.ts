@@ -27,7 +27,7 @@ export default class CraftingCommands {
         if (opt.manual === false) {
             return this.bot.sendMessage(
                 steamID,
-                '❌ Please set crafting.manual option to false in order to use this command.'
+                '❌ Please set crafting.manual option to true in order to use this command.'
             );
         }
 
