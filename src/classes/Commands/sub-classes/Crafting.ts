@@ -27,7 +27,7 @@ export default class CraftingCommands {
         if (opt.manual === false) {
             return this.bot.sendMessage(
                 steamID,
-                '❌ Please set crafting.manual option to false in order to use this command.'
+                '❌ Please set crafting.manual option to true in order to use this command.'
             );
         }
 
@@ -130,7 +130,7 @@ export default class CraftingCommands {
 
         let crafted = 0;
         let callbackIndex = 0;
-        for (let i = 0; i < amountCanCraft; i++) {
+        for (let i = 0; i < amount; i++) {
             const assetidsToCraft = assetids.splice(0, 3);
             this.bot.tf2gc.craftToken(assetidsToCraft, tokenType as TokenType, subTokenType as SubTokenType, err => {
                 if (err) {
@@ -143,7 +143,7 @@ export default class CraftingCommands {
                 callbackIndex++;
                 crafted++;
 
-                if (amountCanCraft - callbackIndex === 0) {
+                if (amount - callbackIndex === 0) {
                     this.isCrafting = false;
 
                     this.bot.client.gamesPlayed([]);
@@ -151,7 +151,7 @@ export default class CraftingCommands {
                         this.bot.options.miscSettings.game.playOnlyTF2 ? 440 : [this.bot.handler.customGameName, 440]
                     );
 
-                    if (crafted < amountCanCraft) {
+                    if (crafted < amount) {
                         return this.bot.sendMessage(
                             steamID,
                             `✅ Successfully crafted ${crafted} ${capTokenType} Token - ${capSubTokenType} (there were some error while crafting).`
@@ -172,6 +172,7 @@ export default class CraftingCommands {
 
         const reply: string[] = [];
         const craftWeaponsByClass = this.bot.craftWeaponsByClass;
+        const inventory = this.bot.inventoryManager.getInventory;
 
         for (const charClass in craftWeaponsByClass) {
             if (!Object.prototype.hasOwnProperty.call(craftWeaponsByClass, charClass)) {
@@ -202,7 +203,41 @@ export default class CraftingCommands {
             const amountCanCraft = Math.floor(availableAmount / 3);
             const capSubTokenType = capitalize(charClass);
 
-            reply.push(`Class Token - ${capSubTokenType}: can craft ${amountCanCraft} (${availableAmount} items)`);
+            let sku: string;
+            switch (charClass) {
+                case 'scout':
+                    sku = '5003;6';
+                    break;
+                case 'soldier':
+                    sku = '5005;6';
+                    break;
+                case 'pyro':
+                    sku = '5009;6';
+                    break;
+                case 'demoman':
+                    sku = '5006;6';
+                    break;
+                case 'heavy':
+                    sku = '5007;6';
+                    break;
+                case 'engineer':
+                    sku = '5011;6';
+                    break;
+                case 'medic':
+                    sku = '5008;6';
+                    break;
+                case 'sniper':
+                    sku = '5004;6';
+                    break;
+                case 'spy':
+                    sku = '5010;6';
+            }
+
+            const currentTokenStock = inventory.getAmount(sku, false, true);
+
+            reply.push(
+                `Class Token - ${capSubTokenType}: can craft ${amountCanCraft} (${availableAmount} items), token stock: ${currentTokenStock}`
+            );
         }
 
         const craftWeaponsBySlots = this.craftWeaponsBySlot;
@@ -236,7 +271,27 @@ export default class CraftingCommands {
             const amountCanCraft = Math.floor(availableAmount / 3);
             const capSubTokenType = slot === 'pda2' ? 'PDA2' : capitalize(slot);
 
-            reply.push(`Slot Token - ${capSubTokenType}: can craft ${amountCanCraft} (${availableAmount} items)`);
+            let sku: string;
+            switch (slot) {
+                case 'primary':
+                    sku = '5012;6';
+                    break;
+                case 'secondary':
+                    sku = '5013;6';
+                    break;
+                case 'melee':
+                    sku = '5014;6';
+                    break;
+                case 'pda2':
+                    sku = '5018;6';
+                    break;
+            }
+
+            const currentTokenStock = inventory.getAmount(sku, false, true);
+
+            reply.push(
+                `Slot Token - ${capSubTokenType}: can craft ${amountCanCraft} (${availableAmount} items), token stock: ${currentTokenStock}`
+            );
         }
 
         this.bot.sendMessage(steamID, '🔨 Crafting token info:\n\n- ' + reply.join('\n- '));
