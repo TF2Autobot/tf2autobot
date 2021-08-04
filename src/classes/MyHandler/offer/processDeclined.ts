@@ -47,6 +47,10 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case 'CRIME_ATTEMPT':
                 declined.reasonDescription = offerReceived.reason + ': Tried to take our items for free.';
                 break;
+            case 'TAKING_ITEMS_WITH_ZERO_SELLING_PRICE':
+                declined.reasonDescription =
+                    offerReceived.reason + ': Tried to take/buy our item(s) that has no selling price.';
+                break;
             case 'OVERPAY':
                 declined.reasonDescription = offerReceived.reason + ': We are not accepting overpay.';
                 break;
