@@ -1617,6 +1617,9 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         failedToCounter: {
                             type: 'string'
+                        },
+                        takingItemsWithZeroSellingPrice: {
+                            type: 'string'
                         }
                     },
                     required: [
@@ -1633,7 +1636,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'banned',
                         'escrow',
                         'manual',
-                        'failedToCounter'
+                        'failedToCounter',
+                        'takingItemsWithZeroSellingPrice'
                     ],
                     additionalProperties: false
                 },

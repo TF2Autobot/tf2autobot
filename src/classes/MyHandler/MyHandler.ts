@@ -1148,6 +1148,7 @@ export default class MyHandler extends Handler {
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
         let hasInvalidItemsOur = false;
+        let hasZeroSellingPriceOur = false;
 
         const craftAll = this.bot.craftWeapons;
         const uncraftAll = this.bot.uncraftWeapons;
@@ -1262,6 +1263,12 @@ export default class MyHandler extends Handler {
                             }
                         }
 
+                        const isZeroSellingPrice = match.sell?.toValue(keyPrice.metal) === 0;
+                        if (which === 'our' && isZeroSellingPrice) {
+                            // Always check if an offer contains an item with zero selling price on our side
+                            hasZeroSellingPriceOur = true;
+                        }
+
                         if (
                             diff !== 0 &&
                             !isBuying &&
@@ -1272,11 +1279,7 @@ export default class MyHandler extends Handler {
                             if (match.enabled) {
                                 // User is taking too many
 
-                                if (
-                                    match.min !== 0 ||
-                                    match.intent === 0 ||
-                                    match.sell?.toValue(keyPrice.metal) === 0 // Just precaution - can't set this if intent was bank
-                                ) {
+                                if (match.min !== 0 || match.intent === 0) {
                                     // If min is set to 0, how come it can be understocked right?
                                     // fix exploit found on August 4th, 2021
                                     const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
@@ -1538,6 +1541,16 @@ export default class MyHandler extends Handler {
             return {
                 action: 'decline',
                 reason: 'OVERPAY',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
+        }
+
+        if (hasZeroSellingPriceOur) {
+            // Always decline an offer containing item(s) with zero selling price on our side
+            offer.log('info', 'is trying to take item(s) with zero selling price, declining...');
+            return {
+                action: 'decline',
+                reason: 'TAKING_ITEMS_WITH_ZERO_SELLING_PRICE',
                 meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
             };
         }
