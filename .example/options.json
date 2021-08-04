@@ -482,7 +482,8 @@
             "banned": "",
             "escrow": "",
             "manual": "",
-            "failedToCounter": ""
+            "failedToCounter": "",
+            "takingItemsWithZeroSellingPrice": ""
         },
         "accepted": {
             "automatic": {

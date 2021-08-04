@@ -39,6 +39,11 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.customMessage.decline.crimeAttempt;
         reply = custom ? custom : declined + " because you're attempting to take items for free.";
         //
+    } else if (offerReason.reason === 'TAKING_ITEMS_WITH_ZERO_SELLING_PRICE') {
+        //
+        const custom = opt.customMessage.decline.takingItemsWithZeroSellingPrice;
+        reply = custom ? custom : declined + " because you're attempting to take/buy items without selling price";
+        //
     } else if (offerReason.reason === 'ONLY_METAL') {
         //
         const custom = opt.customMessage.decline.onlyMetal;
