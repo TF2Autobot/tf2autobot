@@ -1148,7 +1148,7 @@ export default class MyHandler extends Handler {
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
         let hasInvalidItemsOur = false;
-        let hasZeroSellingPriceOur = false;
+
         let isTakingOurItemWithIntentBuy = false;
         let isGivingTheirItemWithIntentSell = false;
 
@@ -1265,13 +1265,8 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        const isZeroSellingPrice = match.sell?.toValue(keyPrice.metal) === 0;
-
                         if (which === 'our' && match.intent === 0) {
                             isTakingOurItemWithIntentBuy = true;
-                        } else if (which === 'our' && isZeroSellingPrice) {
-                            // Always check if an offer contains an item with zero selling price on our side
-                            hasZeroSellingPriceOur = true;
                         } else if (which === 'their' && match.intent === 1) {
                             isGivingTheirItemWithIntentSell = true;
                         }
@@ -1427,16 +1422,6 @@ export default class MyHandler extends Handler {
         });
 
         offer.data('prices', itemPrices);
-
-        if (hasZeroSellingPriceOur) {
-            // Always decline an offer containing item(s) with zero selling price on our side
-            offer.log('info', 'is trying to take item(s) with zero selling price, declining...');
-            return {
-                action: 'decline',
-                reason: 'TAKING_ITEMS_WITH_ZERO_SELLING_PRICE',
-                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-            };
-        }
 
         if (isTakingOurItemWithIntentBuy) {
             // Always decline an offer taking our item(s) with intent to only buy

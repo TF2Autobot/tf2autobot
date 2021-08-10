@@ -1618,9 +1618,6 @@ export const optionsSchema: jsonschema.Schema = {
                         failedToCounter: {
                             type: 'string'
                         },
-                        takingItemsWithZeroSellingPrice: {
-                            type: 'string'
-                        },
                         takingItemsWithIntentBuy: {
                             type: 'string'
                         },
@@ -1643,7 +1640,6 @@ export const optionsSchema: jsonschema.Schema = {
                         'escrow',
                         'manual',
                         'failedToCounter',
-                        'takingItemsWithZeroSellingPrice',
                         'takingItemsWithIntentBuy',
                         'givingItemsWithIntentSell'
                     ],
