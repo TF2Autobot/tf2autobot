@@ -305,7 +305,7 @@ function getOutput(
         target = schema.getItemByItemName(name).defindex;
         outputQuality = 6;
         outputDefindex = 6522;
-    } else if (output.includes(" Collector's")) {
+    } else if (output.includes("Collector's")) {
         // Collector's Chemistry Set
 
         const name = output.replace("Collector's", '').trim();
