@@ -1148,7 +1148,9 @@ export default class MyHandler extends Handler {
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
         let hasInvalidItemsOur = false;
-        let hasZeroSellingPriceOur = false;
+
+        let isTakingOurItemWithIntentBuy = false;
+        let isGivingTheirItemWithIntentSell = false;
 
         const craftAll = this.bot.craftWeapons;
         const uncraftAll = this.bot.uncraftWeapons;
@@ -1263,10 +1265,10 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        const isZeroSellingPrice = match.sell?.toValue(keyPrice.metal) === 0;
-                        if (which === 'our' && isZeroSellingPrice) {
-                            // Always check if an offer contains an item with zero selling price on our side
-                            hasZeroSellingPriceOur = true;
+                        if (which === 'our' && match.intent === 0) {
+                            isTakingOurItemWithIntentBuy = true;
+                        } else if (which === 'their' && match.intent === 1) {
+                            isGivingTheirItemWithIntentSell = true;
                         }
 
                         if (
@@ -1421,6 +1423,26 @@ export default class MyHandler extends Handler {
 
         offer.data('prices', itemPrices);
 
+        if (isTakingOurItemWithIntentBuy) {
+            // Always decline an offer taking our item(s) with intent to only buy
+            offer.log('info', 'is trying to take item(s) with intent buy, declining...');
+            return {
+                action: 'decline',
+                reason: 'TAKING_ITEMS_WITH_INTENT_BUY',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
+        }
+
+        if (isGivingTheirItemWithIntentSell) {
+            // Always decline an offer giving their item(s) with intent to only sell
+            offer.log('info', 'is trying to give item(s) with intent sell, declining...');
+            return {
+                action: 'decline',
+                reason: 'GIVING_ITEMS_WITH_INTENT_SELL',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
+        }
+
         if (exchange.contains.metal && !exchange.contains.keys && !exchange.contains.items) {
             // Offer only contains metal
             offer.log('info', 'only contains metal, declining...');
@@ -1541,16 +1563,6 @@ export default class MyHandler extends Handler {
             return {
                 action: 'decline',
                 reason: 'OVERPAY',
-                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-            };
-        }
-
-        if (hasZeroSellingPriceOur) {
-            // Always decline an offer containing item(s) with zero selling price on our side
-            offer.log('info', 'is trying to take item(s) with zero selling price, declining...');
-            return {
-                action: 'decline',
-                reason: 'TAKING_ITEMS_WITH_ZERO_SELLING_PRICE',
                 meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
             };
         }
