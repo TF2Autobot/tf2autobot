@@ -526,7 +526,8 @@ export const DEFAULTS: JsonOptions = {
             escrow: '',
             manual: '',
             failedToCounter: '',
-            takingItemsWithZeroSellingPrice: ''
+            takingItemsWithIntentBuy: '',
+            givingItemsWithIntentSell: ''
         },
         accepted: {
             automatic: {
@@ -1564,7 +1565,8 @@ interface DeclineNote {
     escrow?: string;
     manual?: string;
     failedToCounter?: string;
-    takingItemsWithZeroSellingPrice?: string;
+    takingItemsWithIntentBuy?: string;
+    givingItemsWithIntentSell?: string;
 }
 
 interface AcceptedNote {
@@ -2147,6 +2149,20 @@ function replaceOldProperties(options: Options): boolean {
                 isChanged = true;
             }
         }
+    }
+
+    // v4.4.3/v4.4.4 -> v4.4.5 - Automatically remove takingItemsWithZeroSellingPrice
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.customMessage?.decline?.takingItemsWithZeroSellingPrice !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.customMessage.decline.takingItemsWithZeroSellingPrice;
+
+        options.customMessage.decline['takingItemsWithIntentBuy'] = '';
+        options.customMessage.decline['givingItemsWithIntentSell'] = '';
+
+        isChanged = true;
     }
 
     return isChanged;
