@@ -483,7 +483,8 @@
             "escrow": "",
             "manual": "",
             "failedToCounter": "",
-            "takingItemsWithZeroSellingPrice": ""
+            "takingItemsWithIntentBuy": "",
+            "givingItemsWithIntentSell": ""
         },
         "accepted": {
             "automatic": {
