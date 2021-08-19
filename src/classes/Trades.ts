@@ -929,12 +929,17 @@ export default class Trades {
                     : this.bot.craftWeapons;
 
                 // Bigger than 0 ? they have to pay : we have to pay
+                let hasMissingPrices = false;
                 let NonPureWorth = (['our', 'their'] as ['our', 'their'])
                     .map((side, index) => {
                         const buySell = index ? 'buy' : 'sell';
                         return (
                             Object.keys(dataDict[side])
                                 .map(sku => {
+                                    if (!prices[sku]) {
+                                        hasMissingPrices = true;
+                                        return 0;
+                                    }
                                     if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
                                     if (isWACEnabled && weapons.includes(sku)) return 0.5 * dataDict[side][sku];
 
@@ -948,6 +953,16 @@ export default class Trades {
                         );
                     })
                     .reduce((a, b) => b + a, 0);
+
+                if (hasMissingPrices) {
+                    return reject(
+                        new Error(
+                            `Failed to counter offer #${offer.id} - offer data was not properly saved: ${JSON.stringify(
+                                { values, dataDict, prices }
+                            )}`
+                        )
+                    );
+                }
 
                 // Determine if we need to take a weapon from them
                 const needToTakeWeapon = NonPureWorth - Math.trunc(NonPureWorth) !== 0;
