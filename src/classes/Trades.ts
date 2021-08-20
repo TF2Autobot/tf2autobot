@@ -929,6 +929,7 @@ export default class Trades {
                     : this.bot.craftWeapons;
 
                 // Bigger than 0 ? they have to pay : we have to pay
+                const puresWithKeys = ['5000;6', '5001;6', '5002;6', '5021;6'];
                 let hasMissingPrices = false;
                 let NonPureWorth = (['our', 'their'] as ['our', 'their'])
                     .map((side, index) => {
@@ -936,7 +937,7 @@ export default class Trades {
                         return (
                             Object.keys(dataDict[side])
                                 .map(sku => {
-                                    if (!prices[sku]) {
+                                    if (prices[sku] === undefined && !puresWithKeys.includes(sku)) {
                                         hasMissingPrices = true;
                                         return 0;
                                     }
