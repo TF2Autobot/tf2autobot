@@ -1533,7 +1533,7 @@ export default class Trades {
         }
     }
 
-    onOfferChanged(offer: TradeOffer, oldState: number): void {
+    async onOfferChanged(offer: TradeOffer, oldState: number): Promise<void> {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
@@ -1594,21 +1594,36 @@ export default class Trades {
             offer.state !== TradeOfferManager.ETradeOfferState['InEscrow']
         ) {
             // The offer was not accepted
-            return this.bot.handler.onTradeOfferChanged(offer, oldState);
+            // do nothing here
+        } else {
+            offer.data('isAccepted', true);
+
+            offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
         }
-
-        offer.data('isAccepted', true);
-
-        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
 
         // Exit all running apps ("TF2Autobot" or custom, and Team Fortress 2)
         // Will play again after craft/smelt/sort inventory job
         // https://github.com/TF2Autobot/tf2autobot/issues/527
         this.bot.client.gamesPlayed([]);
 
-        void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
-            this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
+        // Canceled offer, declined countered offer => new item assetid
+        await this.bot.inventoryManager.getInventory.fetch().catch(err => {
+            log.warn('Error fetching inventory: ', err);
+            log.debug('Retrying to fetch inventory in 30 seconds...');
+            this.retryFetchInventory();
         });
+
+        return this.bot.handler.onTradeOfferChanged(offer, oldState);
+    }
+
+    private retryFetchInventory(): void {
+        setTimeout(() => {
+            this.bot.inventoryManager.getInventory.fetch().catch(err => {
+                log.warn('Error fetching inventory: ', err);
+                log.debug('Retrying to fetch inventory in 30 seconds...');
+                this.retryFetchInventory();
+            });
+        }, 30 * 1000);
     }
 
     private set setItemInTrade(assetid: string) {
