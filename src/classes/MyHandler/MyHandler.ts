@@ -413,7 +413,7 @@ export default class MyHandler extends Handler {
                             return resolve();
                         }
 
-                        void this.bot.listingManager.deleteAllListings(null, err => {
+                        void this.bot.listings.removeAll().asCallback(err => {
                             if (err) {
                                 log.warn('Failed to remove all listings on shutdown (autokeys was enabled): ', err);
                             }
@@ -427,7 +427,7 @@ export default class MyHandler extends Handler {
                     return resolve();
                 }
 
-                void this.bot.listingManager.deleteAllListings(null, err => {
+                void this.bot.listings.removeAll().asCallback(err => {
                     if (err) {
                         log.warn('Failed to remove all listings on shutdown: ', err);
                     }
