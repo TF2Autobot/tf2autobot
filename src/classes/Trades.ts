@@ -1533,7 +1533,7 @@ export default class Trades {
         }
     }
 
-    async onOfferChanged(offer: TradeOffer, oldState: number): Promise<void> {
+    onOfferChanged(offer: TradeOffer, oldState: number): void {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
@@ -1607,13 +1607,15 @@ export default class Trades {
         this.bot.client.gamesPlayed([]);
 
         // Canceled offer, declined countered offer => new item assetid
-        await this.bot.inventoryManager.getInventory.fetch().catch(err => {
-            log.warn('Error fetching inventory: ', err);
-            log.debug('Retrying to fetch inventory in 30 seconds...');
-            this.retryFetchInventory();
-        });
+        void this.bot.inventoryManager.getInventory.fetch().asCallback(err => {
+            if (err) {
+                log.warn('Error fetching inventory: ', err);
+                log.debug('Retrying to fetch inventory in 30 seconds...');
+                this.retryFetchInventory();
+            }
 
-        return this.bot.handler.onTradeOfferChanged(offer, oldState);
+            this.bot.handler.onTradeOfferChanged(offer, oldState);
+        });
     }
 
     private retryFetchInventory(): void {
