@@ -729,16 +729,16 @@ function boldDetails(str: string, style: number): string {
     if ([1, 2].includes(style)) {
         // Bold numbers (serif)
         str = str
-            .replace('0', '𝟎')
-            .replace('1', '𝟏')
-            .replace('2', '𝟐')
-            .replace('3', '𝟑')
-            .replace('4', '𝟒')
-            .replace('5', '𝟓')
-            .replace('6', '𝟔')
-            .replace('7', '𝟕')
-            .replace('8', '𝟖')
-            .replace('9', '𝟗')
+            .replace(/0/g, '𝟎') // can't use replaceAll yet 😪
+            .replace(/1/g, '𝟏')
+            .replace(/2/g, '𝟐')
+            .replace(/3/g, '𝟑')
+            .replace(/4/g, '𝟒')
+            .replace(/5/g, '𝟓')
+            .replace(/6/g, '𝟔')
+            .replace(/7/g, '𝟕')
+            .replace(/8/g, '𝟖')
+            .replace(/9/g, '𝟗')
             .replace('.', '.')
             .replace(',', ',');
 
@@ -753,16 +753,16 @@ function boldDetails(str: string, style: number): string {
 
     // Bold numbers (sans):
     str = str
-        .replace('0', '𝟬')
-        .replace('1', '𝟭')
-        .replace('2', '𝟮')
-        .replace('3', '𝟯')
-        .replace('4', '𝟰')
-        .replace('5', '𝟱')
-        .replace('6', '𝟲')
-        .replace('7', '𝟳')
-        .replace('8', '𝟴')
-        .replace('9', '𝟵')
+        .replace(/0/g, '𝟬')
+        .replace(/1/g, '𝟭')
+        .replace(/2/g, '𝟮')
+        .replace(/3/g, '𝟯')
+        .replace(/4/g, '𝟰')
+        .replace(/5/g, '𝟱')
+        .replace(/6/g, '𝟲')
+        .replace(/7/g, '𝟳')
+        .replace(/8/g, '𝟴')
+        .replace(/9/g, '𝟵')
         .replace('.', '.')
         .replace(',', ',');
 
