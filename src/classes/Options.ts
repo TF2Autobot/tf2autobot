@@ -250,6 +250,30 @@ export const DEFAULTS: JsonOptions = {
     details: {
         buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
         sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
+        showBoldText: {
+            onPrice: true,
+            onAmount: true,
+            onCurrentStock: true,
+            onMaxStock: true,
+            characters: {
+                ref: '𝐫𝐞𝐟',
+                key: '𝐤𝐞𝐲',
+                keys: '𝐤𝐞𝐲𝐬',
+                0: '𝟎',
+                1: '𝟏',
+                2: '𝟐',
+                3: '𝟑',
+                4: '𝟒',
+                5: '𝟓',
+                6: '𝟔',
+                7: '𝟕',
+                8: '𝟖',
+                9: '𝟗',
+                dot: '.',
+                comma: ' ,',
+                infinity: '∞'
+            }
+        },
         highValue: {
             showSpells: true,
             showStrangeParts: false,
@@ -1299,8 +1323,36 @@ interface NormalizePainted extends NormalizeOurOrTheir {
 interface Details {
     buy?: string;
     sell?: string;
+    showBoldText?: ShowBoldText;
     highValue?: ShowHighValue;
     uses?: UsesDetails;
+}
+
+interface ShowBoldText {
+    onPrice: boolean;
+    onAmount: boolean;
+    onCurrentStock: boolean;
+    onMaxStock: boolean;
+    characters: BoldCharacters;
+}
+
+export interface BoldCharacters {
+    ref: string;
+    key: string;
+    keys: string;
+    0: string;
+    1: string;
+    2: string;
+    3: string;
+    4: string;
+    5: string;
+    6: string;
+    7: string;
+    8: string;
+    9: string;
+    dot: string;
+    comma: string;
+    infinity: string;
 }
 
 interface ShowHighValue {

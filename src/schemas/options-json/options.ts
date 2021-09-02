@@ -940,6 +940,97 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string',
                     maxLength: 200
                 },
+                ShowBoldText: {
+                    type: 'object',
+                    properties: {
+                        onPrice: {
+                            type: 'boolean'
+                        },
+                        onAmount: {
+                            type: 'boolean'
+                        },
+                        onCurrentStock: {
+                            type: 'boolean'
+                        },
+                        onMaxStock: {
+                            type: 'boolean'
+                        },
+                        characters: {
+                            type: 'object',
+                            properties: {
+                                ref: {
+                                    type: 'string'
+                                },
+                                key: {
+                                    type: 'string'
+                                },
+                                keys: {
+                                    type: 'string'
+                                },
+                                0: {
+                                    type: 'string'
+                                },
+                                1: {
+                                    type: 'string'
+                                },
+                                2: {
+                                    type: 'string'
+                                },
+                                3: {
+                                    type: 'string'
+                                },
+                                4: {
+                                    type: 'string'
+                                },
+                                5: {
+                                    type: 'string'
+                                },
+                                6: {
+                                    type: 'string'
+                                },
+                                7: {
+                                    type: 'string'
+                                },
+                                8: {
+                                    type: 'string'
+                                },
+                                9: {
+                                    type: 'string'
+                                },
+                                dot: {
+                                    type: 'string'
+                                },
+                                comma: {
+                                    type: 'string'
+                                },
+                                infinity: {
+                                    type: 'string'
+                                }
+                            },
+                            required: [
+                                'ref',
+                                'key',
+                                'keys',
+                                '0',
+                                '1',
+                                '2',
+                                '3',
+                                '4',
+                                '5',
+                                '6',
+                                '7',
+                                '8',
+                                '9',
+                                'dot',
+                                'comma',
+                                'infinity'
+                            ],
+                            additionalProperties: false
+                        }
+                    },
+                    required: ['onPrice', 'onAmount', 'onCurrentStock', 'onMaxStock', 'characters'],
+                    additionalProperties: false
+                },
                 highValue: {
                     type: 'object',
                     properties: {
@@ -1019,7 +1110,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['buy', 'sell', 'highValue', 'uses'],
+            required: ['buy', 'sell', 'ShowBoldText', 'highValue', 'uses'],
             additionalProperties: false
         },
         statistics: {

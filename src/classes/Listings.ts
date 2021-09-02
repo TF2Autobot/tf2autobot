@@ -12,7 +12,7 @@ import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { DictItem } from './Inventory';
-import { PaintedNames } from './Options';
+import { PaintedNames, BoldCharacters } from './Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export default class Listings {
@@ -543,12 +543,12 @@ export default class Listings {
             if (item) {
                 const toJoin: string[] = [];
 
-                const optD = this.bot.options.details.highValue;
+                const optD = opt.details.highValue;
                 const cT = optD.customText;
                 const cTSpt = optD.customText.separator;
                 const cTEnd = optD.customText.ender;
 
-                const optR = this.bot.options.detailsExtra;
+                const optR = opt.detailsExtra;
                 const getPaints = this.bot.paints;
                 const getStrangeParts = this.bot.strangeParts;
 
@@ -630,17 +630,31 @@ export default class Listings {
             }
         }
 
-        const optDs = this.bot.options.details.uses;
+        const optDs = opt.details.uses;
         let details: string;
+        const inventory = this.bot.inventoryManager.getInventory;
+        const showBoldText = opt.details.showBoldText;
+        const isShowBoldOnPrice = showBoldText.onPrice;
+        const isShowBoldOnAmount = showBoldText.onAmount;
+        const isShowBoldOnCurrentStock = showBoldText.onCurrentStock;
+        const isShowBoldOnMaxStock = showBoldText.onMaxStock;
+        const characters = showBoldText.characters;
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
-            const inventory = this.bot.inventoryManager.getInventory;
+            const price = entry[key].toString();
+            const maxStock = entry.max === -1 ? '∞' : entry.max.toString();
+            const currentStock = inventory.getAmount(entry.sku, false, true).toString();
+            const amountTrade = amountCanTrade.toString();
+
             return details
-                .replace(/%price%/g, entry[key].toString())
+                .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, characters) : price)
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-                .replace(/%current_stock%/g, inventory.getAmount(entry.sku, false, true).toString())
-                .replace(/%amount_trade%/g, amountCanTrade.toString());
+                .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, characters) : maxStock)
+                .replace(
+                    /%current_stock%/g,
+                    isShowBoldOnCurrentStock ? boldDetails(currentStock, characters) : currentStock
+                )
+                .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, characters) : amountTrade);
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;
@@ -710,4 +724,24 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
     else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+}
+
+function boldDetails(str: string, characters: BoldCharacters): string {
+    return str
+        .replace('ref', characters.ref)
+        .replace('key', characters.key)
+        .replace('keys', characters.keys)
+        .replace('0', characters['0'])
+        .replace('1', characters['1'])
+        .replace('2', characters['2'])
+        .replace('3', characters['3'])
+        .replace('4', characters['4'])
+        .replace('5', characters['5'])
+        .replace('6', characters['6'])
+        .replace('7', characters['7'])
+        .replace('8', characters['8'])
+        .replace('9', characters['9'])
+        .replace('.', characters.dot)
+        .replace(' ,', characters.comma)
+        .replace('∞', characters.infinity);
 }
