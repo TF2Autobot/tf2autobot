@@ -940,7 +940,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string',
                     maxLength: 200
                 },
-                ShowBoldText: {
+                showBoldText: {
                     type: 'object',
                     properties: {
                         onPrice: {
@@ -1043,7 +1043,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['buy', 'sell', 'ShowBoldText', 'highValue', 'uses'],
+            required: ['buy', 'sell', 'showBoldText', 'highValue', 'uses'],
             additionalProperties: false
         },
         statistics: {
