@@ -955,80 +955,13 @@ export const optionsSchema: jsonschema.Schema = {
                         onMaxStock: {
                             type: 'boolean'
                         },
-                        characters: {
-                            type: 'object',
-                            properties: {
-                                ref: {
-                                    type: 'string'
-                                },
-                                key: {
-                                    type: 'string'
-                                },
-                                keys: {
-                                    type: 'string'
-                                },
-                                0: {
-                                    type: 'string'
-                                },
-                                1: {
-                                    type: 'string'
-                                },
-                                2: {
-                                    type: 'string'
-                                },
-                                3: {
-                                    type: 'string'
-                                },
-                                4: {
-                                    type: 'string'
-                                },
-                                5: {
-                                    type: 'string'
-                                },
-                                6: {
-                                    type: 'string'
-                                },
-                                7: {
-                                    type: 'string'
-                                },
-                                8: {
-                                    type: 'string'
-                                },
-                                9: {
-                                    type: 'string'
-                                },
-                                dot: {
-                                    type: 'string'
-                                },
-                                comma: {
-                                    type: 'string'
-                                },
-                                infinity: {
-                                    type: 'string'
-                                }
-                            },
-                            required: [
-                                'ref',
-                                'key',
-                                'keys',
-                                '0',
-                                '1',
-                                '2',
-                                '3',
-                                '4',
-                                '5',
-                                '6',
-                                '7',
-                                '8',
-                                '9',
-                                'dot',
-                                'comma',
-                                'infinity'
-                            ],
-                            additionalProperties: false
+                        style: {
+                            type: 'number',
+                            minimum: 1,
+                            maximum: 4
                         }
                     },
-                    required: ['onPrice', 'onAmount', 'onCurrentStock', 'onMaxStock', 'characters'],
+                    required: ['onPrice', 'onAmount', 'onCurrentStock', 'onMaxStock', 'style'],
                     additionalProperties: false
                 },
                 highValue: {

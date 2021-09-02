@@ -12,7 +12,7 @@ import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { DictItem } from './Inventory';
-import { PaintedNames, BoldCharacters } from './Options';
+import { PaintedNames } from './Options';
 import { Paints, StrangeParts } from 'tf2-schema-2';
 
 export default class Listings {
@@ -638,7 +638,7 @@ export default class Listings {
         const isShowBoldOnAmount = showBoldText.onAmount;
         const isShowBoldOnCurrentStock = showBoldText.onCurrentStock;
         const isShowBoldOnMaxStock = showBoldText.onMaxStock;
-        const characters = showBoldText.characters;
+        const style = showBoldText.style;
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             const price = entry[key].toString();
@@ -647,14 +647,11 @@ export default class Listings {
             const amountTrade = amountCanTrade.toString();
 
             return details
-                .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, characters) : price)
+                .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, characters) : maxStock)
-                .replace(
-                    /%current_stock%/g,
-                    isShowBoldOnCurrentStock ? boldDetails(currentStock, characters) : currentStock
-                )
-                .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, characters) : amountTrade);
+                .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
+                .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
+                .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;
@@ -726,22 +723,54 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
     else if (attachment === 'p') return getKeyByValue(paints, pSKU);
 }
 
-function boldDetails(str: string, characters: BoldCharacters): string {
-    return str
-        .replace('ref', characters.ref)
-        .replace('key', characters.key)
-        .replace('keys', characters.keys)
-        .replace('0', characters['0'])
-        .replace('1', characters['1'])
-        .replace('2', characters['2'])
-        .replace('3', characters['3'])
-        .replace('4', characters['4'])
-        .replace('5', characters['5'])
-        .replace('6', characters['6'])
-        .replace('7', characters['7'])
-        .replace('8', characters['8'])
-        .replace('9', characters['9'])
-        .replace('.', characters.dot)
-        .replace(' ,', characters.comma)
-        .replace('∞', characters.infinity);
+function boldDetails(str: string, style: number): string {
+    // https://lingojam.com/BoldTextGenerator
+
+    if ([1, 2].includes(style)) {
+        // Bold numbers (serif)
+        str = str
+            .replace('0', '𝟎')
+            .replace('1', '𝟏')
+            .replace('2', '𝟐')
+            .replace('3', '𝟑')
+            .replace('4', '𝟒')
+            .replace('5', '𝟓')
+            .replace('6', '𝟔')
+            .replace('7', '𝟕')
+            .replace('8', '𝟖')
+            .replace('9', '𝟗')
+            .replace('.', '.')
+            .replace(',', ',');
+
+        if (style === 1) {
+            // Bold (serif)
+            return str.replace('ref', '𝐫𝐞𝐟').replace('key', '𝐤𝐞𝐲').replace('keys', '𝐤𝐞𝐲𝐬');
+        } else if (style === 2) {
+            // Italic Bold (serif):
+            return str.replace('ref', '𝒓𝒆𝒇').replace('key', '𝒌𝒆𝒚').replace('keys', '𝒌𝒆𝒚𝒔');
+        }
+    }
+
+    // Bold numbers (sans):
+    str = str
+        .replace('0', '𝟬')
+        .replace('1', '𝟭')
+        .replace('2', '𝟮')
+        .replace('3', '𝟯')
+        .replace('4', '𝟰')
+        .replace('5', '𝟱')
+        .replace('6', '𝟲')
+        .replace('7', '𝟳')
+        .replace('8', '𝟴')
+        .replace('9', '𝟵')
+        .replace('.', '.')
+        .replace(',', ',');
+
+    if (style === 3) {
+        // Bold (sans)
+        return str.replace('ref', '𝗿𝗲𝗳').replace('key', '𝗸𝗲𝘆').replace('keys', '𝗸𝗲𝘆𝘀');
+    } else {
+        // Italic Bold (sans)
+        return str.replace('ref', '𝙧𝙚𝙛').replace('key', '𝙠𝙚𝙮').replace('keys', '𝙠𝙚𝙮𝙨');
+    }
 }

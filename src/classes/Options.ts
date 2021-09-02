@@ -255,24 +255,7 @@ export const DEFAULTS: JsonOptions = {
             onAmount: true,
             onCurrentStock: true,
             onMaxStock: true,
-            characters: {
-                ref: '𝐫𝐞𝐟',
-                key: '𝐤𝐞𝐲',
-                keys: '𝐤𝐞𝐲𝐬',
-                0: '𝟎',
-                1: '𝟏',
-                2: '𝟐',
-                3: '𝟑',
-                4: '𝟒',
-                5: '𝟓',
-                6: '𝟔',
-                7: '𝟕',
-                8: '𝟖',
-                9: '𝟗',
-                dot: '.',
-                comma: ' ,',
-                infinity: '∞'
-            }
+            style: 1
         },
         highValue: {
             showSpells: true,
@@ -1333,26 +1316,7 @@ interface ShowBoldText {
     onAmount: boolean;
     onCurrentStock: boolean;
     onMaxStock: boolean;
-    characters: BoldCharacters;
-}
-
-export interface BoldCharacters {
-    ref: string;
-    key: string;
-    keys: string;
-    0: string;
-    1: string;
-    2: string;
-    3: string;
-    4: string;
-    5: string;
-    6: string;
-    7: string;
-    8: string;
-    9: string;
-    dot: string;
-    comma: string;
-    infinity: string;
+    style: number;
 }
 
 interface ShowHighValue {
