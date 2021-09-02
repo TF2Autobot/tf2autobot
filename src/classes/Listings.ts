@@ -744,11 +744,11 @@ function boldDetails(str: string, style: number): string {
 
         if (style === 1) {
             // Style 1 - Bold (serif)
-            return str.replace('ref', '𝐫𝐞𝐟').replace('key', '𝐤𝐞𝐲').replace('keys', '𝐤𝐞𝐲𝐬');
+            return str.replace('ref', '𝐫𝐞𝐟').replace('keys', '𝐤𝐞𝐲𝐬').replace('key', '𝐤𝐞𝐲');
         }
 
         // Style 2 - Italic Bold (serif)
-        return str.replace('ref', '𝒓𝒆𝒇').replace('key', '𝒌𝒆𝒚').replace('keys', '𝒌𝒆𝒚𝒔');
+        return str.replace('ref', '𝒓𝒆𝒇').replace('keys', '𝒌𝒆𝒚𝒔').replace('key', '𝒌𝒆𝒚');
     }
 
     // Bold numbers (sans):
@@ -768,9 +768,9 @@ function boldDetails(str: string, style: number): string {
 
     if (style === 3) {
         // Style 3 - Bold (sans)
-        return str.replace('ref', '𝗿𝗲𝗳').replace('key', '𝗸𝗲𝘆').replace('keys', '𝗸𝗲𝘆𝘀');
+        return str.replace('ref', '𝗿𝗲𝗳').replace('keys', '𝗸𝗲𝘆𝘀').replace('key', '𝗸𝗲𝘆');
     }
 
     // Style 4 - Italic Bold (sans)
-    return str.replace('ref', '𝙧𝙚𝙛').replace('key', '𝙠𝙚𝙮').replace('keys', '𝙠𝙚𝙮𝙨');
+    return str.replace('ref', '𝙧𝙚𝙛').replace('keys', '𝙠𝙚𝙮𝙨').replace('key', '𝙠𝙚𝙮');
 }
