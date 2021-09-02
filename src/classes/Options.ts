@@ -251,10 +251,10 @@ export const DEFAULTS: JsonOptions = {
         buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
         sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
         showBoldText: {
-            onPrice: true,
-            onAmount: true,
-            onCurrentStock: true,
-            onMaxStock: true,
+            onPrice: false,
+            onAmount: false,
+            onCurrentStock: false,
+            onMaxStock: false,
             style: 1
         },
         highValue: {
