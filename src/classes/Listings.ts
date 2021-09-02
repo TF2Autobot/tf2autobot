@@ -743,12 +743,12 @@ function boldDetails(str: string, style: number): string {
             .replace(',', ',');
 
         if (style === 1) {
-            // Bold (serif)
+            // Style 1 - Bold (serif)
             return str.replace('ref', '𝐫𝐞𝐟').replace('key', '𝐤𝐞𝐲').replace('keys', '𝐤𝐞𝐲𝐬');
-        } else if (style === 2) {
-            // Italic Bold (serif):
-            return str.replace('ref', '𝒓𝒆𝒇').replace('key', '𝒌𝒆𝒚').replace('keys', '𝒌𝒆𝒚𝒔');
         }
+
+        // Style 2 - Italic Bold (serif)
+        return str.replace('ref', '𝒓𝒆𝒇').replace('key', '𝒌𝒆𝒚').replace('keys', '𝒌𝒆𝒚𝒔');
     }
 
     // Bold numbers (sans):
@@ -767,10 +767,10 @@ function boldDetails(str: string, style: number): string {
         .replace(',', ',');
 
     if (style === 3) {
-        // Bold (sans)
+        // Style 3 - Bold (sans)
         return str.replace('ref', '𝗿𝗲𝗳').replace('key', '𝗸𝗲𝘆').replace('keys', '𝗸𝗲𝘆𝘀');
-    } else {
-        // Italic Bold (sans)
-        return str.replace('ref', '𝙧𝙚𝙛').replace('key', '𝙠𝙚𝙮').replace('keys', '𝙠𝙚𝙮𝙨');
     }
+
+    // Style 4 - Italic Bold (sans)
+    return str.replace('ref', '𝙧𝙚𝙛').replace('key', '𝙠𝙚𝙮').replace('keys', '𝙠𝙚𝙮𝙨');
 }
