@@ -941,7 +941,17 @@ export default class Trades {
                                         hasMissingPrices = true;
                                         return 0;
                                     }
-                                    if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
+
+                                    if (!dataDict[side][sku]) return 0;
+
+                                    if (getPureValue(sku as any) !== 0) {
+                                        if (sku === '5021;6' && prices[sku] !== undefined) {
+                                            // Do nothing here, treat Mann Co. Supply Crate Key as non-pure
+                                        } else {
+                                            return 0;
+                                        }
+                                    }
+
                                     if (isWACEnabled && weapons.includes(sku)) return 0.5 * dataDict[side][sku];
 
                                     return (
