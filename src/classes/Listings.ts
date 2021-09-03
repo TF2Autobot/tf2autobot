@@ -247,7 +247,7 @@ export default class Listings {
 
                     // if listing note don't have any parameters (%price%, %amount_trade%, etc), then we check if there's any changes with currencies
                     const isCurrenciesChanged =
-                        listing.currencies.toValue(keyPrice.metal) !==
+                        listing.currencies?.toValue(keyPrice.metal) !==
                         match[listing.intent === 0 ? 'buy' : 'sell']?.toValue(keyPrice.metal);
 
                     const isListingDetailsChanged =
