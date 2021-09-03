@@ -1,4 +1,4 @@
-import fs from 'graceful-fs';
+import fs from 'fs';
 import path from 'path';
 
 import { exponentialBackoff } from './helpers';
