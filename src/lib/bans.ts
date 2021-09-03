@@ -2,14 +2,21 @@ import request from 'request-retry-dayjs';
 import SteamID from 'steamid';
 import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
 
-export async function isBanned(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<boolean> {
+export async function isBanned(
+    steamID: SteamID | string,
+    bptfApiKey: string,
+    userID: string,
+    checkMptfBanned: boolean
+): Promise<boolean> {
     const steamID64 = steamID.toString();
     const [bptf, steamrep] = await Promise.all([
         isBptfBanned(steamID64, bptfApiKey, userID),
         isSteamRepMarked(steamID64, bptfApiKey, userID)
     ]);
 
-    return bptf || steamrep;
+    const mptfBanned = checkMptfBanned ? await isMptfBanned(steamID) : false;
+
+    return bptf || steamrep || mptfBanned;
 }
 
 export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<boolean> {
@@ -99,6 +106,31 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string, userID:
     });
 }
 
+function isMptfBanned(steamID: SteamID | string): Promise<boolean> {
+    const steamID64 = steamID.toString();
+
+    return new Promise((resolve, reject) => {
+        void request(
+            {
+                method: 'POST',
+                url: 'https://rep.tf/api/bans',
+                qs: {
+                    str: steamID64
+                },
+                gzip: true,
+                json: true
+            },
+            (err, response, body: RepTF) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                return resolve(body.mpBans ? body.mpBans.banned === 'bad' : false);
+            }
+        );
+    });
+}
+
 interface SteamRep {
     steamrep: Details;
 }
@@ -113,4 +145,27 @@ interface Details {
 interface Reputation {
     full?: string;
     summary?: string;
+}
+
+interface RepTF {
+    success: boolean;
+    message: string;
+    steamBans: BansInfo; // Steam
+    srBans: BansInfo; // SteamRep
+    stfBans: BansInfo; // Scrap.tf
+    bptfBans: BansInfo; // Backpack.tf
+    mpBans: BansInfo; // Marketplace.tf
+    bzBans: BansInfo; // Bazaar.tf
+    ppmBans: BansInfo; // PPM
+    hgBans: BansInfo; // Harpoon Gaming
+    nhsBans: BansInfo; // NeonHeights Servers
+    stBans: BansInfo; // SMT Gaming
+    fogBans: BansInfo; // FoG Trade
+    etf2lBans: BansInfo; // ETF2L
+}
+
+interface BansInfo {
+    banned: 'good' | 'bad';
+    message: string;
+    icons: string;
 }

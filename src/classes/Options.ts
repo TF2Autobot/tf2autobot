@@ -122,7 +122,8 @@ export const DEFAULTS: JsonOptions = {
             allow: false
         },
         bannedPeople: {
-            allow: false
+            allow: false,
+            checkMptfBanned: true
         }
     },
 
@@ -1188,11 +1189,15 @@ interface Bypass {
     escrow?: OnlyAllow;
     overpay?: OnlyAllow;
     giftWithoutMessage?: OnlyAllow;
-    bannedPeople?: OnlyAllow;
+    bannedPeople?: BannedPeople;
 }
 
 interface OnlyAllow {
     allow?: boolean;
+}
+
+interface BannedPeople extends OnlyAllow {
+    checkMptfBanned: boolean;
 }
 
 // ------------ TradeSummary ------------

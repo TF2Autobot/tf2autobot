@@ -625,7 +625,17 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-allow'
                 },
                 bannedPeople: {
-                    $ref: '#/definitions/only-allow'
+                    type: 'object',
+                    properties: {
+                        allow: {
+                            type: 'boolean'
+                        },
+                        checkMptfBanned: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['allow', 'checkMptfBanned'],
+                    additionalProperties: false
                 }
             },
             required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople'],
