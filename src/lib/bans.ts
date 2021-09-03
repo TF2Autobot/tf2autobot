@@ -127,9 +127,9 @@ function isMptfBanned(steamID: SteamID | string): Promise<boolean> {
         void request(
             {
                 method: 'POST',
-                url: 'https://rep.tf/api/bans',
-                qs: {
-                    str: steamID64
+                url: 'https://rep.tf/api/bans?str=' + steamID64,
+                headers: {
+                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
                 }
             },
             (err, response, body: RepTF) => {
