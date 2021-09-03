@@ -142,7 +142,7 @@ function isMptfBanned(steamID: SteamID | string): Promise<boolean> {
 
                 const isMptfBanned = body.mpBans ? body.mpBans.banned === 'bad' : false;
                 log[isMptfBanned ? 'warn' : 'debug'](
-                    'Marketplace.tf (from Rep.tf): ' + (isMptfBanned ? 'banned' : 'clean')
+                    'Marketplace.tf (from Rep.tf): ' + (isMptfBanned ? `banned - ${body.mpBans.message}` : 'clean')
                 );
 
                 return resolve(isMptfBanned);
