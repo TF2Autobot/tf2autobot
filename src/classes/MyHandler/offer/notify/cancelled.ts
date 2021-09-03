@@ -10,13 +10,11 @@ export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot)
             ? custom
             : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Offer was canceled by user.';
     } else if (oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']) {
-        offer.data('isFailedConfirmation', true);
         const custom = bot.options.customMessage.failedMobileConfirmation;
         reply = custom
             ? custom
             : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Failed to accept mobile confirmation';
     } else {
-        offer.data('isCanceledUnknown', true);
         const custom = bot.options.customMessage.cancelledActiveForAwhile;
         reply = custom
             ? custom

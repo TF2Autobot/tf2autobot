@@ -2133,12 +2133,22 @@ export default class MyHandler extends Handler {
                     if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
                     if (notifyOpt.onDeclined) declined(offer, this.bot, this.isTradingKeys);
+                    offer.data('isDeclined', true);
                     this.isTradingKeys = false; // reset
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
+
+                    if (offer.data('canceledByUser') === true) {
+                        // do nothing
+                    } else if (oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']) {
+                        offer.data('isFailedConfirmation', true);
+                    } else {
+                        offer.data('isCanceledUnknown', true);
+                    }
                     MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
                     if (notifyOpt.onTradedAway) invalid(offer, this.bot);
+                    offer.data('isInvalid', true);
                     MyHandler.removePolldataKeys(offer);
                 }
             }
