@@ -1,6 +1,7 @@
 import request from 'request-retry-dayjs';
 import SteamID from 'steamid';
 import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
+import log from '../lib/logger';
 
 export async function isBanned(
     steamID: SteamID | string,
@@ -39,12 +40,16 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
             },
             (err, response, body: BPTFGetUserInfo) => {
                 if (err) {
+                    log.warn('Failed to get data from backpack.tf: ', err);
                     return reject(err);
                 }
 
                 const user = body.users[steamID64];
+                const isBptfBanned = user.bans && user.bans.all !== undefined;
 
-                return resolve(user.bans && user.bans.all !== undefined);
+                log[isBptfBanned ? 'warn' : 'debug']('Backpack.tf: ' + (isBptfBanned ? 'banned' : 'clean'));
+
+                return resolve(isBptfBanned);
             }
         );
     });
@@ -70,11 +75,16 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string, use
             },
             (err, response, body: BPTFGetUserInfo) => {
                 if (err) {
+                    log.warn('Failed to get data from backpack.tf (for SteamRep status): ', err);
                     return reject(err);
                 }
 
                 const user = body.users[steamID64];
                 const isSteamRepBanned = user.bans ? user.bans.steamrep_scammer === 1 : false;
+
+                log[isSteamRepBanned ? 'warn' : 'debug'](
+                    'SteamRep (from Backpack.tf): ' + (isSteamRepBanned ? 'banned' : 'clean')
+                );
 
                 return resolve(isSteamRepBanned);
             }
@@ -97,10 +107,14 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string, userID:
             },
             (err, response, body: SteamRep) => {
                 if (err) {
-                    resolve(isBptfSteamRepBanned(steamID64, bptfApiKey, userID));
+                    log.warn('Failed to get data from SteamRep: ', err);
+                    return resolve(isBptfSteamRepBanned(steamID64, bptfApiKey, userID));
                 }
 
-                resolve(body.steamrep.reputation.summary.toLowerCase().indexOf('scammer') !== -1);
+                const isSteamRepBanned = body.steamrep.reputation.summary.toLowerCase().indexOf('scammer') !== -1;
+                log[isSteamRepBanned ? 'warn' : 'debug']('SteamRep: ' + (isSteamRepBanned ? 'banned' : 'clean'));
+
+                return resolve(isSteamRepBanned);
             }
         );
     });
@@ -122,10 +136,16 @@ function isMptfBanned(steamID: SteamID | string): Promise<boolean> {
             },
             (err, response, body: RepTF) => {
                 if (err) {
+                    log.warn('Failed to obtain data from Rep.tf: ', err);
                     return reject(err);
                 }
 
-                return resolve(body.mpBans ? body.mpBans.banned === 'bad' : false);
+                const isMptfBanned = body.mpBans ? body.mpBans.banned === 'bad' : false;
+                log[isMptfBanned ? 'warn' : 'debug'](
+                    'Marketplace.tf (from Rep.tf): ' + (isMptfBanned ? 'banned' : 'clean')
+                );
+
+                return resolve(isMptfBanned);
             }
         );
     });
