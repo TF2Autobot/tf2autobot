@@ -130,9 +130,7 @@ function isMptfBanned(steamID: SteamID | string): Promise<boolean> {
                 url: 'https://rep.tf/api/bans',
                 qs: {
                     str: steamID64
-                },
-                gzip: true,
-                json: true
+                }
             },
             (err, response, body: RepTF) => {
                 if (err) {
