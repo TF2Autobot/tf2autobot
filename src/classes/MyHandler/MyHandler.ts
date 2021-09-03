@@ -1516,16 +1516,16 @@ export default class MyHandler extends Handler {
         let isTheirItems = false;
         const exceptionSKU = opt.offerReceived.invalidValue.exceptionValue.skus;
         const exceptionValue = this.invalidValueException;
+        const ourItems = Object.keys(itemsDict.our);
+        const theirItems = Object.keys(itemsDict.their);
 
         if (exceptionSKU.length > 0 && exceptionValue > 0) {
-            const ourItems = Object.keys(itemsDict.our);
             isOurItems = exceptionSKU.some(sku => {
                 return ourItems.some(ourItemSKU => {
                     return ourItemSKU.includes(sku);
                 });
             });
 
-            const theirItems = Object.keys(itemsDict.their);
             isTheirItems = exceptionSKU.some(sku => {
                 return theirItems.some(theirItemSKU => {
                     return theirItemSKU.includes(sku);
@@ -1546,6 +1546,12 @@ export default class MyHandler extends Handler {
                     their: exchange.their.value,
                     missing: exchange.our.value - exchange.their.value
                 });
+
+                // Always run checkBySKU for INVALID_VALUE offer so that the listings will always be updated if incorrect
+                ourItems
+                    .concat(theirItems)
+                    .filter(sku => !['5000;6', '5001;6', '5002;6'].includes(sku))
+                    .forEach(sku => this.bot.listings.checkBySKU(sku));
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
                     `Contains ${exceptionSKU.join(' or ')} and difference is ${Currencies.toRefined(
