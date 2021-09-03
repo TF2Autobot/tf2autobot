@@ -312,6 +312,7 @@ export default class Bot {
         this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
         this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
+        this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
         this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
         this.addListener(this.client, 'loginKey', this.handler.onLoginKey.bind(this.handler), false);
@@ -873,6 +874,13 @@ export default class Bot {
         }
 
         this.handler.onMessage(steamID, message);
+    }
+
+    private onNewItems(count: number): void {
+        if (count !== 0) {
+            log.debug(`Received ${count} item notifications, resetting to zero`);
+            this.community.resetItemNotifications();
+        }
     }
 
     private onWebSession(sessionID: string, cookies: string[]): void {
