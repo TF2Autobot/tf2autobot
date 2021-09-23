@@ -35,7 +35,7 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
                 method: 'POST',
                 url: 'https://rep.tf/api/bans?str=' + steamID64,
                 headers: {
-                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
+                    'User-Agent': 'TF2Autobot'
                 }
             },
             (err, response, body: RepTF) => {
@@ -83,7 +83,7 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
             {
                 url: 'https://backpack.tf/api/users/info/v1',
                 headers: {
-                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                    'User-Agent': 'TF2Autobot',
                     Cookie: 'user-id=' + userID
                 },
                 qs: {
@@ -122,7 +122,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string, use
                     steamids: steamID64
                 },
                 headers: {
-                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                    'User-Agent': 'TF2Autobot',
                     Cookie: 'user-id=' + userID
                 },
                 gzip: true,

@@ -2417,7 +2417,7 @@ export default class MyHandler extends Handler {
                     url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',
                     headers: {
-                        'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                        'User-Agent': 'TF2Autobot',
                         Cookie: 'user-id=' + this.bot.userID
                     },
                     qs: {
