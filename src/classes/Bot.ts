@@ -178,7 +178,9 @@ export default class Bot {
             return Promise.resolve(false);
         }
 
-        return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey, this.userID));
+        return Promise.resolve(
+            isBanned(steamID, this.options.bptfAPIKey, this.userID, this.options.bypass.bannedPeople.checkMptfBanned)
+        );
     }
 
     get alertTypes(): string[] {
