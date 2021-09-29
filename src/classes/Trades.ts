@@ -1438,7 +1438,7 @@ export default class Trades {
                     return sendAlert(
                         'escrow-check-failed-not-restart-bptf-down',
                         this.bot,
-                        err,
+                        err as string,
                         this.escrowCheckFailedCount
                     );
                 } else {
