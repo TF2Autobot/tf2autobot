@@ -19,6 +19,7 @@ export default class PricerApi implements Pricer {
             method: httpMethod,
             url: `${this.url ? this.url : 'https://api.prices.tf'}${path}`,
             headers: {
+                // This one is okay to keep I guess
                 'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
             },
             json: true,
