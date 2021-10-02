@@ -50,7 +50,7 @@
         "pluralize": "^8.0.0",
         "pm2": "^5.1.2",
         "pretty-ms": "^7.0.1",
-        "request-retry-dayjs": "^1.0.5",
+        "request-retry-dayjs": "^1.1.0",
         "retry": "^0.13.1",
         "sleep-async": "^1.0.5",
         "steam-totp": "^2.1.1",
