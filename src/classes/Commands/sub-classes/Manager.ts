@@ -454,7 +454,7 @@ export default class ManagerCommands {
         if (opt.miscSettings.createListings.enable === false) {
             return this.bot.sendMessage(
                 steamID,
-                'miscSettings.crateListings.enable is set to false, thus this command is disabled'
+                'miscSettings.createListings.enable is set to false, thus this command is disabled'
             );
         }
 
