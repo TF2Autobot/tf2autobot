@@ -2031,7 +2031,7 @@ function lintPath(filepath: string): void {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         jsonlint.parse(rawOptions);
     } catch (e) {
-        throwLintError(filepath, e);
+        throwLintError(filepath, e as Error);
     }
 }
 
@@ -2065,7 +2065,7 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     jsonlint.parse(rawOptions);
                 } catch (e) {
-                    throwLintError(optionsPath, e);
+                    throwLintError(optionsPath, e as Error);
                 }
             }
             throw e;

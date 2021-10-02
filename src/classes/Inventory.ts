@@ -398,11 +398,13 @@ export default class Inventory {
 
         const itemsCount = items.length;
         const isAdmin = which === 'admin';
-        const isNormalizeFestivized = isAdmin ? false : opt.normalize.festivized[which as 'our' | 'their'];
-        const isNormalizeStrangeAsSecondQuality = isAdmin
-            ? false
-            : opt.normalize.strangeAsSecondQuality[which as 'our' | 'their'];
-        const isNormalizePainted = isAdmin ? false : opt.normalize.painted[which as 'our' | 'their'];
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const isNormalizeFestivized = isAdmin ? false : opt.normalize.festivized[which];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const isNormalizeStrangeAsSecondQuality = isAdmin ? false : opt.normalize.strangeAsSecondQuality[which];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const isNormalizePainted = isAdmin ? false : opt.normalize.painted[which];
 
         for (let i = 0; i < itemsCount; i++) {
             const getSku = items[i].getSKU(

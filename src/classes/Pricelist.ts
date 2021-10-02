@@ -966,7 +966,7 @@ export default class Pricelist extends EventEmitter {
             });
 
             if (isDwEnabled && dw.showFailedToUpdate) {
-                sendFailedPriceUpdate(data, err, this.isUseCustomPricer, this.options);
+                sendFailedPriceUpdate(data, err as Error, this.isUseCustomPricer, this.options);
             }
 
             return;
