@@ -83,6 +83,14 @@ export function getItemAndAmount(
             }
 
             const pricedItem = pricelist[sku];
+            if (pricedItem.name === null) {
+                // This looks impossible, but can occur I guess.
+                // https://github.com/TF2Autobot/tf2autobot/issues/882
+
+                bot.sendMessage(steamID, `❌ Something went wrong. Please try again.`);
+                return null;
+            }
+
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {
