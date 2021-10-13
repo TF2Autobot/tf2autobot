@@ -1614,7 +1614,7 @@ export default class Trades {
                 this.retryFetchInventory();
             }
 
-            this.bot.handler.onTradeOfferChanged(offer, oldState);
+            this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
         });
     }
 
