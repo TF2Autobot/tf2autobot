@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access' */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { EventEmitter } from 'events';
 import dayjs from 'dayjs';
 import Currencies from 'tf2-currencies-2';
@@ -195,8 +199,6 @@ export default class Pricelist extends EventEmitter {
 
     public readonly maxAge: number;
 
-    private readonly boundHandlePriceChange;
-
     private transformedPricelistForBulk: { [p: string]: Item };
 
     private retryGetKeyPrices: NodeJS.Timeout;
@@ -221,7 +223,6 @@ export default class Pricelist extends EventEmitter {
         super();
         this.schema = schema;
         this.maxAge = this.options.pricelist.priceAge.maxInSeconds || 8 * 60 * 60;
-        this.boundHandlePriceChange = this.handlePriceChange.bind(this);
     }
 
     get isUseCustomPricer(): boolean {
@@ -234,7 +235,29 @@ export default class Pricelist extends EventEmitter {
     }
 
     init(): void {
-        this.socketManager.on('price', this.boundHandlePriceChange);
+        this.socketManager.on('message', message => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const parsed = JSON.parse(message.data);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            if (parsed.type === 'PRICE_UPDATED') {
+                const v = parsed.data;
+                this.handlePriceChange({
+                    sku: v.sku,
+                    name: this.schema.getName(SKU.fromString(v.sku)),
+                    buy: {
+                        keys: v.buyKeys,
+                        metal: Currencies.toRefined(v.buyHalfScrap / 2)
+                    },
+                    sell: {
+                        keys: v.sellKeys,
+                        metal: Currencies.toRefined(v.sellHalfScrap / 2)
+                    },
+                    source: 'bptf',
+                    time: Math.floor(new Date(v.updatedAt).getTime() / 1000)
+                } as GetItemPriceResponse);
+            }
+        });
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {
@@ -336,7 +359,7 @@ export default class Pricelist extends EventEmitter {
         if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
             try {
-                const price = await this.priceSource.getPrice(entry.sku, 'bptf');
+                const price = await this.priceSource.getPrice(entry.sku);
 
                 const newPrices = {
                     buy: new Currencies(price.buy),
@@ -442,7 +465,7 @@ export default class Pricelist extends EventEmitter {
 
     async getItemPrices(sku: string): Promise<ParsedPrice | null> {
         try {
-            return await this.priceSource.getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
+            return await this.priceSource.getPrice(sku).then(response => new ParsedPrice(response));
         } catch (err) {
             const errStringify = JSON.stringify(err);
             const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
@@ -627,7 +650,7 @@ export default class Pricelist extends EventEmitter {
         const entryKey = this.getPrice('5021;6', false);
 
         return this.priceSource
-            .getPrice('5021;6', 'bptf')
+            .getPrice('5021;6')
             .then(keyPrices => {
                 log.debug('Got key price');
 
@@ -757,7 +780,7 @@ export default class Pricelist extends EventEmitter {
         clearTimeout(this.retryGetKeyPrices);
 
         return this.priceSource
-            .getPrice('5021;6', 'bptf')
+            .getPrice('5021;6')
             .then(keyPrices => {
                 log.debug('✅ Got current key prices, updating...');
 
@@ -803,7 +826,7 @@ export default class Pricelist extends EventEmitter {
     private updateOldPrices(old: PricesObject): Promise<void> {
         log.debug('Getting pricelist...');
 
-        return this.priceSource.getPricelist('bptf').then(pricelist => {
+        return this.priceSource.getPricelist().then(pricelist => {
             log.debug('Got pricelist');
 
             const transformedPrices = Pricelist.transformPricesFromPricer(pricelist.items);
@@ -966,7 +989,7 @@ export default class Pricelist extends EventEmitter {
             });
 
             if (isDwEnabled && dw.showFailedToUpdate) {
-                sendFailedPriceUpdate(data, err, this.isUseCustomPricer, this.options);
+                sendFailedPriceUpdate(data, err as Error, this.isUseCustomPricer, this.options);
             }
 
             return;

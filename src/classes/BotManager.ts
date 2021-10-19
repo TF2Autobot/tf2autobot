@@ -11,7 +11,6 @@ import EconItem from '@tf2autobot/tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from 'steamcommunity/classes/CEconItem.js';
 import TradeOffer from '@tf2autobot/tradeoffer-manager/lib/classes/TradeOffer';
 import { camelCase } from 'change-case';
-import Pricer from './Pricer';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
@@ -30,11 +29,9 @@ export default class BotManager {
 
     private exiting = false;
 
-    constructor(private readonly pricer: Pricer) {
-        this.pricer = pricer;
+    constructor() {
         this.extendTradeOfferApis();
-        const priceToken = pricer.getOptions().pricerApiToken;
-        this.socketManager = new SocketManager(pricer.getOptions().pricerUrl, priceToken ? priceToken : null);
+        this.socketManager = new SocketManager();
     }
 
     private extendTradeOfferApis() {
@@ -84,7 +81,7 @@ export default class BotManager {
                     (callback): void => {
                         log.info('Starting bot...');
 
-                        this.bot = new Bot(this, options, this.pricer);
+                        this.bot = new Bot(this, options);
 
                         void this.bot.start().asCallback(callback);
                     }

@@ -17,42 +17,21 @@ export type GetPricerFn = (options: PricerOptions) => Pricer;
 export default interface Pricer {
     getOptions(): PricerOptions;
 
-    requestCheck(sku: string, source: string): Promise<RequestCheckResponse>;
+    requestCheck(sku: string): Promise<RequestCheckResponse>;
 
-    getPrice(sku: string, source: string): Promise<GetItemPriceResponse>;
+    getPrice(sku: string): Promise<GetItemPriceResponse>;
 
-    getSnapshots(sku: string, source: string): Promise<GetItemSnapshotsResponse>;
-
-    getPricelist(source: string): Promise<GetPricelistResponse>;
-
-    getSchema(): Promise<GetSchemaResponse>;
+    getPricelist(): Promise<GetPricelistResponse>;
 }
 
 export type RequestCheckFn = (sku: string, source: string) => Promise<RequestCheckResponse>;
 export type GetPriceFn = (sku: string, source: string) => Promise<GetItemPriceResponse>;
-export type GetSnapshotsFn = (sku: string, source: string) => Promise<GetItemSnapshotsResponse>;
 export type GetPrice = (sku: string, source: string) => Promise<GetItemPriceResponse>;
 export type GetPricelist = (source: string) => Promise<GetPricelistResponse>;
-export type GetSchema = () => Promise<GetSchemaResponse>;
 
 export interface PricesResponse {
     success: boolean;
     message?: string;
-}
-
-export interface GetSchemaResponse extends PricesResponse {
-    version: string;
-    time: number;
-    raw: any;
-}
-
-export interface GetOverviewResponse extends PricesResponse {
-    items: ItemOverview[];
-}
-
-export interface ItemOverview {
-    name: string;
-    sku: string;
 }
 
 export interface GetPricelistResponse extends PricesResponse {
@@ -69,13 +48,6 @@ export interface Item {
     sell: Currencies | null;
 }
 
-export interface Links {
-    ptf: string;
-    mptf: string;
-    scm: string;
-    bptf: string;
-}
-
 export interface GetItemPriceResponse extends PricesResponse {
     sku?: string;
     name?: string;
@@ -85,22 +57,6 @@ export interface GetItemPriceResponse extends PricesResponse {
     buy?: Currencies;
     sell?: Currencies;
     message?: string;
-}
-
-export interface GetItemSnapshotsResponse extends PricesResponse {
-    sku: string;
-    name: string;
-    sales: Sale[];
-}
-
-export interface Sale {
-    id: string;
-    steamid: string;
-    automatic: boolean;
-    attributes: any;
-    intent: number;
-    currencies: Currencies;
-    time: number;
 }
 
 export interface RequestCheckResponse extends PricesResponse {

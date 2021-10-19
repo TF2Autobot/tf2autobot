@@ -11,11 +11,9 @@ import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
 import { testSKU } from '../../../lib/tools/export';
 import { UnknownDictionary } from '../../../types/common';
-import Pricer, { GetPriceFn, GetSnapshotsFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
+import Pricer, { GetPriceFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
 
 export default class RequestCommands {
-    private getSnapshots: GetSnapshotsFn;
-
     private requestCheck: RequestCheckFn;
 
     private getPrice: GetPriceFn;
@@ -23,100 +21,17 @@ export default class RequestCommands {
     constructor(private readonly bot: Bot, private priceSource: Pricer) {
         this.bot = bot;
 
-        this.getSnapshots = this.priceSource.getSnapshots.bind(this.priceSource);
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
-        this.getPrice = this.priceSource.getPrice.bind(this.priceSource);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        this.requestCheck = this.priceSource.requestCheck;
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        this.getPrice = this.priceSource.getPrice;
 
         Pricecheck.setRequestCheckFn(this.requestCheck);
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     async getSnapshotsCommand(steamID: SteamID, message: string): Promise<void> {
-        if (this.bot.options.customPricerUrl !== 'https://api.prices.tf') {
-            return this.bot.sendMessage(steamID, '❌ This command is disabled for custom pricer.');
-        }
-
-        const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
-        if (params.sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
-
-            if (item === null) {
-                return;
-            }
-
-            params.sku = SKU.fromObject(item);
-        } else {
-            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
-        }
-
-        params.sku = fixSKU(params.sku);
-
-        const name = this.bot.schema.getName(SKU.fromString(params.sku));
-        try {
-            const salesData = await this.getSnapshots(params.sku, 'bptf');
-            if (!salesData) {
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ No recorded snapshots found for ${name === null ? (params.sku as string) : name}.`
-                );
-            }
-
-            if (salesData.sales.length === 0) {
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ No recorded snapshots found for ${name === null ? (params.sku as string) : name}.`
-                );
-            }
-
-            const sales: Sales[] = [];
-            salesData.sales.forEach(sale =>
-                sales.push({
-                    seller: 'https://backpack.tf/profiles/' + sale.steamid,
-                    itemHistory: 'https://backpack.tf/item/' + sale.id.replace('440_', ''),
-                    keys: sale.currencies.keys,
-                    metal: sale.currencies.metal,
-                    date: sale.time
-                })
-            );
-            sales.sort((a, b) => b.date - a.date);
-
-            let left = 0;
-            const salesList: string[] = [];
-            const salesListCount = salesList.length;
-            const salesCount = sales.length;
-
-            for (let i = 0; i < salesCount; i++) {
-                if (salesListCount > 40) {
-                    left += 1;
-                } else {
-                    const sale = sales[i];
-                    salesList.push(
-                        `Listed #${i + 1}-----\n• Date: ${dayjs.unix(sale.date).utc().toString()}\n• Item: ${
-                            sale.itemHistory
-                        }\n• Seller: ${sale.seller}\n• Was selling for: ${sale.keys > 0 ? `${sale.keys} keys,` : ''} ${
-                            sale.metal
-                        } ref`
-                    );
-                }
-            }
-
-            let reply = `🔎 Recorded removed sell listings from backpack.tf\n\nItem name: ${
-                salesData.name
-            }\n\n-----${salesList.join('\n\n-----')}`;
-            if (left > 0) {
-                reply += `,\n\nand ${left} other ${pluralize('sale', left)}`;
-            }
-
-            this.bot.sendMessage(steamID, reply);
-        } catch (err) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ Error getting sell snapshots for ${name === null ? (params.sku as string) : name}: ${
-                    (err as ErrorRequest).body && (err as ErrorRequest).body.message
-                        ? (err as ErrorRequest).body.message
-                        : (err as ErrorRequest).message
-                }`
-            );
-        }
+        return this.bot.sendMessage(steamID, '❌ This command is disabled');
     }
 
     pricecheckCommand(steamID: SteamID, message: string): void {
