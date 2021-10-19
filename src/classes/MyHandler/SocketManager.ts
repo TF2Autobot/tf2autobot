@@ -1,29 +1,35 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import io from '@tf2autobot/socket.io-client';
+import ReconnectingWebSocket from 'reconnecting-websocket';
+import request from 'request';
+import WS from 'ws';
 import log from '../../lib/logger';
 
-export default class SocketManager {
-    private socket: any;
+let token = '';
 
-    constructor(public url: string, public key?: string) {}
+class WebSocket extends WS {
+    constructor(url, protocols) {
+        super(url, protocols, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        });
+    }
+}
+
+export default class SocketManager {
+    private ws: ReconnectingWebSocket;
 
     private socketDisconnected() {
-        return (reason: string) => {
-            log.debug('Disconnected from socket server', { reason: reason });
-
-            if (reason === 'io server disconnect') {
-                this.socket.connect();
-            }
+        return () => {
+            log.debug('Disconnected from socket server');
         };
     }
 
     private socketUnauthorized() {
-        return (err: Error) => {
-            log.warn('Failed to authenticate with socket server', {
-                error: err
-            });
+        return () => {
+            log.warn('Failed to authenticate with socket server', {});
         };
     }
 
@@ -36,36 +42,50 @@ export default class SocketManager {
     private socketConnect() {
         return () => {
             log.debug('Connected to socket server');
-            this.socket.emit('authentication', this.key);
         };
     }
 
     init(): Promise<void> {
         return new Promise(resolve => {
             this.shutDown();
+
+            this.ws = new ReconnectingWebSocket('wss://ws.prices.tf', [], {
+                WebSocket,
+                maxEnqueuedMessages: 0,
+                startClosed: true
+            });
+
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-            this.socket = io(this.url, {
-                forceNew: true,
-                autoConnect: false
-            });
-            this.socket.on('connect', this.socketConnect());
+            this.ws.addEventListener('open', this.socketConnect());
 
-            this.socket.on('authenticated', this.socketAuthenticated());
+            this.ws.addEventListener('error', this.socketUnauthorized());
 
-            this.socket.on('unauthorized', this.socketUnauthorized());
+            this.ws.addEventListener('close', this.socketDisconnected());
 
-            this.socket.on('disconnect', this.socketDisconnected());
+            this.ws.addEventListener('error', err => {
+                if (err.message === 'Unexpected server response: 401') {
+                    log.debug('WS JWT expired');
+                    this.ws.close();
 
-            this.socket.on('ratelimit', (rateLimit: { limit: number; remaining: number; reset: number }) => {
-                log.debug(`ptf quota: ${JSON.stringify(rateLimit)}`);
-            });
+                    request(
+                        {
+                            method: 'POST',
+                            url: 'https://api2.prices.tf/auth/access',
+                            json: true
+                        },
+                        (err, response, body) => {
+                            if (err) {
+                                this.ws.reconnect();
+                                throw err;
+                            }
 
-            this.socket.on('blocked', (blocked: { expire: number }) => {
-                log.warn(`Socket blocked. Expires in ${blocked.expire}`);
-            });
-
-            this.socket.on('connect_error', err => {
-                log.warn(`Couldn't connect to socket server`, err);
+                            log.debug('Got new access token for WS');
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            token = body.accessToken;
+                            this.ws.reconnect();
+                        }
+                    );
+                }
             });
 
             resolve(undefined);
@@ -73,18 +93,17 @@ export default class SocketManager {
     }
 
     connect(): void {
-        this.socket.connect();
+        this.ws.reconnect();
     }
 
     shutDown(): void {
-        if (this.socket) {
-            this.socket.removeAllListeners();
-            this.socket.disconnect();
-            this.socket = undefined;
+        if (this.ws) {
+            this.ws.close();
+            this.ws = undefined;
         }
     }
 
     on(name: string, handler: OmitThisParameter<(T: any) => void>): void {
-        this.socket.on(name, handler);
+        this.ws.addEventListener('message', handler);
     }
 }

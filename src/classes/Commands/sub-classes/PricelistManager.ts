@@ -414,7 +414,7 @@ export default class PricelistManagerCommands {
         if (isHasAutoprice) {
             try {
                 this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
-                const pricerPricelist = await this.priceSource.getPricelist('bptf');
+                const pricerPricelist = await this.priceSource.getPricelist();
                 const items = pricerPricelist.items;
 
                 this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, adding items to our pricelist...`);
@@ -1416,7 +1416,7 @@ export default class PricelistManagerCommands {
         if (isHasAutoprice) {
             try {
                 this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
-                const pricerPricelist = await this.priceSource.getPricelist('bptf');
+                const pricerPricelist = await this.priceSource.getPricelist();
                 const items = pricerPricelist.items;
 
                 this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, updating items...`);

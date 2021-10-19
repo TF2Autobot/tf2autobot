@@ -50,6 +50,7 @@
         "pluralize": "^8.0.0",
         "pm2": "^5.1.2",
         "pretty-ms": "^7.0.1",
+        "reconnecting-websocket": "^4.4.0",
         "request-retry-dayjs": "^1.1.0",
         "retry": "^0.13.1",
         "sleep-async": "^1.0.5",
@@ -65,6 +66,7 @@
         "websocket-extensions": "^0.1.4",
         "winston": "^3.3.3",
         "winston-daily-rotate-file": "^4.5.5",
+        "ws": "^7.4.6",
         "xmlhttprequest-ts": "^1.0.1"
     },
     "devDependencies": {

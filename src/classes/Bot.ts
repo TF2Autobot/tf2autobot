@@ -27,6 +27,7 @@ import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
 import Pricer from './Pricer';
+import PricerApi from '../lib/pricer-api';
 
 export default class Bot {
     // Modules and classes
@@ -110,7 +111,9 @@ export default class Bot {
 
     public userID: string;
 
-    constructor(public readonly botManager: BotManager, public options: Options, private priceSource: Pricer) {
+    priceSource: PricerApi;
+
+    constructor(public readonly botManager: BotManager, public options: Options) {
         this.botManager = botManager;
 
         this.client = new SteamUser();
@@ -124,6 +127,11 @@ export default class Bot {
             pendingCancelTime: 1.5 * 60 * 1000
         });
 
+        this.schemaManager = new SchemaManager({
+            apiKey: '',
+            updateTime: 24 * 60 * 60 * 1000
+        });
+
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
 
@@ -132,6 +140,8 @@ export default class Bot {
         this.trades = new Trades(this);
         this.listings = new Listings(this);
         this.tf2gc = new TF2GC(this);
+
+        this.priceSource = new PricerApi(this.schemaManager);
 
         this.handler = new MyHandler(this, this.priceSource);
 
@@ -423,11 +433,7 @@ export default class Bot {
                         void this.setCookies(cookies).asCallback(callback);
                     },
                     (callback): void => {
-                        this.schemaManager = new SchemaManager({
-                            apiKey: this.manager.apiKey,
-                            updateTime: 24 * 60 * 60 * 1000
-                        });
-
+                        this.schemaManager.apiKey = this.manager.apiKey;
                         log.info('Getting TF2 schema...');
                         void this.initializeSchema().asCallback(callback);
                     },
