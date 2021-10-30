@@ -56,26 +56,21 @@ export default class PricesTfApi2SocketManager {
 
         this.ws.addEventListener('open', this.socketConnect());
 
-        this.ws.addEventListener('error', this.socketUnauthorized());
-
-        this.ws.addEventListener('close', this.socketDisconnected());
-
         this.ws.addEventListener('error', err => {
             if (err.message === 'Unexpected server response: 401') {
-                log.debug('WS JWT expired');
                 this.ws.close();
                 void this.api
                     .setupToken()
-                    .then(() => {
-                        log.debug('Got new access token for WS');
-                        this.ws.reconnect();
-                    })
+                    .then(() => this.ws.reconnect())
                     .catch(err => {
                         this.ws.reconnect();
+                        this.socketUnauthorized();
                         throw err;
                     });
             }
         });
+
+        this.ws.addEventListener('close', this.socketDisconnected());
     }
 
     connect(): void {

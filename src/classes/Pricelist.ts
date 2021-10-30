@@ -194,6 +194,8 @@ export default class Pricelist extends EventEmitter {
 
     public readonly maxAge: number;
 
+    private readonly boundHandlePriceChange;
+
     private transformedPricelistForBulk: { [p: string]: Item };
 
     private retryGetKeyPrices: NodeJS.Timeout;
@@ -217,6 +219,7 @@ export default class Pricelist extends EventEmitter {
         super();
         this.schema = schema;
         this.maxAge = this.options.pricelist.priceAge.maxInSeconds || 8 * 60 * 60;
+        this.boundHandlePriceChange = this.handlePriceChange.bind(this);
     }
 
     get isUseCustomPricer(): boolean {
@@ -226,6 +229,15 @@ export default class Pricelist extends EventEmitter {
     get isDwAlertEnabled(): boolean {
         const opt = this.bot.options.discordWebhook.sendAlert;
         return opt.enable && opt.url !== '';
+    }
+
+    init(): void {
+        this.priceSource.on(message => {
+            if (message.type === 'PRICE_UPDATED') {
+                const v = this.priceSource.parseMessageEvent(message);
+                this.handlePriceChange(v);
+            }
+        });
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {

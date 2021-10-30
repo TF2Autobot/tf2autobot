@@ -1,7 +1,6 @@
 import SteamID from 'steamid';
 import SKU from 'tf2-sku-2';
 import pluralize from 'pluralize';
-import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 import Currencies from 'tf2-currencies-2';
 import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
@@ -22,8 +21,7 @@ export default class RequestCommands {
         Pricecheck.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async getSnapshotsCommand(steamID: SteamID, message: string): Promise<void> {
+    getSnapshotsCommand(steamID: SteamID): void {
         return this.bot.sendMessage(steamID, '❌ This command is disabled');
     }
 
@@ -237,14 +235,6 @@ class Pricecheck {
     private static removeJob(): void {
         delete this.pricecheck['1'];
     }
-}
-
-interface Sales {
-    seller: string;
-    itemHistory: string;
-    keys: number;
-    metal: number;
-    date: number;
 }
 
 interface ErrorRequest {

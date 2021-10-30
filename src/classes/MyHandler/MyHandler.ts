@@ -444,7 +444,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    onMessage(steamID: SteamID, message: string): void {
+    async onMessage(steamID: SteamID, message: string): Promise<void> {
         if (!this.opt.commands.enable) {
             if (!this.bot.isAdmin(steamID)) {
                 const custom = this.opt.commands.customDisableReply;
@@ -476,7 +476,7 @@ export default class MyHandler extends Handler {
         this.recentlySentMessage[steamID64] =
             (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
-        this.commands.processMessage(steamID, message);
+        await this.commands.processMessage(steamID, message);
     }
 
     onLoginKey(loginKey: string): void {

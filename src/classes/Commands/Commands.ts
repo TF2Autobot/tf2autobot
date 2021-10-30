@@ -87,7 +87,7 @@ export default class Commands {
         this.opt.updateOptionsCommand(steamID, message);
     }
 
-    processMessage(steamID: SteamID, message: string): void {
+    async processMessage(steamID: SteamID, message: string): Promise<void> {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
         const isWhitelisted = this.bot.isWhitelisted(steamID);
@@ -195,13 +195,13 @@ export default class Commands {
                     : (command as CraftUncraft)
             );
         } else if (command === 'snapshots' && isAdmin) {
-            void this.request.getSnapshotsCommand(steamID, message);
+            this.request.getSnapshotsCommand(steamID);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             void this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
-            this.pManager.addCommand(steamID, message);
+            await this.pManager.addCommand(steamID, message);
         } else if (command === 'addbulk' && isAdmin) {
             void this.pManager.addbulkCommand(steamID, message);
         } else if (command === 'update' && isAdmin) {

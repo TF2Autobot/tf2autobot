@@ -20,5 +20,7 @@ jobs:
     - run: npm install
     - run: npm run build --if-present
     - run: npm test
+    - run: |
+        find . -name '*.map' | xargs -n1  ls -l | awk '{s+=$5} END {print "Mapping total file size: ",s/1024/1024, " MB"}'
       env:
         CI: true

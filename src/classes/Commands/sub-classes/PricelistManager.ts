@@ -31,7 +31,7 @@ export default class PricelistManagerCommands {
         this.bot = bot;
     }
 
-    addCommand(steamID: SteamID, message: string): void {
+    async addCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
         if (params.enabled === undefined) {
@@ -174,7 +174,7 @@ export default class PricelistManagerCommands {
 
         params.sku = fixSKU(params.sku);
 
-        this.bot.pricelist
+        return this.bot.pricelist
             .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(

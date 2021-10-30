@@ -2,7 +2,6 @@ import { OptionsWithUrl, ResponseAsJSON } from 'request';
 
 import request from 'request-retry-dayjs';
 import { PricerOptions } from '../../../classes/IPricer';
-import logger from '../../logger';
 import {
     Prices2AuthAccessResponse,
     Prices2GetPricesResponse,
@@ -13,11 +12,7 @@ import {
 export default class PricesTfApi2 {
     public static readonly URL = 'https://api2.prices.tf';
 
-    public constructor(public token?: string) {
-        if (!token) {
-            this.token = '';
-        }
-    }
+    public token = '';
 
     private async authedApiRequest<I, B>(
         httpMethod: string,
@@ -93,8 +88,7 @@ export default class PricesTfApi2 {
 
     getOptions(): PricerOptions {
         return {
-            pricerUrl: 'https://api2.prices.tf',
-            pricerApiToken: this.token
+            pricerUrl: 'https://api2.prices.tf'
         };
     }
 }

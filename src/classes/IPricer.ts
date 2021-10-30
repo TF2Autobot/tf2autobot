@@ -28,6 +28,8 @@ export default interface IPricer {
     shutdown(): void;
 
     init(): void;
+
+    parseMessageEvent(event: MessageEvent): Item;
 }
 
 export type RequestCheckFn = (sku: string) => Promise<RequestCheckResponse>;

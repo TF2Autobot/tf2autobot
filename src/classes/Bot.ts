@@ -27,6 +27,7 @@ import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
 import IPricer from './IPricer';
+import { EventEmitter } from 'events';
 
 export default class Bot {
     // Modules and classes
@@ -229,14 +230,31 @@ export default class Bot {
         return this.ready;
     }
 
-    private addListener(emitter: any, event: string, listener: (...args) => void, checkCanEmit: boolean): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    private addListener(
+        emitter: EventEmitter,
+        event: string,
+        listener: (...args) => void,
+        checkCanEmit: boolean
+    ): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
                     listener(...args);
                 }
             });
+        });
+    }
+
+    private addAsyncListener(
+        emitter: EventEmitter,
+        event: string,
+        listener: (...args) => Promise<void>,
+        checkCanEmit: boolean
+    ): void {
+        emitter.on(event, (...args): void => {
+            if (!checkCanEmit || this.canSendEvents()) {
+                process.nextTick(listener, ...args);
+            }
         });
     }
 
@@ -316,7 +334,7 @@ export default class Bot {
         let cookies: string[];
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
-        this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
+        this.addAsyncListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
         this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
         this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
@@ -874,12 +892,12 @@ export default class Bot {
         return this.ready && !this.botManager.isStopping;
     }
 
-    private onMessage(steamID: SteamID, message: string): void {
+    private async onMessage(steamID: SteamID, message: string): Promise<void> {
         if (message.startsWith('[tradeoffer sender=') && message.endsWith('[/tradeoffer]')) {
             return;
         }
 
-        this.handler.onMessage(steamID, message);
+        await this.handler.onMessage(steamID, message);
     }
 
     private onNewItems(count: number): void {

@@ -1,6 +1,7 @@
 import IPricer, {
     GetItemPriceResponse,
     GetPricelistResponse,
+    Item,
     PricerOptions,
     RequestCheckResponse
 } from '../../classes/IPricer';
@@ -13,6 +14,17 @@ export default class PricesTfApiPricer implements IPricer {
 
     public constructor(private api: PricesTfApi) {
         this.socketManager = new PricesTfSocketManager(api.url, api.apiToken ? api.apiToken : null);
+    }
+
+    parseMessageEvent(event: MessageEvent<GetItemPriceResponse>): Item {
+        const r = event.data;
+        return {
+            buy: r.buy,
+            sell: r.sell,
+            sku: r.sku,
+            source: r.source,
+            time: r.time
+        };
     }
 
     async requestCheck(sku: string): Promise<RequestCheckResponse> {

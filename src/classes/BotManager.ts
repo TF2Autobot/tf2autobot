@@ -1,4 +1,4 @@
-import async, { ErrorCallback } from 'async';
+import async from 'async';
 import SchemaManager from 'tf2-schema-2';
 import pm2 from 'pm2';
 import Bot from './Bot';

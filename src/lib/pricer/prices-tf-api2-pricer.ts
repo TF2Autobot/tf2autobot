@@ -24,19 +24,7 @@ export default class PricesTfApi2Pricer implements IPricer {
 
     async getPrice(sku: string): Promise<GetItemPriceResponse> {
         const response = await this.api.getPrice(sku);
-        return {
-            sku: response.sku,
-            buy: new Currencies({
-                keys: response.buyKeys,
-                metal: Currencies.toRefined(response.buyHalfScrap / 2)
-            }),
-            sell: new Currencies({
-                keys: response.sellKeys,
-                metal: Currencies.toRefined(response.sellHalfScrap / 2)
-            }),
-            source: 'bptf',
-            time: Math.floor(new Date(response.updatedAt).getTime() / 1000)
-        };
+        return this.parsePrices2Item(response);
     }
 
     async getPricelist(): Promise<GetPricelistResponse> {
@@ -60,21 +48,7 @@ export default class PricesTfApi2Pricer implements IPricer {
             delay = Math.max(0, minDelay - time);
         } while (currentPage < totalPages);
 
-        const parsed: Item[] = prices.map(v => {
-            return {
-                sku: v.sku,
-                buy: new Currencies({
-                    keys: v.buyKeys,
-                    metal: Currencies.toRefined(v.buyHalfScrap / 2)
-                }),
-                sell: new Currencies({
-                    keys: v.sellKeys,
-                    metal: Currencies.toRefined(v.sellHalfScrap / 2)
-                }),
-                source: 'bptf',
-                time: Math.floor(new Date(v.updatedAt).getTime() / 1000)
-            };
-        });
+        const parsed: Item[] = prices.map(v => this.parseItem(this.parsePrices2Item(v)));
         return { items: parsed };
     }
 
@@ -96,5 +70,35 @@ export default class PricesTfApi2Pricer implements IPricer {
 
     init(): void {
         return this.socketManager.init();
+    }
+
+    parsePrices2Item(v: Prices2Item): GetItemPriceResponse {
+        return {
+            sku: v.sku,
+            buy: new Currencies({
+                keys: v.buyKeys,
+                metal: Currencies.toRefined(v.buyHalfScrap / 2)
+            }),
+            sell: new Currencies({
+                keys: v.sellKeys,
+                metal: Currencies.toRefined(v.sellHalfScrap / 2)
+            }),
+            source: 'bptf',
+            time: Math.floor(new Date(v.updatedAt).getTime() / 1000)
+        };
+    }
+
+    parseItem(r: GetItemPriceResponse): Item {
+        return {
+            buy: r.buy,
+            sell: r.sell,
+            sku: r.sku,
+            source: r.source,
+            time: r.time
+        };
+    }
+
+    parseMessageEvent(e: MessageEvent<Prices2Item>): Item {
+        return this.parseItem(this.parsePrices2Item(e.data));
     }
 }

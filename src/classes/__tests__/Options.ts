@@ -151,7 +151,7 @@ test('removes cli options', () => {
 
 test('loads prices.tf options', () => {
     let result = Options.loadOptions({ steamAccountName: 'abc123' });
-    expect(result.customPricerUrl).toEqual('https://api.prices.tf');
+    expect(result.customPricerUrl).toEqual('');
     result = Options.loadOptions({ steamAccountName: 'abc123', customPricerUrl: 'alternative.tf' });
     expect(result.customPricerUrl).toEqual('alternative.tf');
 });
