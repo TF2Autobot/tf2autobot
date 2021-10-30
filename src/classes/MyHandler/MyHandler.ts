@@ -46,7 +46,7 @@ import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
-import Pricer, { RequestCheckFn } from '../Pricer';
+import IPricer, { RequestCheckFn } from '../IPricer';
 import Options, { OfferType } from '../Options';
 
 const filterReasons = (reasons: string[]) => {
@@ -215,7 +215,7 @@ export default class MyHandler extends Handler {
         this.executedDelayTime = delay;
     }
 
-    constructor(public bot: Bot, private priceSource: Pricer) {
+    constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
 
         this.commands = new Commands(bot, priceSource);

@@ -1,6 +1,7 @@
 import 'module-alias/register';
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const { version: BOT_VERSION } = require('../package.json');
+import { getPricer } from './lib/pricer/pricer';
 import { loadOptions } from './classes/Options';
 
 process.env.BOT_VERSION = BOT_VERSION as string;
@@ -42,7 +43,12 @@ if (process.env.pm_id === undefined) {
 }
 
 import BotManager from './classes/BotManager';
-const botManager = new BotManager();
+const botManager = new BotManager(
+    getPricer({
+        pricerUrl: options.customPricerUrl,
+        pricerApiToken: options.customPricerApiToken
+    })
+);
 
 import ON_DEATH from 'death';
 import * as inspect from 'util';

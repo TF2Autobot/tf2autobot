@@ -1,7 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8df990bc-0ff8-4b13-9ddb-ffd09cc8298e" name="Default Changelist" comment="" />
+    <list default="true" id="79267736-fff4-468a-af15-95640a6b2f64" name="Changes" comment="shift around new pricer to allow old or new">
+      <change afterPath="$PROJECT_DIR$/src/lib/pricer/apis/prices-tf-api.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/pricer/apis/prices-tf-interfaces.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/pricer/pricer.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/pricer/prices-tf-api-pricer.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/pricer/prices-tf-api2-pricer.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/pricer/prices-tf-socket-manager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/Bot.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/Bot.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/BotManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/BotManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/Commands/Commands.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/Commands/Commands.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/Commands/sub-classes/PricelistManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/Commands/sub-classes/PricelistManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/Commands/sub-classes/Request.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/Commands/sub-classes/Request.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/MyHandler/MyHandler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/MyHandler/MyHandler.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/MyHandler/SocketManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/pricer/prices-tf-api2-socket-manager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/MyHandler/offer/accepted/requestPriceCheck.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/MyHandler/offer/accepted/requestPriceCheck.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/Pricelist.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/Pricelist.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/Pricer.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/IPricer.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/classes/__tests__/Pricelist.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/classes/__tests__/Pricelist.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/DiscordWebhook/pricelistUpdateFailed.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/DiscordWebhook/pricelistUpdateFailed.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/__mocks__/pricer-api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/pricer/apis/__mocks__/prices-tf-api.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/pricer-api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/pricer/apis/pricer-tf-api2.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -9,8 +36,28 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="SOFT" />
   </component>
-  <component name="ProjectId" id="1nMXezyKLYMhXsme8J7bPLDejbn" />
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/types/common.d.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/classes/Autokeys/Autokeys.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/classes/Commands/sub-classes/PricelistManager.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/classes/Bot.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/classes/Commands/Commands.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/classes/MyHandler/offer/accepted/updateListings.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/classes/Pricelist.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/lib/items.ts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/lib/DiscordWebhook/sendTradeSummary.ts" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectId" id="20EFvmnPOIjcyTUW3vMAwBC9Exr" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -20,17 +67,27 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/lib/pricer" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="prettierjs.PrettierConfiguration.Package" value="C:\Users\joe\trading\src\tf2autobot\node_modules\prettier" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="ts.external.directory.path" value="C:\Users\joe\trading\src\tf2autobot\node_modules\typescript\lib" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\joe\trading\src\tf2autobot\src\lib\pricer" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\joe\trading\src\tf2autobot\src\lib\pricer\apis" />
+      <recent name="C:\Users\joe\trading\src\tf2autobot\src\lib\pricer" />
+    </key>
+  </component>
   <component name="RunManager">
-    <configuration name="Default" type="NodeJSConfigurationType" path-to-js-file="dist/app.js" working-dir="$PROJECT_DIR$">
+    <configuration name="app.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="dist/app.js" working-dir="$PROJECT_DIR$">
       <method v="2">
-        <option name="NpmBeforeRunTask" enabled="true">
-          <package-json value="$PROJECT_DIR$/package.json" />
-          <command value="install" />
-          <node-interpreter value="project" />
-          <envs />
-        </option>
         <option name="TypeScript.Before.Run" enabled="true" FAIL_ON_ERROR="true" CONFIG_PATH="$PROJECT_DIR$/tsconfig.json" />
       </method>
     </configuration>
@@ -38,13 +95,35 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="8df990bc-0ff8-4b13-9ddb-ffd09cc8298e" name="Default Changelist" comment="" />
-      <created>1611201035968</created>
+      <changelist id="79267736-fff4-468a-af15-95640a6b2f64" name="Changes" comment="" />
+      <created>1635602075024</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1611201035968</updated>
-      <workItem from="1611201041165" duration="541000" />
+      <updated>1635602075024</updated>
+      <workItem from="1635602077890" duration="7775000" />
     </task>
+    <task id="LOCAL-00001" summary="gotta fix catching the 401s in the api but this is close">
+      <created>1635606568477</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1635606568477</updated>
+    </task>
+    <task id="LOCAL-00002" summary="note nested class">
+      <created>1635606934491</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1635606934491</updated>
+    </task>
+    <task id="LOCAL-00003" summary="fix 401's">
+      <created>1635609712939</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1635609712939</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -55,23 +134,36 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="FILTERS">
-                <map>
-                  <entry key="date">
-                    <value>
-                      <list>
-                        <option value="1610899200000" />
-                        <option value="1611072000000" />
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="gotta fix catching the 401s in the api but this is close" />
+    <MESSAGE value="note nested class" />
+    <MESSAGE value="fix 401's" />
+    <MESSAGE value="shift around new pricer to allow old or new" />
+    <option name="LAST_COMMIT_MESSAGE" value="shift around new pricer to allow old or new" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/classes/BotManager.ts</url>
+          <line>97</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/classes/Pricelist.ts</url>
+          <line>619</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

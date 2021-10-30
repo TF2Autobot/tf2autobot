@@ -14,7 +14,7 @@ import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 import validator from '../../../lib/validator';
 import { testSKU } from '../../../lib/tools/export';
-import Pricer from '../../Pricer';
+import IPricer from '../../IPricer';
 
 // Pricelist manager
 
@@ -27,7 +27,7 @@ export default class PricelistManagerCommands {
 
     static isBulkOperation = false;
 
-    constructor(private readonly bot: Bot, private priceSource: Pricer) {
+    constructor(private readonly bot: Bot, private priceSource: IPricer) {
         this.bot = bot;
     }
 

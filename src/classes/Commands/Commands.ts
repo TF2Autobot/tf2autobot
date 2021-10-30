@@ -16,7 +16,7 @@ import UserCart from '../Carts/UserCart';
 import DonateCart from '../Carts/DonateCart';
 import PremiumCart from '../Carts/PremiumCart';
 import CartQueue from '../Carts/CartQueue';
-import Pricer from '../Pricer';
+import IPricer from '../IPricer';
 import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
@@ -55,7 +55,7 @@ export default class Commands {
 
     adminInventory: UnknownDictionary<Inventory> = {};
 
-    constructor(private readonly bot: Bot, private readonly pricer: Pricer) {
+    constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
         this.help = new c.HelpCommands(bot);
         this.manager = new c.ManagerCommands(bot);
         this.message = new c.MessageCommand(bot);

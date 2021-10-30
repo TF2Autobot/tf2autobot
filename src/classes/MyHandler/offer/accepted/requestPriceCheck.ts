@@ -1,5 +1,5 @@
 import sleepasync from 'sleep-async';
-import { RequestCheckFn, RequestCheckResponse } from '../../../Pricer';
+import { RequestCheckFn, RequestCheckResponse } from '../../../IPricer';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
 

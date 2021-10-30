@@ -26,8 +26,7 @@ import Groups from './Groups';
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
-import Pricer from './Pricer';
-import PricerApi from '../lib/pricer-api';
+import IPricer from './IPricer';
 
 export default class Bot {
     // Modules and classes
@@ -111,9 +110,7 @@ export default class Bot {
 
     public userID: string;
 
-    priceSource: PricerApi;
-
-    constructor(public readonly botManager: BotManager, public options: Options) {
+    constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
         this.client = new SteamUser();
@@ -140,8 +137,6 @@ export default class Bot {
         this.trades = new Trades(this);
         this.listings = new Listings(this);
         this.tf2gc = new TF2GC(this);
-
-        this.priceSource = new PricerApi(this.schemaManager);
 
         this.handler = new MyHandler(this, this.priceSource);
 
@@ -433,19 +428,17 @@ export default class Bot {
                         void this.setCookies(cookies).asCallback(callback);
                     },
                     (callback): void => {
-                        this.schemaManager.apiKey = this.manager.apiKey;
+                        this.schemaManager = new SchemaManager({
+                            apiKey: this.manager.apiKey,
+                            updateTime: 24 * 60 * 60 * 1000
+                        });
+
                         log.info('Getting TF2 schema...');
                         void this.initializeSchema().asCallback(callback);
                     },
                     (callback): void => {
                         log.info('Setting properties, inventory, etc...');
-                        this.pricelist = new Pricelist(
-                            this.priceSource,
-                            this.schema,
-                            this.botManager.getSocketManager,
-                            this.options,
-                            this
-                        );
+                        this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
                         this.inventoryManager = new InventoryManager(this.pricelist);
 
                         const userID = this.bptf._getUserID();
@@ -534,12 +527,10 @@ export default class Bot {
                             callback
                         );
                     },
-                    (callback): void => {
+                    async (): Promise<void> => {
                         if (this.options.enableSocket === false) {
                             log.warn('Disabling socket...');
-                            this.botManager.getSocketManager.shutDown();
-                        } else {
-                            this.pricelist.init();
+                            this.priceSource.shutdown();
                         }
 
                         log.info('Setting up pricelist...');
@@ -551,7 +542,7 @@ export default class Bot {
                               }, {}) as PricesDataObject)
                             : data.pricelist || {};
 
-                        void this.pricelist.setPricelist(pricelist, this).asCallback(callback);
+                        await this.pricelist.setPricelist(pricelist, this);
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');

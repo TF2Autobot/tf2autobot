@@ -11,14 +11,14 @@ import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
 import { testSKU } from '../../../lib/tools/export';
 import { UnknownDictionary } from '../../../types/common';
-import Pricer, { GetPriceFn, RequestCheckFn, RequestCheckResponse } from '../../Pricer';
+import IPricer, { GetPriceFn, RequestCheckFn, RequestCheckResponse } from '../../IPricer';
 
 export default class RequestCommands {
     private requestCheck: RequestCheckFn;
 
     private getPrice: GetPriceFn;
 
-    constructor(private readonly bot: Bot, private priceSource: Pricer) {
+    constructor(private readonly bot: Bot, private priceSource: IPricer) {
         this.bot = bot;
 
         // eslint-disable-next-line @typescript-eslint/unbound-method

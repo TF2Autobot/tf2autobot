@@ -1,22 +1,19 @@
 import Pricelist from '../Pricelist';
 import SchemaManager from 'tf2-schema-2';
-import SocketManager from '../MyHandler/SocketManager';
 import { DEFAULTS } from '../Options';
 import Currencies from 'tf2-currencies-2';
 import genPaths from '../../resources/paths';
 import { init } from '../../lib/logger';
 import { getPricer } from '../../lib/pricer/pricer';
 
-jest.mock('../../lib/pricer-api');
+jest.mock('../../lib/pricer/apis/prices-tf-api');
 
 it('can pricecheck', async () => {
     const paths = genPaths('test');
     init(paths, { debug: true, debugFile: false });
     const prices = getPricer({});
     const schemaManager = new SchemaManager({});
-    schemaManager.setSchema(await prices.getSchema());
-    const socketManager = new SocketManager('');
-    const priceList = new Pricelist(prices, schemaManager.schema, socketManager, DEFAULTS);
+    const priceList = new Pricelist(prices, schemaManager.schema, DEFAULTS);
     const isUseCustomPricer = priceList.isUseCustomPricer;
     expect(priceList.maxAge).toEqual(8 * 60 * 60);
     await priceList.setupPricelist();
@@ -32,7 +29,6 @@ it('can pricecheck', async () => {
     });
     expect(await priceList.getItemPrices('5021;6')).toEqual({
         sku: '5021;6',
-        name: 'Mann Co. Supply Crate Key',
         currency: null,
         source: 'bptf',
         time: 1608739762,

@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access' */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { EventEmitter } from 'events';
 import dayjs from 'dayjs';
 import Currencies from 'tf2-currencies-2';
@@ -13,8 +9,7 @@ import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
 import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
-import SocketManager from './MyHandler/SocketManager';
-import Pricer, { GetItemPriceResponse, Item } from './Pricer';
+import IPricer, { GetItemPriceResponse, Item } from './IPricer';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -214,9 +209,8 @@ export default class Pricelist extends EventEmitter {
     }
 
     constructor(
-        private readonly priceSource: Pricer,
+        private readonly priceSource: IPricer,
         private readonly schema: SchemaManager.Schema,
-        private readonly socketManager: SocketManager,
         private readonly options?: Options,
         private bot?: Bot
     ) {
@@ -232,32 +226,6 @@ export default class Pricelist extends EventEmitter {
     get isDwAlertEnabled(): boolean {
         const opt = this.bot.options.discordWebhook.sendAlert;
         return opt.enable && opt.url !== '';
-    }
-
-    init(): void {
-        this.socketManager.on('message', message => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const parsed = JSON.parse(message.data);
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            if (parsed.type === 'PRICE_UPDATED') {
-                const v = parsed.data;
-                this.handlePriceChange({
-                    sku: v.sku,
-                    name: this.schema.getName(SKU.fromString(v.sku)),
-                    buy: {
-                        keys: v.buyKeys,
-                        metal: Currencies.toRefined(v.buyHalfScrap / 2)
-                    },
-                    sell: {
-                        keys: v.sellKeys,
-                        metal: Currencies.toRefined(v.sellHalfScrap / 2)
-                    },
-                    source: 'bptf',
-                    time: Math.floor(new Date(v.updatedAt).getTime() / 1000)
-                } as GetItemPriceResponse);
-            }
-        });
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {
@@ -616,7 +584,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
+    async setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
         let errors = validator(prices, 'prices-data-object');
 
         if (errors !== null) {
@@ -1172,7 +1140,7 @@ export default class Pricelist extends EventEmitter {
 
                     sendWebHookPriceUpdateV1(
                         data.sku,
-                        data.name,
+                        this.schema.getItemBySKU(data.sku).name,
                         match,
                         time,
                         this.schema,
@@ -1236,8 +1204,6 @@ interface BuyAndSell {
 export class ParsedPrice {
     sku?: string;
 
-    name?: string;
-
     currency?: string;
 
     source?: string;
@@ -1250,7 +1216,6 @@ export class ParsedPrice {
 
     constructor(priceResponse: GetItemPriceResponse) {
         this.sku = priceResponse.sku;
-        this.name = priceResponse.name;
         this.currency = priceResponse.currency;
         this.source = priceResponse.source;
         this.time = priceResponse.time;
