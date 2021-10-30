@@ -75,7 +75,6 @@ export default class PricesTfApi2 {
 
     async setupToken(): Promise<void> {
         const r = await PricesTfApi2.requestAuthAccess();
-        logger.warn(`WARN: Record CUSTOM_PRICER_API_TOKEN in your environment configuration: "${r.accessToken}"`);
         this.token = r.accessToken;
         return;
     }
