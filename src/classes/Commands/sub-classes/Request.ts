@@ -11,22 +11,15 @@ import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
 import { testSKU } from '../../../lib/tools/export';
 import { UnknownDictionary } from '../../../types/common';
-import IPricer, { GetPriceFn, RequestCheckFn, RequestCheckResponse } from '../../IPricer';
+import IPricer, { RequestCheckFn, RequestCheckResponse } from '../../IPricer';
 
 export default class RequestCommands {
-    private requestCheck: RequestCheckFn;
-
-    private getPrice: GetPriceFn;
-
     constructor(private readonly bot: Bot, private priceSource: IPricer) {
         this.bot = bot;
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        this.requestCheck = this.priceSource.requestCheck;
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        this.getPrice = this.priceSource.getPrice;
+        this.priceSource = priceSource;
 
-        Pricecheck.setRequestCheckFn(this.requestCheck);
+        Pricecheck.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -53,22 +46,26 @@ export default class RequestCommands {
 
         params.sku = fixSKU(params.sku);
 
-        void this.requestCheck(params.sku, 'bptf').asCallback((err: ErrorRequest, body: RequestCheckResponse) => {
-            if (err) {
+        void this.priceSource
+            .requestCheck(params.sku)
+            .then((body: RequestCheckResponse) => {
+                if (!body) {
+                    this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
+                } else {
+                    this.bot.sendMessage(
+                        steamID,
+                        `✅ Requested pricecheck for ${body.name}, the item will be checked.`
+                    );
+                }
+            })
+            .catch((err: ErrorRequest) => {
                 return this.bot.sendMessage(
                     steamID,
                     `❌ Error while requesting price check: ${
                         err.body && err.body.message ? err.body.message : err.message
                     }`
                 );
-            }
-
-            if (!body) {
-                this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
-            } else {
-                this.bot.sendMessage(steamID, `✅ Requested pricecheck for ${body.name}, the item will be checked.`);
-            }
-        });
+            });
     }
 
     pricecheckAllCommand(steamID: SteamID): void {
@@ -124,7 +121,7 @@ export default class RequestCommands {
         const customUrl = this.bot.options.customPricerUrl;
         const name = this.bot.schema.getName(SKU.fromString(params.sku));
         try {
-            const price = await this.getPrice(params.sku, 'bptf');
+            const price = await this.priceSource.getPrice(params.sku);
             const currBuy = new Currencies(price.buy);
             const currSell = new Currencies(price.sell);
 
@@ -180,8 +177,15 @@ class Pricecheck {
     async executeCheck(): Promise<void> {
         await sleepasync().Promise.sleep(2000);
 
-        void Pricecheck.requestCheck(this.sku, 'bptf').asCallback(err => {
-            if (err) {
+        void Pricecheck.requestCheck(this.sku)
+            .then(() => {
+                this.submitted++;
+                this.success++;
+                log.debug(
+                    `pricecheck for ${this.sku} success, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
+                );
+            })
+            .catch(err => {
                 this.submitted++;
                 this.failed++;
                 const errStringify = JSON.stringify(err);
@@ -190,26 +194,20 @@ class Pricecheck {
                 log.debug(
                     `pricecheck for ${this.sku} failed, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
                 );
-            } else {
-                this.submitted++;
-                this.success++;
-                log.debug(
-                    `pricecheck for ${this.sku} success, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
-                );
-            }
+            })
+            .finally(() => {
+                this.dequeue();
 
-            this.dequeue();
+                if (this.isEmpty) {
+                    Pricecheck.removeJob();
+                    return this.bot.sendMessage(
+                        this.steamID,
+                        `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
+                    );
+                }
 
-            if (this.isEmpty) {
-                Pricecheck.removeJob();
-                return this.bot.sendMessage(
-                    this.steamID,
-                    `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
-                );
-            }
-
-            void this.executeCheck();
-        });
+                void this.executeCheck();
+            });
     }
 
     private dequeue(): void {

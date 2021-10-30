@@ -30,9 +30,9 @@ export default interface IPricer {
     init(): void;
 }
 
-export type RequestCheckFn = (sku: string, source: string) => Promise<RequestCheckResponse>;
-export type GetPriceFn = (sku: string, source: string) => Promise<GetItemPriceResponse>;
-export type GetPrice = (sku: string, source: string) => Promise<GetItemPriceResponse>;
+export type RequestCheckFn = (sku: string) => Promise<RequestCheckResponse>;
+export type GetPriceFn = (sku: string) => Promise<GetItemPriceResponse>;
+export type GetPrice = (sku: string) => Promise<GetItemPriceResponse>;
 
 export interface GetPricelistResponse {
     currency?: string | null;

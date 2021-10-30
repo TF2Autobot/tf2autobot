@@ -223,10 +223,9 @@ export default class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.paths = genPaths(this.opt.steamAccountName);
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
 
         PriceCheckQueue.setBot(this.bot);
-        PriceCheckQueue.setRequestCheckFn(this.requestCheck);
+        PriceCheckQueue.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
     onRun(): Promise<OnRun> {

@@ -58,18 +58,19 @@ export default class PriceCheckQueue {
             return void this.process();
         }
 
-        void this.requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
-            if (err) {
+        void this.requestCheck(sku)
+            .then((body: RequestCheckResponse) => {
+                log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
+            })
+            .catch(err => {
                 const errStringify = JSON.stringify(err);
                 const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                 log.warn(`❌ Failed to request pricecheck for ${sku}: ${errMessage}`);
-            } else {
-                log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
-            }
-
-            this.isProcessing = false;
-            this.dequeue();
-            void this.process();
-        });
+            })
+            .finally(() => {
+                this.isProcessing = false;
+                this.dequeue();
+                void this.process();
+            });
     }
 }
