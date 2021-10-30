@@ -527,7 +527,7 @@ export default class Bot {
                             callback
                         );
                     },
-                    async (): Promise<void> => {
+                    (callback: (err?) => void): void => {
                         if (this.options.enableSocket === false) {
                             log.warn('Disabling socket...');
                             this.priceSource.shutdown();
@@ -542,7 +542,14 @@ export default class Bot {
                               }, {}) as PricesDataObject)
                             : data.pricelist || {};
 
-                        await this.pricelist.setPricelist(pricelist, this);
+                        this.pricelist
+                            .setPricelist(pricelist, this)
+                            .then(() => {
+                                callback(null);
+                            })
+                            .catch(err => {
+                                callback(err);
+                            });
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
