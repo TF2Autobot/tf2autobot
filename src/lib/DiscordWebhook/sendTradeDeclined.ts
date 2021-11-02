@@ -195,7 +195,7 @@ export default async function sendTradeDeclined(
                 );
 
                 const itemListx = t.listItems(offer, bot, itemsName, true);
-                sendToAdmin(bot, offer, value, itemListx, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
+                return sendToAdmin(bot, offer, value, itemListx, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
             });
     });
 }

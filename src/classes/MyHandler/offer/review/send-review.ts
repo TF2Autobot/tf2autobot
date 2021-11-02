@@ -51,9 +51,9 @@ export default async function sendReview(
                     : 'Steam is down and I failed to check your Escrow (Trade holds)' +
                       ' status, please wait for my owner to manually accept/decline your offer.';
             }
-            bot.sendMessage(offer.partner, reply);
+            await bot.sendMessage(offer.partner, reply);
         } else {
-            bot.sendMessage(
+            await bot.sendMessage(
                 offer.partner,
                 `⚠️ Your offer is pending review.\nReasons: ${reasons}` +
                     (opt.manualReview.showOfferSummary
@@ -189,17 +189,17 @@ export async function sendToAdmin(
         log.warn('Message more than 5000 character');
 
         log.debug('Sending message 1');
-        bot.messageAdmins(message1, []);
+        await bot.messageAdmins(message1, []);
         await sleepasync().Promise.sleep(1500); // bruh
         log.debug('Sending message 2');
-        bot.messageAdmins(message2, []);
+        await bot.messageAdmins(message2, []);
         await sleepasync().Promise.sleep(1500);
         log.debug('Sending message 3');
-        bot.messageAdmins(message3, []);
+        await bot.messageAdmins(message3, []);
         await sleepasync().Promise.sleep(1000);
         log.debug('Sending message 4');
         return bot.messageAdmins(message4, []);
     }
 
-    bot.messageAdmins(message, []);
+    await bot.messageAdmins(message, []);
 }

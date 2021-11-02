@@ -4,6 +4,10 @@ export const addSchema: jsonschema.Schema = {
     id: 'pricelist-add',
     type: 'object',
     properties: {
+        assetid: {
+            // current assetid of the item
+            type: 'string'
+        },
         sku: {
             // sku of the item
             type: 'string'

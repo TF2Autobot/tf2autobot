@@ -122,7 +122,7 @@ export default class Autokeys {
         this.bot = bot;
     }
 
-    check(): void {
+    async check(): Promise<void> {
         log.debug(`checking autokeys (Enabled: ${String(this.isEnabled)})`);
         if (this.isEnabled === false) {
             return;
@@ -390,9 +390,9 @@ export default class Autokeys {
                 const msg = 'I am now low on both keys and refs.';
                 if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                     if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                        sendAlert('lowPure', this.bot, msg);
+                        await sendAlert('lowPure', this.bot, msg);
                     } else {
-                        this.bot.messageAdmins(msg, []);
+                        await this.bot.messageAdmins(msg, []);
                     }
                 }
             }
@@ -436,9 +436,9 @@ export default class Autokeys {
                     const msg = 'I am now low on both keys and refs.';
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('lowPure', this.bot, msg);
+                            await sendAlert('lowPure', this.bot, msg);
                         } else {
-                            this.bot.messageAdmins(msg, []);
+                            await this.bot.messageAdmins(msg, []);
                         }
                     }
                 }
@@ -480,9 +480,9 @@ export default class Autokeys {
                     const msg = 'I am now low on both keys and refs.';
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
                         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('lowPure', this.bot, msg);
+                            await sendAlert('lowPure', this.bot, msg);
                         } else {
-                            this.bot.messageAdmins(msg, []);
+                            await this.bot.messageAdmins(msg, []);
                         }
                     }
                 }
@@ -555,15 +555,15 @@ export default class Autokeys {
         isEnableSend: boolean,
         sendToDiscord: boolean,
         type: string
-    ): void {
+    ): Promise<void> {
         this.setActiveStatus = setActive;
         log.warn(msg);
 
         if (isEnableSend) {
             if (sendToDiscord) {
-                sendAlert(type as AlertType, this.bot, msg);
+                return sendAlert(type as AlertType, this.bot, msg);
             } else {
-                this.bot.messageAdmins(msg, []);
+                return this.bot.messageAdmins(msg, []);
             }
         }
     }
@@ -576,11 +576,11 @@ export default class Autokeys {
         }
 
         this.bot.pricelist
-            .addPrice(entry, true, PricelistChangedSource.Autokeys)
+            .addPrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`))
             .catch(err => {
                 const opt2 = this.bot.options;
-                this.onError(
+                return this.onError(
                     false,
                     `❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
@@ -600,11 +600,11 @@ export default class Autokeys {
         }
 
         this.bot.pricelist
-            .addPrice(entry, true, PricelistChangedSource.Autokeys)
+            .addPrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to ${intent}.`))
             .catch(err => {
                 const opt2 = this.bot.options;
-                this.onError(
+                return this.onError(
                     false,
                     `❌ Failed to add Mann Co. Supply Crate Key to ${intent} automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
@@ -622,11 +622,11 @@ export default class Autokeys {
         }
 
         this.bot.pricelist
-            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+            .updatePrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`))
             .catch(err => {
                 const opt2 = this.bot.options;
-                this.onError(
+                return this.onError(
                     false,
                     `❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
@@ -646,11 +646,11 @@ export default class Autokeys {
         }
 
         this.bot.pricelist
-            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+            .updatePrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically update Mann Co. Supply Crate Key to ${intent}.`))
             .catch(err => {
                 const opt2 = this.bot.options;
-                this.onError(
+                return this.onError(
                     false,
                     `❌ Failed to update Mann Co. Supply Crate Key to ${intent} automatically: ${
                         (err as Error).message
@@ -680,14 +680,14 @@ export default class Autokeys {
             }
 
             this.bot.pricelist
-                .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+                .updatePrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
                 .then(() => {
                     log.debug('✅ Automatically disabled Autokeys.');
                     resolve();
                 })
                 .catch(err => {
                     const opt2 = this.bot.options;
-                    this.onError(
+                    return this.onError(
                         true,
                         `❌ Failed to disable Autokeys: ${(err as Error).message}`,
                         opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToDisable,
@@ -699,10 +699,10 @@ export default class Autokeys {
         });
     }
 
-    refresh(): void {
+    async refresh(): Promise<void> {
         this.setOverallStatus = [false, false, false, false, false, false];
         this.setActiveStatus = false;
-        this.check();
+        return this.check();
     }
 }
 

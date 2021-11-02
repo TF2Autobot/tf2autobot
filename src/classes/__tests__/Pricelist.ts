@@ -1,22 +1,29 @@
 import Pricelist from '../Pricelist';
 import SchemaManager from 'tf2-schema-2';
+import SocketManager from '../MyHandler/SocketManager';
 import { DEFAULTS } from '../Options';
 import Currencies from 'tf2-currencies-2';
 import genPaths from '../../resources/paths';
 import { init } from '../../lib/logger';
 import { getPricer } from '../../lib/pricer/pricer';
+import Pricer, { GetSchemaResponse } from '../Pricer';
 
 jest.mock('../../lib/pricer/custom/custom-pricer-api');
 
-it('can pricecheck', async () => {
+export async function setupPricelist(): Promise<[Pricer, GetSchemaResponse, SchemaManager, Pricelist]> {
     const paths = genPaths('test');
     init(paths, { debug: true, debugFile: false });
     const prices = getPricer({ pricerUrl: 'http://test.com' });
     const schemaManager = new SchemaManager({});
     const priceList = new Pricelist(prices, schemaManager.schema, DEFAULTS);
+    await priceList.setupPricelist();
+    return [prices, schema, schemaManager, priceList];
+}
+
+it('can pricecheck', async () => {
+    const [, , , priceList] = await setupPricelist();
     const isUseCustomPricer = priceList.isUseCustomPricer;
     expect(priceList.maxAge).toEqual(8 * 60 * 60);
-    await priceList.setupPricelist();
     expect(priceList.getKeyPrices).toEqual({
         src: isUseCustomPricer ? 'customPricer' : 'ptf',
         time: 1608739762,

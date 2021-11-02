@@ -11,7 +11,7 @@ export default class HelpCommands {
         const isAdmin = this.bot.isAdmin(steamID);
         const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
 
-        this.bot.sendMessage(
+        await this.bot.sendMessage(
             steamID,
             `📌 Note 📌${
                 isAdmin
@@ -49,7 +49,7 @@ export default class HelpCommands {
 
         if (isAdmin) {
             await sleepasync().Promise.sleep(2000);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Pricelist manager ===✨\n- ' +
                     [
@@ -72,7 +72,7 @@ export default class HelpCommands {
             );
 
             await sleepasync().Promise.sleep(2000);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Bot manager ===✨\n- ' +
                     [
@@ -99,7 +99,7 @@ export default class HelpCommands {
             );
 
             await sleepasync().Promise.sleep(2000);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Crafting ===✨\n-' +
                     [
@@ -109,7 +109,7 @@ export default class HelpCommands {
             );
 
             await sleepasync().Promise.sleep(2000);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Bot status ===✨\n- ' +
                     [
@@ -122,7 +122,7 @@ export default class HelpCommands {
             );
 
             await sleepasync().Promise.sleep(2000);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Manual review ===✨\n- ' +
                     [
@@ -137,7 +137,7 @@ export default class HelpCommands {
             );
 
             await sleepasync().Promise.sleep(2000);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Request ===✨\n- ' +
                     [
@@ -154,7 +154,7 @@ export default class HelpCommands {
             );
 
             await sleepasync().Promise.sleep(2000);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Configuration manager (options.json) ===✨\n- ' +
                     [
@@ -165,7 +165,7 @@ export default class HelpCommands {
             );
 
             await sleepasync().Promise.sleep(2000);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Misc ===✨\n- ' +
                     [
@@ -183,7 +183,7 @@ export default class HelpCommands {
         }
     }
 
-    moreCommand(steamID: SteamID): void {
+    async moreCommand(steamID: SteamID): Promise<void> {
         const opt = this.bot.options.commands.more;
 
         if (!opt.enable) {
@@ -193,7 +193,7 @@ export default class HelpCommands {
             }
         }
 
-        this.bot.sendMessage(
+        return this.bot.sendMessage(
             steamID,
             `Misc commands list:\n- ${[
                 "!autokeys - Get info on the bot's current autokeys settings 🔑",
@@ -208,10 +208,10 @@ export default class HelpCommands {
         );
     }
 
-    howToTradeCommand(steamID: SteamID): void {
+    async howToTradeCommand(steamID: SteamID): Promise<void> {
         const custom = this.bot.options.commands.how2trade.customReply.reply;
 
-        this.bot.sendMessage(
+        return this.bot.sendMessage(
             steamID,
             custom
                 ? custom

@@ -243,7 +243,7 @@ export default class MyHandler extends Handler {
         });
     }
 
-    onReady(): void {
+    async onReady(): Promise<void> {
         log.info(
             `TF2Autobot v${process.env.BOT_VERSION} is ready | ${pluralize(
                 'item',
@@ -260,14 +260,14 @@ export default class MyHandler extends Handler {
         this.botSteamID = this.bot.client.steamID;
 
         // Get Premium info from backpack.tf
-        void this.getBPTFAccountInfo();
+        await this.getBPTFAccountInfo();
 
         if (this.isCraftingManual === false) {
             // Smelt / combine metal if needed
             keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
             // Craft duplicate weapons
-            void craftDuplicateWeapons(this.bot);
+            await craftDuplicateWeapons(this.bot);
 
             // Craft class weapons
             this.classWeaponsTimeout = setTimeout(() => {
@@ -277,13 +277,13 @@ export default class MyHandler extends Handler {
         }
 
         // Auto sell and buy keys if ref < minimum
-        this.autokeys.check();
+        await this.autokeys.check();
 
         // Sort the inventory after crafting / combining metal
         this.sortInventory();
 
         // Check friend requests that we got while offline
-        this.checkFriendRequests();
+        await this.checkFriendRequests();
 
         // Check group invites that we got while offline
         this.checkGroupInvites();
@@ -308,9 +308,9 @@ export default class MyHandler extends Handler {
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.failedToUpdateOldPrices) {
                 if (isDwEnabled) {
-                    sendAlert('failedToUpdateOldPrices', this.bot, '', null, null, failedToUpdateOldPrices);
+                    await sendAlert('failedToUpdateOldPrices', this.bot, '', null, null, failedToUpdateOldPrices);
                 } else {
-                    this.bot.messageAdmins(
+                    await this.bot.messageAdmins(
                         `Failed to update old prices (probably because autoprice is set to true but item does not exist` +
                             ` on the pricer source):\n\n${failedToUpdateOldPrices.join(
                                 '\n'
@@ -338,9 +338,9 @@ export default class MyHandler extends Handler {
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onBulkUpdatePartialPriced) {
                 if (isDwEnabled) {
-                    sendAlert('onBulkUpdatePartialPriced', this.bot, msg);
+                    await sendAlert('onBulkUpdatePartialPriced', this.bot, msg);
                 } else {
-                    this.bot.messageAdmins(msg, []);
+                    await this.bot.messageAdmins(msg, []);
                 }
             }
         }
@@ -363,9 +363,9 @@ export default class MyHandler extends Handler {
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onResetAfterThreshold) {
                 if (isDwEnabled) {
-                    sendAlert('autoResetPartialPriceBulk', this.bot, msg);
+                    await sendAlert('autoResetPartialPriceBulk', this.bot, msg);
                 } else {
-                    this.bot.messageAdmins(msg, []);
+                    await this.bot.messageAdmins(msg, []);
                 }
             }
         }
@@ -476,7 +476,7 @@ export default class MyHandler extends Handler {
         this.recentlySentMessage[steamID64] =
             (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
-        await this.commands.processMessage(steamID, message);
+        return this.commands.processMessage(steamID, message);
     }
 
     onLoginKey(loginKey: string): void {
@@ -501,10 +501,10 @@ export default class MyHandler extends Handler {
         });
     }
 
-    onFriendRelationship(steamID: SteamID, relationship: number): void {
+    async onFriendRelationship(steamID: SteamID, relationship: number): Promise<void> {
         if (relationship === EFriendRelationship.Friend) {
-            this.onNewFriend(steamID);
-            this.checkFriendsCount(steamID);
+            await this.onNewFriend(steamID);
+            await this.checkFriendsCount(steamID);
         } else if (relationship === EFriendRelationship.RequestRecipient) {
             this.respondToFriendRequest(steamID);
         }
@@ -927,7 +927,7 @@ export default class MyHandler extends Handler {
                 offerData: offer
             });
             // Both itemsToGive and itemsToReceive are an empty array, abort.
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 offer.partner,
                 `❌ Looks like there was some issue with Steam getting your offer data.` +
                     ` I will retry to get the offer data now.` +
@@ -938,12 +938,12 @@ export default class MyHandler extends Handler {
 
             if (opt.sendAlert.enable && opt.sendAlert.unableToProcessOffer) {
                 if (optDw.sendAlert.enable && optDw.sendAlert.url !== '') {
-                    sendAlert('failed-processing-offer', this.bot, null, null, null, [
+                    await sendAlert('failed-processing-offer', this.bot, null, null, null, [
                         offer.partner.getSteamID64(),
                         offer.id
                     ]);
                 } else {
-                    this.bot.messageAdmins(
+                    await this.bot.messageAdmins(
                         '',
                         `Unable to process offer #${offer.id} with ${offer.partner.getSteamID64()}.` +
                             ' The offer data received was broken because our side and their side are both empty.' +
@@ -1108,7 +1108,7 @@ export default class MyHandler extends Handler {
                         highValueOurNames.push(`_${name}_` + itemsName[name]);
                     }
 
-                    sendAlert('tryingToTake', this.bot, null, null, null, highValueOurNames);
+                    await sendAlert('tryingToTake', this.bot, null, null, null, highValueOurNames);
                 } else {
                     for (const name in itemsName) {
                         if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -1118,7 +1118,7 @@ export default class MyHandler extends Handler {
                         highValueOurNames.push(name + itemsName[name]);
                     }
 
-                    this.bot.messageAdmins(
+                    await this.bot.messageAdmins(
                         `Someone is attempting to purchase a high valued item that you own ` +
                             `but is not in your pricelist:\n- ${highValueOurNames.join('\n\n- ')}`,
                         []
@@ -1891,7 +1891,7 @@ export default class MyHandler extends Handler {
                 if (opt.offerReceived.sendPreAcceptMessage.enable) {
                     const preAcceptMessage = opt.customMessage.accepted.automatic;
 
-                    MyHandler.sendPreAcceptedMessage(
+                    await MyHandler.sendPreAcceptedMessage(
                         this.bot,
                         offer.partner,
                         preAcceptMessage,
@@ -2058,7 +2058,7 @@ export default class MyHandler extends Handler {
         if (opt.offerReceived.sendPreAcceptMessage.enable) {
             const preAcceptMessage = opt.customMessage.accepted.automatic;
 
-            MyHandler.sendPreAcceptedMessage(
+            await MyHandler.sendPreAcceptedMessage(
                 this.bot,
                 offer.partner,
                 preAcceptMessage,
@@ -2073,14 +2073,14 @@ export default class MyHandler extends Handler {
         };
     }
 
-    private static sendPreAcceptedMessage(
+    private static async sendPreAcceptedMessage(
         bot: Bot,
         steamID: SteamID,
         preAcceptMessageOpt: OfferType,
         itemsLarge: boolean
-    ): void {
+    ): Promise<void> {
         if (itemsLarge) {
-            bot.sendMessage(
+            await bot.sendMessage(
                 steamID,
                 preAcceptMessageOpt.largeOffer
                     ? preAcceptMessageOpt.largeOffer
@@ -2089,7 +2089,7 @@ export default class MyHandler extends Handler {
                           'or add me and use the !sell/!sellcart or !buy/!buycart command.'
             );
         } else {
-            bot.sendMessage(
+            await bot.sendMessage(
                 steamID,
                 preAcceptMessageOpt.smallOffer
                     ? preAcceptMessageOpt.smallOffer
@@ -2100,7 +2100,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    onTradeOfferChanged(offer: TradeOffer, oldState: number, timeTakenToComplete?: number): void {
+    async onTradeOfferChanged(offer: TradeOffer, oldState: number, timeTakenToComplete?: number): Promise<void> {
         // Not sure if it can go from other states to active
         if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
             offer.data('switchedState', oldState);
@@ -2121,21 +2121,24 @@ export default class MyHandler extends Handler {
                 const notifyOpt = this.opt.steamChat.notifyTradePartner;
 
                 if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
-                    if (notifyOpt.onSuccessAccepted) accepted(offer, this.bot);
+                    if (notifyOpt.onSuccessAccepted) await accepted(offer, this.bot);
 
                     if (offer.data('donation')) {
-                        this.bot.messageAdmins('✅ Success! Your donation has been sent and received!', []);
+                        await this.bot.messageAdmins('✅ Success! Your donation has been sent and received!', []);
                     } else if (offer.data('buyBptfPremium')) {
-                        this.bot.messageAdmins('✅ Success! Your premium purchase has been sent and received!', []);
+                        await this.bot.messageAdmins(
+                            '✅ Success! Your premium purchase has been sent and received!',
+                            []
+                        );
                     }
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
-                    if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
+                    if (notifyOpt.onSuccessAcceptedEscrow) await acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
-                    if (notifyOpt.onDeclined) declined(offer, this.bot, this.isTradingKeys);
+                    if (notifyOpt.onDeclined) await declined(offer, this.bot, this.isTradingKeys);
                     offer.data('isDeclined', true);
                     this.isTradingKeys = false; // reset
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
-                    if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
+                    if (notifyOpt.onCancelled) await cancelled(offer, oldState, this.bot);
 
                     if (offer.data('canceledByUser') === true) {
                         // do nothing
@@ -2146,7 +2149,7 @@ export default class MyHandler extends Handler {
                     }
                     MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
-                    if (notifyOpt.onTradedAway) invalid(offer, this.bot);
+                    if (notifyOpt.onTradedAway) await invalid(offer, this.bot);
                     offer.data('isInvalid', true);
                     MyHandler.removePolldataKeys(offer);
                 }
@@ -2163,7 +2166,7 @@ export default class MyHandler extends Handler {
 
                 // Auto sell and buy keys if ref < minimum
 
-                this.autokeys.check();
+                await this.autokeys.check();
 
                 const result = processAccepted(offer, this.bot, this.isTradingKeys, timeTakenToComplete);
                 this.isTradingKeys = false; // reset
@@ -2180,7 +2183,7 @@ export default class MyHandler extends Handler {
                 clearTimeout(this.resetSentSummaryTimeout);
                 this.sentSummary[offer.id] = true;
 
-                processDeclined(offer, this.bot, this.isTradingKeys);
+                await processDeclined(offer, this.bot, this.isTradingKeys);
                 MyHandler.removePolldataKeys(offer);
             }
         }
@@ -2208,7 +2211,7 @@ export default class MyHandler extends Handler {
             log.debug(uptime());
 
             // Update listings
-            updateListings(offer, this.bot, highValue);
+            await updateListings(offer, this.bot, highValue);
 
             // Invite to group
             this.inviteToGroups(offer.partner);
@@ -2260,12 +2263,12 @@ export default class MyHandler extends Handler {
         this.bot.groups.inviteToGroups(steamID, this.groups);
     }
 
-    private checkFriendRequests(): void {
+    private async checkFriendRequests(): Promise<void> {
         if (!this.bot.client.myFriends) {
             return;
         }
 
-        this.checkFriendsCount();
+        await this.checkFriendsCount();
         for (const steamID64 in this.bot.client.myFriends) {
             if (!Object.prototype.hasOwnProperty.call(this.bot.client.myFriends, steamID64)) {
                 continue;
@@ -2307,57 +2310,59 @@ export default class MyHandler extends Handler {
         });
     }
 
-    private onNewFriend(steamID: SteamID, tries = 0): void {
+    private async onNewFriend(steamID: SteamID, tries = 0): Promise<void> {
         if (tries === 0) {
             log.debug(`Now friends with ${steamID.getSteamID64()}`);
         }
 
         const isAdmin = this.bot.isAdmin(steamID);
-        setImmediate(() => {
-            if (!this.bot.friends.isFriend(steamID)) {
-                return;
+        if (!this.bot.friends.isFriend(steamID)) {
+            return;
+        }
+
+        const friend = this.bot.friends.getFriend(steamID);
+        if (friend === null || friend.player_name === undefined) {
+            tries++;
+
+            if (tries >= 5) {
+                log.info(`I am now friends with ${steamID.getSteamID64()}`);
+
+                return this.bot.sendMessage(
+                    steamID,
+                    this.opt.customMessage.welcome
+                        ? this.opt.customMessage.welcome
+                              .replace(/%name%/g, '')
+                              .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                        : `Hi! If you don't know how things work, please type "!` + (isAdmin ? 'help' : 'how2trade')
+                );
             }
 
-            const friend = this.bot.friends.getFriend(steamID);
-            if (friend === null || friend.player_name === undefined) {
-                tries++;
+            log.debug('Waiting for name');
+            // Wait for friend info to be available
+            setTimeout(() => {
+                void this.onNewFriend(steamID, tries)
+                    .then(() => {
+                        return;
+                    })
+                    .catch(err => log.error(err));
+            }, exponentialBackoff(tries - 1, 200));
+            return;
+        }
 
-                if (tries >= 5) {
-                    log.info(`I am now friends with ${steamID.getSteamID64()}`);
+        log.info(`I am now friends with ${friend.player_name} (${steamID.getSteamID64()})`);
 
-                    return this.bot.sendMessage(
-                        steamID,
-                        this.opt.customMessage.welcome
-                            ? this.opt.customMessage.welcome
-                                  .replace(/%name%/g, '')
-                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                            : `Hi! If you don't know how things work, please type "!` + (isAdmin ? 'help' : 'how2trade')
-                    );
-                }
-
-                log.debug('Waiting for name');
-                // Wait for friend info to be available
-                setTimeout(() => {
-                    this.onNewFriend(steamID, tries);
-                }, exponentialBackoff(tries - 1, 200));
-                return;
-            }
-
-            log.info(`I am now friends with ${friend.player_name} (${steamID.getSteamID64()})`);
-
-            this.bot.sendMessage(
-                steamID,
-                this.opt.customMessage.welcome
-                    ? this.opt.customMessage.welcome
-                          .replace(/%name%/g, friend.player_name)
-                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                    : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
-                          (isAdmin ? 'help' : 'how2trade')
-            );
-        });
+        return this.bot.sendMessage(
+            steamID,
+            this.opt.customMessage.welcome
+                ? this.opt.customMessage.welcome
+                      .replace(/%name%/g, friend.player_name)
+                      .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
+                      (isAdmin ? 'help' : 'how2trade')
+        );
     }
 
-    private checkFriendsCount(steamIDToIgnore?: SteamID | string): void {
+    private async checkFriendsCount(steamIDToIgnore?: SteamID | string): Promise<void> {
         log.debug('Checking friends count');
         const friends = this.bot.friends.getFriends;
         const friendslistBuffer = 20;
@@ -2390,21 +2395,28 @@ export default class MyHandler extends Handler {
                 .splice(1, friendsToRemoveCount - 2 <= 0 ? 2 : friendsToRemoveCount);
 
             log.info(`Cleaning up friendslist, removing ${friendsToRemove.length} people...`);
+            const msgs = [];
             friendsToRemove.forEach(friend => {
                 const friendSteamID = friend.steamID;
                 const getFriend = this.bot.friends.getFriend(friendSteamID);
 
-                this.bot.sendMessage(
-                    friendSteamID,
-                    this.opt.customMessage.clearFriends
-                        ? this.opt.customMessage.clearFriends.replace(
-                              /%name%/g,
-                              getFriend ? getFriend.player_name : friendSteamID
-                          )
-                        : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. ' +
-                              'Please feel free to add me again if you want to trade at a later time!'
+                msgs.push(
+                    this.bot
+                        .sendMessage(
+                            friendSteamID,
+                            this.opt.customMessage.clearFriends
+                                ? this.opt.customMessage.clearFriends.replace(
+                                      /%name%/g,
+                                      getFriend ? getFriend.player_name : friendSteamID
+                                  )
+                                : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. ' +
+                                      'Please feel free to add me again if you want to trade at a later time!'
+                        )
+                        .then(() => this.bot.client.removeFriend(friendSteamID))
                 );
-                this.bot.client.removeFriend(friendSteamID);
+            });
+            return Promise.all(msgs).then(() => {
+                return;
             });
         }
     }

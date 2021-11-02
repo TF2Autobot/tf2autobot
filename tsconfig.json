@@ -13,6 +13,7 @@
         "noImplicitAny": false,
         "noImplicitThis": false,
         "strictNullChecks": false,
+        "sourceMap": true,
         "typeRoots": ["./types/modules", "./node_modules/@types"],
         "esModuleInterop": true,
         "sourceMap": false,    // turn on for debug ~ 20 MB

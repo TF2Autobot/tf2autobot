@@ -295,19 +295,19 @@ export async function sendToAdmin(
         log.warn('Message more than 5000 character');
 
         log.debug('Sending message 1');
-        bot.messageAdmins('trade', message1, []);
+        await bot.messageAdmins('trade', message1, []);
         await sleepasync().Promise.sleep(1500); // bruh
         log.debug('Sending message 2');
-        bot.messageAdmins('trade', message2, []);
+        await bot.messageAdmins('trade', message2, []);
         await sleepasync().Promise.sleep(1500);
         log.debug('Sending message 3');
-        bot.messageAdmins('trade', message3, []);
+        await bot.messageAdmins('trade', message3, []);
         await sleepasync().Promise.sleep(1000);
         log.debug('Sending message 4');
         return bot.messageAdmins('trade', message4, []);
     }
 
-    bot.messageAdmins('trade', message, []);
+    await bot.messageAdmins('trade', message, []);
 }
 
 interface Accepted {

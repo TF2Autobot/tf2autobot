@@ -131,7 +131,7 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
         .then(() => {
             log.debug(`✅ Sent statistics webhook to Discord.`);
             if (forceSend) {
-                bot.sendMessage(steamID, '✅ Sent statistics to Discord Webhook!');
+                return bot.sendMessage(steamID, '✅ Sent statistics to Discord Webhook!');
             }
         })
         .catch(err => {
@@ -139,7 +139,7 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
             if (forceSend) {
                 const errStringify = JSON.stringify(err);
                 const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
-                bot.sendMessage(steamID, '❌ Error sending statistics to Discord Webhook: ' + errMessage);
+                return bot.sendMessage(steamID, '❌ Error sending statistics to Discord Webhook: ' + errMessage);
             }
         });
 }

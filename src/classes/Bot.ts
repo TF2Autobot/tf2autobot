@@ -196,11 +196,13 @@ export default class Bot {
         return this.trades.checkEscrow(offer);
     }
 
-    messageAdmins(message: string, exclude: string[] | SteamID[]): void;
+    async messageAdmins(message: string, exclude: string[] | SteamID[]): Promise<void>;
 
-    messageAdmins(type: string, message: string, exclude: string[] | SteamID[]): void;
+    async messageAdmins(type: string, message: string, exclude: string[] | SteamID[]): Promise<void>;
 
-    messageAdmins(...args: [string, string[] | SteamID[]] | [string, string, string[] | SteamID[]]): void {
+    async messageAdmins(
+        ...args: [string, string[] | SteamID[]] | [string, string, string[] | SteamID[]]
+    ): Promise<void> {
         const type: string | null = args.length === 2 ? null : args[0];
 
         if (type !== null && !this.alertTypes.includes(type)) {
@@ -212,9 +214,12 @@ export default class Bot {
             steamid.toString()
         );
 
-        this.admins
-            .filter(steamID => !exclude.includes(steamID.toString()))
-            .forEach(steamID => this.sendMessage(steamID, message));
+        await Promise.all(
+            this.admins
+                .filter(steamID => !exclude.includes(steamID.toString()))
+                .map(steamID => this.sendMessage(steamID, message))
+        );
+        return;
     }
 
     set setReady(isReady: boolean) {
@@ -330,7 +335,7 @@ export default class Bot {
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
         this.addAsyncListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
-        this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
+        this.addAsyncListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
         this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
@@ -626,7 +631,7 @@ export default class Bot {
         this.refreshSchemaProperties();
     }
 
-    private refreshSchemaProperties(): void {
+    refreshSchemaProperties(): void {
         this.updateSchemaPropertiesInterval = setInterval(() => {
             this.setProperties();
         }, 24 * 60 * 60 * 1000);
@@ -847,7 +852,7 @@ export default class Bot {
         });
     }
 
-    sendMessage(steamID: SteamID | string, message: string): void {
+    async sendMessage(steamID: SteamID | string, message: string): Promise<void> {
         const steamID64 = steamID.toString();
         const friend = this.friends.getFriend(steamID64);
 
@@ -862,14 +867,16 @@ export default class Bot {
 
         // else, we use the new chat.sendFriendMessage
         const friendName = friend.player_name;
-        this.client.chat.sendFriendMessage(steamID, message, { chatEntryType: 1 }, err => {
-            if (err) {
-                log.warn(`Failed to send message to ${friendName} (${steamID64}):`, err);
-                return;
-            }
+        return new Promise(resolve =>
+            this.client.chat.sendFriendMessage(steamID, message, { chatEntryType: 1 }, err => {
+                if (err) {
+                    log.warn(`Failed to send message to ${friendName} (${steamID64}):`, err);
+                }
 
-            log.info(`Message sent to ${friendName} (${steamID64}): ${message}`);
-        });
+                log.info(`Message sent to ${friendName} (${steamID64}): ${message}`);
+                resolve();
+            })
+        );
     }
 
     private getPartnerDetails(steamID: SteamID | string): Promise<string> {

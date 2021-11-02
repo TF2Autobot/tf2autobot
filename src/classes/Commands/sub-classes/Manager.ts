@@ -37,7 +37,7 @@ export default class ManagerCommands {
         this.bot = bot;
     }
 
-    TF2GCCommand(steamID: SteamID, message: string, command: TF2GC): void {
+    async TF2GCCommand(steamID: SteamID, message: string, command: TF2GC): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (command === 'expand') {
@@ -60,14 +60,25 @@ export default class ManagerCommands {
                 );
             }
 
-            this.bot.tf2gc.useItem(assetids[0], err => {
-                if (err) {
-                    log.error('Error trying to expand inventory: ', err);
-                    return this.bot.sendMessage(steamID, `❌ Failed to expand inventory: ${err.message}`);
+            try {
+                await new Promise((resolve, reject) => {
+                    this.bot.tf2gc.useItem(assetids[0], err => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(null);
+                    });
+                });
+                await this.bot.sendMessage(
+                    steamID,
+                    `✅ Used ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander!`
+                );
+            } catch (err) {
+                log.error('Error trying to expand inventory: ', err);
+                if (null !== err && message) {
+                    await this.bot.sendMessage(steamID, `❌ Failed to expand inventory: ${String(err)}`);
                 }
-
-                this.bot.sendMessage(steamID, `✅ Used ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander!`);
-            });
+            }
         } else {
             // For use and delete commands
             if (params.sku !== undefined && !testSKU(params.sku as string)) {
@@ -91,19 +102,25 @@ export default class ManagerCommands {
                     );
                 }
 
-                return this.bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](targetedAssetId, err => {
-                    const theItem =
-                        sku === null
-                            ? targetedAssetId
-                            : `${this.bot.schema.getName(SKU.fromString(sku), false)} (${targetedAssetId})`;
+                return new Promise(resolve =>
+                    this.bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](targetedAssetId, err => {
+                        const theItem =
+                            sku === null
+                                ? targetedAssetId
+                                : `${this.bot.schema.getName(SKU.fromString(sku), false)} (${targetedAssetId})`;
 
-                    if (err) {
-                        log.warn(`Error trying to ${command} ${theItem}: `, err);
-                        return this.bot.sendMessage(steamID, `❌ Failed to ${command} ${theItem}: ${err.message}`);
-                    }
+                        if (err) {
+                            log.warn(`Error trying to ${command} ${theItem}: `, err);
+                            resolve(
+                                this.bot.sendMessage(steamID, `❌ Failed to ${command} ${theItem}: ${err.message}`)
+                            );
+                        }
 
-                    this.bot.sendMessage(steamID, `✅ ${command === 'use' ? 'Used' : 'Deleted'} ${theItem}!`);
-                });
+                        resolve(
+                            this.bot.sendMessage(steamID, `✅ ${command === 'use' ? 'Used' : 'Deleted'} ${theItem}!`)
+                        );
+                    })
+                );
             }
 
             if (params.name !== undefined || params.item !== undefined) {
@@ -215,21 +232,30 @@ export default class ManagerCommands {
                 );
             }
 
-            this.bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](assetid, err => {
-                if (err) {
-                    log.warn(`Error trying to ${command} ${name}: `, err);
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ Failed to ${command} ${name} (${assetid}): ${err.message}`
-                    );
-                }
-
-                this.bot.sendMessage(steamID, `✅ ${command === 'use' ? 'Used' : 'Deleted'} ${name} (${assetid})!`);
-            });
+            try {
+                await new Promise((resolve, reject) => {
+                    this.bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](assetid, err => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(null);
+                    });
+                });
+                await this.bot.sendMessage(
+                    steamID,
+                    `✅ ${command === 'use' ? 'Used' : 'Deleted'} ${name} (${assetid})!`
+                );
+            } catch (err) {
+                log.warn(`Error trying to ${command} ${name}: `, err);
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ Failed to ${command} ${name} (${assetid}): ${JSON.stringify(err)}`
+                );
+            }
         }
     }
 
-    nameAvatarCommand(steamID: SteamID, message: string, command: NameAvatar): void {
+    async nameAvatarCommand(steamID: SteamID, message: string, command: NameAvatar): Promise<void> {
         const example =
             'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f5/f57685d33224e32436f366d1acb4a1769bdfa60f_full.jpg';
         const input = CommandParser.removeCommand(message);
@@ -244,41 +270,56 @@ export default class ManagerCommands {
         }
 
         if (command === 'name') {
-            this.bot.community.editProfile(
-                {
-                    name: input
-                },
-                err => {
-                    if (err) {
-                        log.warn('Error while changing name: ', err);
-                        return this.bot.sendMessage(steamID, `❌ Error while changing name: ${err.message}`);
-                    }
-
-                    this.bot.sendMessage(steamID, '✅ Successfully changed name.');
-                }
-            );
+            try {
+                await new Promise((resolve, reject) => {
+                    this.bot.community.editProfile(
+                        {
+                            name: input
+                        },
+                        err => {
+                            if (err) {
+                                reject(err);
+                            }
+                            resolve(null);
+                        }
+                    );
+                });
+                await this.bot.sendMessage(steamID, '✅ Successfully changed name.');
+            } catch (err) {
+                log.warn('Error while changing name: ', err);
+                return this.bot.sendMessage(steamID, `❌ Error while changing name: ${JSON.stringify(err)}`);
+            }
         } else {
             if (!validUrl.isUri(input)) {
                 return this.bot.sendMessage(steamID, `❌ Your url is not valid. Example: "!avatar ${example}"`);
             }
-
-            this.bot.community.uploadAvatar(input, err => {
-                if (err) {
-                    log.warn('Error while uploading new avatar: ', err);
-                    return this.bot.sendMessage(steamID, `❌ Error while uploading a new avatar: ${err.message}`);
-                }
-
-                this.bot.sendMessage(steamID, '✅ Successfully uploaded a new avatar.');
-            });
+            try {
+                await new Promise((resolve, reject) => {
+                    this.bot.community.uploadAvatar(input, err => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(null);
+                    });
+                });
+                return this.bot.sendMessage(steamID, '✅ Successfully uploaded a new avatar.');
+            } catch (err) {
+                log.warn('Error while uploading new avatar: ', err);
+                return this.bot.sendMessage(steamID, `❌ Error while uploading a new avatar: ${JSON.stringify(err)}`);
+            }
         }
     }
 
-    blockedListCommand(steamID: SteamID): void {
-        this.bot.community.getFriendsList((err, friendlist) => {
-            if (err) {
-                return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
-            }
-
+    async blockedListCommand(steamID: SteamID): Promise<void> {
+        try {
+            const friendlist = await new Promise((resolve, reject) => {
+                this.bot.community.getFriendsList((err, friendlist) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(friendlist);
+                });
+            });
             const friendIDs = Object.keys(friendlist);
             if (friendIDs.length === 0) {
                 return this.bot.sendMessage(steamID, `❌ I don't have any friends :sadcat:`);
@@ -294,15 +335,17 @@ export default class ManagerCommands {
                 return this.bot.sendMessage(steamID, `❌ I don't have any blocked friends.`);
             }
 
-            this.bot.sendMessage(
+            return this.bot.sendMessage(
                 steamID,
                 // use rep.tf for shorter link - prevent Steam rate limit :(
                 `Blocked friends:\n- ${blockedFriends.map(id => `https://rep.tf/${id}`).join('\n- ')}`
             );
-        });
+        } catch (err) {
+            return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
+        }
     }
 
-    blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock): void {
+    async blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock): Promise<void> {
         const steamid = CommandParser.removeCommand(message);
 
         if (!steamid || steamid === `!${command}`) {
@@ -312,26 +355,33 @@ export default class ManagerCommands {
             );
         }
 
-        const targetSteamID64 = new SteamID(steamid);
+        let targetSteamID64 = new SteamID(steamid);
         if (!targetSteamID64.isValid()) {
             return this.bot.sendMessage(steamID, `❌ SteamID is not valid. Example: "!${command} 76561198798404909"`);
         }
 
-        this.bot.client[command === 'block' ? 'blockUser' : 'unblockUser'](targetSteamID64, err => {
-            if (err) {
-                log.warn(`Failed to ${command} user ${targetSteamID64.getSteamID64()}: `, err);
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ Failed to ${command} user ${targetSteamID64.getSteamID64()}: ${err.message}`
-                );
-            }
-            this.bot.sendMessage(
+        try {
+            targetSteamID64 = await new Promise((resolve, reject) => {
+                this.bot.client[command === 'block' ? 'blockUser' : 'unblockUser'](targetSteamID64, err => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve(targetSteamID64);
+                });
+            });
+            return this.bot.sendMessage(
                 steamID,
                 `✅ Successfully ${
                     command === 'block' ? 'blocked' : 'unblocked'
                 } user ${targetSteamID64.getSteamID64()}`
             );
-        });
+        } catch (err) {
+            log.warn(`Failed to ${command} user ${targetSteamID64.getSteamID64()}: `, err);
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Failed to ${command} user ${targetSteamID64.getSteamID64()}: ${JSON.stringify(err)}`
+            );
+        }
     }
 
     async clearFriendsCommand(steamID: SteamID): Promise<void> {
@@ -359,7 +409,7 @@ export default class ManagerCommands {
         const aMin = 60 * 1000;
         const anHour = 60 * 60 * 1000;
 
-        this.bot.sendMessage(
+        await this.bot.sendMessage(
             steamID,
             `⌛ Removing ${total} friends...` +
                 `\n2 seconds between each person, so it will be about ${
@@ -374,7 +424,7 @@ export default class ManagerCommands {
         for (const steamid of friendsToRemove) {
             const getFriend = this.bot.friends.getFriend(steamid);
 
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamid,
                 this.bot.options.customMessage.clearFriends
                     ? this.bot.options.customMessage.clearFriends.replace(
@@ -392,42 +442,42 @@ export default class ManagerCommands {
             await sleepasync().Promise.sleep(2000);
         }
 
-        this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
+        await this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
     }
 
-    stopCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, '⌛ Stopping...');
+    async stopCommand(steamID: SteamID): Promise<void> {
+        await this.bot.sendMessage(steamID, '⌛ Stopping...');
 
-        this.bot.botManager.stopProcess().catch(err => {
+        try {
+            return await this.bot.botManager.stopProcess();
+        } catch (err) {
             log.warn('Error occurred while trying to stop: ', err);
-            this.bot.sendMessage(steamID, `❌ An error occurred while trying to stop: ${(err as Error).message}`);
-        });
+            await this.bot.sendMessage(steamID, `❌ An error occurred while trying to stop: ${(err as Error).message}`);
+        }
     }
 
-    restartCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, '⌛ Restarting...');
+    async restartCommand(steamID: SteamID): Promise<void> {
+        await this.bot.sendMessage(steamID, '⌛ Restarting...');
 
-        this.bot.botManager
-            .restartProcess()
-            .then(restarting => {
-                if (!restarting) {
-                    this.bot.sendMessage(
-                        steamID,
-                        '❌ You are not running the bot with PM2! Get a VPS and run ' +
-                            'your bot with PM2: https://github.com/TF2Autobot/tf2autobot/wiki/Getting-a-VPS'
-                    );
-                }
-            })
-            .catch(err => {
-                log.warn('Error occurred while trying to restart: ', err);
-                this.bot.sendMessage(
+        try {
+            const restarting = await this.bot.botManager.restartProcess();
+            if (!restarting) {
+                await this.bot.sendMessage(
                     steamID,
-                    `❌ An error occurred while trying to restart: ${(err as Error).message}`
+                    '❌ You are not running the bot with PM2! Get a VPS and run ' +
+                        'your bot with PM2: https://github.com/TF2Autobot/tf2autobot/wiki/Getting-a-VPS'
                 );
-            });
+            }
+        } catch (err) {
+            log.warn('Error occurred while trying to restart: ', err);
+            await this.bot.sendMessage(
+                steamID,
+                `❌ An error occurred while trying to restart: ${(err as Error).message}`
+            );
+        }
     }
 
-    autokeysCommand(steamID: SteamID): void {
+    async autokeysCommand(steamID: SteamID): Promise<void> {
         const opt = this.bot.options.commands.autokeys;
         if (!opt.enable) {
             if (!this.bot.isAdmin(steamID)) {
@@ -436,19 +486,19 @@ export default class ManagerCommands {
             }
         }
 
-        this.bot.sendMessage(steamID, '/pre ' + this.generateAutokeysReply(steamID, this.bot));
+        return this.bot.sendMessage(steamID, '/pre ' + this.generateAutokeysReply(steamID, this.bot));
     }
 
-    refreshAutokeysCommand(steamID: SteamID): void {
+    async refreshAutokeysCommand(steamID: SteamID): Promise<void> {
         if (this.bot.handler.autokeys.isEnabled === false) {
             return this.bot.sendMessage(steamID, `This feature is disabled.`);
         }
 
-        this.bot.handler.autokeys.refresh();
-        this.bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
+        await this.bot.handler.autokeys.refresh();
+        return this.bot.sendMessage(steamID, '✅ Successfully refreshed Autokeys.');
     }
 
-    refreshListingsCommand(steamID: SteamID): void {
+    refreshListingsCommand(steamID: SteamID): Promise<void> {
         const opt = this.bot.options;
 
         if (opt.miscSettings.createListings.enable === false) {
@@ -596,7 +646,7 @@ export default class ManagerCommands {
                             ` [${skusToCheck.join(', ')}] ...`
                     );
 
-                    this.bot.sendMessage(
+                    await this.bot.sendMessage(
                         steamID,
                         'Refreshing listings for ' + pluralize('item', pricelistCount, true) + '...'
                     );
@@ -621,9 +671,12 @@ export default class ManagerCommands {
                     );
 
                     log.debug('Done checking ' + pluralize('item', pricelistCount, true));
-                    this.bot.sendMessage(steamID, '✅ Done refreshing ' + pluralize('item', pricelistCount, true));
+                    return this.bot.sendMessage(
+                        steamID,
+                        '✅ Done refreshing ' + pluralize('item', pricelistCount, true)
+                    );
                 } else {
-                    this.bot.sendMessage(steamID, '❌ Nothing to refresh.');
+                    return this.bot.sendMessage(steamID, '❌ Nothing to refresh.');
                 }
             });
         }
@@ -728,7 +781,7 @@ export default class ManagerCommands {
         return reply;
     }
 
-    refreshSchema(steamID: SteamID): void {
+    async refreshSchema(steamID: SteamID): Promise<void> {
         const newExecutedTime = dayjs().valueOf();
         const timeDiff = newExecutedTime - this.lastExecutedRefreshSchemaTime;
 
@@ -743,12 +796,15 @@ export default class ManagerCommands {
             clearTimeout(this.executeRefreshSchemaTimeout);
             this.lastExecutedRefreshSchemaTime = dayjs().valueOf();
 
-            this.bot.schemaManager.getSchema(err => {
-                if (err) {
-                    log.error('Error getting schema on !refreshSchema command:', err);
-                    return this.bot.sendMessage(steamID, `❌ Error getting TF2 Schema: ${JSON.stringify(err)}`);
-                }
-
+            try {
+                await new Promise((resolve, reject) => {
+                    this.bot.schemaManager.getSchema(err => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(null);
+                    });
+                });
                 log.debug('Refreshing TF2 Schema...');
                 this.bot.schema = this.bot.schemaManager.schema;
                 this.bot.setProperties();
@@ -760,8 +816,11 @@ export default class ManagerCommands {
                     clearTimeout(this.executeRefreshSchemaTimeout);
                 }, 30 * 60 * 1000);
 
-                this.bot.sendMessage(steamID, '✅ Refresh schema success!');
-            });
+                return this.bot.sendMessage(steamID, '✅ Refresh schema success!');
+            } catch (err) {
+                log.error('Error getting schema on !refreshSchema command:', err);
+                return this.bot.sendMessage(steamID, `❌ Error getting TF2 Schema: ${JSON.stringify(err)}`);
+            }
         }
     }
 }

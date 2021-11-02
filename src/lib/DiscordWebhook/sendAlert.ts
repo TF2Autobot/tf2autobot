@@ -43,15 +43,14 @@ type AlertType =
     | 'isPartialPriced'
     | 'unusualInvalidItems'
     | 'failedToUpdateOldPrices';
-
-export default function sendAlert(
+export default async function sendAlert(
     type: AlertType,
     bot: Bot,
     msg: string | null = null,
     positionOrCount: number | null = null,
     err: any | null = null,
     items: string[] | null = null
-): void {
+): Promise<void> {
     let title: string;
     let description: string;
     let color: string;
@@ -253,9 +252,13 @@ export default function sendAlert(
         ]
     };
 
-    sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert')
-        .then(() => log.debug(`✅ Sent alert webhook (${type}) to Discord.`))
-        .catch(err => log.warn(`❌ Failed to send alert webhook (${type}) to Discord: `, err));
+    return sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert')
+        .then(() => {
+            log.debug(`✅ Sent alert webhook (${type}) to Discord.`);
+        })
+        .catch(err => {
+            log.warn(`❌ Failed to send alert webhook (${type}) to Discord: `, err);
+        });
 }
 
 function generateError(err: any): string {

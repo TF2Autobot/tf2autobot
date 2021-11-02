@@ -14,7 +14,7 @@ export default class MiscCommands {
         this.bot = bot;
     }
 
-    miscCommand(steamID: SteamID, command: Misc): void {
+    async miscCommand(steamID: SteamID, command: Misc): Promise<void> {
         const opt = this.bot.options.commands[command];
         if (!opt.enable) {
             if (!this.bot.isAdmin(steamID)) {
@@ -26,7 +26,7 @@ export default class MiscCommands {
         const custom = opt.customReply.reply;
         if (command === 'time') {
             const timeWithEmojis = timeNow(this.bot.options);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 custom
                     ? custom
@@ -39,10 +39,10 @@ export default class MiscCommands {
             );
         } else if (command === 'uptime') {
             const botUptime = uptime();
-            this.bot.sendMessage(steamID, custom ? custom.replace(/%uptime%/g, botUptime) : botUptime);
+            await this.bot.sendMessage(steamID, custom ? custom.replace(/%uptime%/g, botUptime) : botUptime);
         } else if (command === 'pure') {
             const pureStock = pure.stock(this.bot);
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 custom
                     ? custom.replace(/%pure%/g, pureStock.join(' and '))
@@ -59,7 +59,7 @@ export default class MiscCommands {
                     ? 'custom-pricer'
                     : 'https://api.prices.tf/items/5021;6?src=bptf';
 
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 custom
                     ? custom
@@ -80,7 +80,7 @@ export default class MiscCommands {
             const steamURL = `https://steamcommunity.com/profiles/${firstAdmin.toString()}`;
             const bptfURL = `https://backpack.tf/profiles/${firstAdmin.toString()}`;
 
-            this.bot.sendMessage(
+            await this.bot.sendMessage(
                 steamID,
                 custom
                     ? custom
@@ -100,7 +100,7 @@ export default class MiscCommands {
                     //
                 } else return this.bot.sendMessage(steamID, '❌ The owner have not set the Discord invite link.');
             }
-            this.bot.sendMessage(steamID, reply);
+            await this.bot.sendMessage(steamID, reply);
         } else {
             const inventory = this.bot.inventoryManager.getInventory;
             const dict = inventory.getItems;
@@ -180,7 +180,7 @@ export default class MiscCommands {
                 reply += `,\nand ${left} other ${pluralize('item', left)}`;
             }
 
-            this.bot.sendMessage(steamID, reply);
+            await this.bot.sendMessage(steamID, reply);
         }
     }
 
@@ -208,7 +208,7 @@ export default class MiscCommands {
                       type === 'craftweapon' ? 'craft' : 'uncraft'
                   } weapons stock in my inventory:\n\n`;
 
-            this.bot.sendMessage(steamID, reply);
+            await this.bot.sendMessage(steamID, reply);
 
             const listCount = weaponStock.length;
             const limit = 15;
@@ -220,7 +220,10 @@ export default class MiscCommands {
 
                 const firstOrLast = i < 1 ? limit : i15 + (listCount - i15);
 
-                this.bot.sendMessage(steamID, weaponStock.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
+                await this.bot.sendMessage(
+                    steamID,
+                    weaponStock.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n')
+                );
 
                 await sleepasync().Promise.sleep(3000);
             }
@@ -242,11 +245,11 @@ export default class MiscCommands {
                   } weapons in my inventory.`;
         }
 
-        this.bot.sendMessage(steamID, reply);
+        return this.bot.sendMessage(steamID, reply);
     }
 
-    paintsCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, '/code ' + JSON.stringify(this.bot.paints, null, 4));
+    async paintsCommand(steamID: SteamID): Promise<void> {
+        return this.bot.sendMessage(steamID, '/code ' + JSON.stringify(this.bot.paints, null, 4));
     }
 
     private getWeaponsStock(showOnlyExist: boolean, weapons: string[]): string[] {

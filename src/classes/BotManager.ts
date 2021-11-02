@@ -148,7 +148,7 @@ export default class BotManager {
         });
     }
 
-    stopProcess(): Promise<void> {
+    async stopProcess(): Promise<void> {
         return new Promise((resolve, reject) => {
             if (process.env.pm_id === undefined) {
                 this.stop(null);

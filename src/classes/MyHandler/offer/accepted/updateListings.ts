@@ -22,11 +22,11 @@ const removeDuplicate = (skus: string[]): string[] => {
 
 let craftWeapons: string[] = [];
 
-export default function updateListings(
+export default async function updateListings(
     offer: TradeOffer,
     bot: Bot,
     highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items }
-): void {
+): Promise<void> {
     const opt = bot.options;
     const diff = offer.getDiff() || {};
     const dict = offer.data('dict') as ItemsDict;
@@ -191,51 +191,48 @@ export default function updateListings(
 
             const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
-            bot.pricelist
-                .addPrice(entry, true)
-                .then(data => {
-                    const msg =
-                        `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
-                        ` (${paintedSKU}) to sell.` +
-                        `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
-                        `\nSelling for: ${data.sell.toString()} ` +
-                        `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
-                            priceFromOptions.metal
-                        } ref)` +
-                        (isCustomPricer
-                            ? '\n - Base selling price was fetched from custom auto-pricer'
-                            : `\nhttps://www.prices.tf/items/${sku}`);
+            try {
+                const data = await bot.pricelist.addPrice(paintedSKU, entry, true);
+                const msg =
+                    `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
+                    ` (${paintedSKU}) to sell.` +
+                    `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
+                    `\nSelling for: ${data.sell.toString()} ` +
+                    `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
+                        priceFromOptions.metal
+                    } ref)` +
+                    (isCustomPricer
+                        ? '\n - Base selling price was fetched from custom auto-pricer'
+                        : `\nhttps://www.prices.tf/items/${sku}`);
 
-                    log.debug(msg);
+                log.debug(msg);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
-                        if (dwEnabled) {
-                            sendAlert('autoAddPaintedItems', bot, msg.replace(/"/g, '`'));
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
+                if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
+                    if (dwEnabled) {
+                        await sendAlert('autoAddPaintedItems', bot, msg.replace(/"/g, '`'));
+                    } else {
+                        await bot.messageAdmins(msg, []);
                     }
+                }
 
-                    addToQueu(paintedSKU, isNotPure, existInPricelist);
-                })
-                .catch(err => {
-                    const msg =
-                        `❌ Failed to add ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
-                        ` (${paintedSKU}) to sell automatically: ${(err as Error).message}`;
+                addToQueu(paintedSKU, isNotPure, existInPricelist);
+            } catch (err) {
+                const msg =
+                    `❌ Failed to add ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
+                    ` (${paintedSKU}) to sell automatically: ${(err as Error).message}`;
 
-                    log.warn(`Failed to add ${paintedSKU} to sell automatically:`, err);
+                log.warn(`Failed to add ${paintedSKU} to sell automatically:`, err);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
-                        if (dwEnabled) {
-                            sendAlert('autoAddPaintedItemsFailed', bot, msg.replace(/"/g, '`'));
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
+                if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
+                    if (dwEnabled) {
+                        await sendAlert('autoAddPaintedItemsFailed', bot, msg.replace(/"/g, '`'));
+                    } else {
+                        await bot.messageAdmins(msg, []);
                     }
+                }
 
-                    addToQueu(paintedSKU, isNotPure, existInPricelist);
-                });
-            //
+                addToQueu(paintedSKU, isNotPure, existInPricelist);
+            }
         } else if (isAutoAddPaintedFromAdmin) {
             const priceFromOptions =
                 opt.detailsExtra.painted[bot.schema.getPaintNameByDecimal(item.paint) as PaintedNames].price;
@@ -274,48 +271,45 @@ export default function updateListings(
 
             const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
-            bot.pricelist
-                .addPrice(entry, true)
-                .then(data => {
-                    const msg =
-                        `✅ Automatically added ${name} (${sku}) to sell.` +
-                        `\nBase price: ${inPrice2.buy.toString()}/${inPrice2.sell.toString()}` +
-                        `\nSelling for: ${data.sell.toString()} ` +
-                        `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
-                            priceFromOptions.metal
-                        } ref)` +
-                        (isCustomPricer
-                            ? '\n - Base selling price was fetched from custom auto-pricer'
-                            : `\nhttps://www.prices.tf/items/${skuNoPaint}`);
+            try {
+                const data = await bot.pricelist.addPrice(sku, entry, true);
+                const msg =
+                    `✅ Automatically added ${name} (${sku}) to sell.` +
+                    `\nBase price: ${inPrice2.buy.toString()}/${inPrice2.sell.toString()}` +
+                    `\nSelling for: ${data.sell.toString()} ` +
+                    `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
+                        priceFromOptions.metal
+                    } ref)` +
+                    (isCustomPricer
+                        ? '\n - Base selling price was fetched from custom auto-pricer'
+                        : `\nhttps://www.prices.tf/items/${skuNoPaint}`);
 
-                    log.debug(msg);
+                log.debug(msg);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
-                        if (dwEnabled) {
-                            sendAlert('autoAddPaintedItems', bot, msg.replace(/"/g, '`'));
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
+                if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
+                    if (dwEnabled) {
+                        await sendAlert('autoAddPaintedItems', bot, msg.replace(/"/g, '`'));
+                    } else {
+                        await bot.messageAdmins(msg, []);
                     }
+                }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
-                })
-                .catch(err => {
-                    const msg = `❌ Failed to add ${name} (${sku}) to sell automatically: ${(err as Error).message}`;
+                addToQueu(sku, isNotPure, existInPricelist);
+            } catch (err) {
+                const msg = `❌ Failed to add ${name} (${sku}) to sell automatically: ${(err as Error).message}`;
 
-                    log.warn(`Failed to add ${sku} to sell automatically:`, err);
+                log.warn(`Failed to add ${sku} to sell automatically:`, err);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
-                        if (dwEnabled) {
-                            sendAlert('autoAddPaintedItemsFailed', bot, msg.replace(/"/g, '`'));
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
+                if (opt.sendAlert.enable && opt.sendAlert.autoAddPaintedItems) {
+                    if (dwEnabled) {
+                        await sendAlert('autoAddPaintedItemsFailed', bot, msg.replace(/"/g, '`'));
+                    } else {
+                        await bot.messageAdmins(msg, []);
                     }
+                }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
-                });
-            //
+                addToQueu(sku, isNotPure, existInPricelist);
+            }
         } else if (isAutoaddInvalidItems) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins or highValue items, and not
             // from ADMINS, then add INVALID_ITEMS to the pricelist.
@@ -329,8 +323,8 @@ export default function updateListings(
                 group: 'invalidItem'
             } as EntryData;
 
-            bot.pricelist
-                .addPrice(entry, true)
+            await bot.pricelist
+                .addPrice(sku, entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
                     addToQueu(sku, isNotPure, existInPricelist);
@@ -356,9 +350,9 @@ export default function updateListings(
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.receivedNotInPricelist) {
                 if (dwEnabled) {
-                    sendAlert('highValuedInvalidItems', bot, msg.replace(/"/g, '`'));
+                    await sendAlert('highValuedInvalidItems', bot, msg.replace(/"/g, '`'));
                 } else {
-                    bot.messageAdmins(msg, []);
+                    await bot.messageAdmins(msg, []);
                 }
             }
 
@@ -372,9 +366,9 @@ export default function updateListings(
 
             if (opt.sendAlert.enable && opt.sendAlert.receivedUnusualNotInPricelist) {
                 if (dwEnabled) {
-                    sendAlert('unusualInvalidItems', bot, msg.replace(/"/g, '`'));
+                    await sendAlert('unusualInvalidItems', bot, msg.replace(/"/g, '`'));
                 } else {
-                    bot.messageAdmins(msg, []);
+                    await bot.messageAdmins(msg, []);
                 }
             }
 
@@ -406,63 +400,58 @@ export default function updateListings(
                 };
             }
 
-            bot.pricelist
-                .updatePrice(entry, true)
-                .then(() => {
-                    log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
+            try {
+                await bot.pricelist.updatePrice(entry.sku, entry, true);
+                log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
 
-                    let msg =
-                        `I have temporarily disabled ${name} (${sku}) because it contains some high value spells/parts.` +
-                        `\nYou can manually price it with "!update sku=${sku}&enabled=true&<buy and sell price>"` +
-                        ` or just re-enable it with "!update sku=${sku}&enabled=true&group=${oldGroup}".` +
-                        '\n\nItem information:\n\n- ';
+                let msg =
+                    `I have temporarily disabled ${name} (${sku}) because it contains some high value spells/parts.` +
+                    `\nYou can manually price it with "!update sku=${sku}&enabled=true&<buy and sell price>"` +
+                    ` or just re-enable it with "!update sku=${sku}&enabled=true&group=${oldGroup}".` +
+                    '\n\nItem information:\n\n- ';
 
-                    const theirCount = highValue.theirItems.length;
+                const theirCount = highValue.theirItems.length;
 
-                    for (let i = 0; i < theirCount; i++) {
-                        if (highValue.theirItems[i].includes(name)) msg += highValue.theirItems[i];
+                for (let i = 0; i < theirCount; i++) {
+                    if (highValue.theirItems[i].includes(name)) msg += highValue.theirItems[i];
+                }
+
+                if (opt.sendAlert.enable && opt.sendAlert.highValue.gotDisabled) {
+                    if (dwEnabled) {
+                        await sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
+                    } else {
+                        await bot.messageAdmins(msg, []);
                     }
+                }
 
-                    if (opt.sendAlert.enable && opt.sendAlert.highValue.gotDisabled) {
-                        if (dwEnabled) {
-                            sendAlert('highValuedDisabled', bot, msg.replace(/"/g, '`'));
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
-                    }
-
-                    addToQueu(sku, isNotPure, existInPricelist);
-                })
-                .catch(err => {
-                    log.warn(`❌ Failed to disable high value ${sku}: `, err);
-                    addToQueu(sku, isNotPure, existInPricelist);
-                });
-            //
+                addToQueu(sku, isNotPure, existInPricelist);
+            } catch (err) {
+                log.warn(`❌ Failed to disable high value ${sku}: `, err);
+                addToQueu(sku, isNotPure, existInPricelist);
+            }
         } else if (isAutoRemoveIntentSell) {
             // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
             // then remove the item entry from pricelist.
-            bot.pricelist
-                .removePrice(sku, true)
-                .then(() => {
-                    log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
-                    addToQueu(sku, isNotPure, existInPricelist);
-                })
-                .catch(err => {
-                    const msg = `❌ Failed to automatically remove ${name} (${sku}) from pricelist: ${
-                        (err as Error).message
-                    }`;
-                    log.warn(`❌ Failed to automatically remove ${sku}`, err);
+            try {
+                await bot.pricelist.removePrice(sku, true);
+                log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
+                addToQueu(sku, isNotPure, existInPricelist);
+            } catch (err) {
+                const msg = `❌ Failed to automatically remove ${name} (${sku}) from pricelist: ${
+                    (err as Error).message
+                }`;
+                log.warn(`❌ Failed to automatically remove ${sku}`, err);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
-                        if (dwEnabled) {
-                            sendAlert('autoRemoveIntentSellFailed', bot, msg);
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
+                if (opt.sendAlert.enable && opt.sendAlert.autoRemoveIntentSellFailed) {
+                    if (dwEnabled) {
+                        await sendAlert('autoRemoveIntentSellFailed', bot, msg);
+                    } else {
+                        await bot.messageAdmins(msg, []);
                     }
+                }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
-                });
+                addToQueu(sku, isNotPure, existInPricelist);
+            }
         } else if (isUpdatePartialPricedItem) {
             // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
             // then update entry with the latest prices.
@@ -485,46 +474,42 @@ export default function updateListings(
                 isPartialPriced: false
             } as EntryData;
 
-            bot.pricelist
-                .updatePrice(entry, true)
-                .then(data => {
-                    const msg =
-                        `${dwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})\n▸ ` +
-                        [
-                            `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
-                            `new: ${data.buy.toString()}/${data.sell.toString()}`
-                        ].join('\n▸ ') +
-                        `\n - Partial priced since ${dayjs.unix(oldTime).fromNow()}` +
-                        `\n - Current prices last update: ${dayjs.unix(data.time).fromNow()}`;
+            try {
+                const data = await bot.pricelist.updatePrice(entry.sku, entry, true);
+                const msg =
+                    `${dwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})\n▸ ` +
+                    [
+                        `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
+                        `new: ${data.buy.toString()}/${data.sell.toString()}`
+                    ].join('\n▸ ') +
+                    `\n - Partial priced since ${dayjs.unix(oldTime).fromNow()}` +
+                    `\n - Current prices last update: ${dayjs.unix(data.time).fromNow()}`;
 
-                    log.debug(msg);
+                log.debug(msg);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onSuccessUpdatePartialPriced) {
-                        if (dwEnabled) {
-                            sendAlert('autoUpdatePartialPriceSuccess', bot, msg);
-                        } else {
-                            bot.messageAdmins('✅ Automatically update partially priced item - ' + msg, []);
-                        }
+                if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onSuccessUpdatePartialPriced) {
+                    if (dwEnabled) {
+                        await sendAlert('autoUpdatePartialPriceSuccess', bot, msg);
+                    } else {
+                        await bot.messageAdmins('✅ Automatically update partially priced item - ' + msg, []);
                     }
+                }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
-                })
-                .catch(err => {
-                    const msg = `❌ Failed to automatically update prices for ${name} (${sku}): ${
-                        (err as Error).message
-                    }`;
-                    log.error(`❌ Failed to automatically update prices for ${sku}`, err);
+                addToQueu(sku, isNotPure, existInPricelist);
+            } catch (err) {
+                const msg = `❌ Failed to automatically update prices for ${name} (${sku}): ${(err as Error).message}`;
+                log.error(`❌ Failed to automatically update prices for ${sku}`, err);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
-                        if (dwEnabled) {
-                            sendAlert('autoUpdatePartialPriceFailed', bot, msg);
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
+                if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
+                    if (dwEnabled) {
+                        await sendAlert('autoUpdatePartialPriceFailed', bot, msg);
+                    } else {
+                        await bot.messageAdmins(msg, []);
                     }
+                }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
-                });
+                addToQueu(sku, isNotPure, existInPricelist);
+            }
         } else {
             addToQueu(sku, isNotPure, existInPricelist);
         }

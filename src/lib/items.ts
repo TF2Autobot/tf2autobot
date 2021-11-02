@@ -29,74 +29,7 @@ export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): Minimu
         item.defindex = 160;
     }
 
-    if (
-        [
-            5726, // Rocket Launcher
-            5727, // Scattergun
-            5728, // Sniper Rifle
-            5729, // Shotgun
-            5730, // Ubersaw
-            5731, // GRU
-            5732, // Spy-cicle
-            5733, // Axtinguisher
-            5743, // Sticky Launcher
-            5744, // Minigun
-            5745, // Direct Hit
-            5746, // Huntsman
-            5747, // Backburner
-            5748, // Backscatter
-            5749, // Kritzkrieg
-            5750, // Ambassador
-            5751, // Frontier Justice
-            5793, // Flaregun
-            5794, // Wrench
-            5795, // Revolver
-            5796, // Machina
-            5797, // Baby Face Blaster
-            5798, // Huo Long Heatmaker
-            5799, // Loose Cannon
-            5800, // Vaccinator
-            5801 // Air Strike
-        ].includes(item.defindex)
-    ) {
-        // Standardize all specific Basic Killstreak Kit
-        item.defindex = 6527;
-    } else if (item.defindex === 5738) {
-        // Standardize different versions of Mann Co. Stockpile Crate
-        item.defindex = 5737;
-    } else if (
-        [
-            5661, // Pomson 6000 Strangifier
-            5721, // Pretty Boy's Pocket Pistol Strangifier
-            5722, // Phlogistinator Strangifier
-            5723, // Cleaner's Carbine Strangifier
-            5724, // Private Eye Strangifier
-            5725, // Big Chief Strangifier
-            5753, // Air Strike Strangifier
-            5754, // Classic Strangifier
-            5755, // Manmelter Strangifier
-            5756, // Vaccinator Strangifier
-            5757, // Widowmaker Strangifier
-            5758, // Anger Strangifier
-            5759, // Apparition's Aspect Strangifier
-            5783, // Cow Mangler 5000 Strangifier
-            5784, // Third Degree Strangifier
-            5804 // Righteous Bison Strangifier
-        ].includes(item.defindex)
-    ) {
-        // Standardize defindex for Strangifier
-        item.defindex = 6522;
-    } else if (
-        [
-            20001, // Cosmetic Strangifier Recipe 1 Rare
-            20005, // Cosmetic Strangifier Recipe 2
-            20008, // Rebuild Strange Weapon Recipe
-            20009 // Cosmetic Strangifier Recipe 3
-        ].includes(item.defindex)
-    ) {
-        // Standardize defindex for Strangifier Chemistry Set
-        item.defindex = 20000;
-    }
+    standardizeItem(item);
 
     const isPromo = isPromoItem(schemaItem);
 
@@ -174,4 +107,75 @@ export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): Minimu
 
 export function isPromoItem(schemaItem: SchemaManager.SchemaItem): boolean {
     return schemaItem.name.startsWith('Promo ') && schemaItem.craft_class === '';
+}
+
+export function standardizeItem(item: MinimumItem): void {
+    if (
+        [
+            5726, // Rocket Launcher
+            5727, // Scattergun
+            5728, // Sniper Rifle
+            5729, // Shotgun
+            5730, // Ubersaw
+            5731, // GRU
+            5732, // Spy-cicle
+            5733, // Axtinguisher
+            5743, // Sticky Launcher
+            5744, // Minigun
+            5745, // Direct Hit
+            5746, // Huntsman
+            5747, // Backburner
+            5748, // Backscatter
+            5749, // Kritzkrieg
+            5750, // Ambassador
+            5751, // Frontier Justice
+            5793, // Flaregun
+            5794, // Wrench
+            5795, // Revolver
+            5796, // Machina
+            5797, // Baby Face Blaster
+            5798, // Huo Long Heatmaker
+            5799, // Loose Cannon
+            5800, // Vaccinator
+            5801 // Air Strike
+        ].includes(item.defindex)
+    ) {
+        // Standardize all specific Basic Killstreak Kit
+        item.defindex = 6527;
+    } else if (item.defindex === 5738) {
+        // Standardize different versions of Mann Co. Stockpile Crate
+        item.defindex = 5737;
+    } else if (
+        [
+            5661, // Pomson 6000 Strangifier
+            5721, // Pretty Boy's Pocket Pistol Strangifier
+            5722, // Phlogistinator Strangifier
+            5723, // Cleaner's Carbine Strangifier
+            5724, // Private Eye Strangifier
+            5725, // Big Chief Strangifier
+            5753, // Air Strike Strangifier
+            5754, // Classic Strangifier
+            5755, // Manmelter Strangifier
+            5756, // Vaccinator Strangifier
+            5757, // Widowmaker Strangifier
+            5758, // Anger Strangifier
+            5759, // Apparition's Aspect Strangifier
+            5783, // Cow Mangler 5000 Strangifier
+            5784, // Third Degree Strangifier
+            5804 // Righteous Bison Strangifier
+        ].includes(item.defindex)
+    ) {
+        // Standardize defindex for Strangifier
+        item.defindex = 6522;
+    } else if (
+        [
+            20001, // Cosmetic Strangifier Recipe 1 Rare
+            20005, // Cosmetic Strangifier Recipe 2
+            20008, // Rebuild Strange Weapon Recipe
+            20009 // Cosmetic Strangifier Recipe 3
+        ].includes(item.defindex)
+    ) {
+        // Standardize defindex for Strangifier Chemistry Set
+        item.defindex = 20000;
+    }
 }

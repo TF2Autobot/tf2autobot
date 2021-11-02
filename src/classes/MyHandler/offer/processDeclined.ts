@@ -5,7 +5,7 @@ import * as t from '../../../lib/tools/export';
 import sendTradeDeclined from '../../../lib/DiscordWebhook/sendTradeDeclined';
 import { KeyPrices } from '../../../classes/Pricelist';
 
-export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTradingKeys: boolean): void {
+export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTradingKeys: boolean): Promise<void> {
     const opt = bot.options;
 
     const declined: Declined = {
@@ -263,12 +263,12 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
         const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
-        sendToAdmin(bot, offer, value, itemList, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
+        return sendToAdmin(bot, offer, value, itemList, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
     }
     //else it's sent by us and they declined it so we don't care ?
 }
 
-export function sendToAdmin(
+export async function sendToAdmin(
     bot: Bot,
     offer: i.TradeOffer,
     value: t.ValueDiff,
@@ -276,7 +276,7 @@ export function sendToAdmin(
     keyPrices: KeyPrices,
     isOfferSent: boolean,
     timeTakenToProcessOrConstruct: number
-): void {
+): Promise<void> {
     const slots = bot.tf2.backpackSlots;
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
@@ -292,7 +292,7 @@ export function sendToAdmin(
     const customInitializer = bot.options.steamChat.customInitializer.declinedTradeSummary;
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
-    bot.messageAdmins(
+    await bot.messageAdmins(
         'trade',
         `${customInitializer ? customInitializer : '/me'} Trade #${
             offer.id

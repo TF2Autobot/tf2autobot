@@ -1,7 +1,7 @@
 import TradeOfferManager, { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../../Bot';
 
-export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot): void {
+export default async function cancelled(offer: TradeOffer, oldState: number, bot: Bot): Promise<void> {
     let reply: string;
 
     if (offer.data('canceledByUser') === true) {
@@ -22,5 +22,5 @@ export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot)
               "If the offer was just created, this is likely an issue on Steam's end. Please try again";
     }
 
-    bot.sendMessage(offer.partner, reply);
+    return bot.sendMessage(offer.partner, reply);
 }

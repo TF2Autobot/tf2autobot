@@ -235,21 +235,21 @@ export default class Pricelist extends EventEmitter {
         this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
     }
 
-    hasPrice(sku: string, onlyEnabled = false): boolean {
-        if (!this.prices[sku]) {
+    hasPrice(priceKey: string, onlyEnabled = false): boolean {
+        if (!this.prices[priceKey]) {
             return false;
         }
 
-        return this.prices[sku].enabled || !onlyEnabled;
+        return this.prices[priceKey].enabled || !onlyEnabled;
     }
 
-    getPrice(sku: string, onlyEnabled = false, generics = false): Entry | null {
-        if (this.hasPrice(sku, onlyEnabled)) {
-            return this.prices[sku];
+    getPrice(priceKey: string, onlyEnabled = false, generics = false): Entry | null {
+        if (this.hasPrice(priceKey, onlyEnabled)) {
+            return this.prices[priceKey];
         }
 
         if (generics) {
-            const gSku = generics ? sku.replace(/;u\d+/, '') : null;
+            const gSku = generics ? priceKey.replace(/;u\d+/, '') : null;
             if (this.hasPrice(gSku, onlyEnabled)) {
                 return this.prices[gSku];
             }
@@ -450,6 +450,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     async addPrice(
+        priceKey: string,
         entryData: EntryData,
         emitChange: boolean,
         src: PricelistChangedSource = PricelistChangedSource.Other,
@@ -460,9 +461,9 @@ export default class Pricelist extends EventEmitter {
         const errors = validator(entryData, 'pricelist-add');
 
         if (errors !== null) {
-            return Promise.reject(new Error(errors.join(', ')));
+            throw new Error(errors.join(', '));
         }
-        if (this.hasPrice(entryData.sku, false)) {
+        if (this.hasPrice(priceKey, false)) {
             throw new Error('Item is already priced');
         }
 
@@ -488,10 +489,10 @@ export default class Pricelist extends EventEmitter {
 
         await this.validateEntry(entry, src, isBulk);
         // Add new price
-        this.prices[entry.sku] = entry;
+        this.prices[priceKey] = entry;
 
         if (emitChange) {
-            this.priceChanged(entry.sku, entry);
+            this.priceChanged(priceKey, entry);
         }
 
         if (isBulk && isLast) {
@@ -502,6 +503,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     async updatePrice(
+        priceKey: string,
         entryData: EntryData,
         emitChange: boolean,
         src: PricelistChangedSource = PricelistChangedSource.Other,
@@ -574,17 +576,17 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    removePrice(sku: string, emitChange: boolean): Promise<Entry> {
+    removePrice(priceKey: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
-            if (!this.hasPrice(sku)) {
+            if (!this.hasPrice(priceKey)) {
                 return reject(new Error('Item is not priced'));
             }
 
-            const entry = Object.assign({}, this.prices[sku]); //TODO: do we need to copy it ?
-            delete this.prices[sku];
+            const entry = Object.assign({}, this.prices[priceKey]); //TODO: do we need to copy it ?
+            delete this.prices[priceKey];
 
             if (emitChange) {
-                this.priceChanged(sku, entry);
+                this.priceChanged(priceKey, entry);
             }
 
             return resolve(entry);
@@ -940,7 +942,7 @@ export default class Pricelist extends EventEmitter {
         );
     }
 
-    private handlePriceChange(data: GetItemPriceResponse): void {
+    private async handlePriceChange(data: GetItemPriceResponse): Promise<void> {
         if (data.source !== 'bptf') {
             return;
         }
@@ -1081,9 +1083,9 @@ export default class Pricelist extends EventEmitter {
 
                     if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onUpdate) {
                         if (this.isDwAlertEnabled) {
-                            sendAlert('isPartialPriced', this.bot, msg);
+                            await sendAlert('isPartialPriced', this.bot, msg);
                         } else {
-                            this.bot.messageAdmins('Partial price update\n\n' + msg, []);
+                            await this.bot.messageAdmins('Partial price update\n\n' + msg, []);
                         }
                     }
                 } else {
@@ -1119,9 +1121,9 @@ export default class Pricelist extends EventEmitter {
 
                         if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onResetAfterThreshold) {
                             if (this.isDwAlertEnabled) {
-                                sendAlert('autoResetPartialPrice', this.bot, msg);
+                                await sendAlert('autoResetPartialPrice', this.bot, msg);
                             } else {
-                                this.bot.messageAdmins('Partial price reset\n\n' + msg, []);
+                                await this.bot.messageAdmins('Partial price reset\n\n' + msg, []);
                             }
                         }
                     }
@@ -1162,8 +1164,8 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    private priceChanged(sku: string, entry: Entry): void {
-        this.emit('price', sku, entry);
+    private priceChanged(priceKey: string, entry: Entry): void {
+        this.emit('price', priceKey, entry);
         this.emit('pricelist', this.prices);
     }
 

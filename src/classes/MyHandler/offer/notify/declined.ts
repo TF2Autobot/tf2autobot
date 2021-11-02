@@ -2,7 +2,7 @@ import { Action, Meta, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
 import Bot from '../../../Bot';
 
-export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {
+export default async function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): Promise<void> {
     const opt = bot.options;
 
     const offerReason = offer.data('action') as Action;
@@ -199,5 +199,5 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         "\n[You're missing: " +
         (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
 
-    bot.sendMessage(offer.partner, reply + (reasonForInvalidValue ? invalidValueSummary : ''));
+    return bot.sendMessage(offer.partner, reply + (reasonForInvalidValue ? invalidValueSummary : ''));
 }

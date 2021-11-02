@@ -314,7 +314,7 @@ export default class Trades {
         });
     }
 
-    applyActionToOffer(
+    async applyActionToOffer(
         action: 'accept' | 'decline' | 'skip' | 'counter',
         reason: string,
         meta: Meta,
@@ -322,7 +322,7 @@ export default class Trades {
     ): Promise<void> {
         this.bot.handler.onOfferAction(offer, action, reason, meta);
 
-        let actionFunc: () => Promise<any>;
+        let actionFunc: () => Promise<void | string>;
 
         //Switch cases are superior (ﾉ´･ω･)ﾉ ﾐ ┸━┸. Change my mind.
         switch (action) {
@@ -360,40 +360,40 @@ export default class Trades {
             return Promise.resolve();
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return actionFunc()
-            .catch(err => {
-                this.onFailedAction(offer, action, reason, err);
+        try {
+            await actionFunc();
+        } catch (err) {
+            await this.onFailedAction(offer, action, reason, err);
 
-                if (action === 'counter') {
-                    action = 'decline';
-                    reason = 'COUNTER_INVALID_VALUE_FAILED';
+            if (action === 'counter') {
+                action = 'decline';
+                reason = 'COUNTER_INVALID_VALUE_FAILED';
 
-                    offer.data('action', {
-                        action: action,
-                        reason: reason
-                    } as Action);
+                offer.data('action', {
+                    action: action,
+                    reason: reason
+                } as Action);
 
-                    actionFunc = this.declineOffer.bind(this, offer);
+                actionFunc = this.declineOffer.bind(this, offer);
 
-                    return actionFunc().catch(err => {
-                        this.onFailedAction(offer, action, reason, err);
-                    });
+                try {
+                    await actionFunc();
+                } catch (err) {
+                    await this.onFailedAction(offer, action, reason, err);
                 }
-            })
-            .finally(() => {
-                offer.log('debug', 'done doing action on offer', {
-                    action: action
-                });
-            });
+            }
+        }
+        offer.log('debug', 'done doing action on offer', {
+            action: action
+        });
     }
 
-    private onFailedAction(
+    private async onFailedAction(
         offer: TradeOffer,
         action: 'accept' | 'decline' | 'skip' | 'counter',
         reason: string,
         err: any
-    ): void {
+    ): Promise<void> {
         log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
 
         /* Ignore notifying admin if eresult is "AlreadyRedeemed" or "InvalidState", or if the message includes that */
@@ -419,7 +419,7 @@ export default class Trades {
                         false,
                         false
                     );
-                    sendAlert(
+                    await sendAlert(
                         `failed-${action}` as FailedActions,
                         this.bot,
                         `Failed to ${action} on the offer #${offer.id}` +
@@ -443,7 +443,7 @@ export default class Trades {
                         false
                     );
 
-                    this.bot.messageAdmins(
+                    await this.bot.messageAdmins(
                         `Failed to ${action} on the offer #${offer.id}:` +
                             summary +
                             (action === 'counter'
@@ -581,117 +581,102 @@ export default class Trades {
         });
     }
 
-    private acceptOffer(offer: TradeOffer): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const start = dayjs().valueOf();
-            offer.data('actionTimestamp', start);
+    private async acceptOffer(offer: TradeOffer): Promise<string> {
+        const start = dayjs().valueOf();
+        offer.data('actionTimestamp', start);
+        const status = await this.acceptOfferRetry(offer);
+        const actionTime = dayjs().valueOf() - start;
+        log.debug('actionTime', actionTime);
+        offer.log('trade', 'successfully accepted' + (status === 'pending' ? '; confirmation required' : ''));
 
-            void this.acceptOfferRetry(offer).asCallback((err, status) => {
-                const actionTime = dayjs().valueOf() - start;
-                log.debug('actionTime', actionTime);
+        if (status === 'pending') {
+            // Maybe wait for confirmation to be accepted and then resolve?
+            try {
+                await this.acceptConfirmation(offer);
+            } catch (err) {
+                log.warn(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
 
-                if (err) {
-                    return reject(err);
-                }
+                const isNotIgnoredError =
+                    !(err as CustomError).message?.includes('Could not act on confirmation') &&
+                    !(err as CustomError).message?.includes('Could not find confirmation for object');
 
-                offer.log('trade', 'successfully accepted' + (status === 'pending' ? '; confirmation required' : ''));
+                if (isNotIgnoredError) {
+                    // Only notify if error is not "Could not act on confirmation" or not "Could not find confirmation for object"
+                    const opt = this.bot.options;
 
-                if (status === 'pending') {
-                    // Maybe wait for confirmation to be accepted and then resolve?
-                    this.acceptConfirmation(offer).catch(err => {
-                        log.warn(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
+                    if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
+                        const keyPrices = this.bot.pricelist.getKeyPrices;
+                        const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
 
-                        const isNotIgnoredError =
-                            !(err as CustomError).message?.includes('Could not act on confirmation') &&
-                            !(err as CustomError).message?.includes('Could not find confirmation for object');
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                            const summary = t.summarizeToChat(
+                                offer,
+                                this.bot,
+                                'summary-accepting',
+                                true,
+                                value,
+                                keyPrices,
+                                false,
+                                false
+                            );
+                            await sendAlert(
+                                `error-accept`,
+                                this.bot,
+                                `Error while trying to accept mobile confirmation on offer #${offer.id}` +
+                                    summary +
+                                    `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                    ` sending "!trade ${offer.id}"`,
+                                null,
+                                err,
+                                [offer.id]
+                            );
+                        } else {
+                            const summary = t.summarizeToChat(
+                                offer,
+                                this.bot,
+                                'summary-accepting',
+                                false,
+                                value,
+                                keyPrices,
+                                true,
+                                false
+                            );
 
-                        if (isNotIgnoredError) {
-                            // Only notify if error is not "Could not act on confirmation" or not "Could not find confirmation for object"
-                            const opt = this.bot.options;
-
-                            if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
-                                const keyPrices = this.bot.pricelist.getKeyPrices;
-                                const value = t.valueDiff(
-                                    offer,
-                                    keyPrices,
-                                    false,
-                                    opt.miscSettings.showOnlyMetal.enable
-                                );
-
-                                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                                    const summary = t.summarizeToChat(
-                                        offer,
-                                        this.bot,
-                                        'summary-accepting',
-                                        true,
-                                        value,
-                                        keyPrices,
-                                        false,
-                                        false
-                                    );
-                                    sendAlert(
-                                        `error-accept`,
-                                        this.bot,
-                                        `Error while trying to accept mobile confirmation on offer #${offer.id}` +
-                                            summary +
-                                            `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                            ` sending "!trade ${offer.id}"`,
-                                        null,
-                                        err,
-                                        [offer.id]
-                                    );
-                                } else {
-                                    const summary = t.summarizeToChat(
-                                        offer,
-                                        this.bot,
-                                        'summary-accepting',
-                                        false,
-                                        value,
-                                        keyPrices,
-                                        true,
-                                        false
-                                    );
-
-                                    this.bot.messageAdmins(
-                                        `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
-                                            summary +
-                                            `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                            ` sending "!trade ${offer.id}` +
-                                            `\n\nError: ${
-                                                (err as CustomError).eresult
-                                                    ? `${
-                                                          TradeOfferManager.EResult[
-                                                              (err as CustomError).eresult
-                                                          ] as string
-                                                      } - https://steamerrors.com/${(err as CustomError).eresult}`
-                                                    : (err as Error).message
-                                            }`,
-                                        []
-                                    );
-                                }
-                            }
-
-                            if (!this.retryAcceptOffer[offer.id]) {
-                                // Only retry once
-                                clearTimeout(this.resetRetryAcceptOfferTimeout);
-                                this.retryAcceptOffer[offer.id] = true;
-
-                                setTimeout(() => {
-                                    // Auto-retry after 30 seconds
-                                    void this.retryActionAfterFailure(offer.id, 'accept');
-                                }, 30 * 1000);
-                            }
-
-                            this.resetRetryAcceptOfferTimeout = setTimeout(() => {
-                                this.retryAcceptOffer = {};
-                            }, 2 * 60 * 1000);
+                            await this.bot.messageAdmins(
+                                `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
+                                    summary +
+                                    `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                    ` sending "!trade ${offer.id}` +
+                                    `\n\nError: ${
+                                        (err as CustomError).eresult
+                                            ? `${
+                                                  TradeOfferManager.EResult[(err as CustomError).eresult] as string
+                                              } - https://steamerrors.com/${(err as CustomError).eresult}`
+                                            : (err as Error).message
+                                    }`,
+                                []
+                            );
                         }
-                    });
-                }
+                    }
 
-                return resolve(status);
-            });
-        });
+                    if (!this.retryAcceptOffer[offer.id]) {
+                        // Only retry once
+                        clearTimeout(this.resetRetryAcceptOfferTimeout);
+                        this.retryAcceptOffer[offer.id] = true;
+
+                        setTimeout(() => {
+                            // Auto-retry after 30 seconds
+                            void this.retryActionAfterFailure(offer.id, 'accept');
+                        }, 30 * 1000);
+                    }
+
+                    this.resetRetryAcceptOfferTimeout = setTimeout(() => {
+                        this.retryAcceptOffer = {};
+                    }, 2 * 60 * 1000);
+                }
+            }
+        }
+        return status;
     }
 
     private counterOffer(offer: TradeOffer, meta: Meta): Promise<string> {
@@ -1512,51 +1497,53 @@ export default class Trades {
             } else {
                 // Good to perform automatic restart
                 if (dwEnabled) {
-                    sendAlert('escrow-check-failed-perform-restart', this.bot, null, this.escrowCheckFailedCount);
-                    void this.bot.botManager
-                        .restartProcess()
-                        .then(restarting => {
-                            if (!restarting) {
-                                return sendAlert('failedPM2', this.bot);
-                            }
-                            this.bot.sendMessage(steamID, '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...');
-                        })
-                        .catch(err => {
-                            log.warn('Error occurred while trying to restart: ', err);
-                            sendAlert('failedRestartError', this.bot, null, null, err);
-                        });
+                    await sendAlert('escrow-check-failed-perform-restart', this.bot, null, this.escrowCheckFailedCount);
+                    try {
+                        const restarting = await this.bot.botManager.restartProcess();
+                        if (!restarting) {
+                            return sendAlert('failedPM2', this.bot);
+                        }
+                        await this.bot.sendMessage(
+                            steamID,
+                            '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...'
+                        );
+                    } catch (err) {
+                        log.warn('Error occurred while trying to restart: ', err);
+                        await sendAlert('failedRestartError', this.bot, null, null, err);
+                    }
                 } else {
-                    this.bot.messageAdmins(
+                    await this.bot.messageAdmins(
                         `⚠️ [Escrow check failed alert] Current failed count: ${
                             this.escrowCheckFailedCount
                         }\n\n${t.uptime()}`,
                         []
                     );
-                    void this.bot.botManager
-                        .restartProcess()
-                        .then(restarting => {
-                            if (!restarting) {
-                                return this.bot.messageAdmins(
-                                    `❌ Automatic restart on Escrow check problem failed because you're not running the bot with PM2!`,
-                                    []
-                                );
-                            }
-                            this.bot.messageAdmins(`🔄 Restarting...`, []);
-                            this.bot.sendMessage(steamID, '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...');
-                        })
-                        .catch(err => {
-                            log.warn('Error occurred while trying to restart: ', err);
-                            this.bot.messageAdmins(
-                                `❌ An error occurred while trying to restart: ${(err as Error).message}`,
+                    try {
+                        const restarting = await this.bot.botManager.restartProcess();
+                        if (!restarting) {
+                            return this.bot.messageAdmins(
+                                `❌ Automatic restart on Escrow check problem failed because you're not running the bot with PM2!`,
                                 []
                             );
-                        });
+                        }
+                        await this.bot.messageAdmins(`🔄 Restarting...`, []);
+                        await this.bot.sendMessage(
+                            steamID,
+                            '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...'
+                        );
+                    } catch (err) {
+                        log.warn('Error occurred while trying to restart: ', err);
+                        await this.bot.messageAdmins(
+                            `❌ An error occurred while trying to restart: ${(err as Error).message}`,
+                            []
+                        );
+                    }
                 }
             }
         }
     }
 
-    onOfferChanged(offer: TradeOffer, oldState: number): void {
+    async onOfferChanged(offer: TradeOffer, oldState: number): Promise<void> {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
@@ -1629,26 +1616,29 @@ export default class Trades {
         // https://github.com/TF2Autobot/tf2autobot/issues/527
         this.bot.client.gamesPlayed([]);
 
-        // Canceled offer, declined countered offer => new item assetid
-        void this.bot.inventoryManager.getInventory.fetch().asCallback(err => {
-            if (err) {
-                log.warn('Error fetching inventory: ', err);
-                log.debug('Retrying to fetch inventory in 30 seconds...');
-                this.retryFetchInventory();
-            }
-
-            this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
-        });
+        try {
+            await this.bot.inventoryManager.getInventory.fetch();
+        } catch (err) {
+            log.warn('Error fetching inventory: ', err);
+            log.debug('Retrying to fetch inventory in 30 seconds...');
+            await this.retryFetchInventory();
+        }
+        await this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
     }
 
-    private retryFetchInventory(): void {
-        setTimeout(() => {
-            this.bot.inventoryManager.getInventory.fetch().catch(err => {
-                log.warn('Error fetching inventory: ', err);
-                log.debug('Retrying to fetch inventory in 30 seconds...');
-                this.retryFetchInventory();
-            });
-        }, 30 * 1000);
+    async private retryFetchInventory(): Promise<void> {
+        return new Promise((r) => {
+            setTimeout(async () => {
+                try {
+                    await this.bot.inventoryManager.getInventory.fetch()
+                } catch(err) {
+                    log.warn('Error fetching inventory: ', err);
+                    log.debug('Retrying to fetch inventory in 30 seconds...');
+                    await this.retryFetchInventory();
+                };
+                r(undefined);
+            }, 30 * 1000)
+        });
     }
 
     private set setItemInTrade(assetid: string) {

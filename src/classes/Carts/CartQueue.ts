@@ -8,6 +8,7 @@ import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { uptime } from '../../lib/tools/export';
 import { isBptfBanned } from '../../lib/bans';
+import { find } from 'async';
 
 export default class CartQueue {
     private carts: Cart[] = [];
@@ -20,7 +21,7 @@ export default class CartQueue {
         this.bot = bot;
     }
 
-    enqueue(cart: Cart, isDonating: boolean, isBuyingPremium: boolean): number {
+    async enqueue(cart: Cart, isDonating: boolean, isBuyingPremium: boolean): Promise<number> {
         // TODO: Priority queueing
 
         log.debug('Enqueueing cart');
@@ -37,10 +38,7 @@ export default class CartQueue {
 
         this.carts.push(cart);
 
-        setImmediate(() => {
-            // Using set immediate so that the queue will first be handled when done with this event loop cycle
-            this.handleQueue(isDonating, isBuyingPremium);
-        });
+        await this.handleQueue(isDonating, isBuyingPremium);
 
         clearTimeout(this.queuePositionCheck);
         this.queueCheck(cart.partner);
@@ -120,46 +118,46 @@ export default class CartQueue {
             } else {
                 // Good to perform automatic restart
                 if (dwEnabled) {
-                    sendAlert('queue-problem-perform-restart', this.bot, null, position);
-                    void this.bot.botManager
+                    await sendAlert('queue-problem-perform-restart', this.bot, null, position);
+                    await this.bot.botManager
                         .restartProcess()
                         .then(restarting => {
                             if (!restarting) {
                                 return sendAlert('failedPM2', this.bot);
                             }
-                            this.bot.sendMessage(steamID, 'Sorry! Something went wrong. I am restarting myself...');
                         })
                         .catch(err => {
                             log.error('Error occurred while trying to restart: ', err);
-                            sendAlert('failedRestartError', this.bot, null, null, err);
-                            // try again after 3 minutes
-                            clearTimeout(this.queuePositionCheck);
-                            this.queueCheck(steamID);
+                            return sendAlert('failedRestartError', this.bot, null, null, err).then(() => {
+                                // try again after 3 minutes
+                                clearTimeout(this.queuePositionCheck);
+                                this.queueCheck(steamID);
+                            });
                         });
                 } else {
-                    this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}\n\n${uptime()}`, []);
-                    void this.bot.botManager
-                        .restartProcess()
-                        .then(restarting => {
+                    await this.bot.messageAdmins(`⚠️ [Queue alert] Current position: ${position}\n\n${uptime()}`, []);
+                    try {
+                        await this.bot.botManager.restartProcess().then(restarting => {
                             if (!restarting) {
                                 return this.bot.messageAdmins(
                                     '❌ Automatic restart on queue problem failed because are not running the bot with PM2!',
                                     []
                                 );
                             }
-                            this.bot.messageAdmins(`🔄 Restarting...`, []);
-                            this.bot.sendMessage(steamID, 'Queue problem detected, restarting...');
-                        })
-                        .catch(err => {
-                            log.error('Error occurred while trying to restart: ', err);
-                            this.bot.messageAdmins(
-                                `❌ An error occurred while trying to restart: ${(err as Error).message}`,
-                                []
-                            );
-                            // try again after 3 minutes
-                            clearTimeout(this.queuePositionCheck);
-                            this.queueCheck(steamID);
+                            return this.bot
+                                .messageAdmins(`🔄 Restarting...`, [])
+                                .then(() => this.bot.sendMessage(steamID, 'Queue problem detected, restarting...'));
                         });
+                    } catch (err) {
+                        log.error('Error occurred while trying to restart: ', err);
+                        await this.bot.messageAdmins(
+                            `❌ An error occurred while trying to restart: ${(err as Error).message}`,
+                            []
+                        );
+                        // try again after 3 minutes
+                        clearTimeout(this.queuePositionCheck);
+                        this.queueCheck(steamID);
+                    }
                 }
             }
         }
@@ -195,7 +193,7 @@ export default class CartQueue {
         return this.carts[index];
     }
 
-    private handleQueue(isDonating: boolean, isBuyingPremium: boolean): void {
+    private async handleQueue(isDonating: boolean, isBuyingPremium: boolean): Promise<void> {
         log.debug('Handling queue...');
 
         if (this.busy || this.carts.length === 0) {
@@ -212,84 +210,84 @@ export default class CartQueue {
         log.debug('Constructing offer');
 
         const custom = this.bot.options.commands.addToQueue;
-        Promise.resolve(cart.constructOffer())
-            .then(alteredMessage => {
-                log.debug('Constructed offer');
-                if (alteredMessage) {
-                    cart.sendNotification = custom.alteredOffer
+        try {
+            const alteredMessage = await cart.constructOffer();
+            log.debug('Constructed offer');
+            if (alteredMessage) {
+                await cart.sendNotification(
+                    custom.alteredOffer
                         ? custom.alteredOffer.replace(/%altered%/g, alteredMessage)
-                        : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`;
-                }
+                        : `⚠️ Your offer has been altered. Reason: ${alteredMessage}.`
+                );
+            }
 
-                const summarize = cart.summarize(isDonating, isBuyingPremium);
+            const summarize = cart.summarize(isDonating, isBuyingPremium);
 
+            const sendNotification = isDonating
+                ? custom.processingOffer.donation
+                    ? custom.processingOffer.donation.replace(/%summarize%/g, summarize)
+                    : `⌛ Please wait while I process your donation! ${summarize}.`
+                : isBuyingPremium
+                ? custom.processingOffer.isBuyingPremium
+                    ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
+                    : `⌛ Please wait while I process your premium purchase! ${summarize}.`
+                : custom.processingOffer.offer
+                ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
+                : `⌛ Please wait while I process your offer! ${summarize}.`;
+
+            await cart.sendNotification(sendNotification);
+
+            log.debug('Sending offer...');
+            const status = await cart.sendOffer();
+            log.debug('Sent offer');
+            if (status === 'pending') {
                 const sendNotification = isDonating
-                    ? custom.processingOffer.donation
-                        ? custom.processingOffer.donation.replace(/%summarize%/g, summarize)
-                        : `⌛ Please wait while I process your donation! ${summarize}.`
-                    : isBuyingPremium
-                    ? custom.processingOffer.isBuyingPremium
-                        ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
-                        : `⌛ Please wait while I process your premium purchase! ${summarize}.`
-                    : custom.processingOffer.offer
-                    ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
-                    : `⌛ Please wait while I process your offer! ${summarize}.`;
-
-                cart.sendNotification = sendNotification;
-
-                log.debug('Sending offer...');
-                return cart.sendOffer();
-            })
-            .then(status => {
-                log.debug('Sent offer');
-                if (status === 'pending') {
-                    const sendNotification = isDonating
+                    ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
                         ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
-                            : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
-                        : isBuyingPremium
+                        : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
+                    : isBuyingPremium
+                    ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
                         ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                            : `⌛ Your premium purchase has been made! Please wait while I accept the mobile confirmation.`
-                        : custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                        ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                        : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
+                        : `⌛ Your premium purchase has been made! Please wait while I accept the mobile confirmation.`
+                    : custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                    ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                    : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
 
-                    cart.sendNotification = sendNotification;
+                await cart.sendNotification(sendNotification);
 
-                    log.debug('Accepting mobile confirmation...');
+                log.debug('Accepting mobile confirmation...');
 
-                    // Wait for confirmation to be accepted
-                    return this.bot.trades.acceptConfirmation(cart.getOffer).reflect();
-                }
-            })
-            .catch(err => {
-                if (!(err instanceof Error)) {
-                    cart.sendNotification = `❌ I failed to make the offer! Reason: ${err as string}.`;
+                // Wait for confirmation to be accepted
+                return this.bot.trades.acceptConfirmation(cart.getOffer);
+            }
+        } catch (err) {
+            if (!(err instanceof Error)) {
+                await cart.sendNotification(`❌ I failed to make the offer! Reason: ${err as string}.`);
+            } else {
+                log.warn('Failed to make offer');
+                log.error(inspect.inspect(err));
+
+                if (err.message.includes("cause: 'TargetCannotTrade'")) {
+                    await cart.sendNotification(
+                        "❌ You're unable to trade. More information will be shown to you if you invite me to trade."
+                    );
                 } else {
-                    log.warn('Failed to make offer');
-                    log.error(inspect.inspect(err));
-
-                    if (err.message.includes("cause: 'TargetCannotTrade'")) {
-                        cart.sendNotification =
-                            "❌ You're unable to trade. More information will be shown to you if you invite me to trade.";
-                    } else {
-                        cart.sendNotification =
-                            '❌ Something went wrong while trying to make the offer, try again later!';
-                    }
+                    await cart.sendNotification(
+                        '❌ Something went wrong while trying to make the offer, try again later!'
+                    );
                 }
-            })
-            .finally(() => {
-                log.debug(`Done handling cart ${cart.partner.getSteamID64()}`);
+            }
+        } finally {
+            log.debug(`Done handling cart ${cart.partner.getSteamID64()}`);
 
-                // Remove cart from the queue
-                this.carts.shift();
+            // Remove cart from the queue
+            this.carts.shift();
 
-                // Now ready to handle a different cart
-                this.busy = false;
+            // Now ready to handle a different cart
+            this.busy = false;
 
-                // Handle the queue
-                this.handleQueue(false, false);
-            });
+            // Handle the queue
+            await this.handleQueue(false, false);
+        }
     }
 }

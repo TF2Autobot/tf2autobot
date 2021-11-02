@@ -38,7 +38,7 @@ export default class StatusCommands {
             ? ` (${Currencies.toRefined(profits.overpriceProfit)} ref)`
             : '';
 
-        this.bot.sendMessage(
+        return this.bot.sendMessage(
             steamID,
             `All trades (accepted) are recorded from ${pluralize('day', trades.totalDays, true)}` +
                 ' ago 📊\n Total accepted trades: ' +
@@ -86,7 +86,7 @@ export default class StatusCommands {
         );
     }
 
-    statsDWCommand(steamID: SteamID): void {
+    async statsDWCommand(steamID: SteamID): Promise<void> {
         const opt = this.bot.options.discordWebhook.sendStats;
 
         if (!opt.enable) {
@@ -97,11 +97,11 @@ export default class StatusCommands {
             return this.bot.sendMessage(steamID, '❌ Your discordWebhook.sendStats.url is empty.');
         }
 
-        void sendStats(this.bot, true, steamID);
+        await sendStats(this.bot, true, steamID);
     }
 
-    inventoryCommand(steamID: SteamID): void {
-        this.bot.sendMessage(
+    async inventoryCommand(steamID: SteamID): Promise<void> {
+        return this.bot.sendMessage(
             steamID,
             `🎒 My current items in my inventory: ${
                 String(this.bot.inventoryManager.getInventory.getTotalItems) + '/' + String(this.bot.tf2.backpackSlots)
@@ -350,41 +350,40 @@ export default class StatusCommands {
         }
 
         if (isSendSeparately) {
-            this.bot.sendMessage(steamID, reply);
+            await this.bot.sendMessage(steamID, reply);
             await sleepasync().Promise.sleep(1000);
-            this.bot.sendMessage(steamID, boughtMessage);
+            await this.bot.sendMessage(steamID, boughtMessage);
             await sleepasync().Promise.sleep(3000);
-            this.bot.sendMessage(steamID, soldMessage);
+            await this.bot.sendMessage(steamID, soldMessage);
 
             if (adminOnlyMessage) {
                 await sleepasync().Promise.sleep(3000);
-                this.bot.sendMessage(steamID, adminOnlyMessage);
+                await this.bot.sendMessage(steamID, adminOnlyMessage);
             }
-        } else this.bot.sendMessage(steamID, reply);
+        } else await this.bot.sendMessage(steamID, reply);
     }
 
-    versionCommand(steamID: SteamID): void {
-        this.bot.sendMessage(
+    async versionCommand(steamID: SteamID): Promise<void> {
+        await this.bot.sendMessage(
             steamID,
             `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
         );
 
-        this.bot.checkForUpdates
-            .then(({ hasNewVersion, latestVersion }) => {
-                if (!hasNewVersion) {
-                    this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
-                } else if (this.bot.lastNotifiedVersion === latestVersion) {
-                    this.bot.sendMessage(
-                        steamID,
-                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                            `Release note: https://github.com/TF2Autobot/tf2autobot/releases`
-                    );
-                }
-            })
-            .catch(err => {
-                const errStringify = JSON.stringify(err);
-                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
-                this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${errMessage}`);
-            });
+        try {
+            const { hasNewVersion, latestVersion } = await this.bot.checkForUpdates;
+            if (!hasNewVersion) {
+                await this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+            } else if (this.bot.lastNotifiedVersion === latestVersion) {
+                await this.bot.sendMessage(
+                    steamID,
+                    `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
+                        `Release note: https://github.com/TF2Autobot/tf2autobot/releases`
+                );
+            }
+        } catch (err) {
+            const errStringify = JSON.stringify(err);
+            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+            await this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${errMessage}`);
+        }
     }
 }

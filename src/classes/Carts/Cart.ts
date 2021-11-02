@@ -107,9 +107,9 @@ export default abstract class Cart {
         this.buyPremium = isBuyingPremium;
     }
 
-    set sendNotification(message: string) {
+    async sendNotification(message: string): Promise<void> {
         if (this.notify) {
-            this.bot.sendMessage(this.partner, message);
+            await this.bot.sendMessage(this.partner, message);
         }
     }
 
@@ -311,21 +311,21 @@ export default abstract class Cart {
 
     abstract constructOffer(): Promise<string>;
 
-    sendOffer(): Promise<string | void> {
+    async sendOffer(): Promise<string | void> {
         const opt = this.bot.options;
 
         if (this.isEmpty) {
-            return Promise.reject("❌ I don't or you don't have enough items for this trade");
+            throw new Error("❌ I don't or you don't have enough items for this trade");
         }
 
         if (this.offer === null) {
-            return Promise.reject(new Error('❌ Offer has not yet been constructed'));
+            throw new Error('❌ Offer has not yet been constructed');
         }
 
         const pass = this.donation || this.buyPremium ? false : !this.bot.isAdmin(this.offer.partner);
 
         if (this.offer.itemsToGive.length > 0 && this.offer.itemsToReceive.length === 0 && pass) {
-            return Promise.reject('Offer was mistakenly created to give free items to trade partner');
+            throw new Error('Offer was mistakenly created to give free items to trade partner');
         }
 
         if (this.offer.data('dict') === undefined) {
@@ -341,138 +341,129 @@ export default abstract class Cart {
         }
 
         if (this.isCanceled) {
-            return Promise.reject('Offer was canceled');
+            throw new Error('Offer was canceled');
         }
 
         if (this.token !== null) {
             this.offer.setToken(this.token);
         }
 
-        return this.preSendOffer()
-            .then(() => {
-                if (this.isCanceled) {
-                    return Promise.reject('Offer was canceled');
-                }
+        await this.preSendOffer();
+        if (this.isCanceled) {
+            throw new Error('Offer was canceled');
+        }
 
-                if (this.offer.itemsToGive.length > 0 && this.offer.itemsToReceive.length === 0 && pass) {
-                    return Promise.reject('Offer was mistakenly created to give free items to trade partner');
-                }
+        if (this.offer.itemsToGive.length > 0 && this.offer.itemsToReceive.length === 0 && pass) {
+            throw new Error('Offer was mistakenly created to give free items to trade partner');
+        }
 
-                return this.bot.trades.sendOffer(this.offer);
-            })
-            .then(status => {
-                // Offer finished, remove cart
-                Cart.removeCart(this.partner);
+        try {
+            const status = await this.bot.trades.sendOffer(this.offer);
+            // Offer finished, remove cart
+            Cart.removeCart(this.partner);
 
-                this.donation = false;
+            this.donation = false;
 
-                this.buyPremium = false;
+            this.buyPremium = false;
 
-                return status;
-            })
-            .catch(async err => {
-                if (!(err instanceof Error)) {
-                    return Promise.reject(err);
-                }
+            return status;
+        } catch (err) {
+            if (!(err instanceof Error)) {
+                throw err;
+            }
 
-                this.donation = false;
+            this.donation = false;
 
-                this.buyPremium = false;
+            this.buyPremium = false;
 
-                const error = err as TradeOfferManager.CustomError;
+            const error = err as TradeOfferManager.CustomError;
 
-                if (error.cause === 'TradeBan') {
-                    return Promise.reject('You are trade banned');
-                } else if (error.cause === 'ItemServerUnavailable') {
-                    return Promise.reject(
-                        "Team Fortress 2's item server may be down or Steam may be experiencing temporary connectivity issues"
-                    );
-                } else if (error.message.includes('can only be sent to friends')) {
-                    // Just adding it here so that it is saved for future reference
-                    return Promise.reject(error);
-                } else if (
-                    error.message.includes('maximum number of items allowed in your Team Fortress 2 inventory')
-                ) {
-                    const msg = "I don't have space for more items in my inventory";
+            if (error.cause === 'TradeBan') {
+                return Promise.reject('You are trade banned');
+            } else if (error.cause === 'ItemServerUnavailable') {
+                return Promise.reject(
+                    "Team Fortress 2's item server may be down or Steam may be experiencing temporary connectivity issues"
+                );
+            } else if (error.message.includes('can only be sent to friends')) {
+                // Just adding it here so that it is saved for future reference
+                return Promise.reject(error);
+            } else if (error.message.includes('maximum number of items allowed in your Team Fortress 2 inventory')) {
+                const msg = "I don't have space for more items in my inventory";
 
-                    if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
-                            sendAlert('full-backpack', this.bot, msg, null, err, [
-                                this.offer.partner.getSteamID64(),
-                                this.offer.id
-                            ]);
-                        } else {
-                            this.bot.messageAdmins(msg, []);
-                        }
+                if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        await sendAlert('full-backpack', this.bot, msg, null, err, [
+                            this.offer.partner.getSteamID64(),
+                            this.offer.id
+                        ]);
+                    } else {
+                        await this.bot.messageAdmins(msg, []);
                     }
-                    return Promise.reject(msg);
-                } else if (error.eresult == 10 || error.eresult == 16) {
-                    return Promise.reject(
-                        "An error occurred while sending your trade offer, this is most likely because I've recently accepted a big offer"
-                    );
-                } else if (error.eresult == 15) {
-                    const ourUsedSlots = this.ourInventoryCount;
-                    const ourTotalSlots = this.bot.tf2.backpackSlots;
+                }
+                return Promise.reject(msg);
+            } else if (error.eresult == 10 || error.eresult == 16) {
+                return Promise.reject(
+                    "An error occurred while sending your trade offer, this is most likely because I've recently accepted a big offer"
+                );
+            } else if (error.eresult == 15) {
+                const ourUsedSlots = this.ourInventoryCount;
+                const ourTotalSlots = this.bot.tf2.backpackSlots;
 
-                    const theirUsedSlots = this.theirInventoryCount;
-                    const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
+                const theirUsedSlots = this.theirInventoryCount;
+                const theirTotalSlots = await this.getTotalBackpackSlots(this.partner.getSteamID64());
 
-                    const ourNumItems = this.ourItemsCount;
-                    const theirNumItems = this.theirItemsCount;
+                const ourNumItems = this.ourItemsCount;
+                const theirNumItems = this.theirItemsCount;
 
-                    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
+                const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
 
-                    const msg =
-                        `Either I, or the trade partner${
-                            !dwEnabled ? ` (${this.offer.partner.getSteamID64()})` : ''
-                        }, ` +
-                        `did not have enough backpack space (or near full) to complete a trade${
-                            !dwEnabled ? (this.offer.id ? ` (${this.offer.id})` : '') : ''
-                        }. ` +
-                        `A summary of our backpacks can be seen below.` +
+                const msg =
+                    `Either I, or the trade partner${!dwEnabled ? ` (${this.offer.partner.getSteamID64()})` : ''}, ` +
+                    `did not have enough backpack space (or near full) to complete a trade${
+                        !dwEnabled ? (this.offer.id ? ` (${this.offer.id})` : '') : ''
+                    }. ` +
+                    `A summary of our backpacks can be seen below.` +
+                    `\n⬅️ I would have received ${pluralize('item', theirNumItems, true)} → ${
+                        ourUsedSlots + theirNumItems
+                    } / ${ourTotalSlots} slots used` +
+                    `\n➡️ They would have received ${pluralize('item', ourNumItems, true)} → ${
+                        theirUsedSlots + ourNumItems
+                    } / ${theirTotalSlots} slots used`;
+                if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
+                    if (dwEnabled) {
+                        await sendAlert('full-backpack', this.bot, msg, null, err, [
+                            this.offer.partner.getSteamID64(),
+                            this.offer.id
+                        ]);
+                    } else {
+                        await this.bot.messageAdmins(msg, []);
+                    }
+                }
+                throw new Error(
+                    `It appears as if ${
+                        ourUsedSlots + theirNumItems > ourTotalSlots ? 'my' : 'your'
+                    } backpack is full/almost full!` +
                         `\n⬅️ I would have received ${pluralize('item', theirNumItems, true)} → ${
                             ourUsedSlots + theirNumItems
                         } / ${ourTotalSlots} slots used` +
-                        `\n➡️ They would have received ${pluralize('item', ourNumItems, true)} → ${
+                        `\n➡️ You would have received ${pluralize('item', ourNumItems, true)} → ${
                             theirUsedSlots + ourNumItems
-                        } / ${theirTotalSlots} slots used`;
-                    if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
-                        if (dwEnabled) {
-                            sendAlert('full-backpack', this.bot, msg, null, err, [
-                                this.offer.partner.getSteamID64(),
-                                this.offer.id
-                            ]);
-                        } else {
-                            this.bot.messageAdmins(msg, []);
-                        }
-                    }
-                    return Promise.reject(
-                        `It appears as if ${
-                            ourUsedSlots + theirNumItems > ourTotalSlots ? 'my' : 'your'
-                        } backpack is full/almost full!` +
-                            `\n⬅️ I would have received ${pluralize('item', theirNumItems, true)} → ${
-                                ourUsedSlots + theirNumItems
-                            } / ${ourTotalSlots} slots used` +
-                            `\n➡️ You would have received ${pluralize('item', ourNumItems, true)} → ${
-                                theirUsedSlots + ourNumItems
-                            } / ${theirTotalSlots} slots used` +
-                            `\nIf this is in error, please give Steam time to refresh our backpacks.` +
-                            '\nMore info about this error: https://steamerrors.com/15'
-                    );
-                } else if (error.eresult == 20) {
-                    return Promise.reject(
-                        "Team Fortress 2's item server may be down or Steam may be experiencing temporary connectivity issues"
-                    );
-                } else if (error.eresult !== undefined) {
-                    return Promise.reject(
-                        `An error occurred while sending the offer (${
-                            TradeOfferManager.EResult[error.eresult] as string
-                        })`
-                    );
-                }
+                        } / ${theirTotalSlots} slots used` +
+                        `\nIf this is in error, please give Steam time to refresh our backpacks.` +
+                        '\nMore info about this error: https://steamerrors.com/15'
+                );
+            } else if (error.eresult == 20) {
+                throw new Error(
+                    "Team Fortress 2's item server may be down or Steam may be experiencing temporary connectivity issues"
+                );
+            } else if (error.eresult !== undefined) {
+                throw new Error(
+                    `An error occurred while sending the offer (${TradeOfferManager.EResult[error.eresult] as string})`
+                );
+            }
 
-                return Promise.reject(err);
-            });
+            throw err;
+        }
     }
 
     toString(isDonating: boolean): string {

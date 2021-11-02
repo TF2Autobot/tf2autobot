@@ -1,59 +1,10 @@
+import fs from 'fs';
+import { GetSchemaResponse } from '../../classes/Pricer';
+
+const schema = JSON.parse(fs.readFileSync(`${__dirname}/raw-schema.json`, { encoding: 'utf8' })) as GetSchemaResponse;
+
 const responses = {
-    schema: {
-        success: true,
-        version: '1.3.0',
-        time: 1608569503080,
-        raw: {
-            schema: {
-                items: [
-                    {
-                        name: 'Decoder Ring',
-                        defindex: 5021,
-                        item_class: 'tool',
-                        item_type_name: 'Tool',
-                        item_name: 'Mann Co. Supply Crate Key',
-                        item_description: 'Used to open locked supply crates.',
-                        proper_name: false,
-                        model_player: null,
-                        item_quality: 6,
-                        image_inventory: 'backpack/player/items/crafting/key',
-                        min_ilevel: 5,
-                        max_ilevel: 5,
-                        image_url:
-                            'http://media.steampowered.com/apps/440/icons/key.be0a5e2cda3a039132c35b67319829d785e50352.png',
-                        image_url_large:
-                            'http://media.steampowered.com/apps/440/icons/key_large.354829243e53d73a5a75323c88fc5689ecb19359.png',
-                        craft_class: 'tool',
-                        craft_material_type: 'tool',
-                        capabilities: {
-                            can_gift_wrap: true,
-                            can_craft_mark: true,
-                            can_be_restored: true,
-                            strange_parts: true,
-                            can_card_upgrade: true,
-                            can_strangify: true,
-                            can_killstreakify: true,
-                            can_consume: true
-                        },
-                        tool: {
-                            type: 'decoder_ring',
-                            usage_capabilities: {
-                                decodable: true
-                            }
-                        },
-                        used_by_classes: [],
-                        attributes: [
-                            {
-                                name: 'always tradable',
-                                class: 'always_tradable',
-                                value: 1
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-    },
+    schema: schema,
     pricelist: {
         success: true,
         items: [
@@ -169,13 +120,23 @@ const responses = {
     }
 };
 
-export const getSchema = jest.fn(() => Promise.resolve(responses.schema));
+export const getSchema = jest.fn((): Promise<GetSchemaResponse> => Promise.resolve(responses.schema));
 export const getPrice = jest.fn(() => Promise.resolve(responses.itemPrice));
+export const getSnapshots = jest.fn(() => Promise.resolve(responses.sales));
+export const requestCheck = jest.fn(() => Promise.resolve(responses.requestCheck));
 
-const mock = jest.fn().mockImplementation(() => {
+const mock = jest.fn().mockImplementation((url?: string, apiToken?: string) => {
     return {
         getSchema: getSchema,
-        getPrice: getPrice
+        getPrice: getPrice,
+        getOptions: jest.fn(() =>
+            Promise.resolve({
+                pricerUrl: url ? url : 'https://api.prices.tf',
+                pricerApiToken: apiToken ? apiToken : 'abc123'
+            })
+        ),
+        getSnapshots: getSnapshots,
+        requestCheck: requestCheck
     };
 });
 

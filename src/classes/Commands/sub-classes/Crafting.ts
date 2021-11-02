@@ -22,7 +22,7 @@ export default class CraftingCommands {
         this.bot = bot;
     }
 
-    craftTokenCommand(steamID: SteamID, message: string): void {
+    async craftTokenCommand(steamID: SteamID, message: string): Promise<void> {
         const opt = this.bot.options.crafting;
         if (opt.manual === false) {
             return this.bot.sendMessage(
@@ -125,21 +125,27 @@ export default class CraftingCommands {
             );
         }
 
-        this.bot.sendMessage(steamID, '⏳ Crafting 🔨...');
+        await this.bot.sendMessage(steamID, '⏳ Crafting 🔨...');
         this.isCrafting = true;
 
         let crafted = 0;
         let callbackIndex = 0;
         for (let i = 0; i < amount; i++) {
             const assetidsToCraft = assetids.splice(0, 3);
-            this.bot.tf2gc.craftToken(assetidsToCraft, tokenType as TokenType, subTokenType as SubTokenType, err => {
-                if (err) {
-                    log.debug(
-                        `Error crafting ${assetidsToCraft.join(', ')} for ${capTokenType} Token - ${capSubTokenType}`
+            try {
+                await new Promise((resolve, reject) => {
+                    this.bot.tf2gc.craftToken(
+                        assetidsToCraft,
+                        tokenType as TokenType,
+                        subTokenType as SubTokenType,
+                        err => {
+                            if (err) {
+                                reject(err);
+                            }
+                            resolve(null);
+                        }
                     );
-                    crafted--;
-                }
-
+                });
                 callbackIndex++;
                 crafted++;
 
@@ -163,11 +169,16 @@ export default class CraftingCommands {
                         `✅ Successfully crafted ${crafted} ${capTokenType} Token - ${capSubTokenType}!`
                     );
                 }
-            });
+            } catch (err) {
+                log.debug(
+                    `Error crafting ${assetidsToCraft.join(', ')} for ${capTokenType} Token - ${capSubTokenType}`
+                );
+                crafted--;
+            }
         }
     }
 
-    private getCraftTokenInfo(steamID: SteamID): void {
+    private getCraftTokenInfo(steamID: SteamID): Promise<void> {
         this.defineCraftWeaponsBySlots();
 
         const reply: string[] = [];
@@ -294,7 +305,7 @@ export default class CraftingCommands {
             );
         }
 
-        this.bot.sendMessage(steamID, '🔨 Crafting token info:\n\n- ' + reply.join('\n- '));
+        return this.bot.sendMessage(steamID, '🔨 Crafting token info:\n\n- ' + reply.join('\n- '));
     }
 
     private defineCraftWeaponsBySlots(): void {
