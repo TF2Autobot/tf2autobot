@@ -258,7 +258,7 @@ export async function sendToAdmin(
     const message2 =
         t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
         (isShowOfferMessage
-            ? (cTOfferMessage && offer.message ? cTOfferMessage : '\n\n💬 Offer message:') + ` "${offer.message}"`
+            ? (cTOfferMessage && offer.message ? '\n\n' + cTOfferMessage : '\n\n💬 Offer message:') + ` "${offer.message}"`
             : '');
 
     const message3 = itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '';
