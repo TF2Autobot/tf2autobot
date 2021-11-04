@@ -2219,6 +2219,8 @@ export default class MyHandler extends Handler {
             this.resetSentSummaryTimeout = setTimeout(() => {
                 this.sentSummary = {};
             }, 2 * 60 * 1000);
+        } else {
+            this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
     }
 
