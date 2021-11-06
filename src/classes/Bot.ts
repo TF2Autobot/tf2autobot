@@ -452,6 +452,7 @@ export default class Bot {
                     (callback): void => {
                         log.info('Setting properties, inventory, etc...');
                         this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
+                        this.pricelist.init();
                         this.inventoryManager = new InventoryManager(this.pricelist);
 
                         const userID = this.bptf._getUserID();
