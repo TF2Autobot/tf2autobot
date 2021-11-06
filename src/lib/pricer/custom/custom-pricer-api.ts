@@ -2,14 +2,74 @@ import { OptionsWithUrl, ResponseAsJSON } from 'request';
 
 import request from 'request-retry-dayjs';
 import { PricerOptions } from '../../../classes/IPricer';
-import {
-    PricesGetItemPriceResponse,
-    PricesGetPricelistResponse,
-    PricesRequestCheckResponse,
-    PricesResponse
-} from './prices-tf-interfaces';
 
-export default class PricesTfApi {
+export interface PricesCurrency {
+    keys: number;
+    metal: number;
+}
+
+export interface PricesResponse {
+    success: boolean;
+    message?: string;
+}
+
+export interface PricesGetItemPriceResponse extends PricesResponse {
+    sku?: string;
+    name?: string;
+    currency?: string;
+    source?: string;
+    time?: number;
+    buy?: PricesCurrency;
+    sell?: PricesCurrency;
+    message?: string;
+}
+
+export interface PricesGetPricelistResponse extends PricesResponse {
+    currency?: string | null;
+    items?: PricesItem[];
+}
+
+export interface PricesItem {
+    sku: string;
+    name: string;
+    source: string;
+    time: number;
+    buy: PricesCurrency | null;
+    sell: PricesCurrency | null;
+}
+
+export interface PricesItemMessageEvent {
+    type: string;
+    data: PricesItem;
+}
+
+export interface PricesGetItemPriceResponse extends PricesResponse {
+    sku?: string;
+    name?: string;
+    currency?: string;
+    source?: string;
+    time?: number;
+    buy?: PricesCurrency;
+    sell?: PricesCurrency;
+    message?: string;
+}
+
+export interface PricesSale {
+    id: string;
+    steamid: string;
+    automatic: boolean;
+    attributes: any;
+    intent: number;
+    currencies: PricesCurrency;
+    time: number;
+}
+
+export interface PricesRequestCheckResponse extends PricesResponse {
+    sku: string;
+    name: string;
+}
+
+export default class CustomPricerApi {
     public constructor(public url?: string, public apiToken?: string) {}
 
     private apiRequest<I, R extends PricesResponse>(httpMethod: string, path: string, input: I): Promise<R> {

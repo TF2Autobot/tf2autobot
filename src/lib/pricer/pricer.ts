@@ -1,15 +1,15 @@
 import IPricer, { PricerOptions } from '../../classes/IPricer';
-import PricesTfApi2Pricer from './prices-tf-api2-pricer';
-import PricesTfApi from './apis/prices-tf-api';
-import PricesTfApiPricer from './prices-tf-api-pricer';
-import PricesTfApi2 from './apis/pricer-tf-api2';
+import PricesTfPricer from './pricestf/prices-tf-pricer';
+import CustomPricer from './custom/custom-pricer';
+import PricesTfApi from './pricestf/prices-tf-api';
+import CustomPricerApi from './custom/custom-pricer-api';
 
 export function getPricer(options: PricerOptions): IPricer {
     if ('https://api.prices.tf' === options.pricerUrl || '' !== options.pricerUrl) {
-        const api = new PricesTfApi(options.pricerUrl, options.pricerApiToken);
-        return new PricesTfApiPricer(api);
+        const api = new CustomPricerApi(options.pricerUrl, options.pricerApiToken);
+        return new CustomPricer(api);
     } else {
-        const api = new PricesTfApi2();
-        return new PricesTfApi2Pricer(api);
+        const api = new PricesTfApi();
+        return new PricesTfPricer(api);
     }
 }

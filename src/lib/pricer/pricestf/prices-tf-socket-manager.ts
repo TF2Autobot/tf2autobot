@@ -1,13 +1,13 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
-import log from '../../lib/logger';
+import log from '../../../lib/logger';
 import WS from 'ws';
-import PricesTfApi2 from './apis/pricer-tf-api2';
 import * as Events from 'reconnecting-websocket/events';
+import PricesTfApi from './prices-tf-api';
 
-export default class PricesTfApi2SocketManager {
+export default class PricesTfSocketManager {
     private readonly socketClass;
 
-    constructor(private api: PricesTfApi2) {
+    constructor(private api: PricesTfApi) {
         // https://stackoverflow.com/questions/28784375/nested-es6-classes
         this.socketClass = class WebSocket extends WS {
             constructor(url, protocols) {

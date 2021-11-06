@@ -2,14 +2,47 @@ import { OptionsWithUrl, ResponseAsJSON } from 'request';
 
 import request from 'request-retry-dayjs';
 import { PricerOptions } from '../../../classes/IPricer';
-import {
-    Prices2AuthAccessResponse,
-    Prices2GetPricesResponse,
-    Prices2Item,
-    Prices2RequestCheckResponse
-} from './prices-tf-interfaces';
 
-export default class PricesTfApi2 {
+export interface Prices2RequestCheckResponse {
+    sku: string;
+    name: string;
+}
+
+export interface Prices2Item {
+    sku: string;
+    buyHalfScrap: number;
+    buyKeys: number;
+    buyKeyHalfScrap: number | null;
+    sellHalfScrap: number;
+    sellKeys: number;
+    sellKeyHalfScrap: number | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Prices2ItemMessageEvent {
+    type: string;
+    data?: Prices2Item;
+}
+
+export interface Prices2ResponseMeta {
+    totalItems: number;
+    itemCount: number;
+    itemsPerPage: number;
+    totalPages: number;
+    currentPage: number;
+}
+
+export interface Prices2GetPricesResponse {
+    items: Prices2Item[];
+    meta: Prices2ResponseMeta;
+}
+
+export interface Prices2AuthAccessResponse {
+    accessToken: string;
+}
+
+export default class PricesTfApi {
     public static readonly URL = 'https://api2.prices.tf';
 
     public token = '';
@@ -21,7 +54,7 @@ export default class PricesTfApi2 {
         headers?: Record<string, unknown>
     ): Promise<B> {
         try {
-            return await PricesTfApi2.apiRequest(httpMethod, path, input, {
+            return await PricesTfApi.apiRequest(httpMethod, path, input, {
                 Authorization: 'Bearer ' + this.token,
                 ...headers
             });
@@ -65,11 +98,11 @@ export default class PricesTfApi2 {
     }
 
     static async requestAuthAccess(): Promise<Prices2AuthAccessResponse> {
-        return PricesTfApi2.apiRequest('POST', '/auth/access', {});
+        return PricesTfApi.apiRequest('POST', '/auth/access', {});
     }
 
     async setupToken(): Promise<void> {
-        const r = await PricesTfApi2.requestAuthAccess();
+        const r = await PricesTfApi.requestAuthAccess();
         this.token = r.accessToken;
         return;
     }

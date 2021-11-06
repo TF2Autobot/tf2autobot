@@ -1,21 +1,20 @@
+import Currencies from 'tf2-currencies-2';
+import PricesTfSocketManager from './prices-tf-socket-manager';
 import IPricer, {
     GetItemPriceResponse,
     GetPricelistResponse,
     Item,
     PricerOptions,
     RequestCheckResponse
-} from '../../classes/IPricer';
-import Currencies from 'tf2-currencies-2';
-import logger from '../logger';
-import PricesTfApi2SocketManager from './prices-tf-api2-socket-manager';
-import { Prices2Item, Prices2ItemMessageEvent } from './apis/prices-tf-interfaces';
-import PricesTfApi2 from './apis/pricer-tf-api2';
+} from '../../../classes/IPricer';
+import PricesTfApi, { Prices2Item, Prices2ItemMessageEvent } from './prices-tf-api';
+import logger from '../../logger';
 
-export default class PricesTfApi2Pricer implements IPricer {
-    private socketManager: PricesTfApi2SocketManager;
+export default class PricesTfPricer implements IPricer {
+    private socketManager: PricesTfSocketManager;
 
-    public constructor(private api: PricesTfApi2) {
-        this.socketManager = new PricesTfApi2SocketManager(api);
+    public constructor(private api: PricesTfApi) {
+        this.socketManager = new PricesTfSocketManager(api);
     }
 
     getOptions(): PricerOptions {
@@ -98,15 +97,18 @@ export default class PricesTfApi2Pricer implements IPricer {
         };
     }
 
-    parseMessageEvent(e: MessageEvent<string>): Item {
-        return this.parseItem(this.parsePrices2Item(this.parseRawPrices2Item(e.data).data));
+    parseMessageEvent(e: Prices2ItemMessageEvent): Item {
+        return this.parseItem(this.parsePrices2Item(e.data));
     }
 
     bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void {
         this.socketManager.on('message', (data: MessageEvent) => {
             try {
-                const item = this.parseMessageEvent(data);
-                onPriceChange(item);
+                const msg = this.parseRawPrices2Item(data.data);
+                if ('PRICE_UPDATED' === msg.type) {
+                    const item = this.parseMessageEvent(data);
+                    onPriceChange(item);
+                }
             } catch (e) {
                 logger.error(`Could not handle event: ${JSON.stringify(data)}`);
             }

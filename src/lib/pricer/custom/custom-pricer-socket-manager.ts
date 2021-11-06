@@ -1,7 +1,7 @@
 import io from '@tf2autobot/socket.io-client';
-import log from '../../lib/logger';
+import log from '../../../lib/logger';
 
-export default class PricesTfSocketManager {
+export default class CustomPricerSocketManager {
     public socket: SocketIOClient.Socket;
 
     constructor(public url: string, public key?: string) {}

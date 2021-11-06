@@ -1,20 +1,18 @@
+import Currencies from 'tf2-currencies-2';
+import CustomPricerSocketManager from './custom-pricer-socket-manager';
 import IPricer, {
     GetItemPriceResponse,
-    GetPricelistResponse,
-    Item,
+    GetPricelistResponse, Item,
     PricerOptions,
     RequestCheckResponse
-} from '../../classes/IPricer';
-import Currencies from 'tf2-currencies-2';
-import PricesTfSocketManager from './prices-tf-socket-manager';
-import PricesTfApi from './apis/prices-tf-api';
-import { PricesGetItemPriceResponse, PricesItemMessageEvent } from './apis/prices-tf-interfaces';
+} from '../../../classes/IPricer';
+import CustomPricerApi, { PricesGetItemPriceResponse, PricesItemMessageEvent } from './custom-pricer-api';
 
-export default class PricesTfApiPricer implements IPricer {
-    private socketManager: PricesTfSocketManager;
+export default class CustomPricer implements IPricer {
+    private socketManager: CustomPricerSocketManager;
 
-    public constructor(private api: PricesTfApi) {
-        this.socketManager = new PricesTfSocketManager(api.url, api.apiToken ? api.apiToken : null);
+    public constructor(private api: CustomPricerApi) {
+        this.socketManager = new CustomPricerSocketManager(api.url, api.apiToken ? api.apiToken : null);
     }
 
     parseRawGetItemPriceResponse(raw: string): PricesItemMessageEvent {
