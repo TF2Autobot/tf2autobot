@@ -6,12 +6,12 @@ import genPaths from '../../resources/paths';
 import { init } from '../../lib/logger';
 import { getPricer } from '../../lib/pricer/pricer';
 
-jest.mock('../../lib/pricer/apis/prices-tf-api');
+jest.mock('../../lib/pricer/custom/custom-pricer-api');
 
 it('can pricecheck', async () => {
     const paths = genPaths('test');
     init(paths, { debug: true, debugFile: false });
-    const prices = getPricer({});
+    const prices = getPricer({ pricerUrl: 'http://test.com' });
     const schemaManager = new SchemaManager({});
     const priceList = new Pricelist(prices, schemaManager.schema, DEFAULTS);
     const isUseCustomPricer = priceList.isUseCustomPricer;
