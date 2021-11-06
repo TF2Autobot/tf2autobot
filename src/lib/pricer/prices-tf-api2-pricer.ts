@@ -104,8 +104,10 @@ export default class PricesTfApi2Pricer implements IPricer {
 
     bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void {
         this.socketManager.on('message', (data: MessageEvent) => {
-            const item = this.parseMessageEvent(data);
-            onPriceChange(item);
+            if (data.type === 'PRICE_UPDATED' && (data.data as Prices2Item)?.sku !== null) {
+                const item = this.parseMessageEvent(data);
+                onPriceChange(item);
+            }
         });
     }
 }
