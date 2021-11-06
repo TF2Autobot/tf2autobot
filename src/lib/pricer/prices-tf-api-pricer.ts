@@ -9,6 +9,7 @@ import Currencies from 'tf2-currencies-2';
 import PricesTfSocketManager from './prices-tf-socket-manager';
 import PricesTfApi from './apis/prices-tf-api';
 import { PricesGetItemPriceResponse, PricesItemMessageEvent } from './apis/prices-tf-interfaces';
+import logger from '../logger';
 
 export default class PricesTfApiPricer implements IPricer {
     private socketManager: PricesTfSocketManager;
@@ -24,8 +25,8 @@ export default class PricesTfApiPricer implements IPricer {
     parseMessageEvent(event: MessageEvent<string>): Item {
         const r = this.parseRawGetItemPriceResponse(event.data).data;
         return {
-            buy: new Currencies(r.buy),
-            sell: new Currencies(r.sell),
+            buy: r.buy ? new Currencies(r.buy) : null,
+            sell: r.sell ? new Currencies(r.sell) : null,
             sku: r.sku,
             source: r.source,
             time: r.time
@@ -42,8 +43,8 @@ export default class PricesTfApiPricer implements IPricer {
             currency: response.currency,
             source: response.source,
             time: response.time,
-            buy: new Currencies(response.buy),
-            sell: new Currencies(response.sell),
+            buy: response.buy ? new Currencies(response.buy) : null,
+            sell: response.sell ? new Currencies(response.sell) : null,
             message: response.message
         };
     }
@@ -57,14 +58,21 @@ export default class PricesTfApiPricer implements IPricer {
         const response = await this.api.getPricelist();
         return {
             currency: response.currency,
-            items: response.items.map(i => ({
-                sku: i.sku,
-                name: i.name,
-                source: i.source,
-                time: i.time,
-                buy: new Currencies(i.buy),
-                sell: new Currencies(i.sell)
-            }))
+            items: response.items.map(i => {
+                logger.debug(`parsing ${i.sku}`);
+                try {
+                    return {
+                        sku: i.sku,
+                        name: i.name,
+                        source: i.source,
+                        time: i.time,
+                        buy: i.buy ? new Currencies(i.buy) : null,
+                        sell: i.sell ? new Currencies(i.sell) : null
+                    };
+                } catch (e) {
+                    logger.debug(`failed to parse ${i.sku}`);
+                }
+            })
         };
     }
 
