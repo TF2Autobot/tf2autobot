@@ -125,11 +125,6 @@ export default class Bot {
             pendingCancelTime: 1.5 * 60 * 1000
         });
 
-        this.schemaManager = new SchemaManager({
-            apiKey: '',
-            updateTime: 24 * 60 * 60 * 1000
-        });
-
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
 
