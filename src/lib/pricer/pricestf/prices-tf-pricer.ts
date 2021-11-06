@@ -105,7 +105,7 @@ export default class PricesTfPricer implements IPricer {
         this.socketManager.on('message', (data: MessageEvent) => {
             try {
                 const msg = this.parseRawPricesTfItem(data.data);
-                if ('PRICE_UPDATED' === msg.type) {
+                if (msg.type === 'PRICE_UPDATED') {
                     const item = this.parseMessageEvent(data);
                     onPriceChange(item);
                 }
