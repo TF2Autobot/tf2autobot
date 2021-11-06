@@ -232,12 +232,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     init(): void {
-        this.priceSource.on(message => {
-            if (message.type === 'PRICE_UPDATED') {
-                const v = this.priceSource.parseMessageEvent(message);
-                this.handlePriceChange(v);
-            }
-        });
+        this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {

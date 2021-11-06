@@ -8,7 +8,7 @@ import IPricer, {
 import Currencies from 'tf2-currencies-2';
 import logger from '../logger';
 import PricesTfApi2SocketManager from './prices-tf-api2-socket-manager';
-import { Prices2Item } from './apis/prices-tf-interfaces';
+import { Prices2Item, Prices2ItemMessageEvent } from './apis/prices-tf-interfaces';
 import PricesTfApi2 from './apis/pricer-tf-api2';
 
 export default class PricesTfApi2Pricer implements IPricer {
@@ -56,10 +56,6 @@ export default class PricesTfApi2Pricer implements IPricer {
         return await this.api.requestCheck(sku);
     }
 
-    on(handler: (event: MessageEvent) => void): void {
-        this.socketManager.on(handler);
-    }
-
     shutdown(): void {
         this.socketManager.shutDown();
     }
@@ -72,19 +68,23 @@ export default class PricesTfApi2Pricer implements IPricer {
         return this.socketManager.init();
     }
 
-    parsePrices2Item(v: Prices2Item): GetItemPriceResponse {
+    parseRawPrices2Item(raw: string): Prices2ItemMessageEvent {
+        return JSON.parse(raw) as Prices2ItemMessageEvent;
+    }
+
+    parsePrices2Item(item: Prices2Item): GetItemPriceResponse {
         return {
-            sku: v.sku,
+            sku: item.sku,
             buy: new Currencies({
-                keys: v.buyKeys,
-                metal: Currencies.toRefined(v.buyHalfScrap / 2)
+                keys: item.buyKeys,
+                metal: Currencies.toRefined(item.buyHalfScrap / 2)
             }),
             sell: new Currencies({
-                keys: v.sellKeys,
-                metal: Currencies.toRefined(v.sellHalfScrap / 2)
+                keys: item.sellKeys,
+                metal: Currencies.toRefined(item.sellHalfScrap / 2)
             }),
             source: 'bptf',
-            time: Math.floor(new Date(v.updatedAt).getTime() / 1000)
+            time: Math.floor(new Date(item.updatedAt).getTime() / 1000)
         };
     }
 
@@ -98,7 +98,14 @@ export default class PricesTfApi2Pricer implements IPricer {
         };
     }
 
-    parseMessageEvent(e: MessageEvent<Prices2Item>): Item {
-        return this.parseItem(this.parsePrices2Item(e.data));
+    parseMessageEvent(e: MessageEvent<string>): Item {
+        return this.parseItem(this.parsePrices2Item(this.parseRawPrices2Item(e.data).data));
+    }
+
+    bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void {
+        this.socketManager.on('message', (data: MessageEvent) => {
+            const item = this.parseMessageEvent(data);
+            onPriceChange(item);
+        });
     }
 }

@@ -8,6 +8,7 @@ import IPricer, {
 import Currencies from 'tf2-currencies-2';
 import PricesTfSocketManager from './prices-tf-socket-manager';
 import PricesTfApi from './apis/prices-tf-api';
+import { PricesGetItemPriceResponse, PricesItemMessageEvent } from './apis/prices-tf-interfaces';
 
 export default class PricesTfApiPricer implements IPricer {
     private socketManager: PricesTfSocketManager;
@@ -16,11 +17,15 @@ export default class PricesTfApiPricer implements IPricer {
         this.socketManager = new PricesTfSocketManager(api.url, api.apiToken ? api.apiToken : null);
     }
 
-    parseMessageEvent(event: MessageEvent<GetItemPriceResponse>): Item {
-        const r = event.data;
+    parseRawGetItemPriceResponse(raw: string): PricesItemMessageEvent {
+        return JSON.parse(raw) as PricesItemMessageEvent;
+    }
+
+    parseMessageEvent(event: MessageEvent<string>): Item {
+        const r = this.parseRawGetItemPriceResponse(event.data).data;
         return {
-            buy: r.buy,
-            sell: r.sell,
+            buy: new Currencies(r.buy),
+            sell: new Currencies(r.sell),
             sku: r.sku,
             source: r.source,
             time: r.time
@@ -31,8 +36,7 @@ export default class PricesTfApiPricer implements IPricer {
         return this.api.requestCheck(sku);
     }
 
-    async getPrice(sku: string): Promise<GetItemPriceResponse> {
-        const response = await this.api.getPrice(sku);
+    public parsePricesGetItemPriceResponse(response: PricesGetItemPriceResponse): GetItemPriceResponse {
         return {
             sku: response.sku,
             currency: response.currency,
@@ -42,6 +46,11 @@ export default class PricesTfApiPricer implements IPricer {
             sell: new Currencies(response.sell),
             message: response.message
         };
+    }
+
+    async getPrice(sku: string): Promise<GetItemPriceResponse> {
+        const response = await this.api.getPrice(sku);
+        return this.parsePricesGetItemPriceResponse(response);
     }
 
     async getPricelist(): Promise<GetPricelistResponse> {
@@ -63,10 +72,6 @@ export default class PricesTfApiPricer implements IPricer {
         return this.api.getOptions();
     }
 
-    on(handler: (event: MessageEvent) => void): void {
-        this.socketManager.on('message', handler);
-    }
-
     shutdown(): void {
         this.socketManager.shutDown();
     }
@@ -77,5 +82,12 @@ export default class PricesTfApiPricer implements IPricer {
 
     init(): void {
         return this.socketManager.init();
+    }
+
+    bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void {
+        this.socketManager.on('price', (data: PricesGetItemPriceResponse) => {
+            const item = this.parsePricesGetItemPriceResponse(data);
+            onPriceChange(item);
+        });
     }
 }

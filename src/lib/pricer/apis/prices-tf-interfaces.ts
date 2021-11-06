@@ -33,11 +33,9 @@ export interface PricesItem {
     sell: PricesCurrency | null;
 }
 
-export interface PricesLinks {
-    ptf: string;
-    mptf: string;
-    scm: string;
-    bptf: string;
+export interface PricesItemMessageEvent {
+    type: string;
+    data: PricesItem;
 }
 
 export interface PricesGetItemPriceResponse extends PricesResponse {
@@ -81,6 +79,11 @@ export interface Prices2Item {
     sellKeyHalfScrap: number | null;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface Prices2ItemMessageEvent {
+    type: string;
+    data: Prices2Item;
 }
 
 export interface Prices2ResponseMeta {

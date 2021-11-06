@@ -2,6 +2,7 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
 import log from '../../lib/logger';
 import WS from 'ws';
 import PricesTfApi2 from './apis/pricer-tf-api2';
+import * as Events from 'reconnecting-websocket/events';
 
 export default class PricesTfApi2SocketManager {
     private readonly socketClass;
@@ -84,7 +85,7 @@ export default class PricesTfApi2SocketManager {
         }
     }
 
-    on(handler: (event: MessageEvent) => void): void {
-        this.ws.addEventListener('message', handler);
+    on<T extends keyof Events.WebSocketEventListenerMap>(name: T, handler: Events.WebSocketEventListenerMap[T]): void {
+        this.ws.addEventListener(name, handler);
     }
 }

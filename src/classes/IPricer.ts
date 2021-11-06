@@ -21,19 +21,16 @@ export default interface IPricer {
 
     getPricelist(): Promise<GetPricelistResponse>;
 
-    on(handler: (event: MessageEvent) => void): void;
-
     connect(): void;
 
     shutdown(): void;
 
     init(): void;
 
-    parseMessageEvent(event: MessageEvent): Item;
+    bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void;
 }
 
 export type RequestCheckFn = (sku: string) => Promise<RequestCheckResponse>;
-export type GetPriceFn = (sku: string) => Promise<GetItemPriceResponse>;
 export type GetPrice = (sku: string) => Promise<GetItemPriceResponse>;
 
 export interface GetPricelistResponse {
