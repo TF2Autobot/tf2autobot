@@ -2,7 +2,8 @@ import Currencies from 'tf2-currencies-2';
 import CustomPricerSocketManager from './custom-pricer-socket-manager';
 import IPricer, {
     GetItemPriceResponse,
-    GetPricelistResponse, Item,
+    GetPricelistResponse,
+    Item,
     PricerOptions,
     RequestCheckResponse
 } from '../../../classes/IPricer';
