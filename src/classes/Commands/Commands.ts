@@ -194,8 +194,6 @@ export default class Commands {
                     ? 'uncraftweapon'
                     : (command as CraftUncraft)
             );
-        } else if (command === 'snapshots' && isAdmin) {
-            this.request.getSnapshotsCommand(steamID);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             void this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {

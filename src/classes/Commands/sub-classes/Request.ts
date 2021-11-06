@@ -21,10 +21,6 @@ export default class RequestCommands {
         Pricecheck.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
-    getSnapshotsCommand(steamID: SteamID): void {
-        return this.bot.sendMessage(steamID, '❌ This command is disabled');
-    }
-
     pricecheckCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku !== undefined && !testSKU(params.sku as string)) {
