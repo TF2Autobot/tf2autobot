@@ -9,7 +9,6 @@ import Currencies from 'tf2-currencies-2';
 import PricesTfSocketManager from './prices-tf-socket-manager';
 import PricesTfApi from './apis/prices-tf-api';
 import { PricesGetItemPriceResponse, PricesItemMessageEvent } from './apis/prices-tf-interfaces';
-import logger from '../logger';
 
 export default class PricesTfApiPricer implements IPricer {
     private socketManager: PricesTfSocketManager;
@@ -58,21 +57,14 @@ export default class PricesTfApiPricer implements IPricer {
         const response = await this.api.getPricelist();
         return {
             currency: response.currency,
-            items: response.items.map(i => {
-                logger.debug(`parsing ${i.sku}`);
-                try {
-                    return {
-                        sku: i.sku,
-                        name: i.name,
-                        source: i.source,
-                        time: i.time,
-                        buy: i.buy ? new Currencies(i.buy) : null,
-                        sell: i.sell ? new Currencies(i.sell) : null
-                    };
-                } catch (e) {
-                    logger.debug(`failed to parse ${i.sku}`);
-                }
-            })
+            items: response.items.map(i => ({
+                sku: i.sku,
+                name: i.name,
+                source: i.source,
+                time: i.time,
+                buy: i.buy ? new Currencies(i.buy) : null,
+                sell: i.sell ? new Currencies(i.sell) : null
+            }))
         };
     }
 
