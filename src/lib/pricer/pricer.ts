@@ -5,7 +5,7 @@ import PricesTfApi from './pricestf/prices-tf-api';
 import CustomPricerApi from './custom/custom-pricer-api';
 
 export function getPricer(options: PricerOptions): IPricer {
-    if ('https://api.prices.tf' === options.pricerUrl || '' !== options.pricerUrl) {
+    if (options.pricerUrl === 'https://api.prices.tf' || options.pricerUrl !== '') {
         const api = new CustomPricerApi(options.pricerUrl, options.pricerApiToken);
         return new CustomPricer(api);
     } else {
