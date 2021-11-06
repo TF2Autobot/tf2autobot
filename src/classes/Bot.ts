@@ -31,7 +31,7 @@ import { EventEmitter } from 'events';
 
 export default class Bot {
     // Modules and classes
-    schema: SchemaManager.Schema; // should be readonly
+    schema: SchemaManager.Schema;
 
     readonly bptf: BptfLogin;
 
@@ -61,7 +61,7 @@ export default class Bot {
 
     pricelist: Pricelist; // should be readonly
 
-    schemaManager: SchemaManager; // should be readonly
+    schemaManager: SchemaManager;
 
     public effects: Effect[];
 

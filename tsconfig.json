@@ -13,10 +13,9 @@
         "noImplicitAny": false,
         "noImplicitThis": false,
         "strictNullChecks": false,
-        "sourceMap": true,
         "typeRoots": ["./types/modules", "./node_modules/@types"],
         "esModuleInterop": true,
-        "sourceMap": false,    // turn on for debug ~ 20 MB
+        "sourceMap": true,    // turn on for debug ~ 20 MB
         "forceConsistentCasingInFileNames": true
     },
     "exclude": ["./node_modules", "**/__mocks__/*", "**/__tests__/*"],

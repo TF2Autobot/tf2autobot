@@ -1626,18 +1626,22 @@ export default class Trades {
         await this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
     }
 
-    async private retryFetchInventory(): Promise<void> {
-        return new Promise((r) => {
-            setTimeout(async () => {
-                try {
-                    await this.bot.inventoryManager.getInventory.fetch()
-                } catch(err) {
-                    log.warn('Error fetching inventory: ', err);
-                    log.debug('Retrying to fetch inventory in 30 seconds...');
-                    await this.retryFetchInventory();
-                };
-                r(undefined);
-            }, 30 * 1000)
+    private async retryFetchInventory(): Promise<void> {
+        return new Promise(r => {
+            setTimeout(
+                () =>
+                    process.nextTick(async () => {
+                        try {
+                            await this.bot.inventoryManager.getInventory.fetch();
+                        } catch (err) {
+                            log.warn('Error fetching inventory: ', err);
+                            log.debug('Retrying to fetch inventory in 30 seconds...');
+                            await this.retryFetchInventory();
+                        }
+                        r(undefined);
+                    }),
+                30 * 1000
+            );
         });
     }
 

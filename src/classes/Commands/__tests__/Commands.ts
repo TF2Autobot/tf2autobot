@@ -6,10 +6,8 @@ import { loadOptions } from '../../Options';
 import InventoryManager from '../../InventoryManager';
 import { setupPricelist } from '../../__tests__/Pricelist';
 import Inventory from '../../Inventory';
-import SchemaManager from 'tf2-schema-2';
-import mock from '../../../lib/__mocks__/pricer-api';
+import fs from 'fs';
 
-jest.mock('../../MyHandler/SocketManager');
 jest.mock('../../Friends');
 jest.mock('../../Trades');
 jest.mock('../../Listings');
@@ -17,22 +15,33 @@ jest.mock('../../TF2GC');
 jest.mock('../../BotManager');
 jest.mock('../../Groups');
 jest.mock('bptf-listings-2');
-jest.mock('../../../lib/pricer-api');
+jest.mock('../../../lib/pricer/apis/prices-tf-api.ts');
 jest.mock('../../BotManager');
-it('can run id commands', async () => {
+
+export interface PricesResponse {
+    success: boolean;
+    message?: string;
+}
+
+export interface GetSchemaResponse extends PricesResponse {
+    version: string;
+    time: number;
+    raw: any;
+}
+
+const schema = JSON.parse(fs.readFileSync(`${__dirname}/raw-schema.json`, { encoding: 'utf8' })) as GetSchemaResponse;
+
+it('can run id commands', async done => {
     // setup the bot
-    const [pricer, schema, schemaManager, priceList] = await setupPricelist();
+    const [pricer, schemaManager, priceList] = await setupPricelist();
     const botManager = new BotManager(pricer);
 
     const adminId = '76561198013127982';
     const incomingId = new SteamID(adminId);
     const options = loadOptions({ steamAccountName: 'abc123', admins: [adminId] });
     const bot = new Bot(botManager, options, pricer);
-    bot.schemaManager = new SchemaManager({
-        apiKey: 'abc123',
-        updateTime: 24 * 60 * 60 * 1000
-    });
-    bot.schemaManager.setSchema(schema);
+    bot.schemaManager = schemaManager;
+    schemaManager.setSchema(schema);
     bot.schema = schemaManager.schema;
     bot.options = options;
     bot.pricelist = priceList;
@@ -126,6 +135,7 @@ it('can run id commands', async () => {
         true,
         'COMMAND'
     );
+    done();
 
     // // test buy
     // message = '!buy id=10151297782';

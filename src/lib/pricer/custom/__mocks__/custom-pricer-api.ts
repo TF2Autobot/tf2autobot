@@ -1,10 +1,4 @@
-import fs from 'fs';
-import { GetSchemaResponse } from '../../classes/Pricer';
-
-const schema = JSON.parse(fs.readFileSync(`${__dirname}/raw-schema.json`, { encoding: 'utf8' })) as GetSchemaResponse;
-
 const responses = {
-    schema: schema,
     pricelist: {
         success: true,
         items: [
@@ -120,14 +114,12 @@ const responses = {
     }
 };
 
-export const getSchema = jest.fn((): Promise<GetSchemaResponse> => Promise.resolve(responses.schema));
 export const getPrice = jest.fn(() => Promise.resolve(responses.itemPrice));
 export const getSnapshots = jest.fn(() => Promise.resolve(responses.sales));
 export const requestCheck = jest.fn(() => Promise.resolve(responses.requestCheck));
 
 const mock = jest.fn().mockImplementation((url?: string, apiToken?: string) => {
     return {
-        getSchema: getSchema,
         getPrice: getPrice,
         getOptions: jest.fn(() =>
             Promise.resolve({

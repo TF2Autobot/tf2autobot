@@ -21,7 +21,7 @@ export default class RequestCommands {
         Pricecheck.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
-    pricecheckCommand(steamID: SteamID, message: string): void {
+    async pricecheckCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         if (params.sku !== undefined && !testSKU(params.sku as string)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
@@ -43,21 +43,8 @@ export default class RequestCommands {
 
         params.sku = fixSKU(params.sku);
 
-        void this.priceSource
-            .requestCheck(params.sku)
-            .then((body: RequestCheckResponse) => {
-                if (!body) {
-                    this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
-                } else {
-                    this.bot.sendMessage(
-                        steamID,
-                        `✅ Requested pricecheck for ${body.name}, the item will be checked.`
-                    );
-                }
-            })
-            .catch((err: ErrorRequest) => {
         try {
-            const body = await this.requestCheck(params.sku);
+            const body = await this.priceSource.requestCheck(params.sku);
             if (!body) {
                 return this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
             } else {
@@ -74,7 +61,6 @@ export default class RequestCommands {
                     err.body && err.body.message ? err.body.message : err.message
                 }`
             );
-            });
         }
     }
 
@@ -190,17 +176,8 @@ class Pricecheck {
     async executeCheck(): Promise<void> {
         await sleepasync().Promise.sleep(2000);
 
-        void Pricecheck.requestCheck(this.sku)
-            .then(() => {
-                this.submitted++;
-                this.success++;
-                log.debug(
-                    `pricecheck for ${this.sku} success, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
-                );
-            })
-            .catch(err => {
         try {
-            await Pricecheck.requestCheck(this.sku, 'bptf');
+            await Pricecheck.requestCheck(this.sku);
             this.submitted++;
             this.success++;
             log.debug(
@@ -215,18 +192,16 @@ class Pricecheck {
             log.debug(
                 `pricecheck for ${this.sku} failed, status: ${this.submitted}/${this.remaining}, ${this.success} success, ${this.failed} failed.`
             );
-            })
-            .finally(() => {
+        } finally {
+            this.dequeue();
         }
-                this.dequeue();
-
-                if (this.isEmpty) {
-                    Pricecheck.removeJob();
-                    return this.bot.sendMessage(
-                        this.steamID,
-                        `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
-                    );
-                }
+        if (this.isEmpty) {
+            Pricecheck.removeJob();
+            return this.bot.sendMessage(
+                this.steamID,
+                `✅ Successfully pricecheck for all ${this.total} ${pluralize('item', this.total)}!`
+            );
+        }
 
         await sleepasync().Promise.sleep(2000);
         return this.executeCheck();
