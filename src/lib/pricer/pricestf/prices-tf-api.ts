@@ -3,12 +3,12 @@ import { OptionsWithUrl, ResponseAsJSON } from 'request';
 import request from 'request-retry-dayjs';
 import { PricerOptions } from '../../../classes/IPricer';
 
-export interface Prices2RequestCheckResponse {
+export interface PricesTfRequestCheckResponse {
     sku: string;
     name: string;
 }
 
-export interface Prices2Item {
+export interface PricesTfItem {
     sku: string;
     buyHalfScrap: number;
     buyKeys: number;
@@ -20,12 +20,12 @@ export interface Prices2Item {
     updatedAt: string;
 }
 
-export interface Prices2ItemMessageEvent {
+export interface PricesTfItemMessageEvent {
     type: string;
-    data?: Prices2Item;
+    data?: PricesTfItem;
 }
 
-export interface Prices2ResponseMeta {
+export interface PricesTfResponseMeta {
     totalItems: number;
     itemCount: number;
     itemsPerPage: number;
@@ -33,12 +33,12 @@ export interface Prices2ResponseMeta {
     currentPage: number;
 }
 
-export interface Prices2GetPricesResponse {
-    items: Prices2Item[];
-    meta: Prices2ResponseMeta;
+export interface PricesTfGetPricesResponse {
+    items: PricesTfItem[];
+    meta: PricesTfResponseMeta;
 }
 
-export interface Prices2AuthAccessResponse {
+export interface PricesTfAuthAccessResponse {
     accessToken: string;
 }
 
@@ -97,7 +97,7 @@ export default class PricesTfApi {
         });
     }
 
-    static async requestAuthAccess(): Promise<Prices2AuthAccessResponse> {
+    static async requestAuthAccess(): Promise<PricesTfAuthAccessResponse> {
         return PricesTfApi.apiRequest('POST', '/auth/access', {});
     }
 
@@ -107,15 +107,15 @@ export default class PricesTfApi {
         return;
     }
 
-    async requestCheck(sku: string): Promise<Prices2RequestCheckResponse> {
+    async requestCheck(sku: string): Promise<PricesTfRequestCheckResponse> {
         return this.authedApiRequest('POST', `/prices/${sku}/refresh`, {});
     }
 
-    async getPrice(sku: string): Promise<Prices2Item> {
+    async getPrice(sku: string): Promise<PricesTfItem> {
         return this.authedApiRequest('GET', `/prices/${sku}`, {});
     }
 
-    async getPricelistPage(page: number): Promise<Prices2GetPricesResponse> {
+    async getPricelistPage(page: number): Promise<PricesTfGetPricesResponse> {
         return this.authedApiRequest('GET', '/prices', { page, limit: 100 });
     }
 

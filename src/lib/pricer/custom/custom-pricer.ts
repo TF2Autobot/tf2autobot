@@ -7,7 +7,7 @@ import IPricer, {
     PricerOptions,
     RequestCheckResponse
 } from '../../../classes/IPricer';
-import CustomPricerApi, { PricesGetItemPriceResponse, PricesItemMessageEvent } from './custom-pricer-api';
+import CustomPricerApi, { CustomPricesGetItemPriceResponse, CustomPricesItemMessageEvent } from './custom-pricer-api';
 
 export default class CustomPricer implements IPricer {
     private socketManager: CustomPricerSocketManager;
@@ -16,8 +16,8 @@ export default class CustomPricer implements IPricer {
         this.socketManager = new CustomPricerSocketManager(api.url, api.apiToken ? api.apiToken : null);
     }
 
-    parseRawGetItemPriceResponse(raw: string): PricesItemMessageEvent {
-        return JSON.parse(raw) as PricesItemMessageEvent;
+    parseRawGetItemPriceResponse(raw: string): CustomPricesItemMessageEvent {
+        return JSON.parse(raw) as CustomPricesItemMessageEvent;
     }
 
     parseMessageEvent(event: MessageEvent<string>): Item {
@@ -35,7 +35,7 @@ export default class CustomPricer implements IPricer {
         return this.api.requestCheck(sku);
     }
 
-    public parsePricesGetItemPriceResponse(response: PricesGetItemPriceResponse): GetItemPriceResponse {
+    public parsePricesGetItemPriceResponse(response: CustomPricesGetItemPriceResponse): GetItemPriceResponse {
         return {
             sku: response.sku,
             currency: response.currency,
@@ -84,7 +84,7 @@ export default class CustomPricer implements IPricer {
     }
 
     bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void {
-        this.socketManager.on('price', (data: PricesGetItemPriceResponse) => {
+        this.socketManager.on('price', (data: CustomPricesGetItemPriceResponse) => {
             const item = this.parsePricesGetItemPriceResponse(data);
             onPriceChange(item);
         });

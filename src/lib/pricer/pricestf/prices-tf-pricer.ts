@@ -7,7 +7,7 @@ import IPricer, {
     PricerOptions,
     RequestCheckResponse
 } from '../../../classes/IPricer';
-import PricesTfApi, { Prices2Item, Prices2ItemMessageEvent } from './prices-tf-api';
+import PricesTfApi, { PricesTfItem, PricesTfItemMessageEvent } from './prices-tf-api';
 import logger from '../../logger';
 
 export default class PricesTfPricer implements IPricer {
@@ -27,7 +27,7 @@ export default class PricesTfPricer implements IPricer {
     }
 
     async getPricelist(): Promise<GetPricelistResponse> {
-        let prices: Prices2Item[] = [];
+        let prices: PricesTfItem[] = [];
         let currentPage = 1;
         let totalPages = 0;
 
@@ -67,11 +67,11 @@ export default class PricesTfPricer implements IPricer {
         return this.socketManager.init();
     }
 
-    parseRawPrices2Item(raw: string): Prices2ItemMessageEvent {
-        return JSON.parse(raw) as Prices2ItemMessageEvent;
+    parseRawPricesTfItem(raw: string): PricesTfItemMessageEvent {
+        return JSON.parse(raw) as PricesTfItemMessageEvent;
     }
 
-    parsePrices2Item(item: Prices2Item): GetItemPriceResponse {
+    parsePrices2Item(item: PricesTfItem): GetItemPriceResponse {
         return {
             sku: item.sku,
             buy: new Currencies({
@@ -97,14 +97,14 @@ export default class PricesTfPricer implements IPricer {
         };
     }
 
-    parseMessageEvent(e: Prices2ItemMessageEvent): Item {
+    parseMessageEvent(e: PricesTfItemMessageEvent): Item {
         return this.parseItem(this.parsePrices2Item(e.data));
     }
 
     bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void {
         this.socketManager.on('message', (data: MessageEvent) => {
             try {
-                const msg = this.parseRawPrices2Item(data.data);
+                const msg = this.parseRawPricesTfItem(data.data);
                 if ('PRICE_UPDATED' === msg.type) {
                     const item = this.parseMessageEvent(data);
                     onPriceChange(item);

@@ -8,12 +8,12 @@ export interface PricesCurrency {
     metal: number;
 }
 
-export interface PricesResponse {
+export interface CustomPricesResponse {
     success: boolean;
     message?: string;
 }
 
-export interface PricesGetItemPriceResponse extends PricesResponse {
+export interface CustomPricesGetItemPriceResponse extends CustomPricesResponse {
     sku?: string;
     name?: string;
     currency?: string;
@@ -24,7 +24,7 @@ export interface PricesGetItemPriceResponse extends PricesResponse {
     message?: string;
 }
 
-export interface PricesGetPricelistResponse extends PricesResponse {
+export interface CustomPricesGetPricelistResponse extends CustomPricesResponse {
     currency?: string | null;
     items?: PricesItem[];
 }
@@ -38,12 +38,12 @@ export interface PricesItem {
     sell: PricesCurrency | null;
 }
 
-export interface PricesItemMessageEvent {
+export interface CustomPricesItemMessageEvent {
     type: string;
     data: PricesItem;
 }
 
-export interface PricesGetItemPriceResponse extends PricesResponse {
+export interface CustomPricesGetItemPriceResponse extends CustomPricesResponse {
     sku?: string;
     name?: string;
     currency?: string;
@@ -64,7 +64,7 @@ export interface PricesSale {
     time: number;
 }
 
-export interface PricesRequestCheckResponse extends PricesResponse {
+export interface CustomPricerPricesRequestCheckResponse extends CustomPricesResponse {
     sku: string;
     name: string;
 }
@@ -72,7 +72,7 @@ export interface PricesRequestCheckResponse extends PricesResponse {
 export default class CustomPricerApi {
     public constructor(public url?: string, public apiToken?: string) {}
 
-    private apiRequest<I, R extends PricesResponse>(httpMethod: string, path: string, input: I): Promise<R> {
+    private apiRequest<I, R extends CustomPricesResponse>(httpMethod: string, path: string, input: I): Promise<R> {
         const options: OptionsWithUrl & { headers: Record<string, unknown> } = {
             method: httpMethod,
             url: `${this.url ? this.url : 'https://api.prices.tf'}${path}`,
@@ -102,15 +102,15 @@ export default class CustomPricerApi {
         });
     }
 
-    requestCheck(sku: string): Promise<PricesRequestCheckResponse> {
+    requestCheck(sku: string): Promise<CustomPricerPricesRequestCheckResponse> {
         return this.apiRequest('POST', `/items/${sku}`, { source: 'bptf' });
     }
 
-    getPrice(sku: string): Promise<PricesGetItemPriceResponse> {
+    getPrice(sku: string): Promise<CustomPricesGetItemPriceResponse> {
         return this.apiRequest('GET', `/items/${sku}`, { src: 'bptf' });
     }
 
-    getPricelist(): Promise<PricesGetPricelistResponse> {
+    getPricelist(): Promise<CustomPricesGetPricelistResponse> {
         return this.apiRequest('GET', '/items', { src: 'bptf' });
     }
 
