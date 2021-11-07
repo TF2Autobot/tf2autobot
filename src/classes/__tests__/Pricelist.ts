@@ -5,6 +5,7 @@ import Currencies from 'tf2-currencies-2';
 import genPaths from '../../resources/paths';
 import { init } from '../../lib/logger';
 import { getPricer } from '../../lib/pricer/pricer';
+import * as Options from '../Options';
 
 jest.mock('../../lib/pricer/custom/custom-pricer-api');
 
@@ -40,4 +41,68 @@ it('can pricecheck', async () => {
     expect(priceList.hasPrice('5021;6')).toEqual(false);
     expect(priceList.getPrice('5021;6')).toBeNull();
     // expect(priceList.searchByName('Mann Co. Supply Crate Key')).toBeNull();
+});
+
+it('can pricecheck detect custom pricers', () => {
+    const paths = genPaths('test');
+    let options = Options.loadOptions({
+        steamAccountName: 'abc123',
+        debug: true,
+        debugFile: false,
+        customPricerUrl: 'http://test.com'
+    });
+    init(paths, options);
+    let prices = getPricer({
+        pricerUrl: options.customPricerUrl,
+        pricerApiToken: options.customPricerApiToken
+    });
+    let schemaManager = new SchemaManager({});
+    let priceList = new Pricelist(prices, schemaManager.schema, options);
+    expect(priceList.isUseCustomPricer).toBeTruthy();
+
+    options = Options.loadOptions({
+        steamAccountName: 'abc123',
+        debug: true,
+        debugFile: false,
+        customPricerUrl: 'https://api.prices.tf'
+    });
+    prices = getPricer({
+        pricerUrl: options.customPricerUrl,
+        pricerApiToken: options.customPricerApiToken
+    });
+    schemaManager = new SchemaManager({});
+    priceList = new Pricelist(prices, schemaManager.schema, options);
+    expect(priceList.isUseCustomPricer).toBeFalsy();
+
+    options = Options.loadOptions({ steamAccountName: 'abc123', debug: true, debugFile: false, customPricerUrl: '' });
+    prices = getPricer({
+        pricerUrl: options.customPricerUrl,
+        pricerApiToken: options.customPricerApiToken
+    });
+    schemaManager = new SchemaManager({});
+    priceList = new Pricelist(prices, schemaManager.schema, options);
+    expect(priceList.isUseCustomPricer).toBeFalsy();
+
+    options = Options.loadOptions({
+        steamAccountName: 'abc123',
+        debug: true,
+        debugFile: false,
+        customPricerUrl: 'https://api2.prices.tf'
+    });
+    prices = getPricer({
+        pricerUrl: options.customPricerUrl,
+        pricerApiToken: options.customPricerApiToken
+    });
+    schemaManager = new SchemaManager({});
+    priceList = new Pricelist(prices, schemaManager.schema, options);
+    expect(priceList.isUseCustomPricer).toBeFalsy();
+
+    options = Options.loadOptions({ steamAccountName: 'abc123', debug: true, debugFile: false, customPricerUrl: null });
+    prices = getPricer({
+        pricerUrl: options.customPricerUrl,
+        pricerApiToken: options.customPricerApiToken
+    });
+    schemaManager = new SchemaManager({});
+    priceList = new Pricelist(prices, schemaManager.schema, options);
+    expect(priceList.isUseCustomPricer).toBeFalsy();
 });
