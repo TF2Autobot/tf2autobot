@@ -1555,7 +1555,7 @@ export default class PricelistManagerCommands {
         }
     }
 
-    getSlotsCommand(steamID: SteamID): Promise<void> {
+    async getSlotsCommand(steamID: SteamID): Promise<void> {
         const listingsCap = this.bot.listingManager.cap;
         const currentUsedSlots = this.bot.listingManager.listings.length;
 

@@ -335,7 +335,12 @@ export default class Bot {
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
         this.addAsyncListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
-        this.addAsyncListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
+        this.addAsyncListener(
+            this.client,
+            'friendRelationship',
+            this.handler.onFriendRelationship.bind(this.handler),
+            true
+        );
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
         this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
@@ -858,11 +863,17 @@ export default class Bot {
 
         if (!friend) {
             // If not friend, we send message with chatMessage
-            this.client.chatMessage(steamID, message);
-            void this.getPartnerDetails(steamID).then(name => {
+            await new Promise(resolve => {
+                this.client.chat.sendFriendMessage(steamID, message, {}, err => {
+                    if (err) {
+                        log.warn(`Failed to send message to (${steamID64} - not friend) (${steamID64}):`, err);
+                    }
+                    resolve();
+                });
+            });
+            return this.getPartnerDetails(steamID).then(name => {
                 log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
             });
-            return;
         }
 
         // else, we use the new chat.sendFriendMessage
@@ -879,7 +890,7 @@ export default class Bot {
         );
     }
 
-    private getPartnerDetails(steamID: SteamID | string): Promise<string> {
+    private async getPartnerDetails(steamID: SteamID | string): Promise<string> {
         return new Promise(resolve => {
             this.community.getSteamUser(steamID, (err, user) => {
                 if (err) {

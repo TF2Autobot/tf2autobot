@@ -2,11 +2,16 @@ import Commands from '../Commands';
 import Bot from '../../Bot';
 import BotManager from '../../BotManager';
 import SteamID from 'steamid';
-import { loadOptions } from '../../Options';
+import { DEFAULTS, loadOptions } from '../../Options';
 import InventoryManager from '../../InventoryManager';
-import { setupPricelist } from '../../__tests__/Pricelist';
 import Inventory from '../../Inventory';
 import fs from 'fs';
+import IPricer from '../../IPricer';
+import SchemaManager from 'tf2-schema-2';
+import Pricelist from '../../Pricelist';
+import genPaths from '../../../resources/paths';
+import { init } from '../../../lib/logger';
+import { getPricer } from '../../../lib/pricer/pricer';
 
 jest.mock('../../Friends');
 jest.mock('../../Trades');
@@ -15,7 +20,7 @@ jest.mock('../../TF2GC');
 jest.mock('../../BotManager');
 jest.mock('../../Groups');
 jest.mock('bptf-listings-2');
-jest.mock('../../../lib/pricer/apis/prices-tf-api.ts');
+jest.mock('../../../lib/pricer/custom/custom-pricer-api');
 jest.mock('../../BotManager');
 
 export interface PricesResponse {
@@ -31,7 +36,18 @@ export interface GetSchemaResponse extends PricesResponse {
 
 const schema = JSON.parse(fs.readFileSync(`${__dirname}/raw-schema.json`, { encoding: 'utf8' })) as GetSchemaResponse;
 
-it('can run id commands', async done => {
+async function setupPricelist(): Promise<[IPricer, SchemaManager, Pricelist]> {
+    const paths = genPaths('test');
+    init(paths, { debug: true, debugFile: false });
+    const prices = getPricer({ pricerUrl: 'http://test.com' });
+    const schemaManager = new SchemaManager({});
+    schemaManager.setSchema(schema);
+    const priceList = new Pricelist(prices, schemaManager.schema, DEFAULTS);
+    await priceList.setupPricelist();
+    return [prices, schemaManager, priceList];
+}
+
+it('can run id commands', async () => {
     // setup the bot
     const [pricer, schemaManager, priceList] = await setupPricelist();
     const botManager = new BotManager(pricer);
@@ -135,7 +151,6 @@ it('can run id commands', async done => {
         true,
         'COMMAND'
     );
-    done();
 
     // // test buy
     // message = '!buy id=10151297782';
@@ -166,4 +181,4 @@ it('can run id commands', async done => {
     // message = '!remove id=10151297782';
     // cmds.processMessage(incomingId, message);
     // expect(spy).toBeCalledWith(incomingId, message);
-});
+}, 50000000);

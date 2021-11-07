@@ -9,7 +9,7 @@ import IPricer from '../IPricer';
 
 jest.mock('../../lib/pricer/custom/custom-pricer-api');
 
-export async function setupPricelist(): Promise<[IPricer, SchemaManager, Pricelist]> {
+async function setupPricelist(): Promise<[IPricer, SchemaManager, Pricelist]> {
     const paths = genPaths('test');
     init(paths, { debug: true, debugFile: false });
     const prices = getPricer({ pricerUrl: 'http://test.com' });
