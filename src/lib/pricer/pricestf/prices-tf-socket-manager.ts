@@ -53,13 +53,11 @@ export default class PricesTfSocketManager {
         this.ws.addEventListener('open', this.socketConnect());
 
         this.ws.addEventListener('error', err => {
-            // our most common error is 401, so we don't announce all the socket action
+            this.ws.close();
             if (err.message === 'Unexpected server response: 401') {
                 void this.api
                     .setupToken()
-                    .then(() => {
-                        this.ws.reconnect();
-                    })
+                    .then(() => this.ws.reconnect())
                     .catch(e => {
                         this.ws.reconnect();
                         this.socketUnauthorized();
