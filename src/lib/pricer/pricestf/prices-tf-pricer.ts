@@ -67,7 +67,7 @@ export default class PricesTfPricer implements IPricer {
         return this.socketManager.init();
     }
 
-    parseRawPricesTfItem(raw: string): PricesTfItemMessageEvent {
+    parsePricesTfMessageEvent(raw: string): PricesTfItemMessageEvent {
         return JSON.parse(raw) as PricesTfItemMessageEvent;
     }
 
@@ -97,16 +97,16 @@ export default class PricesTfPricer implements IPricer {
         };
     }
 
-    parseMessageEvent(e: PricesTfItemMessageEvent): Item {
+    parsePriceUpdatedData(e: PricesTfItemMessageEvent): Item {
         return this.parseItem(this.parsePrices2Item(e.data));
     }
 
     bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void {
         this.socketManager.on('message', (message: MessageEvent) => {
             try {
-                const data = this.parseRawPricesTfItem(message.data);
+                const data = this.parsePricesTfMessageEvent(message.data);
                 if (data.type === 'PRICE_UPDATED') {
-                    const item = this.parseMessageEvent(data);
+                    const item = this.parsePriceUpdatedData(data);
                     onPriceChange(item);
                 }
             } catch (e) {
