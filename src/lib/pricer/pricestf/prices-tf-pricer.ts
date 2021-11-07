@@ -101,16 +101,16 @@ export default class PricesTfPricer implements IPricer {
         return this.parseItem(this.parsePrices2Item(e.data));
     }
 
-    bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void {
-        this.socketManager.on('message', (data: MessageEvent) => {
+    bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void {
+        this.socketManager.on('message', (message: MessageEvent) => {
             try {
-                const msg = this.parseRawPricesTfItem(data.data);
-                if (msg.type === 'PRICE_UPDATED') {
+                const data = this.parseRawPricesTfItem(message.data);
+                if (data.type === 'PRICE_UPDATED') {
                     const item = this.parseMessageEvent(data);
                     onPriceChange(item);
                 }
             } catch (e) {
-                logger.error(`Could not handle event: ${JSON.stringify(data)}`);
+                logger.error(`Could not handle event: ${JSON.stringify(message)}`);
             }
         });
     }

@@ -83,7 +83,7 @@ export default class CustomPricer implements IPricer {
         return this.socketManager.init();
     }
 
-    bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void {
+    bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void {
         this.socketManager.on('price', (data: CustomPricesGetItemPriceResponse) => {
             const item = this.parsePricesGetItemPriceResponse(data);
             onPriceChange(item);

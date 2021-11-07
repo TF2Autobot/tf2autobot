@@ -27,7 +27,7 @@ export default interface IPricer {
 
     init(): void;
 
-    bindHandlePriceEvent(onPriceChange: (data: GetItemPriceResponse) => void): void;
+    bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void;
 }
 
 export type RequestCheckFn = (sku: string) => Promise<RequestCheckResponse>;
