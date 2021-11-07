@@ -75,5 +75,5 @@ export interface Sale {
 
 export interface RequestCheckResponse {
     sku: string;
-    name: string;
+    name?: string;
 }

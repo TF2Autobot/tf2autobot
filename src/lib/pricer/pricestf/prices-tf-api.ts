@@ -4,8 +4,7 @@ import request from 'request-retry-dayjs';
 import { PricerOptions } from '../../../classes/IPricer';
 
 export interface PricesTfRequestCheckResponse {
-    sku: string;
-    name: string;
+    enqueued: boolean;
 }
 
 export interface PricesTfItem {

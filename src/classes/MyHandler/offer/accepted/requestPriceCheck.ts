@@ -2,6 +2,7 @@ import sleepasync from 'sleep-async';
 import { RequestCheckFn, RequestCheckResponse } from '../../../IPricer';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
+import SKU from 'tf2-sku-2';
 
 export default class PriceCheckQueue {
     private static skus: string[] = [];
@@ -60,7 +61,13 @@ export default class PriceCheckQueue {
 
         void this.requestCheck(sku)
             .then((body: RequestCheckResponse) => {
-                log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
+                let name: string;
+                if (body.name) {
+                    name = body.name;
+                } else {
+                    name = this.bot.schema.getName(SKU.fromString(sku));
+                }
+                log.debug(`✅ Requested pricecheck for ${name} (${sku}).`);
             })
             .catch(err => {
                 const errStringify = JSON.stringify(err);

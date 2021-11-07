@@ -46,10 +46,13 @@ export default class RequestCommands {
                 if (!body) {
                     this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
                 } else {
-                    this.bot.sendMessage(
-                        steamID,
-                        `✅ Requested pricecheck for ${body.name}, the item will be checked.`
-                    );
+                    let name: string;
+                    if (body.name) {
+                        name = body.name;
+                    } else {
+                        name = this.bot.schema.getName(SKU.fromString(params.sku));
+                    }
+                    this.bot.sendMessage(steamID, `✅ Requested pricecheck for ${name}, the item will be checked.`);
                 }
             })
             .catch((err: ErrorRequest) => {

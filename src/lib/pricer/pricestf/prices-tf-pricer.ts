@@ -52,7 +52,16 @@ export default class PricesTfPricer implements IPricer {
     }
 
     async requestCheck(sku: string): Promise<RequestCheckResponse> {
-        return await this.api.requestCheck(sku);
+        const r = await this.api.requestCheck(sku);
+        if (r.enqueued) {
+            return {
+                sku: sku
+            };
+        } else {
+            return {
+                sku: null
+            };
+        }
     }
 
     shutdown(): void {
