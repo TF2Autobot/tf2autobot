@@ -3,9 +3,12 @@ import log from '../../../lib/logger';
 import WS from 'ws';
 import * as Events from 'reconnecting-websocket/events';
 import PricesTfApi from './prices-tf-api';
+import logger from '../../../lib/logger';
 
 export default class PricesTfSocketManager {
     private readonly socketClass;
+
+    private announceConnectionStatus = true;
 
     constructor(private api: PricesTfApi) {
         // https://stackoverflow.com/questions/28784375/nested-es6-classes
@@ -24,7 +27,9 @@ export default class PricesTfSocketManager {
 
     private socketDisconnected() {
         return () => {
-            log.debug('Disconnected from socket server');
+            if (this.announceConnectionStatus) {
+                log.debug('Disconnected from socket server');
+            }
         };
     }
 
@@ -34,15 +39,14 @@ export default class PricesTfSocketManager {
         };
     }
 
-    private socketAuthenticated() {
-        return () => {
-            log.debug('Authenticated with socket server');
-        };
-    }
-
     private socketConnect() {
         return () => {
-            log.debug('Connected to socket server');
+            if (this.announceConnectionStatus) {
+                log.debug('Connected to socket server');
+            } else {
+                // plan to announce status once we've reconnected
+                this.announceConnectionStatus = true;
+            }
         };
     }
 
@@ -58,16 +62,25 @@ export default class PricesTfSocketManager {
         this.ws.addEventListener('open', this.socketConnect());
 
         this.ws.addEventListener('error', err => {
+            // our most common error is 401, so we don't announce all the socket action
             if (err.message === 'Unexpected server response: 401') {
+                this.announceConnectionStatus = false;
                 this.ws.close();
                 void this.api
                     .setupToken()
-                    .then(() => this.ws.reconnect())
-                    .catch(err => {
+                    .then(() => {
+                        this.ws.reconnect();
+                    })
+                    .catch(e => {
+                        this.announceConnectionStatus = true; // looks like we are in a bad state so enable the announcement
                         this.ws.reconnect();
                         this.socketUnauthorized();
-                        throw err;
+                        logger.error('Error in prices.tf socket manager', e);
                     });
+            } else {
+                // if we got here then we got a error, announce the disconnect and allow status logging
+                this.announceConnectionStatus = true;
+                logger.error('Error in prices.tf socket manager', err);
             }
         });
 
