@@ -29,12 +29,6 @@ export default class PricesTfSocketManager {
         };
     }
 
-    private socketUnauthorized() {
-        return () => {
-            log.warn('Failed to authenticate with socket server', {});
-        };
-    }
-
     private socketConnect() {
         return () => {
             log.debug('Connected to socket server');
@@ -53,18 +47,11 @@ export default class PricesTfSocketManager {
         this.ws.addEventListener('open', this.socketConnect());
 
         this.ws.addEventListener('error', err => {
-            this.ws.close();
             if (err.message === 'Unexpected server response: 401') {
-                void this.api
-                    .setupToken()
-                    .then(() => this.ws.reconnect())
-                    .catch(e => {
-                        this.ws.reconnect();
-                        this.socketUnauthorized();
-                        logger.error('Error in prices.tf socket manager', e);
-                    });
+                log.debug('JWT expired');
+                void this.api.setupToken().then(() => this.ws.reconnect());
             } else {
-                logger.error('Error in prices.tf socket manager', err);
+                logger.exception(err.error);
             }
         });
 

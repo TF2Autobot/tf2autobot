@@ -248,7 +248,8 @@ export default class Bot {
     ): void {
         emitter.on(event, (...args): void => {
             if (!checkCanEmit || this.canSendEvents()) {
-                process.nextTick(listener, ...args);
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                setImmediate(listener, ...args);
             }
         });
     }

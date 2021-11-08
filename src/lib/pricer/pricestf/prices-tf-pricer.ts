@@ -119,7 +119,7 @@ export default class PricesTfPricer implements IPricer {
                     onPriceChange(item);
                 }
             } catch (e) {
-                logger.error(`Could not handle event: ${JSON.stringify(message)}`);
+                logger.exception(e as Error);
             }
         });
     }
