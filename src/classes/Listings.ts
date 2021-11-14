@@ -222,7 +222,6 @@ export default class Listings {
                 doneSomething = true;
                 listing.remove();
             } else if (
-                match !== null &&
                 listing.intent === 0 &&
                 !invManager.isCanAffordToBuy(match.buy, invManager.getInventory) &&
                 isFilterCantAfford

@@ -2523,6 +2523,10 @@ export default class MyHandler extends Handler {
     onDeleteListingsError(err: Error): void {
         log.error('Error on delete listings:', err);
     }
+
+    onUpdateListingsError(err: Error): void {
+        log.error('Error on update listings:', err);
+    }
 }
 
 interface OnRun {
