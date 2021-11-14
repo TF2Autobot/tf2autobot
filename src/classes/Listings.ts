@@ -255,11 +255,11 @@ export default class Listings {
                         const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                         listing.update({
-                            time: match.time || dayjs().unix(),
                             currencies: currencies,
-                            promoted: listing.intent === 0 ? 0 : match.promoted,
+                            //promoted: listing.intent === 0 ? 0 : match.promoted,
                             details: newDetails
                         });
+                        //TODO: make promote, demote
                     }
                 }
             }
