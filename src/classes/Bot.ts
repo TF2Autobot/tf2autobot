@@ -464,12 +464,6 @@ export default class Bot {
                             this.handler.onDeleteListingsError.bind(this),
                             true
                         );
-                        this.addListener(
-                            this.listingManager,
-                            'updateListingsError',
-                            this.handler.onUpdateListingsError.bind(this),
-                            true
-                        );
 
                         this.addListener(
                             this.pricelist,
