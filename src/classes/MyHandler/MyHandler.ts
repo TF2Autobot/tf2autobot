@@ -46,7 +46,7 @@ import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
-import Pricer, { RequestCheckFn } from '../Pricer';
+import IPricer, { RequestCheckFn } from '../IPricer';
 import Options, { OfferType } from '../Options';
 
 const filterReasons = (reasons: string[]) => {
@@ -215,7 +215,7 @@ export default class MyHandler extends Handler {
         this.executedDelayTime = delay;
     }
 
-    constructor(public bot: Bot, private priceSource: Pricer) {
+    constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
 
         this.commands = new Commands(bot, priceSource);
@@ -223,10 +223,9 @@ export default class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.paths = genPaths(this.opt.steamAccountName);
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
 
         PriceCheckQueue.setBot(this.bot);
-        PriceCheckQueue.setRequestCheckFn(this.requestCheck);
+        PriceCheckQueue.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
     onRun(): Promise<OnRun> {
@@ -445,7 +444,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    onMessage(steamID: SteamID, message: string): void {
+    async onMessage(steamID: SteamID, message: string): Promise<void> {
         if (!this.opt.commands.enable) {
             if (!this.bot.isAdmin(steamID)) {
                 const custom = this.opt.commands.customDisableReply;
@@ -477,7 +476,7 @@ export default class MyHandler extends Handler {
         this.recentlySentMessage[steamID64] =
             (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
-        this.commands.processMessage(steamID, message);
+        await this.commands.processMessage(steamID, message);
     }
 
     onLoginKey(loginKey: string): void {

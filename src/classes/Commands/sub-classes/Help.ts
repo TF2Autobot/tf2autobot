@@ -149,8 +149,7 @@ export default class HelpCommands {
                         }`,
                         `!pricecheckall - Request all items in the bot's pricelist to be price checked by ${
                             isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
-                        }`,
-                        '!snapshots (sku|name|defindex)=<a> - Get the bptf snapshots history for an item 🔍'
+                        }`
                     ].join('\n- ')
             );
 

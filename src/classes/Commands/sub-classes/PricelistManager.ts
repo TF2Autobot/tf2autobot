@@ -14,7 +14,7 @@ import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 import validator from '../../../lib/validator';
 import { testSKU } from '../../../lib/tools/export';
-import Pricer from '../../Pricer';
+import IPricer from '../../IPricer';
 
 // Pricelist manager
 
@@ -27,11 +27,11 @@ export default class PricelistManagerCommands {
 
     static isBulkOperation = false;
 
-    constructor(private readonly bot: Bot, private priceSource: Pricer) {
+    constructor(private readonly bot: Bot, private priceSource: IPricer) {
         this.bot = bot;
     }
 
-    addCommand(steamID: SteamID, message: string): void {
+    async addCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
         if (params.enabled === undefined) {
@@ -174,7 +174,7 @@ export default class PricelistManagerCommands {
 
         params.sku = fixSKU(params.sku);
 
-        this.bot.pricelist
+        return this.bot.pricelist
             .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
@@ -414,7 +414,7 @@ export default class PricelistManagerCommands {
         if (isHasAutoprice) {
             try {
                 this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
-                const pricerPricelist = await this.priceSource.getPricelist('bptf');
+                const pricerPricelist = await this.priceSource.getPricelist();
                 const items = pricerPricelist.items;
 
                 this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, adding items to our pricelist...`);
@@ -1416,7 +1416,7 @@ export default class PricelistManagerCommands {
         if (isHasAutoprice) {
             try {
                 this.bot.sendMessage(steamID, `⌛ Getting pricelist from the pricer...`);
-                const pricerPricelist = await this.priceSource.getPricelist('bptf');
+                const pricerPricelist = await this.priceSource.getPricelist();
                 const items = pricerPricelist.items;
 
                 this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, updating items...`);
