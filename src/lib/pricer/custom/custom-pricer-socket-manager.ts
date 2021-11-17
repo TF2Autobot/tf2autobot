@@ -1,4 +1,4 @@
-import io from '@tf2autobot/socket.io-client';
+import io from 'socket.io-client';
 import log from '../../../lib/logger';
 
 export default class CustomPricerSocketManager {
