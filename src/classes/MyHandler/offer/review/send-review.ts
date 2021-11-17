@@ -200,6 +200,6 @@ export async function sendToAdmin(
         log.debug('Sending message 4');
         return bot.messageAdmins(message4, []);
     }
-
+    await sleepasync().Promise.sleep(1500);
     bot.messageAdmins(message, []);
 }
