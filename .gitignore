@@ -82,3 +82,6 @@ dist/
 
 # any .bat file
 *.bat
+
+
+.idea/

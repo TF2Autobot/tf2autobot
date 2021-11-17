@@ -1,4 +1,4 @@
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import { genUserPure, genScrapAdjustment } from './userSettings';
 import Bot from '../Bot';
 import { EntryData, KeyPrices, PricelistChangedSource } from '../Pricelist';

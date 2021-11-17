@@ -625,7 +625,17 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-allow'
                 },
                 bannedPeople: {
-                    $ref: '#/definitions/only-allow'
+                    type: 'object',
+                    properties: {
+                        allow: {
+                            type: 'boolean'
+                        },
+                        checkMptfBanned: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['allow', 'checkMptfBanned'],
+                    additionalProperties: false
                 }
             },
             required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople'],
@@ -940,6 +950,30 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string',
                     maxLength: 200
                 },
+                showBoldText: {
+                    type: 'object',
+                    properties: {
+                        onPrice: {
+                            type: 'boolean'
+                        },
+                        onAmount: {
+                            type: 'boolean'
+                        },
+                        onCurrentStock: {
+                            type: 'boolean'
+                        },
+                        onMaxStock: {
+                            type: 'boolean'
+                        },
+                        style: {
+                            type: 'number',
+                            minimum: 1,
+                            maximum: 4
+                        }
+                    },
+                    required: ['onPrice', 'onAmount', 'onCurrentStock', 'onMaxStock', 'style'],
+                    additionalProperties: false
+                },
                 highValue: {
                     type: 'object',
                     properties: {
@@ -1019,7 +1053,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['buy', 'sell', 'highValue', 'uses'],
+            required: ['buy', 'sell', 'showBoldText', 'highValue', 'uses'],
             additionalProperties: false
         },
         statistics: {

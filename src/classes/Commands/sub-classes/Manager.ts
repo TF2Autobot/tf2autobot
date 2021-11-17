@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import validUrl from 'valid-url';
 import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
@@ -454,7 +454,7 @@ export default class ManagerCommands {
         if (opt.miscSettings.createListings.enable === false) {
             return this.bot.sendMessage(
                 steamID,
-                'miscSettings.crateListings.enable is set to false, thus this command is disabled'
+                'miscSettings.createListings.enable is set to false, thus this command is disabled'
             );
         }
 

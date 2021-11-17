@@ -3,9 +3,9 @@ import SteamUser, { EResult } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
-import ListingManager from 'bptf-listings-2';
-import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
-import BptfLogin from 'bptf-login-2';
+import ListingManager from '@tf2autobot/bptf-listings';
+import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import BptfLogin from '@tf2autobot/bptf-login';
 import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
@@ -26,7 +26,8 @@ import Groups from './Groups';
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
-import Pricer from './Pricer';
+import IPricer from './IPricer';
+import { EventEmitter } from 'events';
 
 export default class Bot {
     // Modules and classes
@@ -110,7 +111,7 @@ export default class Bot {
 
     public userID: string;
 
-    constructor(public readonly botManager: BotManager, public options: Options, private priceSource: Pricer) {
+    constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
         this.client = new SteamUser();
@@ -178,7 +179,9 @@ export default class Bot {
             return Promise.resolve(false);
         }
 
-        return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey, this.userID));
+        return Promise.resolve(
+            isBanned(steamID, this.options.bptfAPIKey, this.userID, this.options.bypass.bannedPeople.checkMptfBanned)
+        );
     }
 
     get alertTypes(): string[] {
@@ -222,14 +225,32 @@ export default class Bot {
         return this.ready;
     }
 
-    private addListener(emitter: any, event: string, listener: (...args) => void, checkCanEmit: boolean): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    private addListener(
+        emitter: EventEmitter,
+        event: string,
+        listener: (...args) => void,
+        checkCanEmit: boolean
+    ): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
                     listener(...args);
                 }
             });
+        });
+    }
+
+    private addAsyncListener(
+        emitter: EventEmitter,
+        event: string,
+        listener: (...args) => Promise<void>,
+        checkCanEmit: boolean
+    ): void {
+        emitter.on(event, (...args): void => {
+            if (!checkCanEmit || this.canSendEvents()) {
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                setImmediate(listener, ...args);
+            }
         });
     }
 
@@ -309,9 +330,10 @@ export default class Bot {
         let cookies: string[];
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
-        this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
+        this.addAsyncListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
         this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
+        this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
         this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
         this.addListener(this.client, 'loginKey', this.handler.onLoginKey.bind(this.handler), false);
@@ -430,13 +452,8 @@ export default class Bot {
                     },
                     (callback): void => {
                         log.info('Setting properties, inventory, etc...');
-                        this.pricelist = new Pricelist(
-                            this.priceSource,
-                            this.schema,
-                            this.botManager.getSocketManager,
-                            this.options,
-                            this
-                        );
+                        this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
+                        this.pricelist.init();
                         this.inventoryManager = new InventoryManager(this.pricelist);
 
                         const userID = this.bptf._getUserID();
@@ -525,12 +542,10 @@ export default class Bot {
                             callback
                         );
                     },
-                    (callback): void => {
+                    (callback: (err?) => void): void => {
                         if (this.options.enableSocket === false) {
                             log.warn('Disabling socket...');
-                            this.botManager.getSocketManager.shutDown();
-                        } else {
-                            this.pricelist.init();
+                            this.priceSource.shutdown();
                         }
 
                         log.info('Setting up pricelist...');
@@ -542,7 +557,14 @@ export default class Bot {
                               }, {}) as PricesDataObject)
                             : data.pricelist || {};
 
-                        void this.pricelist.setPricelist(pricelist, this).asCallback(callback);
+                        this.pricelist
+                            .setPricelist(pricelist, this)
+                            .then(() => {
+                                callback(null);
+                            })
+                            .catch(err => {
+                                callback(err);
+                            });
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
@@ -867,12 +889,19 @@ export default class Bot {
         return this.ready && !this.botManager.isStopping;
     }
 
-    private onMessage(steamID: SteamID, message: string): void {
+    private async onMessage(steamID: SteamID, message: string): Promise<void> {
         if (message.startsWith('[tradeoffer sender=') && message.endsWith('[/tradeoffer]')) {
             return;
         }
 
-        this.handler.onMessage(steamID, message);
+        await this.handler.onMessage(steamID, message);
+    }
+
+    private onNewItems(count: number): void {
+        if (count !== 0) {
+            log.debug(`Received ${count} item notifications, resetting to zero`);
+            this.community.resetItemNotifications();
+        }
     }
 
     private onWebSession(sessionID: string, cookies: string[]): void {

@@ -1,4 +1,4 @@
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import request from 'request-retry-dayjs';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
 import TradeOfferManager, {
@@ -14,7 +14,7 @@ import TradeOfferManager, {
 
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import async from 'async';
 import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
@@ -46,7 +46,7 @@ import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
 import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
-import Pricer, { RequestCheckFn } from '../Pricer';
+import IPricer, { RequestCheckFn } from '../IPricer';
 import Options, { OfferType } from '../Options';
 
 const filterReasons = (reasons: string[]) => {
@@ -215,7 +215,7 @@ export default class MyHandler extends Handler {
         this.executedDelayTime = delay;
     }
 
-    constructor(public bot: Bot, private priceSource: Pricer) {
+    constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
 
         this.commands = new Commands(bot, priceSource);
@@ -223,10 +223,9 @@ export default class MyHandler extends Handler {
         this.autokeys = new Autokeys(bot);
 
         this.paths = genPaths(this.opt.steamAccountName);
-        this.requestCheck = this.priceSource.requestCheck.bind(this.priceSource);
 
         PriceCheckQueue.setBot(this.bot);
-        PriceCheckQueue.setRequestCheckFn(this.requestCheck);
+        PriceCheckQueue.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
     onRun(): Promise<OnRun> {
@@ -445,7 +444,7 @@ export default class MyHandler extends Handler {
         }
     }
 
-    onMessage(steamID: SteamID, message: string): void {
+    async onMessage(steamID: SteamID, message: string): Promise<void> {
         if (!this.opt.commands.enable) {
             if (!this.bot.isAdmin(steamID)) {
                 const custom = this.opt.commands.customDisableReply;
@@ -477,7 +476,7 @@ export default class MyHandler extends Handler {
         this.recentlySentMessage[steamID64] =
             (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
-        this.commands.processMessage(steamID, message);
+        await this.commands.processMessage(steamID, message);
     }
 
     onLoginKey(loginKey: string): void {
@@ -1516,16 +1515,16 @@ export default class MyHandler extends Handler {
         let isTheirItems = false;
         const exceptionSKU = opt.offerReceived.invalidValue.exceptionValue.skus;
         const exceptionValue = this.invalidValueException;
+        const ourItems = Object.keys(itemsDict.our);
+        const theirItems = Object.keys(itemsDict.their);
 
         if (exceptionSKU.length > 0 && exceptionValue > 0) {
-            const ourItems = Object.keys(itemsDict.our);
             isOurItems = exceptionSKU.some(sku => {
                 return ourItems.some(ourItemSKU => {
                     return ourItemSKU.includes(sku);
                 });
             });
 
-            const theirItems = Object.keys(itemsDict.their);
             isTheirItems = exceptionSKU.some(sku => {
                 return theirItems.some(theirItemSKU => {
                     return theirItemSKU.includes(sku);
@@ -1546,6 +1545,12 @@ export default class MyHandler extends Handler {
                     their: exchange.their.value,
                     missing: exchange.our.value - exchange.their.value
                 });
+
+                // Always run checkBySKU for INVALID_VALUE offer so that the listings will always be updated if incorrect
+                ourItems
+                    .concat(theirItems)
+                    .filter(sku => !['5000;6', '5001;6', '5002;6'].includes(sku))
+                    .forEach(sku => this.bot.listings.checkBySKU(sku));
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
                     `Contains ${exceptionSKU.join(' or ')} and difference is ${Currencies.toRefined(
@@ -2127,12 +2132,22 @@ export default class MyHandler extends Handler {
                     if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
                     if (notifyOpt.onDeclined) declined(offer, this.bot, this.isTradingKeys);
+                    offer.data('isDeclined', true);
                     this.isTradingKeys = false; // reset
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
+
+                    if (offer.data('canceledByUser') === true) {
+                        // do nothing
+                    } else if (oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']) {
+                        offer.data('isFailedConfirmation', true);
+                    } else {
+                        offer.data('isCanceledUnknown', true);
+                    }
                     MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
                     if (notifyOpt.onTradedAway) invalid(offer, this.bot);
+                    offer.data('isInvalid', true);
                     MyHandler.removePolldataKeys(offer);
                 }
             }
@@ -2204,6 +2219,8 @@ export default class MyHandler extends Handler {
             this.resetSentSummaryTimeout = setTimeout(() => {
                 this.sentSummary = {};
             }, 2 * 60 * 1000);
+        } else {
+            this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
     }
 

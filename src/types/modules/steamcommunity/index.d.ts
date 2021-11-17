@@ -66,6 +66,8 @@ declare module 'steamcommunity' {
             callback?: (err?: Error, url?: string) => void
         ): void;
 
+        resetItemNotifications(callback?: (err?: Error) => void): void;
+
         inviteUserToGroup(userID: SteamID | string, groupID: SteamID | string, callback?: (err?: Error) => void): void;
 
         getSteamGroup(id: SteamID | string, callback: (err?: Error, group?: SteamCommunity.Group) => void): void;

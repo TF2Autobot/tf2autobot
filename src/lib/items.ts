@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { MinimumItem } from '../types/TeamFortress2';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager from '@tf2autobot/tf2-schema';
 
 import isObject from 'isobject';
 

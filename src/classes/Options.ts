@@ -122,7 +122,8 @@ export const DEFAULTS: JsonOptions = {
             allow: false
         },
         bannedPeople: {
-            allow: false
+            allow: false,
+            checkMptfBanned: true
         }
     },
 
@@ -250,6 +251,13 @@ export const DEFAULTS: JsonOptions = {
     details: {
         buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
         sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
+        showBoldText: {
+            onPrice: false,
+            onAmount: false,
+            onCurrentStock: false,
+            onMaxStock: false,
+            style: 1
+        },
         highValue: {
             showSpells: true,
             showStrangeParts: false,
@@ -1181,11 +1189,15 @@ interface Bypass {
     escrow?: OnlyAllow;
     overpay?: OnlyAllow;
     giftWithoutMessage?: OnlyAllow;
-    bannedPeople?: OnlyAllow;
+    bannedPeople?: BannedPeople;
 }
 
 interface OnlyAllow {
     allow?: boolean;
+}
+
+interface BannedPeople extends OnlyAllow {
+    checkMptfBanned: boolean;
 }
 
 // ------------ TradeSummary ------------
@@ -1299,8 +1311,17 @@ interface NormalizePainted extends NormalizeOurOrTheir {
 interface Details {
     buy?: string;
     sell?: string;
+    showBoldText?: ShowBoldText;
     highValue?: ShowHighValue;
     uses?: UsesDetails;
+}
+
+interface ShowBoldText {
+    onPrice: boolean;
+    onAmount: boolean;
+    onCurrentStock: boolean;
+    onMaxStock: boolean;
+    style: number;
 }
 
 interface ShowHighValue {
@@ -2010,7 +2031,7 @@ function lintPath(filepath: string): void {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         jsonlint.parse(rawOptions);
     } catch (e) {
-        throwLintError(filepath, e);
+        throwLintError(filepath, e as Error);
     }
 }
 
@@ -2044,7 +2065,7 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     jsonlint.parse(rawOptions);
                 } catch (e) {
-                    throwLintError(optionsPath, e);
+                    throwLintError(optionsPath, e as Error);
                 }
             }
             throw e;
@@ -2194,7 +2215,7 @@ export function loadOptions(options?: Options): Options {
 
         enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),
         customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
-        customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
+        customPricerUrl: getOption('customPricerUrl', '', String, incomingOptions),
 
         skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, jsonParseBoolean, incomingOptions),
         skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, jsonParseBoolean, incomingOptions),

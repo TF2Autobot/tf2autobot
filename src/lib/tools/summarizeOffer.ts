@@ -97,7 +97,7 @@ type SummarizeType =
     | 'summary-accepting'
     | 'summary-countering';
 
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 
 export default function summarize(
     offer: TradeOffer,
@@ -151,7 +151,7 @@ export default function summarize(
     }
 }
 
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import { replace, testSKU } from '../tools/export';
 
 function getSummary(

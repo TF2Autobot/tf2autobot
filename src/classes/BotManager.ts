@@ -1,23 +1,20 @@
 import async from 'async';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager from '@tf2autobot/tf2-schema';
 import pm2 from 'pm2';
 import Bot from './Bot';
 import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
 import Options from './Options';
 import { EPersonaState } from 'steam-user';
-import SocketManager from './MyHandler/SocketManager';
 import EconItem from '@tf2autobot/tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from 'steamcommunity/classes/CEconItem.js';
 import TradeOffer from '@tf2autobot/tradeoffer-manager/lib/classes/TradeOffer';
 import { camelCase } from 'change-case';
-import Pricer from './Pricer';
+import IPricer from './IPricer';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
 export default class BotManager {
-    private readonly socketManager: SocketManager;
-
     private schemaManager: SchemaManager;
 
     public bot: Bot = null;
@@ -30,11 +27,9 @@ export default class BotManager {
 
     private exiting = false;
 
-    constructor(private readonly pricer: Pricer) {
+    constructor(private readonly pricer: IPricer) {
         this.pricer = pricer;
         this.extendTradeOfferApis();
-        const priceToken = pricer.getOptions().pricerApiToken;
-        this.socketManager = new SocketManager(pricer.getOptions().pricerUrl, priceToken ? priceToken : null);
     }
 
     private extendTradeOfferApis() {
@@ -49,10 +44,6 @@ export default class BotManager {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
             TradeOffer.prototype[v] = require('../lib/extend/offer/' + v);
         });
-    }
-
-    get getSocketManager(): SocketManager {
-        return this.socketManager;
     }
 
     get isStopping(): boolean {
@@ -78,12 +69,8 @@ export default class BotManager {
                         void this.connectToPM2().asCallback(callback);
                     },
                     (callback): void => {
-                        log.info('Initializing Socket Manager...');
-                        void this.socketManager.init().asCallback(callback);
-                    },
-                    (callback): void => {
                         log.info('Starting bot...');
-
+                        this.pricer.init();
                         this.bot = new Bot(this, options, this.pricer);
 
                         void this.bot.start().asCallback(callback);
@@ -109,7 +96,7 @@ export default class BotManager {
 
                     if (this.bot?.options.enableSocket) {
                         log.info('Connecting to socket server...');
-                        this.socketManager.connect();
+                        this.pricer.connect();
                     }
 
                     this.schemaManager = this.bot.schemaManager;
@@ -218,7 +205,7 @@ export default class BotManager {
         }
 
         // Disconnect from socket server to stop price updates
-        this.socketManager.shutDown();
+        this.pricer.shutdown();
     }
 
     private exit(err: Error | null): void {

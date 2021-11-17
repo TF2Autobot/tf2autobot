@@ -1,4 +1,4 @@
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import pluralize from 'pluralize';
 import Bot from '../../classes/Bot';
 

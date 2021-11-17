@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies-2';
-import SKU from 'tf2-sku-2';
+import Currencies from '@tf2autobot/tf2-currencies';
+import SKU from '@tf2autobot/tf2-sku';
 import sleepasync from 'sleep-async';
 import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';

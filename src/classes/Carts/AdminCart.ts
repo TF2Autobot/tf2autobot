@@ -1,5 +1,5 @@
 import pluralize from 'pluralize';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import Cart from './Cart';
 import Inventory from '../Inventory';
 import log from '../../lib/logger';

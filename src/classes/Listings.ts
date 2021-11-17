@@ -3,7 +3,7 @@ import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import sleepasync from 'sleep-async';
 import Bot from './Bot';
 import { Entry, PricesObject } from './Pricelist';
@@ -13,7 +13,7 @@ import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
-import { Paints, StrangeParts } from 'tf2-schema-2';
+import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 
 export default class Listings {
     private checkingAllListings = false;
@@ -222,7 +222,6 @@ export default class Listings {
                 doneSomething = true;
                 listing.remove();
             } else if (
-                match !== null &&
                 listing.intent === 0 &&
                 !invManager.isCanAffordToBuy(match.buy, invManager.getInventory) &&
                 isFilterCantAfford
@@ -243,7 +242,17 @@ export default class Listings {
                         inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
                     );
 
-                    if (listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '')) {
+                    const keyPrice = this.bot.pricelist.getKeyPrice;
+
+                    // if listing note don't have any parameters (%price%, %amount_trade%, etc), then we check if there's any changes with currencies
+                    const isCurrenciesChanged =
+                        listing.currencies?.toValue(keyPrice.metal) !==
+                        match[listing.intent === 0 ? 'buy' : 'sell']?.toValue(keyPrice.metal);
+
+                    const isListingDetailsChanged =
+                        listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '');
+
+                    if (isCurrenciesChanged || isListingDetailsChanged) {
                         if (showLogs) {
                             log.debug(`Listing details don't match, updated listing`, {
                                 sku: sku,
@@ -256,11 +265,11 @@ export default class Listings {
                         const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                         listing.update({
-                            time: match.time || dayjs().unix(),
                             currencies: currencies,
-                            promoted: listing.intent === 0 ? 0 : match.promoted,
+                            //promoted: listing.intent === 0 ? 0 : match.promoted,
                             details: newDetails
                         });
+                        //TODO: make promote, demote
                     }
                 }
             }
@@ -543,12 +552,12 @@ export default class Listings {
             if (item) {
                 const toJoin: string[] = [];
 
-                const optD = this.bot.options.details.highValue;
+                const optD = opt.details.highValue;
                 const cT = optD.customText;
                 const cTSpt = optD.customText.separator;
                 const cTEnd = optD.customText.ender;
 
-                const optR = this.bot.options.detailsExtra;
+                const optR = opt.detailsExtra;
                 const getPaints = this.bot.paints;
                 const getStrangeParts = this.bot.strangeParts;
 
@@ -630,17 +639,28 @@ export default class Listings {
             }
         }
 
-        const optDs = this.bot.options.details.uses;
+        const optDs = opt.details.uses;
         let details: string;
+        const inventory = this.bot.inventoryManager.getInventory;
+        const showBoldText = opt.details.showBoldText;
+        const isShowBoldOnPrice = showBoldText.onPrice;
+        const isShowBoldOnAmount = showBoldText.onAmount;
+        const isShowBoldOnCurrentStock = showBoldText.onCurrentStock;
+        const isShowBoldOnMaxStock = showBoldText.onMaxStock;
+        const style = showBoldText.style;
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
-            const inventory = this.bot.inventoryManager.getInventory;
+            const price = entry[key].toString();
+            const maxStock = entry.max === -1 ? '∞' : entry.max.toString();
+            const currentStock = inventory.getAmount(entry.sku, false, true).toString();
+            const amountTrade = amountCanTrade.toString();
+
             return details
-                .replace(/%price%/g, entry[key].toString())
+                .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-                .replace(/%current_stock%/g, inventory.getAmount(entry.sku, false, true).toString())
-                .replace(/%amount_trade%/g, amountCanTrade.toString());
+                .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
+                .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
+                .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;
@@ -710,4 +730,56 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
     else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+}
+
+function boldDetails(str: string, style: number): string {
+    // https://lingojam.com/BoldTextGenerator
+
+    if ([1, 2].includes(style)) {
+        // Bold numbers (serif)
+        str = str
+            .replace(/0/g, '𝟎') // can't use replaceAll yet 😪
+            .replace(/1/g, '𝟏')
+            .replace(/2/g, '𝟐')
+            .replace(/3/g, '𝟑')
+            .replace(/4/g, '𝟒')
+            .replace(/5/g, '𝟓')
+            .replace(/6/g, '𝟔')
+            .replace(/7/g, '𝟕')
+            .replace(/8/g, '𝟖')
+            .replace(/9/g, '𝟗')
+            .replace('.', '.')
+            .replace(',', ',');
+
+        if (style === 1) {
+            // Style 1 - Bold (serif)
+            return str.replace('ref', '𝐫𝐞𝐟').replace('keys', '𝐤𝐞𝐲𝐬').replace('key', '𝐤𝐞𝐲');
+        }
+
+        // Style 2 - Italic Bold (serif)
+        return str.replace('ref', '𝒓𝒆𝒇').replace('keys', '𝒌𝒆𝒚𝒔').replace('key', '𝒌𝒆𝒚');
+    }
+
+    // Bold numbers (sans):
+    str = str
+        .replace(/0/g, '𝟬')
+        .replace(/1/g, '𝟭')
+        .replace(/2/g, '𝟮')
+        .replace(/3/g, '𝟯')
+        .replace(/4/g, '𝟰')
+        .replace(/5/g, '𝟱')
+        .replace(/6/g, '𝟲')
+        .replace(/7/g, '𝟳')
+        .replace(/8/g, '𝟴')
+        .replace(/9/g, '𝟵')
+        .replace('.', '.')
+        .replace(',', ',');
+
+    if (style === 3) {
+        // Style 3 - Bold (sans)
+        return str.replace('ref', '𝗿𝗲𝗳').replace('keys', '𝗸𝗲𝘆𝘀').replace('key', '𝗸𝗲𝘆');
+    }
+
+    // Style 4 - Italic Bold (sans)
+    return str.replace('ref', '𝙧𝙚𝙛').replace('keys', '𝙠𝙚𝙮𝙨').replace('key', '𝙠𝙚𝙮');
 }
