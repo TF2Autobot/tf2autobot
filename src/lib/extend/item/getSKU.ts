@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
-import SchemaManager, { Paints } from 'tf2-schema-2';
+import SchemaManager, { Paints } from '@tf2autobot/tf2-schema';
 import SKU from 'tf2-sku-2';
 import url from 'url';
 import { MinimumItem } from '../../../types/TeamFortress2';

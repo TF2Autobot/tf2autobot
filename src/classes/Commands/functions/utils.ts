@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import SKU from 'tf2-sku-2';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager from '@tf2autobot/tf2-schema';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { MinimumItem } from '../../../types/TeamFortress2';

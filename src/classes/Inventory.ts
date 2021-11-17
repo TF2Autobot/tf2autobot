@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import TradeOfferManager, { EconItem, ItemAttributes, PartialSKUWithMention } from '@tf2autobot/tradeoffer-manager';
-import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
+import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 import SKU from 'tf2-sku-2';
 import Options, { HighValue } from './Options';
 import Bot from './Bot';

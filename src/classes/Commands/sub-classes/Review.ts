@@ -4,7 +4,7 @@ import TradeOfferManager, { Meta, OfferData, OurTheirItemsDict } from '@tf2autob
 import Currencies from 'tf2-currencies-2';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from 'tf2-sku-2';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager from '@tf2autobot/tf2-schema';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { generateLinks, testSKU } from '../../../lib/tools/export';

@@ -1,5 +1,5 @@
 import async from 'async';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager from '@tf2autobot/tf2-schema';
 import pm2 from 'pm2';
 import Bot from './Bot';
 import log from '../lib/logger';

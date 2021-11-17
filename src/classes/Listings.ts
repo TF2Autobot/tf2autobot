@@ -13,7 +13,7 @@ import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
-import { Paints, StrangeParts } from 'tf2-schema-2';
+import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 
 export default class Listings {
     private checkingAllListings = false;
