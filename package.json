@@ -83,7 +83,7 @@
         "@types/retry": "^0.12.1",
         "@types/semver": "^7.3.9",
         "@types/socket.io-client": "^1.4.36",
-        "@types/socket.io-parser": "^2.2.1",
+        "@types/socket.io-parser": "^3.0.0",
         "@types/valid-url": "^1.0.3",
         "@types/ws": "^8.2.0",
         "@typescript-eslint/eslint-plugin": "^4.32.0",
