@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
 import Bot from '../../Bot';

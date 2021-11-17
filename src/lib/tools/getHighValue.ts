@@ -1,4 +1,4 @@
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import { Items } from '@tf2autobot/tradeoffer-manager';
 import { spellsData, killstreakersData, sheensData } from '../data';
 import Bot from '../../classes/Bot';

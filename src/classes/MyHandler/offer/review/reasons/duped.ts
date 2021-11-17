@@ -1,4 +1,4 @@
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import { Meta, DupedItems } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../../../Bot';

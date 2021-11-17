@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import dayjs from 'dayjs';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';

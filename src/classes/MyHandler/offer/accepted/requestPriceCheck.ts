@@ -2,7 +2,7 @@ import sleepasync from 'sleep-async';
 import { RequestCheckFn, RequestCheckResponse } from '../../../IPricer';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 
 export default class PriceCheckQueue {
     private static skus: string[] = [];
