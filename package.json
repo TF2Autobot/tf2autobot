@@ -70,7 +70,7 @@
         "xmlhttprequest-ts": "^1.0.1"
     },
     "devDependencies": {
-        "@babel/preset-typescript": "^7.15.0",
+        "@babel/preset-typescript": "^7.16.0",
         "@types/async": "^3.2.8",
         "@types/bluebird-global": "^3.5.13",
         "@types/cheerio": "^0.22.30",
