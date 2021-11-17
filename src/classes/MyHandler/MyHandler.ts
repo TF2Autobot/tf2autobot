@@ -14,7 +14,7 @@ import TradeOfferManager, {
 
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import async from 'async';
 import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';

@@ -3,7 +3,7 @@ import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import sleepasync from 'sleep-async';
 import Bot from './Bot';
 import { Entry, PricesObject } from './Pricelist';

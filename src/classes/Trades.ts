@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import Bot from './Bot';

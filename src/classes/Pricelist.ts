@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import dayjs from 'dayjs';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import SKU from '@tf2autobot/tf2-sku';
 import SchemaManager from '@tf2autobot/tf2-schema';
 import { Currency } from '../types/TeamFortress2';
