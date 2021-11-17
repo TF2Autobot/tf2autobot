@@ -3,7 +3,7 @@ import SteamUser, { EResult } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
-import ListingManager from 'bptf-listings-2';
+import ListingManager from '@tf2autobot/bptf-listings';
 import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 import BptfLogin from 'bptf-login-2';
 import TF2 from '@tf2autobot/tf2';
