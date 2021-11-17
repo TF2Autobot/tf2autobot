@@ -27,7 +27,7 @@
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/socket.io-client": "^1.0.4",
         "@tf2autobot/tf2": "^1.1.0",
-        "@tf2autobot/tf2-schema": "^2.2.0",
+        "@tf2autobot/tf2-schema": "^2.2.1",
         "@tf2autobot/tradeoffer-manager": "^2.11.2",
         "async": "^3.2.1",
         "bluebird": "^3.7.2",
