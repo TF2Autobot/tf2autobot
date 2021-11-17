@@ -5,7 +5,7 @@ import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from '@tf2autobot/bptf-listings';
 import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
-import BptfLogin from 'bptf-login-2';
+import BptfLogin from '@tf2autobot/bptf-login';
 import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';

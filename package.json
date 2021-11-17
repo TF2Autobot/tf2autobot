@@ -25,6 +25,7 @@
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "^3.3.0",
+        "@tf2autobot/bptf-login": "^2.0.8",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/socket.io-client": "^1.0.4",
         "@tf2autobot/tf2": "^1.1.0",
@@ -36,7 +37,6 @@
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
         "body-parser": "^1.19.0",
-        "bptf-login-2": "^2.0.7",
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
         "cheerio": "^1.0.0-rc.10",
