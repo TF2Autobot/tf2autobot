@@ -16,6 +16,7 @@ declare module 'steam-user' {
         groupRelationship: (groupID: SteamID, relationship: number) => void;
         steamGuard: (domain: string, callback: (authCode: string) => void, lastCodeWrong: boolean) => void;
         loginKey: (loginKey: string) => void;
+        newItems: (count: number) => void;
         error: (err: Error) => void;
     }
 

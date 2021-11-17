@@ -114,7 +114,7 @@ export default abstract class Handler {
      * @param steamID - SteamID object of the sender
      * @param message - The message from the sender
      */
-    onMessage(steamID: SteamID, message: string): void {
+    async onMessage(steamID: SteamID, message: string): Promise<void> {
         // empty function
     }
 

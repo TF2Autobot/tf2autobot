@@ -1,7 +1,8 @@
 import sleepasync from 'sleep-async';
-import { RequestCheckFn, RequestCheckResponse } from '../../../Pricer';
+import { RequestCheckFn, RequestCheckResponse } from '../../../IPricer';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
+import SKU from '@tf2autobot/tf2-sku';
 
 export default class PriceCheckQueue {
     private static skus: string[] = [];
@@ -58,18 +59,25 @@ export default class PriceCheckQueue {
             return void this.process();
         }
 
-        void this.requestCheck(sku, 'bptf').asCallback((err, body: RequestCheckResponse) => {
-            if (err) {
+        void this.requestCheck(sku)
+            .then((body: RequestCheckResponse) => {
+                let name: string;
+                if (body.name) {
+                    name = body.name;
+                } else {
+                    name = this.bot.schema.getName(SKU.fromString(sku));
+                }
+                log.debug(`✅ Requested pricecheck for ${name} (${sku}).`);
+            })
+            .catch(err => {
                 const errStringify = JSON.stringify(err);
                 const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                 log.warn(`❌ Failed to request pricecheck for ${sku}: ${errMessage}`);
-            } else {
-                log.debug(`✅ Requested pricecheck for ${body.name} (${sku}).`);
-            }
-
-            this.isProcessing = false;
-            this.dequeue();
-            void this.process();
-        });
+            })
+            .finally(() => {
+                this.isProcessing = false;
+                this.dequeue();
+                void this.process();
+            });
     }
 }

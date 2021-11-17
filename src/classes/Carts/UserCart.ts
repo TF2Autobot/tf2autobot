@@ -1,6 +1,6 @@
 import pluralize from 'pluralize';
-import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies-2';
+import SKU from '@tf2autobot/tf2-sku';
+import Currencies from '@tf2autobot/tf2-currencies';
 import async from 'async';
 import { ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
 import Cart from './Cart';

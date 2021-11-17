@@ -76,7 +76,7 @@ export default class CartQueue {
                 log.error('Failed to perform restart - bptf down: ', err);
 
                 if (dwEnabled) {
-                    return sendAlert('queue-problem-not-restart-bptf-down', this.bot, err, position);
+                    return sendAlert('queue-problem-not-restart-bptf-down', this.bot, err as string, position);
                 } else {
                     const errStringify = JSON.stringify(err);
                     const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;

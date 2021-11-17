@@ -1,16 +1,15 @@
 import { EventEmitter } from 'events';
 import dayjs from 'dayjs';
-import Currencies from 'tf2-currencies-2';
-import SKU from 'tf2-sku-2';
-import SchemaManager from 'tf2-schema-2';
+import Currencies from '@tf2autobot/tf2-currencies';
+import SKU from '@tf2autobot/tf2-sku';
+import SchemaManager from '@tf2autobot/tf2-schema';
 import { Currency } from '../types/TeamFortress2';
 import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
 import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
-import SocketManager from './MyHandler/SocketManager';
-import Pricer, { GetItemPriceResponse, Item } from './Pricer';
+import IPricer, { GetItemPriceResponse, Item } from './IPricer';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -212,9 +211,8 @@ export default class Pricelist extends EventEmitter {
     }
 
     constructor(
-        private readonly priceSource: Pricer,
+        private readonly priceSource: IPricer,
         private readonly schema: SchemaManager.Schema,
-        private readonly socketManager: SocketManager,
         private readonly options?: Options,
         private bot?: Bot
     ) {
@@ -225,7 +223,12 @@ export default class Pricelist extends EventEmitter {
     }
 
     get isUseCustomPricer(): boolean {
-        return this.options.customPricerUrl !== 'https://api.prices.tf';
+        return !(
+            this.options.customPricerUrl === undefined ||
+            this.options.customPricerUrl === '' || // empty == default which is api2.prices.tf
+            this.options.customPricerUrl === 'https://api.prices.tf' ||
+            this.options.customPricerUrl === 'https://api2.prices.tf'
+        );
     }
 
     get isDwAlertEnabled(): boolean {
@@ -234,7 +237,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     init(): void {
-        this.socketManager.on('price', this.boundHandlePriceChange);
+        this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {
@@ -336,7 +339,7 @@ export default class Pricelist extends EventEmitter {
         if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
             try {
-                const price = await this.priceSource.getPrice(entry.sku, 'bptf');
+                const price = await this.priceSource.getPrice(entry.sku);
 
                 const newPrices = {
                     buy: new Currencies(price.buy),
@@ -442,7 +445,7 @@ export default class Pricelist extends EventEmitter {
 
     async getItemPrices(sku: string): Promise<ParsedPrice | null> {
         try {
-            return await this.priceSource.getPrice(sku, 'bptf').then(response => new ParsedPrice(response));
+            return await this.priceSource.getPrice(sku).then(response => new ParsedPrice(response));
         } catch (err) {
             const errStringify = JSON.stringify(err);
             const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
@@ -593,7 +596,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
+    async setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
         let errors = validator(prices, 'prices-data-object');
 
         if (errors !== null) {
@@ -627,7 +630,7 @@ export default class Pricelist extends EventEmitter {
         const entryKey = this.getPrice('5021;6', false);
 
         return this.priceSource
-            .getPrice('5021;6', 'bptf')
+            .getPrice('5021;6')
             .then(keyPrices => {
                 log.debug('Got key price');
 
@@ -757,7 +760,7 @@ export default class Pricelist extends EventEmitter {
         clearTimeout(this.retryGetKeyPrices);
 
         return this.priceSource
-            .getPrice('5021;6', 'bptf')
+            .getPrice('5021;6')
             .then(keyPrices => {
                 log.debug('✅ Got current key prices, updating...');
 
@@ -803,7 +806,7 @@ export default class Pricelist extends EventEmitter {
     private updateOldPrices(old: PricesObject): Promise<void> {
         log.debug('Getting pricelist...');
 
-        return this.priceSource.getPricelist('bptf').then(pricelist => {
+        return this.priceSource.getPricelist().then(pricelist => {
             log.debug('Got pricelist');
 
             const transformedPrices = Pricelist.transformPricesFromPricer(pricelist.items);
@@ -966,7 +969,7 @@ export default class Pricelist extends EventEmitter {
             });
 
             if (isDwEnabled && dw.showFailedToUpdate) {
-                sendFailedPriceUpdate(data, err, this.isUseCustomPricer, this.options);
+                sendFailedPriceUpdate(data, err as Error, this.isUseCustomPricer, this.options);
             }
 
             return;
@@ -1149,7 +1152,7 @@ export default class Pricelist extends EventEmitter {
 
                     sendWebHookPriceUpdateV1(
                         data.sku,
-                        data.name,
+                        this.schema.getItemBySKU(data.sku).name,
                         match,
                         time,
                         this.schema,
@@ -1213,8 +1216,6 @@ interface BuyAndSell {
 export class ParsedPrice {
     sku?: string;
 
-    name?: string;
-
     currency?: string;
 
     source?: string;
@@ -1227,7 +1228,6 @@ export class ParsedPrice {
 
     constructor(priceResponse: GetItemPriceResponse) {
         this.sku = priceResponse.sku;
-        this.name = priceResponse.name;
         this.currency = priceResponse.currency;
         this.source = priceResponse.source;
         this.time = priceResponse.time;

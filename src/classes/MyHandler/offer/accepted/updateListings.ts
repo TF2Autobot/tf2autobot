@@ -1,6 +1,6 @@
 import { Items, TradeOffer, ItemsDict } from '@tf2autobot/tradeoffer-manager';
-import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies-2';
+import SKU from '@tf2autobot/tf2-sku';
+import Currencies from '@tf2autobot/tf2-currencies';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 

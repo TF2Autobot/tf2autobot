@@ -1,5 +1,5 @@
 import * as i from '@tf2autobot/tradeoffer-manager';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import sleepasync from 'sleep-async';
 import Bot from '../../../Bot';
 import { KeyPrices } from '../../../Pricelist';

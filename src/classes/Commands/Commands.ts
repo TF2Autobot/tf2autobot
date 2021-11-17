@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import dayjs from 'dayjs';
 
 import * as c from './sub-classes/export';
@@ -16,7 +16,7 @@ import UserCart from '../Carts/UserCart';
 import DonateCart from '../Carts/DonateCart';
 import PremiumCart from '../Carts/PremiumCart';
 import CartQueue from '../Carts/CartQueue';
-import Pricer from '../Pricer';
+import IPricer from '../IPricer';
 import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
@@ -55,7 +55,7 @@ export default class Commands {
 
     adminInventory: UnknownDictionary<Inventory> = {};
 
-    constructor(private readonly bot: Bot, private readonly pricer: Pricer) {
+    constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
         this.help = new c.HelpCommands(bot);
         this.manager = new c.ManagerCommands(bot);
         this.message = new c.MessageCommand(bot);
@@ -87,7 +87,7 @@ export default class Commands {
         this.opt.updateOptionsCommand(steamID, message);
     }
 
-    processMessage(steamID: SteamID, message: string): void {
+    async processMessage(steamID: SteamID, message: string): Promise<void> {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
         const isWhitelisted = this.bot.isWhitelisted(steamID);
@@ -194,14 +194,12 @@ export default class Commands {
                     ? 'uncraftweapon'
                     : (command as CraftUncraft)
             );
-        } else if (command === 'snapshots' && isAdmin) {
-            void this.request.getSnapshotsCommand(steamID, message);
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             void this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
-            this.pManager.addCommand(steamID, message);
+            await this.pManager.addCommand(steamID, message);
         } else if (command === 'addbulk' && isAdmin) {
             void this.pManager.addbulkCommand(steamID, message);
         } else if (command === 'update' && isAdmin) {

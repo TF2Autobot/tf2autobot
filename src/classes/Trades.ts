@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import Bot from './Bot';
@@ -773,9 +773,15 @@ export default class Trades {
                     return index === -1 ? 0 : Math.pow(3, index);
                 }
 
+                let lockKeys = false;
                 function calculate(sku: PureSKU, side: Dict | number, increaseDifference: boolean, overpay?: boolean) {
                     const value = getPureValue(sku);
                     if (!value) return 0;
+                    if (possibleKeyTrade && sku == '5021;6') {
+                        const ret = increaseDifference === keyDifference > 0 && !lockKeys ? Math.abs(keyDifference) : 0;
+                        lockKeys = !!ret;
+                        return ret;
+                    }
                     const floorCeil = Math[overpay ? 'ceil' : 'floor'];
                     const length = typeof side === 'number' ? side : side[sku]?.length || 0;
                     const amount =
@@ -809,10 +815,14 @@ export default class Trades {
                         return reject(new Error(`Couldn't ${intent} ${whichSide} ${tradeAmount} ${sku}'s to Trade`));
                     }
 
-                    if (!showOnlyMetal && sku === '5021;6') {
+                    if (!showOnlyMetal && !possibleKeyTrade && sku === '5021;6') {
                         tradeValues[whichSide].keys += amount;
                     } else {
-                        tradeValues[whichSide].scrap += amount * getPureValue(sku);
+                        tradeValues[whichSide].scrap +=
+                            amount *
+                            (possibleKeyTrade && sku == '5021;6' && side == 'Their'
+                                ? Currencies.toScrap(prices['5021;6'].buy.metal)
+                                : getPureValue(sku));
                     }
 
                     dataDict[whichSide][sku] ??= 0;
@@ -931,6 +941,10 @@ export default class Trades {
                 // Bigger than 0 ? they have to pay : we have to pay
                 const puresWithKeys = ['5000;6', '5001;6', '5002;6', '5021;6'];
                 let hasMissingPrices = false;
+
+                let possibleKeyTrade = true;
+                let keyDifference = 0;
+
                 let NonPureWorth = (['our', 'their'] as ['our', 'their'])
                     .map((side, index) => {
                         const buySell = index ? 'buy' : 'sell';
@@ -941,7 +955,13 @@ export default class Trades {
                                         hasMissingPrices = true;
                                         return 0;
                                     }
+
+                                    if (sku == '5021;6')
+                                        keyDifference += dataDict[side][sku] * (side == 'our' ? 1 : -1);
                                     if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
+
+                                    possibleKeyTrade = false; //Offer contains something other than pures
+
                                     if (isWACEnabled && weapons.includes(sku)) return 0.5 * dataDict[side][sku];
 
                                     return (
@@ -964,7 +984,10 @@ export default class Trades {
                         )
                     );
                 }
-
+                if (possibleKeyTrade) {
+                    NonPureWorth +=
+                        keyDifference * Currencies.toScrap(prices['5021;6'][keyDifference > 0 ? 'sell' : 'buy'].metal);
+                }
                 // Determine if we need to take a weapon from them
                 const needToTakeWeapon = NonPureWorth - Math.trunc(NonPureWorth) !== 0;
 
@@ -1438,7 +1461,7 @@ export default class Trades {
                     return sendAlert(
                         'escrow-check-failed-not-restart-bptf-down',
                         this.bot,
-                        err,
+                        err as string,
                         this.escrowCheckFailedCount
                     );
                 } else {
@@ -1594,21 +1617,38 @@ export default class Trades {
             offer.state !== TradeOfferManager.ETradeOfferState['InEscrow']
         ) {
             // The offer was not accepted
-            return this.bot.handler.onTradeOfferChanged(offer, oldState);
+            // do nothing here
+        } else {
+            offer.data('isAccepted', true);
+
+            offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
         }
-
-        offer.data('isAccepted', true);
-
-        offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
 
         // Exit all running apps ("TF2Autobot" or custom, and Team Fortress 2)
         // Will play again after craft/smelt/sort inventory job
         // https://github.com/TF2Autobot/tf2autobot/issues/527
         this.bot.client.gamesPlayed([]);
 
-        void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
+        // Canceled offer, declined countered offer => new item assetid
+        void this.bot.inventoryManager.getInventory.fetch().asCallback(err => {
+            if (err) {
+                log.warn('Error fetching inventory: ', err);
+                log.debug('Retrying to fetch inventory in 30 seconds...');
+                this.retryFetchInventory();
+            }
+
             this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
         });
+    }
+
+    private retryFetchInventory(): void {
+        setTimeout(() => {
+            this.bot.inventoryManager.getInventory.fetch().catch(err => {
+                log.warn('Error fetching inventory: ', err);
+                log.debug('Retrying to fetch inventory in 30 seconds...');
+                this.retryFetchInventory();
+            });
+        }, 30 * 1000);
     }
 
     private set setItemInTrade(assetid: string) {

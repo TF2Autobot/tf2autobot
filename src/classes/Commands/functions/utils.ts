@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import SKU from 'tf2-sku-2';
-import SchemaManager from 'tf2-schema-2';
+import SKU from '@tf2autobot/tf2-sku';
+import SchemaManager from '@tf2autobot/tf2-schema';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { MinimumItem } from '../../../types/TeamFortress2';
@@ -83,6 +83,14 @@ export function getItemAndAmount(
             }
 
             const pricedItem = pricelist[sku];
+            if (pricedItem.name === null) {
+                // This looks impossible, but can occur I guess.
+                // https://github.com/TF2Autobot/tf2autobot/issues/882
+
+                bot.sendMessage(steamID, `❌ Something went wrong. Please try again.`);
+                return null;
+            }
+
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {

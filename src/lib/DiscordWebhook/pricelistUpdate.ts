@@ -1,6 +1,6 @@
-import SKU from 'tf2-sku-2';
-import SchemaManager from 'tf2-schema-2';
-import Currencies from 'tf2-currencies-2';
+import SKU from '@tf2autobot/tf2-sku';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Currencies from '@tf2autobot/tf2-currencies';
 import sleepasync from 'sleep-async';
 import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';

@@ -1,7 +1,7 @@
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
-import { GetItemPriceResponse } from '../../classes/Pricer';
+import { GetItemPriceResponse } from '../../classes/IPricer';
 import sleepasync from 'sleep-async';
 import { UnknownDictionary } from '../../types/common';
 import Options from '../../classes/Options';
