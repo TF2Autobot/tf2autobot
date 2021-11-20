@@ -1025,6 +1025,20 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(match.sell)
             };
 
+            const keyPrice = this.getKeyPrice.metal;
+            const oldBuyValue = oldPrice.buy.toValue(keyPrice);
+            const newBuyValue = newPrices.buy.toValue(keyPrice);
+            const oldSellValue = oldPrice.sell.toValue(keyPrice);
+            const newSellValue = newPrices.sell.toValue(keyPrice);
+
+            const buyChangesValue = Math.round(newBuyValue - oldBuyValue);
+            const sellChangesValue = Math.round(newSellValue - oldSellValue);
+
+            if (buyChangesValue === 0 && sellChangesValue === 0) {
+                // Ignore
+                return;
+            }
+
             let pricesChanged = false;
             const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true);
 
@@ -1159,7 +1173,8 @@ export default class Pricelist extends EventEmitter {
                         opt,
                         currentStock,
                         oldPrice,
-                        this.getKeyPrice.metal,
+                        buyChangesValue,
+                        sellChangesValue,
                         this.isUseCustomPricer
                     );
                 }
