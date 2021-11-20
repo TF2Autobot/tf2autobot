@@ -66,7 +66,7 @@
         "websocket-extensions": "^0.1.4",
         "winston": "^3.3.3",
         "winston-daily-rotate-file": "^4.5.5",
-        "ws": "^7.5.5",
+        "ws": "^8.2.3",
         "xmlhttprequest-ts": "^1.0.1"
     },
     "devDependencies": {
