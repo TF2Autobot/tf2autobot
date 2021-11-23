@@ -64,7 +64,7 @@ export default class ReviewCommands {
     private generateTradesReply(offers: UnknownDictionaryKnownValues[]): string {
         const offersCount = offers.length;
 
-        let reply = `There ${pluralize('is', offersCount, true)} active ${pluralize(
+        let reply = `There ${pluralize('is', offersCount)} ${offersCount} active ${pluralize(
             'offer',
             offersCount
         )} that you can review:\n`;
@@ -84,7 +84,7 @@ export default class ReviewCommands {
     private generateActiveOfferReply(offers: UnknownDictionaryKnownValues[]): string {
         const offersCount = offers.length;
 
-        let reply = `There ${pluralize('is', offersCount, true)} ${pluralize(
+        let reply = `There ${pluralize('is', offersCount)} ${offersCount} ${pluralize(
             'offer',
             offersCount
         )} that currently still active:\n`;
