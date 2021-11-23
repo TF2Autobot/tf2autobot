@@ -57,6 +57,7 @@
         "retry": "^0.13.1",
         "sleep-async": "^1.0.5",
         "socket.io-client": "^4.4.0",
+        "steam-openid-login-dayjs": "^1.0.7",
         "steam-totp": "^2.1.1",
         "steam-user": "^4.20.2",
         "steamcommunity": "^3.43.1",
