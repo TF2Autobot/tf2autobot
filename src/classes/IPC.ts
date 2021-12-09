@@ -18,7 +18,7 @@ export default class ipcHandler extends IPC {
     init(): void {
         this.config.id = this.bot.client.steamID.getSteamID64();
         this.config.retry = 15000;
-        this.config.silent = true;
+        //this.config.silent = true;
 
         // eslint-disable-next-line
         this.connectTo('autobot_gui_dev', () => {
@@ -32,27 +32,57 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('getPricelist', this.sendPricelist.bind(this));
             this.ourServer.on('disconnected', this.disconnected.bind(this));
             this.ourServer.on('addItem', this.addItem.bind(this));
+            this.ourServer.on('updateItem', this.updateItem.bind(this));
+            this.ourServer.on('removeItem', this.removeItem.bind(this));
         });
+    }
+
+    private static cleanItem(item): void {
+        if (item?.name) delete item.name;
+        if (item?.time) delete item.time;
+        if (item?.statslink) delete item.statslink;
+        if (item?.style) delete item.style;
     }
 
     /* HANDLERS */
     private addItem(item): void {
-        log.info(item);
-        if (item?.name) delete item.name;
+        ipcHandler.cleanItem(item);
 
         this.bot.pricelist
             .addPrice(item, true)
-            .then(e => {
-                this.ourServer.emit('itemAdded', e);
+            .then(item => {
+                this.ourServer.emit('itemAdded', item);
             })
-            .catch((e: any) => {
+            .catch((e: string) => {
                 this.ourServer.emit('itemAdded', e);
+            });
+    }
+
+    private updateItem(item): void {
+        ipcHandler.cleanItem(item);
+        this.bot.pricelist
+            .updatePrice(item, true)
+            .then(item => {
+                this.ourServer.emit('itemUpdated', item);
+            })
+            .catch((e: string) => {
+                this.ourServer.emit('itemUpdated', e);
+            });
+    }
+
+    private removeItem(sku: string): void {
+        this.bot.pricelist
+            .removePrice(sku, true)
+            .then(item => {
+                this.ourServer.emit('itemRemoved', item);
+            })
+            .catch((e: string) => {
+                this.ourServer.emit('itemRemoved', e);
             });
     }
 
     private connected(): void {
         log.info('IPC connected');
-        // this.sendInfo();
     }
 
     private disconnected(): void {
