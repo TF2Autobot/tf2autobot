@@ -3,7 +3,7 @@
 import SteamID from 'steamid';
 import TradeOfferManager, { PollData, Meta } from '@tf2autobot/tradeoffer-manager';
 import Bot from './Bot';
-import { Entry, EntryData } from './Pricelist';
+import { Entry, PricesDataObject, PricesObject } from './Pricelist';
 
 export default abstract class Handler {
     protected constructor(readonly bot: Bot) {
@@ -19,7 +19,7 @@ export default abstract class Handler {
      */
     abstract onRun(): Promise<{
         loginAttempts?: number[];
-        pricelist?: EntryData[];
+        pricelist?: PricesDataObject;
         loginKey?: string;
         pollData?: PollData;
     }>;
@@ -49,10 +49,8 @@ export default abstract class Handler {
      * Called when a new trade offer is being processed
      * @param offer - The new trade offer
      */
-    abstract onNewTradeOffer(
-        offer: TradeOfferManager.TradeOffer
-    ): Promise<null | {
-        action: 'accept' | 'decline' | 'skip';
+    abstract onNewTradeOffer(offer: TradeOfferManager.TradeOffer): Promise<null | {
+        action: 'accept' | 'decline' | 'skip' | 'counter';
         reason: string;
         meta?: Meta;
     }>;
@@ -65,7 +63,7 @@ export default abstract class Handler {
      */
     abstract onOfferAction(
         offer: TradeOfferManager.TradeOffer,
-        action: 'accept' | 'decline' | 'skip',
+        action: 'accept' | 'decline' | 'skip' | 'counter',
         reason: string,
         meta: Meta
     ): void;
@@ -86,7 +84,7 @@ export default abstract class Handler {
      * Called when the pricelist updates
      * @param pricelist - The pricelist
      */
-    abstract onPricelist(pricelist: Entry[]): Promise<void>;
+    abstract onPricelist(pricelist: PricesObject): Promise<void>;
 
     /**
      * Called when the price of an item changes
@@ -116,7 +114,7 @@ export default abstract class Handler {
      * @param steamID - SteamID object of the sender
      * @param message - The message from the sender
      */
-    onMessage(steamID: SteamID, message: string): void {
+    async onMessage(steamID: SteamID, message: string): Promise<void> {
         // empty function
     }
 
@@ -143,7 +141,7 @@ export default abstract class Handler {
      * @param offer - The offer that changed
      * @param oldState - The old state of the offer
      */
-    onTradeOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number, processTime?: number): void {
+    onTradeOfferChanged(offer: TradeOfferManager.TradeOffer, oldState: number, timeTakenToComplete?: number): void {
         // empty function
     }
 
@@ -184,10 +182,25 @@ export default abstract class Handler {
     }
 
     /**
-     * Called when a heartbeat has been sent to bptf
-     * @param bumped - How many listings were bumped as the result of the heartbeat
+     * Called when a bptf user-agent renewed
      */
-    onHeartbeat(bumped: number): void {
+    onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
+        // empty function
+    }
+
+    /**
+     * Called on error when creating listings
+     * @param err - Error message
+     */
+    onCreateListingsError(err: Error): void {
+        // empty function
+    }
+
+    /**
+     * Called on error when deleting listings
+     * @param err - Error message
+     */
+    onDeleteListingsError(err: Error): void {
         // empty function
     }
 }

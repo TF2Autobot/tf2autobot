@@ -1,4 +1,4 @@
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import { sendWebhook } from './utils';
@@ -54,9 +54,11 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
                             '**• Processed:**' +
                             '\n**• Accepted:**' +
                             '\n--- Received offer:' +
+                            '\n------ Countered:' +
                             '\n--- Sent offer:' +
                             '\n**• Declined:**' +
                             '\n--- Received offer:' +
+                            '\n------ Countered:' +
                             '\n--- Sent offer:' +
                             '\n**• Skipped:**' +
                             '\n**• Traded away:**' +
@@ -70,11 +72,13 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
                         name: '__< 24 hours__',
                         value:
                             `**${trades.hours24.processed}**` +
-                            `\n**${trades.hours24.accepted.offer + trades.hours24.accepted.sent}**` +
-                            `\n${trades.hours24.accepted.offer}` +
+                            `\n**${trades.hours24.accepted.offer.total + trades.hours24.accepted.sent}**` +
+                            `\n${trades.hours24.accepted.offer.total}` +
+                            `\n${trades.hours24.accepted.offer.countered}` +
                             `\n${trades.hours24.accepted.sent}` +
-                            `\n**${trades.hours24.decline.offer + trades.hours24.decline.sent}**` +
-                            `\n${trades.hours24.decline.offer}` +
+                            `\n**${trades.hours24.decline.offer.total + trades.hours24.decline.sent}**` +
+                            `\n${trades.hours24.decline.offer.total}` +
+                            `\n${trades.hours24.decline.offer.countered}` +
                             `\n${trades.hours24.decline.sent}` +
                             `\n**${trades.hours24.skipped}**` +
                             `\n**${trades.hours24.invalid}**` +
@@ -88,11 +92,13 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
                         name: '__Today__',
                         value:
                             `**${trades.today.processed}**` +
-                            `\n**${trades.today.accepted.offer + trades.today.accepted.sent}**` +
-                            `\n${trades.today.accepted.offer}` +
+                            `\n**${trades.today.accepted.offer.total + trades.today.accepted.sent}**` +
+                            `\n${trades.today.accepted.offer.total}` +
+                            `\n${trades.today.accepted.offer.countered}` +
                             `\n${trades.today.accepted.sent}` +
-                            `\n**${trades.today.decline.offer + trades.today.decline.sent}**` +
-                            `\n${trades.today.decline.offer}` +
+                            `\n**${trades.today.decline.offer.total + trades.today.decline.sent}**` +
+                            `\n${trades.today.decline.offer.total}` +
+                            `\n${trades.today.decline.offer.countered}` +
                             `\n${trades.today.decline.sent}` +
                             `\n**${trades.today.skipped}**` +
                             `\n**${trades.today.invalid}**` +
@@ -129,9 +135,11 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
             }
         })
         .catch(err => {
-            log.debug(`❌ Failed to send statistics webhook to Discord: `, err);
+            log.warn(`❌ Failed to send statistics webhook to Discord: `, err);
             if (forceSend) {
-                bot.sendMessage(steamID, '❌ Error sending statistics to Discord Webhook: ' + JSON.stringify(err));
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                bot.sendMessage(steamID, '❌ Error sending statistics to Discord Webhook: ' + errMessage);
             }
         });
 }

@@ -1,23 +1,20 @@
 import { TradeOffer, Prices } from '@tf2autobot/tradeoffer-manager';
-import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies-2';
+import SKU from '@tf2autobot/tf2-sku';
+import Currencies from '@tf2autobot/tf2-currencies';
 import Bot from '../../classes/Bot';
-import { replace } from '../tools/export';
+import { replace, testSKU } from '../tools/export';
 
-export default function listItems(
-    offer: TradeOffer,
-    bot: Bot,
-    items: {
-        invalid: string[];
-        disabled: string[];
-        overstock: string[];
-        understock: string[];
-        duped: string[];
-        dupedFailed: string[];
-        highValue: string[];
-    },
-    isSteamChat: boolean
-): string {
+interface Items {
+    invalid: string[];
+    disabled: string[];
+    overstock: string[];
+    understock: string[];
+    duped: string[];
+    dupedFailed: string[];
+    highValue: string[];
+}
+
+export default function listItems(offer: TradeOffer, bot: Bot, items: Items, isSteamChat: boolean): string {
     const itemsPrices = bot.options.tradeSummary.showItemPrices ? listPrices(offer, bot, isSteamChat) : '';
     let list = itemsPrices;
 
@@ -116,9 +113,10 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
 
     let buyPrice: string;
     let sellPrice: string;
-    let autoprice = 'removed';
 
     for (const sku in prices) {
+        let autoprice = 'removed/not listed';
+
         if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
             continue;
         }
@@ -127,13 +125,13 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
         if (pricelist !== null) {
             buyPrice = pricelist.buy.toString();
             sellPrice = pricelist.sell.toString();
-            autoprice = pricelist.autoprice ? 'autopriced' : 'manual';
+            autoprice = pricelist.autoprice ? `autopriced${pricelist.isPartialPriced ? ' - ppu' : ''}` : 'manual';
         } else {
             buyPrice = new Currencies(prices[sku].buy).toString();
             sellPrice = new Currencies(prices[sku].sell).toString();
         }
 
-        const name = bot.schema.getName(SKU.fromString(sku), properName);
+        const name = testSKU(sku) ? bot.schema.getName(SKU.fromString(sku), properName) : sku;
 
         toJoin.push(
             `${

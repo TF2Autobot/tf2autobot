@@ -2,6 +2,7 @@ declare module 'steamcommunity' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
     import { CookieJar } from 'request';
+    import { EFriendRelationship } from 'steam-user';
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Events {
@@ -65,6 +66,8 @@ declare module 'steamcommunity' {
             callback?: (err?: Error, url?: string) => void
         ): void;
 
+        resetItemNotifications(callback?: (err?: Error) => void): void;
+
         inviteUserToGroup(userID: SteamID | string, groupID: SteamID | string, callback?: (err?: Error) => void): void;
 
         getSteamGroup(id: SteamID | string, callback: (err?: Error, group?: SteamCommunity.Group) => void): void;
@@ -74,6 +77,8 @@ declare module 'steamcommunity' {
         getSteamUser(id: SteamID | string, callback: (err?: Error, user?: SteamCommunity.User) => void): void;
 
         acceptConfirmationForObject(identitySecret: string, objectID: string, callback: (err?: Error) => void): void;
+
+        getFriendsList(callback: (err?: Error, friendlist?: SteamCommunity.FriendList) => void): void;
     }
 
     namespace SteamCommunity {
@@ -106,6 +111,9 @@ declare module 'steamcommunity' {
             groups: null;
             primaryGroup: null;
             getAvatarURL: (size: string) => void;
+        }
+        interface FriendList {
+            [steamID64: string]: EFriendRelationship;
         }
     }
 

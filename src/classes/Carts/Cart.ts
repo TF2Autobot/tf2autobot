@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import dayjs from 'dayjs';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
@@ -126,10 +126,11 @@ export default abstract class Cart {
             ? this.craftAll.concat(this.uncraftAll)
             : this.craftAll;
 
-        const skusFromPricelist = this.bot.pricelist.getPrices.map(entry => entry.sku);
+        const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
 
         // return filtered weapons
-        return allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+        const filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+        return filtered;
     }
 
     get isWeaponsAsCurrencyEnabled(): boolean {
@@ -152,16 +153,15 @@ export default abstract class Cart {
         const pSku = SKU.fromString(sku);
         if (pSku.quality === 5) {
             // try to count all unusual types
-            return (
-                this.bot.effects
-                    .map(e => {
-                        pSku.effect = e.id;
-                        const s = SKU.fromObject(pSku);
-                        return getCountFn(s);
-                    })
-                    // add up total found; total is undefined to being with
-                    .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal))
-            );
+            const reduced = this.bot.effects
+                .map(e => {
+                    pSku.effect = e.id;
+                    const s = SKU.fromObject(pSku);
+                    return getCountFn(s);
+                })
+                // add up total found; total is undefined to being with
+                .reduce((total, currentTotal) => (total ? total + currentTotal : currentTotal));
+            return reduced;
         } else {
             return getCountFn(sku);
         }
@@ -334,9 +334,7 @@ export default abstract class Cart {
 
         this.offer.data('handleTimestamp', dayjs().valueOf());
 
-        this.offer.setMessage(
-            'Powered by TF2Autobot' + (opt.customMessage.sendOffer ? '. ' + opt.customMessage.sendOffer : '')
-        );
+        this.offer.setMessage(opt.customMessage.sendOffer ? opt.customMessage.sendOffer : 'Thank you for the trade!');
 
         if (this.notify === true) {
             this.offer.data('notify', true);
@@ -549,6 +547,10 @@ export default abstract class Cart {
                 {
                     url: 'https://backpack.tf/api/users/info/v1',
                     method: 'GET',
+                    headers: {
+                        'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                        Cookie: 'user-id=' + this.bot.userID
+                    },
                     qs: {
                         key: process.env.BPTF_API_KEY,
                         steamids: steamID64
@@ -558,7 +560,7 @@ export default abstract class Cart {
                 },
                 (err, reponse, body) => {
                     if (err) {
-                        log.debug('Failed requesting bot info from backpack.tf: ', err);
+                        log.error('Failed requesting user info from backpack.tf: ', err);
                         return resolve(0);
                     }
 

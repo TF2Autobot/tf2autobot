@@ -74,7 +74,7 @@ test('Parsing Options', () => {
     const defaults = deepMerge({}, defaultOptions);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     delete defaults.crafting.metals;
-    expect(defaults.crafting).toEqual({ weapons: { enable: true } });
+    expect(defaults.crafting).toEqual({ manual: false, weapons: { enable: true } });
     const optionsPath = Options.getOptionsPath('abc123');
     mkdirSync(path.dirname(optionsPath), { recursive: true });
     writeFileSync(optionsPath, JSON.stringify(defaults, null, 4), {
@@ -82,6 +82,7 @@ test('Parsing Options', () => {
     });
     result = Options.loadOptions({ steamAccountName: 'abc123' });
     expect(result.crafting).toEqual({
+        manual: false,
         weapons: {
             enable: true
         },
@@ -150,7 +151,22 @@ test('removes cli options', () => {
 
 test('loads prices.tf options', () => {
     let result = Options.loadOptions({ steamAccountName: 'abc123' });
-    expect(result.customPricerUrl).toEqual('https://api.prices.tf');
+    expect(result.customPricerUrl).toEqual('');
     result = Options.loadOptions({ steamAccountName: 'abc123', customPricerUrl: 'alternative.tf' });
     expect(result.customPricerUrl).toEqual('alternative.tf');
+});
+
+test('loads a subset of options', () => {
+    const filesPath = Options.getFilesPath('abc123');
+    cleanPath(filesPath);
+    const rawOptions = '{"miscSettings":{"addFriends":{"enable":false},"sendGroupInvite":{"enable":false}}}';
+    const optionsFilePath = path.join(filesPath, 'options.json');
+    mkdirSync(filesPath, { recursive: true });
+    writeFileSync(optionsFilePath, rawOptions, { encoding: 'utf8' });
+    const result = Options.loadOptions({
+        steamAccountName: 'abc123',
+        miscSettings: { addFriends: { enable: false }, sendGroupInvite: { enable: false } }
+    });
+    expect(result.miscSettings.addFriends.enable).toBeFalsy();
+    expect(result.miscSettings.sendGroupInvite.enable).toBeFalsy();
 });

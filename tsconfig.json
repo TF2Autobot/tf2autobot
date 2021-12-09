@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "baseUrl": ".",
-        "target": "ES2018",
+        "target": "ES2020",
         "module": "CommonJS",
         "moduleResolution": "Node",
         "allowJs": false,
@@ -15,10 +15,8 @@
         "strictNullChecks": false,
         "typeRoots": ["./types/modules", "./node_modules/@types"],
         "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "paths": {
-            "@pricer/*": ["src/lib/pricer/*"]
-        }
+        "sourceMap": false,    // turn on for debug ~ 20 MB
+        "forceConsistentCasingInFileNames": true
     },
     "exclude": ["./node_modules", "**/__mocks__/*", "**/__tests__/*"],
     "include": ["./src"]

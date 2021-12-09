@@ -1,4 +1,4 @@
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import Inventory from './Inventory';
 import Pricelist from './Pricelist';
 
@@ -21,7 +21,7 @@ export default class InventoryManager {
 
     get getPureValue(): { keys: number; metal: number } {
         const keyPrice = this.pricelist.getKeyPrice;
-        const currencies = this.inventory.getCurrencies([]);
+        const currencies = this.inventory.getCurrencies([], true);
 
         return {
             keys: currencies['5021;6'].length * keyPrice.toValue(),
@@ -38,19 +38,14 @@ export default class InventoryManager {
             throw new Error('Inventory has not been set yet');
         }
 
-        let genericCheck = generics;
-        // if we looking at amount we can trade and the sku is a generic unusual, always set generic to true
-        const isGenericSku = /^[0-9]*;5$/.test(sku);
-        if (isGenericSku) {
-            genericCheck = true;
-        }
-
         // Pricelist entry
-        const match = genericCheck ? this.pricelist.getPrice(sku, true, true) : this.pricelist.getPrice(sku, true);
-
+        let match = this.pricelist.getPrice(sku, true, false);
+        const matchGeneric = !match && generics ? this.pricelist.getPrice(sku, true, true) : null;
+        match = matchGeneric || match;
         // Amount in inventory should only use generic amount if there is a generic sku
-        const amount =
-            genericCheck && match ? this.inventory.getAmountOfGenerics(sku, true) : this.inventory.getAmount(sku, true);
+        const amount = matchGeneric
+            ? this.inventory.getAmountOfGenerics(sku, true)
+            : this.inventory.getAmount(sku, true, true);
 
         if (match === null) {
             // No price for item
@@ -86,7 +81,7 @@ export default class InventoryManager {
         const buyingKeysValue = buyingPrice.keys * keyPrice.toValue();
         const buyingMetalValue = Currencies.toScrap(buyingPrice.metal);
 
-        const avaiableCurrencies = inventory.getCurrencies([]);
+        const avaiableCurrencies = inventory.getCurrencies([], true);
 
         const availableKeysValue = avaiableCurrencies['5021;6'].length * keyPrice.toValue();
         const availableMetalsValue =
@@ -103,7 +98,7 @@ export default class InventoryManager {
     amountCanAfford(useKeys: boolean, price: Currencies, inventory: Inventory, weapons: string[]): number {
         const keyPrice = this.pricelist.getKeyPrice;
         const value = price.toValue(keyPrice.metal);
-        const buyerCurrencies = inventory.getCurrencies(weapons);
+        const buyerCurrencies = inventory.getCurrencies(weapons, true);
 
         let totalValue =
             buyerCurrencies['5002;6'].length * 9 +

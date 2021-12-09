@@ -4,7 +4,7 @@ export default function craftClassWeapons(bot: Bot): Promise<void> {
     if (!bot.options.crafting.weapons.enable) {
         return;
     }
-    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons);
+    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons, false);
 
     void Promise.all(
         ['scout', 'soldier', 'pyro', 'demoman', 'heavy', 'engineer', 'medic', 'sniper', 'spy'].map(classChar =>

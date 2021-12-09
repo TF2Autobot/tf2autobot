@@ -66,13 +66,13 @@ const consoleFormat = winston.format.combine(
     winston.format.printf(info => {
         let msg = `${info.timestamp} ${info.level}: ${info.message}`;
 
-        const splat = info[(Symbol.for('splat') as unknown) as string];
+        const splat = info[Symbol.for('splat') as unknown as string];
 
         if (splat) {
             if (splat.length === 1) {
                 msg += ` ${JSON.stringify(splat[0])}`;
             } else if (splat.length > 1) {
-                msg += ` ${JSON.stringify(info[(Symbol.for('splat') as unknown) as string])}`;
+                msg += ` ${JSON.stringify(info[Symbol.for('splat') as unknown as string])}`;
             }
         }
 
@@ -80,9 +80,24 @@ const consoleFormat = winston.format.combine(
     })
 );
 
+export interface BetterLogger extends winston.Logger {
+    exception: (error: Error, prefix?: string) => BetterLogger;
+}
+
 const logger = winston.createLogger({
     levels: levels
-});
+}) as BetterLogger;
+
+// Monkey patching Winston because it incorrectly logs `Error` instances even in 2020
+// Related issue: https://github.com/winstonjs/winston/issues/1498
+logger.exception = function (error, prefix?) {
+    const message = error.message || error.toString();
+    const stack = error.stack;
+    prefix = prefix ? `${prefix} ` : '';
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    return this.error(`${prefix}${message}, stack ${stack}`) as BetterLogger;
+};
 
 export function init(paths: Paths, options: Options): void {
     const debugConsole = options.debug;

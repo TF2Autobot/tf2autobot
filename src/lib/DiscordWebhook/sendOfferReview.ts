@@ -2,10 +2,11 @@ import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
-import { pure, summarizeToChat, listItems, replace } from '../tools/export';
+import { pure, summarizeToChat, listItems, replace, ValueDiff } from '../tools/export';
 
 import Bot from '../../classes/Bot';
 import { KeyPrices } from '../../classes/Pricelist';
+import { sendToAdmin } from '../../classes/MyHandler/offer/review/send-review';
 
 export default function sendOfferReview(
     offer: TradeOffer,
@@ -34,7 +35,11 @@ export default function sendOfferReview(
     }
     const mentionOwner = noMentionOnInvalidValue
         ? `${offer.id}`
-        : `${opt.offerReview.isMention ? `<@!${opt.ownerID}>, ` : ''}check this! - ${offer.id}`;
+        : `${
+              opt.offerReview.isMention && opt.ownerID.length > 0
+                  ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, `
+                  : ''
+          }check this! - ${offer.id}`;
 
     const botInfo = bot.handler.getBotInfo;
     const pureStock = pure.stock(bot);
@@ -79,7 +84,7 @@ export default function sendOfferReview(
     log.debug('getting partner Avatar and Name...');
     offer.getUserDetails((err, me, them) => {
         if (err) {
-            log.debug('Error retrieving partner Avatar and Name: ', err);
+            log.warn('Error retrieving partner Avatar and Name: ', err);
             partnerAvatar =
                 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg'; //default "?" image
             partnerName = 'unknown';
@@ -122,7 +127,7 @@ export default function sendOfferReview(
                             ? '\n\n`Steam down, please manually check if this person have escrow.`'
                             : '') +
                         summary +
-                        (offer.message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
+                        (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
                         (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
                     fields: [
                         {
@@ -189,7 +194,13 @@ export default function sendOfferReview(
 
         sendWebhook(opt.offerReview.url, webhookReview, 'offer-review')
             .then(() => log.debug(`✅ Sent offer-review webhook (#${offer.id}) to Discord.`))
-            .catch(err => log.debug(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err));
+            .catch(err => {
+                log.warn(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
+
+                const itemListx = listItems(offer, bot, itemsName, true);
+
+                void sendToAdmin(bot, offer, reasons, value, keyPrices, itemListx, links);
+            });
     });
 }
 
@@ -201,12 +212,6 @@ interface Review {
     duped: string[];
     dupedFailed: string[];
     highValue: string[];
-}
-
-interface ValueDiff {
-    diff: number;
-    diffRef: number;
-    diffKey: string;
 }
 
 interface Links {

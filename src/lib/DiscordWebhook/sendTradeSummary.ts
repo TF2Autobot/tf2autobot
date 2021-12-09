@@ -1,17 +1,20 @@
 import { TradeOffer, ItemsDict } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
 import * as t from '../tools/export';
 import Bot from '../../classes/Bot';
+import { sendToAdmin } from '../../classes/MyHandler/offer/accepted/processAccepted';
 
 export default async function sendTradeSummary(
     offer: TradeOffer,
     accepted: Accepted,
     bot: Bot,
-    processTime: number,
+    timeTakenToComplete: number,
+    timeTakenToProcessOrConstruct: number,
+    timeTakenToCounterOffer: number | undefined,
     isTradingKeys: boolean,
     isOfferSent: boolean | undefined
 ): Promise<void> {
@@ -50,21 +53,24 @@ export default async function sendTradeSummary(
 
     const dict = offer.data('dict') as ItemsDict;
 
-    const isMentionOurItems = enableMentionOnSpecificSKU
-        ? skuToMention.some(fromEnv => {
-              return Object.keys(dict.our).some(ourItemSKU => {
-                  return ourItemSKU.includes(fromEnv);
-              });
-          })
-        : false;
+    let isMentionOurItems = false;
+    let isMentionTheirItems = false;
 
-    const isMentionTheirItems = enableMentionOnSpecificSKU
-        ? skuToMention.some(fromEnv => {
-              return Object.keys(dict.their).some(theirItemSKU => {
-                  return theirItemSKU.includes(fromEnv);
-              });
-          })
-        : false;
+    if (skuToMention.length > 0 && enableMentionOnSpecificSKU) {
+        const ourItems = Object.keys(dict.our);
+        isMentionOurItems = skuToMention.some(sku => {
+            return ourItems.some(ourItemSKU => {
+                return ourItemSKU.includes(sku);
+            });
+        });
+
+        const theirItems = Object.keys(dict.their);
+        isMentionTheirItems = skuToMention.some(sku => {
+            return theirItems.some(theirItemSKU => {
+                return theirItemSKU.includes(sku);
+            });
+        });
+    }
 
     const valueToMention = optDW.tradeSummary.mentionOwner.tradeValueInRef;
     const isMentionOnGreaterValue = valueToMention > 0 ? value.ourValue >= Currencies.toScrap(valueToMention) : false;
@@ -74,8 +80,9 @@ export default async function sendTradeSummary(
     const isMentionHV = accepted.isMention;
 
     const mentionOwner =
-        IVAmount > 0 || isMentionHV // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
-            ? `<@!${optDW.ownerID}> - Accepted ${
+        (IVAmount > 0 || isMentionHV) && optDW.ownerID.length > 0 // Only mention on accepted 🟨_INVALID_ITEMS or 🔶_HIGH_VALUE_ITEMS
+            ? optDW.ownerID.map(id => `<@!${id}>`).join(', ') +
+              ` - Accepted ${
                   IVAmount > 0 && isMentionHV
                       ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
                       : IVAmount > 0 && !isMentionHV
@@ -85,8 +92,9 @@ export default async function sendTradeSummary(
                       : ''
               } trade here!`
             : optDW.tradeSummary.mentionOwner.enable &&
+              optDW.ownerID.length > 0 &&
               (isMentionOurItems || isMentionTheirItems || isMentionOnGreaterValue)
-            ? `<@!${optDW.ownerID}>`
+            ? optDW.ownerID.map(id => `<@!${id}>`).join(', ')
             : '';
 
     log.debug('getting partner Avatar and Name...');
@@ -100,12 +108,17 @@ export default async function sendTradeSummary(
     const slots = bot.tf2.backpackSlots;
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
+    const isShowOfferMessage = optBot.tradeSummary.showOfferMessage;
 
-    const cT = bot.options.tradeSummary.customText;
+    const tSum = optBot.tradeSummary;
+    const cT = tSum.customText;
     const cTTimeTaken = cT.timeTaken.discordWebhook ? cT.timeTaken.discordWebhook : '⏱ **Time taken:**';
     const cTKeyRate = cT.keyRate.discordWebhook ? cT.keyRate.discordWebhook : '🔑 Key rate:';
     const cTPureStock = cT.pureStock.discordWebhook ? cT.pureStock.discordWebhook : '💰 Pure stock:';
     const cTTotalItems = cT.totalItems.discordWebhook ? cT.totalItems.discordWebhook : '🎒 Total items:';
+    const cTOfferMessage = cT.offerMessage.discordWebhook ? cT.offerMessage.discordWebhook : '💬 **Offer message:**';
+
+    const message = t.replace.specialChar(offer.message);
 
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
@@ -123,7 +136,17 @@ export default async function sendTradeSummary(
                 },
                 description:
                     summary +
-                    `\n${cTTimeTaken} ${t.convertTime(processTime, optBot.tradeSummary.showTimeTakenInMS)}\n\n` +
+                    `\n${cTTimeTaken} ${t.convertTime(
+                        timeTakenToComplete,
+                        timeTakenToProcessOrConstruct,
+                        timeTakenToCounterOffer,
+                        isOfferSent,
+                        tSum.showDetailedTimeTaken,
+                        tSum.showTimeTakenInMS
+                    )}\n\n` +
+                    (isShowOfferMessage && message.length !== 0
+                        ? (cTOfferMessage ? cTOfferMessage : '💬 Offer message:') + ` "${message}"\n\n`
+                        : '') +
                     (misc.showQuickLinks ? `${quickLinks(t.replace.specialChar(details.personaName), links)}\n` : '\n'),
                 fields: [
                     {
@@ -213,14 +236,28 @@ export default async function sendTradeSummary(
     url.forEach((link, i) => {
         sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
             .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
-            .catch(err =>
-                log.debug(
+            .catch(err => {
+                log.warn(
                     `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
                         url.length > 1 ? `(${i + 1})` : ''
                     }: `,
                     err
-                )
-            );
+                );
+
+                const itemListx = t.listItems(offer, bot, itemsName, true);
+
+                void sendToAdmin(
+                    bot,
+                    offer,
+                    value,
+                    itemListx,
+                    keyPrices,
+                    isOfferSent,
+                    timeTakenToComplete,
+                    timeTakenToProcessOrConstruct,
+                    timeTakenToCounterOffer
+                );
+            });
     });
 }
 

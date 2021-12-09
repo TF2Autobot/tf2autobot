@@ -47,10 +47,10 @@ export function summarizeToChat(
     const cTOffered = isSteamChat
         ? cT.offered.steamChat
             ? cT.offered.steamChat
-            : '• Asked:'
+            : '• Offered:'
         : cT.offered.discordWebhook
         ? cT.offered.discordWebhook
-        : '**• Asked:**';
+        : '**• Offered:**';
 
     const cTProfit = isSteamChat
         ? cT.profitFromOverpay.steamChat
@@ -68,8 +68,11 @@ export function summarizeToChat(
         ? cT.lossFromUnderpay.discordWebhook
         : '📉 ***Loss from underpay:***';
 
-    return (
-        `\n\n${cTSummary}${isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : 'offer'})` : ''}\n` +
+    const isCountered = offer.data('processCounterTime') !== undefined;
+    const reply =
+        `\n\n${cTSummary}${
+            isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : `offer${isCountered ? ' - countered' : ''}`})` : ''
+        }\n` +
         `${cTAsked} ${generatedSummary.asked}` +
         `\n${cTOffered} ${generatedSummary.offered}` +
         '\n──────────────────────' +
@@ -81,15 +84,20 @@ export function summarizeToChat(
                 ? `\n${cTLoss} ${value.diffRef} ref` +
                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
                 : ''
-            : '')
-    );
+            : '');
+
+    return reply;
 }
 
-type SummarizeType = 'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting';
+type SummarizeType =
+    | 'summary-accepted'
+    | 'declined'
+    | 'review-partner'
+    | 'review-admin'
+    | 'summary-accepting'
+    | 'summary-countering';
 
-import Currencies from 'tf2-currencies-2';
-import SKU from 'tf2-sku-2';
-import { replace } from '../tools/export';
+import Currencies from '@tf2autobot/tf2-currencies';
 
 export default function summarize(
     offer: TradeOffer,
@@ -143,6 +151,9 @@ export default function summarize(
     }
 }
 
+import SKU from '@tf2autobot/tf2-sku';
+import { replace, testSKU } from '../tools/export';
+
 function getSummary(
     dict: OurTheirItemsDict,
     bot: Bot,
@@ -164,27 +175,37 @@ function getSummary(
             continue;
         }
 
+        const isTF2Items = testSKU(sku);
+
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
-        const generateName = bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), properName);
+        const generateName = isTF2Items
+            ? bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), properName)
+            : sku; // Non-TF2 items
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
             let oldStock: number | null = 0;
-            const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true);
+            const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true, true);
             const maxStock = bot.pricelist.getPrice(sku, false);
 
             const summaryAccepted = ['summary-accepted'].includes(type);
-            const summaryInProcess = ['review-admin', 'summary-accepting'].includes(type);
+            const summaryInProcess = ['review-admin', 'summary-accepting', 'summary-countering'].includes(type);
 
             if (summaryAccepted || summaryInProcess) {
                 oldStock =
-                    which === 'our' ? currentStock + amount : summaryInProcess ? currentStock : currentStock - amount;
+                    which === 'our'
+                        ? summaryInProcess
+                            ? currentStock
+                            : currentStock + amount
+                        : summaryInProcess
+                        ? currentStock
+                        : currentStock - amount;
             } else {
                 oldStock = currentStock;
             }
 
-            if (withLink) {
+            if (withLink && isTF2Items) {
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
@@ -194,9 +215,15 @@ function getSummary(
                             : name
                     }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
-                    }${summaryInProcess && which !== 'our' ? currentStock + amount : currentStock}${
-                        maxStock ? `/${maxStock.max}` : ''
-                    })`
+                    }${
+                        which === 'our'
+                            ? summaryInProcess
+                                ? currentStock - amount
+                                : currentStock
+                            : summaryInProcess
+                            ? currentStock + amount
+                            : currentStock
+                    }${maxStock ? `/${maxStock.max}` : ''})`
                 );
             } else {
                 summary.push(
@@ -204,13 +231,19 @@ function getSummary(
                         ['review-partner', 'declined'].includes(type)
                             ? ''
                             : ` (${(summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''}${
-                                  summaryInProcess && which !== 'our' ? currentStock + amount : currentStock
+                                  which === 'our'
+                                      ? summaryInProcess
+                                          ? currentStock - amount
+                                          : currentStock
+                                      : summaryInProcess
+                                      ? currentStock + amount
+                                      : currentStock
                               }${maxStock ? `/${maxStock.max}` : ''})`
                     }`
                 );
             }
         } else {
-            if (withLink) {
+            if (withLink && isTF2Items) {
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji

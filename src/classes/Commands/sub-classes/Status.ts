@@ -1,11 +1,12 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies-2';
-import SKU from 'tf2-sku-2';
-import { getItemAndAmount, testSKU, fixSKU } from '../functions/utils';
+import Currencies from '@tf2autobot/tf2-currencies';
+import SKU from '@tf2autobot/tf2-sku';
+import sleepasync from 'sleep-async';
+import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { stats, profit, itemStats } from '../../../lib/tools/export';
+import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
 import { sendStats } from '../../../lib/DiscordWebhook/export';
 
 // Bot status
@@ -46,11 +47,13 @@ export default class StatusCommands {
                     : String(trades.totalAcceptedTrades)) +
                 `\n\n--- Last 24 hours ---` +
                 `\n• Processed: ${trades.hours24.processed}` +
-                `\n• Accepted: ${trades.hours24.accepted.offer + trades.hours24.accepted.sent}` +
-                `\n---• Received offer: ${trades.hours24.accepted.offer}` +
+                `\n• Accepted: ${trades.hours24.accepted.offer.total + trades.hours24.accepted.sent}` +
+                `\n---• Received offer: ${trades.hours24.accepted.offer.total}` +
+                `\n------• Countered: ${trades.hours24.accepted.offer.countered}` +
                 `\n---• Sent offer: ${trades.hours24.accepted.sent}` +
-                `\n• Declined: ${trades.hours24.decline.offer + trades.hours24.decline.sent}` +
-                `\n---• Received offer: ${trades.hours24.decline.offer}` +
+                `\n• Declined: ${trades.hours24.decline.offer.total + trades.hours24.decline.sent}` +
+                `\n---• Received offer: ${trades.hours24.decline.offer.total}` +
+                `\n------• Countered: ${trades.hours24.decline.offer.countered}` +
                 `\n---• Sent offer: ${trades.hours24.decline.sent}` +
                 `\n• Skipped: ${trades.hours24.skipped}` +
                 `\n• Traded away: ${trades.hours24.invalid}` +
@@ -60,11 +63,13 @@ export default class StatusCommands {
                 `\n---• unknown reason: ${trades.hours24.canceled.unknown}` +
                 `\n\n--- Since beginning of today ---` +
                 `\n• Processed: ${trades.today.processed}` +
-                `\n• Accepted: ${trades.today.accepted.offer + trades.today.accepted.sent}` +
-                `\n---• Received offer: ${trades.today.accepted.offer}` +
+                `\n• Accepted: ${trades.today.accepted.offer.total + trades.today.accepted.sent}` +
+                `\n---• Received offer: ${trades.today.accepted.offer.total}` +
+                `\n------• Countered: ${trades.today.accepted.offer.countered}` +
                 `\n---• Sent offer: ${trades.today.accepted.sent}` +
-                `\n• Declined: ${trades.today.decline.offer + trades.today.decline.sent}` +
-                `\n---• Received offer: ${trades.today.decline.offer}` +
+                `\n• Declined: ${trades.today.decline.offer.total + trades.today.decline.sent}` +
+                `\n---• Received offer: ${trades.today.decline.offer.total}` +
+                `\n------• Countered: ${trades.today.decline.offer.countered}` +
                 `\n---• Sent offer: ${trades.today.decline.sent}` +
                 `\n• Skipped: ${trades.today.skipped}` +
                 `\n• Traded away: ${trades.today.invalid}` +
@@ -110,14 +115,21 @@ export default class StatusCommands {
         if (testSKU(message)) {
             sku = message;
         } else {
-            const info = getItemAndAmount(steamID, message, this.bot);
-            if (info === null) {
-                return;
+            sku = this.bot.schema.getSkuFromName(message);
+
+            if (sku.includes('null') || sku.includes('undefined')) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `Invalid item name. The sku generate was ${sku}. Please report this to us on our Discord server, or create an issue on Github.`
+                );
             }
-            sku = info.match.sku;
         }
 
         sku = fixSKU(sku);
+        let isSendSeparately = false;
+        let boughtMessage = '';
+        let soldMessage = '';
+        let adminOnlyMessage = '';
 
         let reply = `Recorded sales for ${this.bot.schema.getName(SKU.fromString(sku))}\n\n`;
 
@@ -194,28 +206,6 @@ export default class StatusCommands {
                     }, '');
                 });
 
-                const past60MinutesBoughtCount = boughtLastX[0].length;
-                const past24HoursBoughtCount = boughtLastX[1].length;
-                const pastWeekBoughtCount = boughtLastX[2].length;
-                const past4WeeksBoughtCount = boughtLastX[3].length;
-
-                reply +=
-                    `⬅️ ${totalBought} bought\n\n` +
-                    (past60MinutesBoughtCount ? 'Past 60 Minutes\n' + boughtLastX[0] : '') +
-                    (past24HoursBoughtCount
-                        ? (past60MinutesBoughtCount ? '\n' : '') + 'Past 24 hours\n' + boughtLastX[1]
-                        : '') +
-                    (pastWeekBoughtCount
-                        ? (past60MinutesBoughtCount || past24HoursBoughtCount ? '\n' : '') +
-                          'Past 7 days\n' +
-                          boughtLastX[2]
-                        : '') +
-                    (past4WeeksBoughtCount
-                        ? (past60MinutesBoughtCount || past24HoursBoughtCount || pastWeekBoughtCount ? '\n' : '') +
-                          'Past 4 weeks\n' +
-                          boughtLastX[3]
-                        : '');
-
                 // ----------------------Sold calculations----------------------
 
                 let soldTime = Object.keys(sold).sort((a, b) => {
@@ -271,12 +261,36 @@ export default class StatusCommands {
                     }, '');
                 });
 
+                // ----------------------Sending message(s)----------------------
+
+                const past60MinutesBoughtCount = boughtLastX[0].length;
+                const past24HoursBoughtCount = boughtLastX[1].length;
+                const pastWeekBoughtCount = boughtLastX[2].length;
+                const past4WeeksBoughtCount = boughtLastX[3].length;
+
+                boughtMessage =
+                    `⬅️ ${totalBought} bought\n\n` +
+                    (past60MinutesBoughtCount ? 'Past 60 Minutes\n' + boughtLastX[0] : '') +
+                    (past24HoursBoughtCount
+                        ? (past60MinutesBoughtCount ? '\n' : '') + 'Past 24 hours\n' + boughtLastX[1]
+                        : '') +
+                    (pastWeekBoughtCount
+                        ? (past60MinutesBoughtCount || past24HoursBoughtCount ? '\n' : '') +
+                          'Past 7 days\n' +
+                          boughtLastX[2]
+                        : '') +
+                    (past4WeeksBoughtCount
+                        ? (past60MinutesBoughtCount || past24HoursBoughtCount || pastWeekBoughtCount ? '\n' : '') +
+                          'Past 4 weeks\n' +
+                          boughtLastX[3]
+                        : '');
+
                 const past60MinutesSoldCount = soldLastX[0].length;
                 const past24HoursSoldCount = soldLastX[1].length;
                 const pastWeekSoldCount = soldLastX[2].length;
                 const past4WeeksSoldCount = soldLastX[3].length;
 
-                reply +=
+                soldMessage =
                     `\n---------------------\n\n➡️ ${totalSold} sold\n\n` +
                     (past60MinutesSoldCount ? 'Past 60 minutes\n' + soldLastX[0] : '') +
                     (past24HoursSoldCount
@@ -291,6 +305,15 @@ export default class StatusCommands {
                           soldLastX[3]
                         : '');
 
+                const all = boughtMessage + soldMessage;
+
+                const mustSendSeperately = all.length > 4000;
+                if (mustSendSeperately) {
+                    isSendSeparately = true;
+                } else {
+                    reply += boughtMessage + soldMessage;
+                }
+
                 if (this.bot.isAdmin(steamID)) {
                     // Admin only
                     const boughtValue = Currencies.toCurrencies(totalBoughtValue, keyPrice);
@@ -300,19 +323,24 @@ export default class StatusCommands {
                     const netProfit = Currencies.toCurrencies(totalSoldValue - totalBoughtValue, keyPrice);
                     const netProfitToString = netProfit.toString();
 
-                    reply += '\n\nOverall past 30 days summary:';
-                    reply += `\n• Total bought value: ${boughtValueToString}${
-                        boughtValueToString.includes('key') ? ` (${Currencies.toRefined(totalBoughtValue)} ref)` : ''
-                    }`;
-                    reply += `\n• Total sold value: ${soldValueToString}${
-                        soldValueToString.includes('key') ? ` (${Currencies.toRefined(totalSoldValue)} ref)` : ''
-                    }`;
-                    reply += `\n• Net profit: ${netProfitToString}${
-                        netProfitToString.includes('key')
-                            ? ` (${Currencies.toRefined(totalSoldValue - totalBoughtValue)} ref)`
-                            : ''
-                    }`;
-                    reply += `\n• Current key rate: ${keyPrices.buy.metal} ref/${keyPrices.sell.metal} ref`;
+                    adminOnlyMessage =
+                        '\n\nOverall past 30 days summary:' +
+                        `\n• Total bought value: ${boughtValueToString}${
+                            boughtValueToString.includes('key')
+                                ? ` (${Currencies.toRefined(totalBoughtValue)} ref)`
+                                : ''
+                        }` +
+                        `\n• Total sold value: ${soldValueToString}${
+                            soldValueToString.includes('key') ? ` (${Currencies.toRefined(totalSoldValue)} ref)` : ''
+                        }` +
+                        `\n• Net profit: ${netProfitToString}${
+                            netProfitToString.includes('key')
+                                ? ` (${Currencies.toRefined(totalSoldValue - totalBoughtValue)} ref)`
+                                : ''
+                        }` +
+                        `\n• Current key rate: ${keyPrices.buy.metal} ref/${keyPrices.sell.metal} ref`;
+
+                    if (!mustSendSeperately) reply += adminOnlyMessage;
                 }
             } catch (err) {
                 reply = err as string;
@@ -321,7 +349,18 @@ export default class StatusCommands {
             reply = 'Stats for currency is not enabled.';
         }
 
-        this.bot.sendMessage(steamID, reply);
+        if (isSendSeparately) {
+            this.bot.sendMessage(steamID, reply);
+            await sleepasync().Promise.sleep(1000);
+            this.bot.sendMessage(steamID, boughtMessage);
+            await sleepasync().Promise.sleep(3000);
+            this.bot.sendMessage(steamID, soldMessage);
+
+            if (adminOnlyMessage) {
+                await sleepasync().Promise.sleep(3000);
+                this.bot.sendMessage(steamID, adminOnlyMessage);
+            }
+        } else this.bot.sendMessage(steamID, reply);
     }
 
     versionCommand(steamID: SteamID): void {
@@ -331,25 +370,21 @@ export default class StatusCommands {
         );
 
         this.bot.checkForUpdates
-            .then(({ hasNewVersion, latestVersion, updateMessage }) => {
+            .then(({ hasNewVersion, latestVersion }) => {
                 if (!hasNewVersion) {
                     this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                            `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
-                            (process.env.pm_id !== undefined
-                                ? `\n\nYou're running the bot with PM2!\n• Update message: ${updateMessage}`
-                                : `\n\nNavigate to your bot folder and run ` +
-                                  `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
-                                  `and then restart your bot.`) +
-                            '\n\nContact IdiNium if you have any other problem. Thank you.'
+                            `Release note: https://github.com/TF2Autobot/tf2autobot/releases`
                     );
                 }
             })
             .catch(err => {
-                this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`);
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${errMessage}`);
             });
     }
 }

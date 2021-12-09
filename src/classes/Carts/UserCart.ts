@@ -1,8 +1,8 @@
 import pluralize from 'pluralize';
-import SKU from 'tf2-sku-2';
-import Currencies from 'tf2-currencies-2';
+import SKU from '@tf2autobot/tf2-sku';
+import Currencies from '@tf2autobot/tf2-currencies';
 import async from 'async';
-import { HighValueInput, HighValueOutput, ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
+import { ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
 import Cart from './Cart';
 import Inventory, { getSkuAmountCanTrade, DictItem } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
@@ -29,33 +29,33 @@ export default class UserCart extends Cart {
         if (banned) {
             this.bot.client.blockUser(this.partner, err => {
                 if (err) {
-                    log.warn(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
-                }
-                log.debug(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
+                    log.error(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
+                } else log.debug(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
             });
 
             return Promise.reject('you are banned in one or more trading communities');
         }
 
         if (escrow) {
-            return Promise.reject('trade would be held');
+            return Promise.reject(
+                'trade would be held.' +
+                    ' I do not accept escrow (trade holds). To prevent this from happening in the future, ' +
+                    'please enable Steam Guard Mobile Authenticator.' +
+                    '\nRead:\n' +
+                    '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
+                    '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+            );
         }
 
-        const keyPrice = this.bot.pricelist.getKeyPrice;
+        const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
 
-        if (
-            this.bot.handler.dupeCheckEnabled &&
-            this.getWhichCurrencies('their').toValue(keyPrice.metal) > // theirItemsValue > minimumKeysDupeCheck
-                this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue()
-        ) {
-            const assetidsToCheck = this.offer.data('_dupeCheck') as string[];
-
+        if (this.bot.handler.dupeCheckEnabled && assetidsToCheck.length > 0) {
             const inventory = new TF2Inventory(this.partner, this.bot.manager);
 
             const requests = assetidsToCheck.map(assetid => {
                 return (callback: (err: Error | null, result: boolean | null) => void): void => {
                     log.debug(`Dupe checking ${assetid}...`);
-                    void Promise.resolve(inventory.isDuped(assetid)).asCallback((err, result) => {
+                    void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug(`Dupe check for ${assetid} done`);
                         callback(err, result);
                     });
@@ -81,11 +81,12 @@ export default class UserCart extends Cart {
                     }
                 }
             } catch (err) {
+                log.error('Failed to check for duped items: ', err);
                 return Promise.reject('failed to check for duped items, try sending an offer instead');
             }
         }
 
-        this.offer.data('_dupeCheck', undefined);
+        // this.offer.data('_dupeCheck', undefined);
     }
 
     private get canUseKeys(): boolean {
@@ -381,7 +382,7 @@ export default class UserCart extends Cart {
         if (this.isEmpty) {
             return Promise.reject('cart is empty');
         }
-
+        const start = Date.now();
         const offer = this.bot.manager.createOffer(this.partner);
 
         const alteredMessages: string[] = [];
@@ -467,7 +468,11 @@ export default class UserCart extends Cart {
         try {
             await theirInventory.fetch();
         } catch (err) {
-            return Promise.reject('Failed to load inventories (Steam might be down)');
+            log.error(`Failed to load inventories (${this.partner.getSteamID64()}): `, err);
+            return Promise.reject(
+                'Failed to load your inventory, Steam might be down. ' +
+                    'Please try again later. If you have your profile/inventory set to private, please set it to public and try again.'
+            );
         }
 
         this.theirInventoryCount = theirInventory.getTotalItems;
@@ -580,7 +585,8 @@ export default class UserCart extends Cart {
         // Figure out what pure to pick from the buyer, and if change is needed
 
         const buyerCurrenciesWithAssetids = buyerInventory.getCurrencies(
-            this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+            this.isWeaponsAsCurrencyEnabled ? this.weapons : [],
+            true
         );
 
         const buyerCurrenciesCount = {
@@ -679,7 +685,8 @@ export default class UserCart extends Cart {
         const assetidsToCheck: string[] = [];
 
         const getAssetidsWithFullUses = (items: DictItem[]) => {
-            return items.filter(item => item.isFullUses === true).map(item => item.id);
+            const assetids = items.filter(item => item.isFullUses === true).map(item => item.id);
+            return assetids;
         };
 
         // Add their items
@@ -692,9 +699,10 @@ export default class UserCart extends Cart {
             let assetids = theirInventory.findBySKU(sku, true);
 
             const addToDupeCheckList =
-                SKU.fromString(sku).effect !== null &&
-                this.bot.pricelist.getPrice(sku, true, true).buy.toValue(keyPrice.metal) >
-                    this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
+                this.bot.pricelist
+                    .getPrice(sku, true, SKU.fromString(sku).effect !== null ? true : false)
+                    ?.buy.toValue(keyPrice.metal) >
+                this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
             this.theirItemsCount += amount;
             let missing = amount;
@@ -813,26 +821,19 @@ export default class UserCart extends Cart {
             }
         });
 
-        const input: HighValueInput = {
-            our: getHighValue.our,
-            their: getHighValue.their
+        const highValueOut = {
+            items: {
+                our: getHighValue.our.items,
+                their: getHighValue.their.items
+            },
+            isMention: {
+                our: getHighValue.our.isMention,
+                their: getHighValue.their.isMention
+            }
         };
 
-        const highValueOut = (info: HighValueInput) => {
-            return {
-                items: {
-                    our: info.our.items,
-                    their: info.their.items
-                },
-                isMention: {
-                    our: info.our.isMention,
-                    their: info.their.isMention
-                }
-            } as HighValueOutput;
-        };
-
-        if (Object.keys(input.our.items).length > 0 || Object.keys(input.their.items).length > 0) {
-            offer.data('highValue', highValueOut(input));
+        if (Object.keys(getHighValue.our.items).length > 0 || Object.keys(getHighValue.their.items).length > 0) {
+            offer.data('highValue', highValueOut);
         }
 
         if (required.change !== 0) {
@@ -842,7 +843,8 @@ export default class UserCart extends Cart {
             exchange[isBuyer ? 'their' : 'our'].scrap += change;
 
             const currencies = (isBuyer ? theirInventory : ourInventory).getCurrencies(
-                this.isWeaponsAsCurrencyEnabled ? this.weapons : []
+                this.isWeaponsAsCurrencyEnabled ? this.weapons : [],
+                true
             ); // sellerInventory
 
             // We won't use keys when giving change
@@ -1049,6 +1051,10 @@ export default class UserCart extends Cart {
 
         // clear memory
         theirInventory.clearFetch();
+
+        const timeTaken = Date.now() - start;
+        offer.data('constructOfferTime', timeTaken);
+        log.debug(`Constructing offer took ${timeTaken} ms`);
 
         return alteredMessages.length === 0 ? undefined : alteredMessages.join(', ');
     }

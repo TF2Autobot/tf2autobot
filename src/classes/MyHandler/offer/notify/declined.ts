@@ -11,8 +11,6 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     const value = valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
     const manualReviewDisabled = !opt.manualReview.enable;
 
-    offer.data('isDeclined', true);
-
     const declined = '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined';
 
     let reasonForInvalidValue = false;
@@ -20,6 +18,11 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     if (!offerReason) {
         const custom = opt.customMessage.decline.general;
         reply = custom ? custom : declined + '.';
+    } else if (offerReason.reason === '🟨_CONTAINS_NON_TF2') {
+        //
+        const custom = opt.customMessage.decline.hasNonTF2Items;
+        reply = custom ? custom : declined + ` because the offer you've sent contains Non-TF2 items.`;
+        //
     } else if (offerReason.reason === 'GIFT_NO_NOTE') {
         //
         const custom = opt.customMessage.decline.giftNoNote;
@@ -33,6 +36,16 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         //
         const custom = opt.customMessage.decline.crimeAttempt;
         reply = custom ? custom : declined + " because you're attempting to take items for free.";
+        //
+    } else if (offerReason.reason === 'TAKING_ITEMS_WITH_INTENT_BUY') {
+        //
+        const custom = opt.customMessage.decline.takingItemsWithIntentBuy;
+        reply = custom ? custom : declined + " because you're attempting to take items that I only want to buy.";
+        //
+    } else if (offerReason.reason === 'GIVING_ITEMS_WITH_INTENT_SELL') {
+        //
+        const custom = opt.customMessage.decline.givingItemsWithIntentSell;
+        reply = custom ? custom : declined + " because you're attempting to give items that I only want to sell.";
         //
     } else if (offerReason.reason === 'ONLY_METAL') {
         //
@@ -108,6 +121,15 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.customMessage.decline.manual;
         reply = custom ? custom : declined + ' by the owner.';
         //
+    } else if (offerReason.reason === 'COUNTER_INVALID_VALUE_FAILED') {
+        //
+        const custom = opt.customMessage.decline.failedToCounter;
+        reasonForInvalidValue = true;
+        reply = custom
+            ? custom
+            : declined +
+              '. Counteroffer is not possible because either one of us does not have enough pure,' +
+              ' or Steam might be down, or your inventory is private (failed to load your inventory).';
     } else if (
         offerReason.reason === 'ONLY_INVALID_VALUE' ||
         (offerReason.reason === '🟥_INVALID_VALUE' && manualReviewDisabled)

@@ -1,0 +1,1004 @@
+{
+    "miscSettings": {
+        "showOnlyMetal": {
+            "enable": true
+        },
+        "sortInventory": {
+            "enable": true,
+            "type": 3
+        },
+        "createListings": {
+            "enable": true
+        },
+        "addFriends": {
+            "enable": true
+        },
+        "sendGroupInvite": {
+            "enable": true
+        },
+        "autobump": {
+            "enable": true
+        },
+        "counterOffer": {
+            "enable": true,
+            "skipIncludeMessage": false
+        },
+        "skipItemsInTrade": {
+            "enable": true
+        },
+        "weaponsAsCurrency": {
+            "enable": true,
+            "withUncraft": true
+        },
+        "checkUses": {
+            "duel": true,
+            "noiseMaker": true
+        },
+        "game": {
+            "playOnlyTF2": false,
+            "customName": ""
+        },
+        "alwaysRemoveItemAttributes": {
+            "customTexture": {
+                "enable": true
+            }
+        }
+    },
+    "sendAlert": {
+        "enable": true,
+        "autokeys": {
+            "lowPure": true,
+            "failedToAdd": true,
+            "failedToUpdate": true,
+            "failedToDisable": true
+        },
+        "backpackFull": true,
+        "highValue": {
+            "gotDisabled": true,
+            "receivedNotInPricelist": true,
+            "tryingToTake": true
+        },
+        "autoRemoveIntentSellFailed": true,
+        "autoAddPaintedItems": true,
+        "failedAccept": true,
+        "unableToProcessOffer": true,
+        "partialPrice": {
+            "onUpdate": true,
+            "onSuccessUpdatePartialPriced": true,
+            "onFailedUpdatePartialPriced": true,
+            "onBulkUpdatePartialPriced": true,
+            "onResetAfterThreshold": true
+        },
+        "receivedUnusualNotInPricelist": true,
+        "failedToUpdateOldPrices": true
+    },
+    "pricelist": {
+        "partialPriceUpdate": {
+            "enable": false,
+            "thresholdInSeconds": 604800,
+            "excludeSKU": []
+        },
+        "filterCantAfford": {
+            "enable": false
+        },
+        "autoRemoveIntentSell": {
+            "enable": false
+        },
+        "autoAddInvalidItems": {
+            "enable": true
+        },
+        "autoAddInvalidUnusual": {
+            "enable": false
+        },
+        "autoAddPaintedItems": {
+            "enable": true
+        },
+        "priceAge": {
+            "maxInSeconds": 28800
+        }
+    },
+    "bypass": {
+        "escrow": {
+            "allow": false
+        },
+        "overpay": {
+            "allow": true
+        },
+        "giftWithoutMessage": {
+            "allow": false
+        },
+        "bannedPeople": {
+            "allow": false,
+            "checkMptfBanned": true
+        }
+    },
+    "tradeSummary": {
+        "declinedTrade": {
+            "enable": false
+        },
+        "showStockChanges": false,
+        "showTimeTakenInMS": false,
+        "showDetailedTimeTaken": true,
+        "showItemPrices": true,
+        "showPureInEmoji": false,
+        "showProperName": false,
+        "showOfferMessage": false,
+        "customText": {
+            "summary": {
+                "steamChat": "Summary",
+                "discordWebhook": "__**Summary**__"
+            },
+            "asked": {
+                "steamChat": "• Asked:",
+                "discordWebhook": "**• Asked:**"
+            },
+            "offered": {
+                "steamChat": "• Offered:",
+                "discordWebhook": "**• Offered:**"
+            },
+            "offerMessage": {
+                "steamChat": "💬 Offer message:",
+                "discordWebhook": "💬 **Offer message:**"
+            },
+            "profitFromOverpay": {
+                "steamChat": "📈 Profit from overpay:",
+                "discordWebhook": "📈 ***Profit from overpay:***"
+            },
+            "lossFromUnderpay": {
+                "steamChat": "📉 Loss from underpay:",
+                "discordWebhook": "📉 ***Loss from underpay:***"
+            },
+            "timeTaken": {
+                "steamChat": "⏱ Time taken:",
+                "discordWebhook": "⏱ **Time taken:**"
+            },
+            "keyRate": {
+                "steamChat": "🔑 Key rate:",
+                "discordWebhook": "🔑 Key rate:"
+            },
+            "pureStock": {
+                "steamChat": "💰 Pure stock:",
+                "discordWebhook": "💰 Pure stock:"
+            },
+            "totalItems": {
+                "steamChat": "🎒 Total items:",
+                "discordWebhook": "🎒 Total items:"
+            },
+            "spells": "🎃 Spells:",
+            "strangeParts": "🎰 Parts:",
+            "killstreaker": "🔥 Killstreaker:",
+            "sheen": "✨ Sheen:",
+            "painted": "🎨 Painted:"
+        }
+    },
+    "steamChat": {
+        "customInitializer": {
+            "acceptedTradeSummary": "/me",
+            "declinedTradeSummary": "/me",
+            "review": "",
+            "message": {
+                "onReceive": "/quote",
+                "toOtherAdmins": "/quote"
+            }
+        },
+        "notifyTradePartner": {
+            "onSuccessAccepted": true,
+            "onSuccessAcceptedEscrow": true,
+            "onDeclined": true,
+            "onCancelled": true,
+            "onTradedAway": true,
+            "onOfferForReview": true
+        }
+    },
+    "highValue": {
+        "enableHold": true,
+        "spells": {
+            "names": [],
+            "exceptionSkus": []
+        },
+        "sheens": {
+            "names": [],
+            "exceptionSkus": []
+        },
+        "killstreakers": {
+            "names": [],
+            "exceptionSkus": []
+        },
+        "strangeParts": {
+            "names": [],
+            "exceptionSkus": []
+        },
+        "painted": {
+            "names": [],
+            "exceptionSkus": []
+        }
+    },
+    "normalize": {
+        "festivized": {
+            "our": false,
+            "their": false,
+            "amountIncludeNonFestivized": false
+        },
+        "strangeAsSecondQuality": {
+            "our": false,
+            "their": false,
+            "amountIncludeNonStrange": false
+        },
+        "painted": {
+            "our": true,
+            "their": true,
+            "amountIncludeNonPainted": false
+        }
+    },
+    "details": {
+        "buy": "I am buying your %name% for %price%, I have %current_stock% / %max_stock%.",
+        "sell": "I am selling my %name% for %price%, I am selling %amount_trade%.",
+        "showBoldText": {
+            "onPrice": false,
+            "onAmount": false,
+            "onCurrentStock": false,
+            "onMaxStock": false,
+            "style": 1
+        },
+        "highValue": {
+            "showSpells": true,
+            "showStrangeParts": false,
+            "showKillstreaker": true,
+            "showSheen": true,
+            "showPainted": true,
+            "customText": {
+                "spells": "🎃 Spells:",
+                "strangeParts": "🎰 Parts:",
+                "killstreaker": "🤩 Killstreaker:",
+                "sheen": "✨ Sheen:",
+                "painted": "🎨 Painted:",
+                "separator": "| ",
+                "ender": " |"
+            }
+        },
+        "uses": {
+            "duel": "(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)",
+            "noiseMaker": "(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)"
+        }
+    },
+    "statistics": {
+        "lastTotalTrades": 0,
+        "startingTimeInUnix": 0,
+        "lastTotalProfitMadeInRef": 0,
+        "lastTotalProfitOverpayInRef": 0,
+        "profitDataSinceInUnix": 0,
+        "sendStats": {
+            "enable": false,
+            "time": []
+        }
+    },
+    "autokeys": {
+        "enable": false,
+        "minKeys": 3,
+        "maxKeys": 15,
+        "minRefined": 30,
+        "maxRefined": 150,
+        "banking": {
+            "enable": false
+        },
+        "scrapAdjustment": {
+            "enable": false,
+            "value": 1
+        },
+        "accept": {
+            "understock": false
+        }
+    },
+    "crafting": {
+        "manual": false,
+        "weapons": {
+            "enable": true
+        },
+        "metals": {
+            "enable": true,
+            "minScrap": 9,
+            "minRec": 9,
+            "threshold": 9
+        }
+    },
+    "offerReceived": {
+        "sendPreAcceptMessage": {
+            "enable": true
+        },
+        "alwaysDeclineNonTF2Items": true,
+        "invalidValue": {
+            "autoDecline": {
+                "enable": true,
+                "declineReply": ""
+            },
+            "exceptionValue": {
+                "skus": [],
+                "valueInRef": 0
+            }
+        },
+        "invalidItems": {
+            "givePrice": false,
+            "autoAcceptOverpay": true,
+            "autoDecline": {
+                "enable": false,
+                "declineReply": ""
+            }
+        },
+        "disabledItems": {
+            "autoAcceptOverpay": false,
+            "autoDecline": {
+                "enable": false,
+                "declineReply": ""
+            }
+        },
+        "overstocked": {
+            "autoAcceptOverpay": false,
+            "autoDecline": {
+                "enable": false,
+                "declineReply": ""
+            }
+        },
+        "understocked": {
+            "autoAcceptOverpay": false,
+            "autoDecline": {
+                "enable": false,
+                "declineReply": ""
+            }
+        },
+        "duped": {
+            "enableCheck": true,
+            "minKeys": 10,
+            "autoDecline": {
+                "enable": false,
+                "declineReply": ""
+            }
+        },
+        "failedToCheckDuped": {
+            "autoDecline": {
+                "enable": false,
+                "declineReply": ""
+            }
+        },
+        "escrowCheckFailed": {
+            "ignoreFailed": false
+        },
+        "bannedCheckFailed": {
+            "ignoreFailed": false
+        }
+    },
+    "manualReview": {
+        "enable": true,
+        "showOfferSummary": true,
+        "showReviewOfferNote": true,
+        "showOwnerCurrentTime": true,
+        "showItemPrices": true,
+        "invalidValue": {
+            "note": ""
+        },
+        "invalidItems": {
+            "note": ""
+        },
+        "disabledItems": {
+            "note": ""
+        },
+        "overstocked": {
+            "note": ""
+        },
+        "understocked": {
+            "note": ""
+        },
+        "duped": {
+            "note": ""
+        },
+        "dupedCheckFailed": {
+            "note": ""
+        },
+        "escrowCheckFailed": {
+            "note": ""
+        },
+        "bannedCheckFailed": {
+            "note": ""
+        },
+        "additionalNotes": ""
+    },
+    "discordWebhook": {
+        "ownerID": [],
+        "displayName": "",
+        "avatarURL": "",
+        "embedColor": "9171753",
+        "tradeSummary": {
+            "enable": true,
+            "url": [],
+            "misc": {
+                "showQuickLinks": true,
+                "showKeyRate": true,
+                "showPureStock": true,
+                "showInventory": true,
+                "note": ""
+            },
+            "mentionOwner": {
+                "enable": false,
+                "itemSkus": [],
+                "tradeValueInRef": 0
+            }
+        },
+        "declinedTrade": {
+            "enable": true,
+            "url": [],
+            "misc": {
+                "showQuickLinks": true,
+                "showKeyRate": true,
+                "showPureStock": true,
+                "showInventory": true,
+                "note": ""
+            }
+        },
+        "offerReview": {
+            "enable": true,
+            "url": "",
+            "mentionInvalidValue": true,
+            "isMention": true,
+            "misc": {
+                "showQuickLinks": true,
+                "showKeyRate": true,
+                "showPureStock": true,
+                "showInventory": true
+            }
+        },
+        "messages": {
+            "enable": true,
+            "isMention": true,
+            "url": "",
+            "showQuickLinks": true
+        },
+        "priceUpdate": {
+            "enable": true,
+            "showOnlyInStock": false,
+            "showFailedToUpdate": true,
+            "url": "",
+            "note": ""
+        },
+        "sendAlert": {
+            "enable": true,
+            "isMention": true,
+            "url": ""
+        },
+        "sendStats": {
+            "enable": false,
+            "url": ""
+        }
+    },
+    "customMessage": {
+        "sendOffer": "",
+        "counterOffer": "",
+        "welcome": "",
+        "iDontKnowWhatYouMean": "",
+        "success": "",
+        "successEscrow": "",
+        "decline": {
+            "general": "",
+            "hasNonTF2Items": "",
+            "giftNoNote": "",
+            "crimeAttempt": "",
+            "onlyMetal": "",
+            "duelingNot5Uses": "",
+            "noiseMakerNot25Uses": "",
+            "highValueItemsNotSelling": "",
+            "notTradingKeys": "",
+            "notSellingKeys": "",
+            "notBuyingKeys": "",
+            "banned": "",
+            "escrow": "",
+            "manual": "",
+            "failedToCounter": "",
+            "takingItemsWithIntentBuy": "",
+            "givingItemsWithIntentSell": ""
+        },
+        "accepted": {
+            "automatic": {
+                "largeOffer": "",
+                "smallOffer": ""
+            },
+            "manual": {
+                "largeOffer": "",
+                "smallOffer": ""
+            }
+        },
+        "tradedAway": "",
+        "failedMobileConfirmation": "",
+        "cancelledActiveForAwhile": "",
+        "clearFriends": ""
+    },
+    "commands": {
+        "enable": true,
+        "customDisableReply": "",
+        "how2trade": {
+            "customReply": {
+                "reply": ""
+            }
+        },
+        "price": {
+            "enable": true,
+            "customReply": {
+                "disabled": ""
+            }
+        },
+        "buy": {
+            "enable": true,
+            "disableForSKU": [],
+            "customReply": {
+                "disabled": "",
+                "disabledForSKU": ""
+            }
+        },
+        "sell": {
+            "enable": true,
+            "disableForSKU": [],
+            "customReply": {
+                "disabled": "",
+                "disabledForSKU": ""
+            }
+        },
+        "buycart": {
+            "enable": true,
+            "disableForSKU": [],
+            "customReply": {
+                "disabled": "",
+                "disabledForSKU": ""
+            }
+        },
+        "sellcart": {
+            "enable": true,
+            "disableForSKU": [],
+            "customReply": {
+                "disabled": "",
+                "disabledForSKU": ""
+            }
+        },
+        "cart": {
+            "enable": true,
+            "customReply": {
+                "title": "",
+                "disabled": ""
+            }
+        },
+        "clearcart": {
+            "customReply": {
+                "reply": ""
+            }
+        },
+        "checkout": {
+            "customReply": {
+                "empty": ""
+            }
+        },
+        "addToQueue": {
+            "alreadyHaveActiveOffer": "",
+            "alreadyInQueueProcessingOffer": "",
+            "alreadyInQueueWaitingTurn": "",
+            "addedToQueueWaitingTurn": "",
+            "alteredOffer": "",
+            "processingOffer": {
+                "donation": "",
+                "isBuyingPremium": "",
+                "offer": ""
+            },
+            "hasBeenMadeAcceptingMobileConfirmation": {
+                "donation": "",
+                "isBuyingPremium": "",
+                "offer": ""
+            }
+        },
+        "cancel": {
+            "customReply": {
+                "isBeingSent": "",
+                "isCancelling": "",
+                "isRemovedFromQueue": "",
+                "noActiveOffer": "",
+                "successCancel": ""
+            }
+        },
+        "queue": {
+            "customReply": {
+                "notInQueue": "",
+                "offerBeingMade": "",
+                "hasPosition": ""
+            }
+        },
+        "owner": {
+            "enable": true,
+            "customReply": {
+                "disabled": "",
+                "reply": ""
+            }
+        },
+        "discord": {
+            "enable": true,
+            "inviteURL": "",
+            "customReply": {
+                "disabled": "",
+                "reply": ""
+            }
+        },
+        "more": {
+            "enable": true,
+            "customReply": {
+                "disabled": ""
+            }
+        },
+        "autokeys": {
+            "enable": true,
+            "customReply": {
+                "disabled": ""
+            }
+        },
+        "message": {
+            "enable": true,
+            "showOwnerName": true,
+            "customReply": {
+                "disabled": "",
+                "wrongSyntax": "",
+                "fromOwner": "",
+                "success": ""
+            }
+        },
+        "time": {
+            "enable": true,
+            "customReply": {
+                "disabled": "",
+                "reply": ""
+            }
+        },
+        "uptime": {
+            "enable": true,
+            "customReply": {
+                "disabled": "",
+                "reply": ""
+            }
+        },
+        "pure": {
+            "enable": true,
+            "customReply": {
+                "disabled": "",
+                "reply": ""
+            }
+        },
+        "rate": {
+            "enable": true,
+            "customReply": {
+                "disabled": "",
+                "reply": ""
+            }
+        },
+        "stock": {
+            "enable": true,
+            "maximumItems": 20,
+            "customReply": {
+                "disabled": "",
+                "reply": ""
+            }
+        },
+        "craftweapon": {
+            "enable": true,
+            "showOnlyExist": true,
+            "customReply": {
+                "disabled": "",
+                "dontHave": "",
+                "have": ""
+            }
+        },
+        "uncraftweapon": {
+            "enable": true,
+            "showOnlyExist": true,
+            "customReply": {
+                "disabled": "",
+                "dontHave": "",
+                "have": ""
+            }
+        }
+    },
+    "detailsExtra": {
+        "spells": {
+            "Putrescent Pigmentation": "PP 🍃",
+            "Die Job": "DJ 🍐",
+            "Chromatic Corruption": "CC 🪀",
+            "Spectral Spectrum": "Spec 🔵🔴",
+            "Sinister Staining": "Sin 🍈",
+            "Voices From Below": "VFB 🗣️",
+            "Team Spirit Footprints": "TS-FP 🔵🔴",
+            "Gangreen Footprints": "GG-FP 🟡",
+            "Corpse Gray Footprints": "CG-FP 👽",
+            "Violent Violet Footprints": "VV-FP ♨️",
+            "Rotten Orange Footprints": "RO-FP 🍊",
+            "Bruised Purple Footprints": "BP-FP 🍷",
+            "Headless Horseshoes": "HH 🍇",
+            "Exorcism": "👻",
+            "Pumpkin Bombs": "🎃💣",
+            "Halloween Fire": "🔥🟢"
+        },
+        "sheens": {
+            "Team Shine": "🔵🔴",
+            "Hot Rod": "🌸",
+            "Manndarin": "🟠",
+            "Deadly Daffodil": "🟡",
+            "Mean Green": "🟢",
+            "Agonizing Emerald": "🟩",
+            "Villainous Violet": "🟣"
+        },
+        "killstreakers": {
+            "Cerebral Discharge": "⚡",
+            "Fire Horns": "🔥🐮",
+            "Flames": "🔥",
+            "Hypno-Beam": "😵💫",
+            "Incinerator": "🚬",
+            "Singularity": "🔆",
+            "Tornado": "🌪️"
+        },
+        "painted": {
+            "A Color Similar to Slate": {
+                "stringNote": "🧪",
+                "price": {
+                    "keys": 0,
+                    "metal": 11
+                }
+            },
+            "A Deep Commitment to Purple": {
+                "stringNote": "🪀",
+                "price": {
+                    "keys": 0,
+                    "metal": 15
+                }
+            },
+            "A Distinctive Lack of Hue": {
+                "stringNote": "🎩",
+                "price": {
+                    "keys": 1,
+                    "metal": 5
+                }
+            },
+            "A Mann's Mint": {
+                "stringNote": "👽",
+                "price": {
+                    "keys": 0,
+                    "metal": 30
+                }
+            },
+            "After Eight": {
+                "stringNote": "🏴",
+                "price": {
+                    "keys": 1,
+                    "metal": 5
+                }
+            },
+            "Aged Moustache Grey": {
+                "stringNote": "👤",
+                "price": {
+                    "keys": 0,
+                    "metal": 5
+                }
+            },
+            "An Extraordinary Abundance of Tinge": {
+                "stringNote": "🏐",
+                "price": {
+                    "keys": 1,
+                    "metal": 5
+                }
+            },
+            "Australium Gold": {
+                "stringNote": "🏆",
+                "price": {
+                    "keys": 0,
+                    "metal": 15
+                }
+            },
+            "Color No. 216-190-216": {
+                "stringNote": "🧠",
+                "price": {
+                    "keys": 0,
+                    "metal": 7
+                }
+            },
+            "Dark Salmon Injustice": {
+                "stringNote": "🐚",
+                "price": {
+                    "keys": 0,
+                    "metal": 15
+                }
+            },
+            "Drably Olive": {
+                "stringNote": "🥝",
+                "price": {
+                    "keys": 0,
+                    "metal": 5
+                }
+            },
+            "Indubitably Green": {
+                "stringNote": "🥦",
+                "price": {
+                    "keys": 0,
+                    "metal": 5
+                }
+            },
+            "Mann Co. Orange": {
+                "stringNote": "🏀",
+                "price": {
+                    "keys": 0,
+                    "metal": 6
+                }
+            },
+            "Muskelmannbraun": {
+                "stringNote": "👜",
+                "price": {
+                    "keys": 0,
+                    "metal": 2
+                }
+            },
+            "Noble Hatter's Violet": {
+                "stringNote": "🍇",
+                "price": {
+                    "keys": 0,
+                    "metal": 7
+                }
+            },
+            "Peculiarly Drab Tincture": {
+                "stringNote": "🪑",
+                "price": {
+                    "keys": 0,
+                    "metal": 3
+                }
+            },
+            "Pink as Hell": {
+                "stringNote": "🎀",
+                "price": {
+                    "keys": 1,
+                    "metal": 10
+                }
+            },
+            "Radigan Conagher Brown": {
+                "stringNote": "🚪",
+                "price": {
+                    "keys": 0,
+                    "metal": 2
+                }
+            },
+            "The Bitter Taste of Defeat and Lime": {
+                "stringNote": "💚",
+                "price": {
+                    "keys": 1,
+                    "metal": 10
+                }
+            },
+            "The Color of a Gentlemann's Business Pants": {
+                "stringNote": "🧽",
+                "price": {
+                    "keys": 0,
+                    "metal": 5
+                }
+            },
+            "Ye Olde Rustic Colour": {
+                "stringNote": "🥔",
+                "price": {
+                    "keys": 0,
+                    "metal": 2
+                }
+            },
+            "Zepheniah's Greed": {
+                "stringNote": "🌳",
+                "price": {
+                    "keys": 0,
+                    "metal": 4
+                }
+            },
+            "An Air of Debonair": {
+                "stringNote": "👜🔷",
+                "price": {
+                    "keys": 0,
+                    "metal": 30
+                }
+            },
+            "Balaclavas Are Forever": {
+                "stringNote": "👜🔷",
+                "price": {
+                    "keys": 0,
+                    "metal": 30
+                }
+            },
+            "Operator's Overalls": {
+                "stringNote": "👜🔷",
+                "price": {
+                    "keys": 0,
+                    "metal": 30
+                }
+            },
+            "Cream Spirit": {
+                "stringNote": "🍘🥮",
+                "price": {
+                    "keys": 0,
+                    "metal": 30
+                }
+            },
+            "Team Spirit": {
+                "stringNote": "🔵🔴",
+                "price": {
+                    "keys": 0,
+                    "metal": 30
+                }
+            },
+            "The Value of Teamwork": {
+                "stringNote": "🎎",
+                "price": {
+                    "keys": 0,
+                    "metal": 30
+                }
+            },
+            "Waterlogged Lab Coat": {
+                "stringNote": "🎏",
+                "price": {
+                    "keys": 0,
+                    "metal": 30
+                }
+            },
+            "Legacy Paint": {
+                "stringNote": "🔵⛔",
+                "price": {
+                    "keys": 4,
+                    "metal": 0
+                }
+            }
+        },
+        "strangeParts": {
+            "Robots Destroyed": "",
+            "Kills": "",
+            "Airborne Enemy Kills": "",
+            "Damage Dealt": "",
+            "Dominations": "",
+            "Snipers Killed": "",
+            "Buildings Destroyed": "",
+            "Projectiles Reflected": "",
+            "Headshot Kills": "",
+            "Medics Killed": "",
+            "Fires Survived": "",
+            "Teammates Extinguished": "",
+            "Freezecam Taunt Appearances": "",
+            "Spies Killed": "",
+            "Allied Healing Done": "",
+            "Sappers Removed": "",
+            "Players Hit": "",
+            "Gib Kills": "",
+            "Scouts Killed": "",
+            "Taunt Kills": "",
+            "Point Blank Kills": "",
+            "Soldiers Killed": "",
+            "Long-Distance Kills": "",
+            "Giant Robots Destroyed": "",
+            "Critical Kills": "",
+            "Demomen Killed": "",
+            "Unusual-Wearing Player Kills": "",
+            "Assists": "",
+            "Medics Killed That Have Full ÜberCharge": "",
+            "Cloaked Spies Killed": "",
+            "Engineers Killed": "",
+            "Kills While Explosive-Jumping": "",
+            "Kills While Low Health": "",
+            "Burning Player Kills": "",
+            "Kills While Invuln ÜberCharged": "",
+            "Posthumous Kills": "",
+            "Not Crit nor MiniCrit Kills": "",
+            "Full Health Kills": "",
+            "Killstreaks Ended": "",
+            "Defenders Killed": "",
+            "Revenges": "",
+            "Robot Scouts Destroyed": "",
+            "Heavies Killed": "",
+            "Tanks Destroyed": "",
+            "Kills During Halloween": "",
+            "Pyros Killed": "",
+            "Submerged Enemy Kills": "",
+            "Kills During Victory Time": "",
+            "Taunting Player Kills": "",
+            "Robot Spies Destroyed": "",
+            "Kills Under A Full Moon": "",
+            "Robots Killed During Halloween": ""
+        }
+    }
+}

@@ -1,3 +1,4 @@
+import prettyMs from 'pretty-ms';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
@@ -95,9 +96,48 @@ export function timeNow(opt: Options): { timeUnix: number; time: string; emoji: 
     };
 }
 
-export function convertTime(time: number, showInMS: boolean): string {
-    const now = dayjs();
-    return `${dayjs.unix(Math.round((now.valueOf() - time) / 1000)).fromNow(true)}${showInMS ? ` (${time} ms)` : ''}`;
+export function convertTime(
+    completeTime: number | null,
+    processOrConstructTime: number,
+    counterProcessTime: number | undefined,
+    isOfferSent: boolean,
+    showDetailedTimeTaken: boolean,
+    showInMS: boolean
+): string {
+    const timePC = !processOrConstructTime ? null : prettyMs(processOrConstructTime, { verbose: true });
+    const timeComp = !completeTime ? null : prettyMs(completeTime, { verbose: true });
+    const counterTime = !counterProcessTime ? undefined : prettyMs(counterProcessTime, { verbose: true });
+
+    const isMsPC = timePC?.includes('millisecond');
+    const isMsComp = timeComp?.includes('millisecond');
+    const isMsCounter = counterTime?.includes('millisecond');
+
+    const timeText = showDetailedTimeTaken
+        ? `\n- ${isOfferSent ? 'To construct offer' : 'To process offer'}: ${
+              isMsPC ? `${timePC}` : `${timePC}${showInMS ? ` (${processOrConstructTime} ms)` : ''}`
+          }${
+              counterTime
+                  ? `\n- To counter: ${
+                        isMsCounter
+                            ? `${counterTime}`
+                            : `${counterTime}${showInMS ? ` (${counterProcessTime} ms)` : ''}`
+                    }`
+                  : ''
+          }${
+              timeComp
+                  ? `\n- To complete: ${
+                        isMsComp ? `${timeComp}` : `${timeComp}${showInMS ? ` (${completeTime} ms)` : ''}`
+                    }`
+                  : ''
+          }`
+        : timeComp === null
+        ? isMsPC
+            ? `${timePC}`
+            : `${timePC}${showInMS ? ` (${processOrConstructTime} ms)` : ''}`
+        : isMsComp
+        ? `${timeComp}`
+        : `${timeComp}${showInMS ? ` (${completeTime} ms)` : ''}`;
+    return timeText;
 }
 
 export function uptime(): string {

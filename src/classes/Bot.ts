@@ -3,17 +3,17 @@ import SteamUser, { EResult } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from 'steamcommunity';
 import SteamTotp from 'steam-totp';
-import ListingManager from 'bptf-listings-2';
-import SchemaManager, { Effect, Paints, StrangeParts } from 'tf2-schema-2';
-import BptfLogin from 'bptf-login-2';
-import TF2 from 'tf2';
+import ListingManager from '@tf2autobot/bptf-listings';
+import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import BptfLogin from '@tf2autobot/bptf-login';
+import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
 import request from 'request-retry-dayjs';
 
 import InventoryManager from './InventoryManager';
-import Pricelist, { EntryData } from './Pricelist';
+import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
 import Friends from './Friends';
 import Trades from './Trades';
 import Listings from './Listings';
@@ -26,14 +26,15 @@ import Groups from './Groups';
 import log from '../lib/logger';
 import { isBanned } from '../lib/bans';
 import Options from './Options';
-import Pricer from './Pricer';
+import IPricer from './IPricer';
+import { EventEmitter } from 'events';
 import ipcHandler from './IPC';
 
 export default class Bot {
     // Modules and classes
     readonly ipc: ipcHandler;
 
-    readonly schema: SchemaManager.Schema;
+    schema: SchemaManager.Schema; // should be readonly
 
     readonly bptf: BptfLogin;
 
@@ -45,7 +46,7 @@ export default class Bot {
 
     readonly community: SteamCommunity;
 
-    readonly listingManager: ListingManager;
+    listingManager: ListingManager; // should be readonly
 
     readonly friends: Friends;
 
@@ -59,9 +60,11 @@ export default class Bot {
 
     readonly handler: MyHandler;
 
-    readonly inventoryManager: InventoryManager;
+    inventoryManager: InventoryManager; // should be readonly
 
-    readonly pricelist: Pricelist;
+    pricelist: Pricelist; // should be readonly
+
+    schemaManager: SchemaManager; // should be readonly
 
     public effects: Effect[];
 
@@ -109,10 +112,10 @@ export default class Bot {
 
     private ready = false;
 
-    constructor(public readonly botManager: BotManager, public options: Options, private priceSource: Pricer) {
-        this.botManager = botManager;
+    public userID: string;
 
-        this.schema = this.botManager.getSchema;
+    constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
+        this.botManager = botManager;
 
         this.client = new SteamUser();
         this.community = new SteamCommunity();
@@ -125,12 +128,6 @@ export default class Bot {
             pendingCancelTime: 1.5 * 60 * 1000
         });
 
-        this.listingManager = new ListingManager({
-            token: this.options.bptfAccessToken,
-            batchSize: 25,
-            waitTime: 100,
-            schema: this.schema
-        });
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
 
@@ -141,15 +138,6 @@ export default class Bot {
         this.tf2gc = new TF2GC(this);
 
         this.handler = new MyHandler(this, this.priceSource);
-
-        this.pricelist = new Pricelist(
-            this.priceSource,
-            this.schema,
-            this.botManager.getSocketManager,
-            this.options,
-            this
-        );
-        this.inventoryManager = new InventoryManager(this.pricelist);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
 
@@ -194,7 +182,9 @@ export default class Bot {
             return Promise.resolve(false);
         }
 
-        return Promise.resolve(isBanned(steamID, this.options.bptfAPIKey));
+        return Promise.resolve(
+            isBanned(steamID, this.options.bptfAPIKey, this.userID, this.options.bypass.bannedPeople.checkMptfBanned)
+        );
     }
 
     get alertTypes(): string[] {
@@ -238,8 +228,12 @@ export default class Bot {
         return this.ready;
     }
 
-    private addListener(emitter: any, event: string, listener: (...args) => void, checkCanEmit: boolean): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    private addListener(
+        emitter: EventEmitter,
+        event: string,
+        listener: (...args) => void,
+        checkCanEmit: boolean
+    ): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
@@ -249,21 +243,34 @@ export default class Bot {
         });
     }
 
+    private addAsyncListener(
+        emitter: EventEmitter,
+        event: string,
+        listener: (...args) => Promise<void>,
+        checkCanEmit: boolean
+    ): void {
+        emitter.on(event, (...args): void => {
+            if (!checkCanEmit || this.canSendEvents()) {
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                setImmediate(listener, ...args);
+            }
+        });
+    }
+
     startVersionChecker(): void {
         void this.checkForUpdates;
 
         // Check for updates every 10 minutes
         setInterval(() => {
             this.checkForUpdates.catch(err => {
-                log.warn('Failed to check for updates: ', err);
+                log.error('Failed to check for updates: ', err);
             });
         }, 10 * 60 * 1000);
     }
 
-    get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string; updateMessage: string }> {
+    get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string }> {
         return this.getLatestVersion.then(content => {
             const latestVersion = content.version;
-            const updateMessage = content.message;
 
             const hasNewVersion = semver.lt(process.env.BOT_VERSION, latestVersion);
 
@@ -273,22 +280,16 @@ export default class Bot {
                 this.messageAdmins(
                     'version',
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                        `Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
-                        (process.env.pm_id !== undefined
-                            ? `\n\nYou're running the bot with PM2!\n• Update message: ${updateMessage}`
-                            : `\n\nNavigate to your bot folder and run ` +
-                              `[git reset HEAD --hard && git checkout master && git pull && npm install && npm run build] ` +
-                              `and then restart your bot.`) +
-                        '\n\nContact IdiNium if you have any other problem. Thank you.',
+                        `Release note: https://github.com/TF2Autobot/tf2autobot/releases`,
                     []
                 );
             }
 
-            return { hasNewVersion, latestVersion, updateMessage };
+            return { hasNewVersion, latestVersion };
         });
     }
 
-    private get getLatestVersion(): Promise<{ version: string; message: string }> {
+    private get getLatestVersion(): Promise<{ version: string }> {
         return new Promise((resolve, reject) => {
             void request(
                 {
@@ -302,25 +303,40 @@ export default class Bot {
                     }
 
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-                    return resolve({ version: body.version, message: body.updateMessage });
+                    return resolve({ version: body.version });
                 }
             );
+        });
+    }
+
+    initializeSchema(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.schemaManager.init(err => {
+                if (err) {
+                    return reject(err);
+                }
+
+                this.schema = this.schemaManager.schema;
+
+                return resolve();
+            });
         });
     }
 
     start(): Promise<void> {
         let data: {
             loginAttempts?: number[];
-            pricelist?: EntryData[];
+            pricelist?: PricesDataObject;
             loginKey?: string;
             pollData?: TradeOfferManager.PollData;
         };
         let cookies: string[];
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
-        this.addListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
+        this.addAsyncListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
         this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
+        this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
         this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
         this.addListener(this.client, 'loginKey', this.handler.onLoginKey.bind(this.handler), false);
@@ -391,38 +407,11 @@ export default class Bot {
 
                             log.info('Signed in to Steam!');
 
-                            this.setProperties();
-
-                            this.inventoryManager.setInventory = new Inventory(
-                                this.client.steamID,
-                                this.manager,
-                                this.schema,
-                                this.options,
-                                this.effects,
-                                this.paints,
-                                this.strangeParts,
-                                'our'
-                            );
-
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         };
 
                         void this.login(data.loginKey || null).asCallback(loginResponse);
-                    },
-                    (callback): void => {
-                        if (this.options.enableSocket === false) {
-                            log.warn('Disabling socket...');
-                            this.botManager.getSocketManager.shutDown();
-                        } else {
-                            this.pricelist.init();
-                        }
-
-                        log.info('Setting up pricelist...');
-
-                        void this.pricelist
-                            .setPricelist(!Array.isArray(data.pricelist) ? [] : data.pricelist, this)
-                            .asCallback(callback);
                     },
                     (callback): void => {
                         log.debug('Waiting for web session');
@@ -459,6 +448,76 @@ export default class Bot {
                         });
                     },
                     (callback): void => {
+                        log.info('Getting Steam API key...');
+                        void this.setCookies(cookies).asCallback(callback);
+                    },
+                    (callback): void => {
+                        this.schemaManager = new SchemaManager({
+                            apiKey: this.manager.apiKey,
+                            updateTime: 24 * 60 * 60 * 1000
+                        });
+
+                        log.info('Getting TF2 schema...');
+                        void this.initializeSchema().asCallback(callback);
+                    },
+                    (callback): void => {
+                        log.info('Setting properties, inventory, etc...');
+                        this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
+                        this.pricelist.init();
+                        this.inventoryManager = new InventoryManager(this.pricelist);
+
+                        const userID = this.bptf._getUserID();
+                        this.userID = userID;
+
+                        this.listingManager = new ListingManager({
+                            token: this.options.bptfAccessToken,
+                            userID,
+                            userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
+                            batchSize: 25,
+                            waitTime: 100,
+                            schema: this.schema
+                        });
+
+                        this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
+                        this.addListener(
+                            this.listingManager,
+                            'createListingsError',
+                            this.handler.onCreateListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteListingsError',
+                            this.handler.onDeleteListingsError.bind(this),
+                            true
+                        );
+
+                        this.addListener(
+                            this.pricelist,
+                            'pricelist',
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            this.handler.onPricelist.bind(this.handler),
+                            false
+                        );
+                        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
+
+                        this.setProperties();
+
+                        this.inventoryManager.setInventory = new Inventory(
+                            this.client.steamID,
+                            this.manager,
+                            this.schema,
+                            this.options,
+                            this.effects,
+                            this.paints,
+                            this.strangeParts,
+                            'our'
+                        );
+
+                        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                        return callback(null);
+                    },
+                    (callback): void => {
                         log.info('Initializing inventory, bptf-listings, and profile settings');
                         async.parallel(
                             [
@@ -493,9 +552,29 @@ export default class Bot {
                             callback
                         );
                     },
-                    (callback): void => {
-                        log.info('Getting Steam API key...');
-                        void this.setCookies(cookies).asCallback(callback);
+                    (callback: (err?) => void): void => {
+                        if (this.options.enableSocket === false) {
+                            log.warn('Disabling socket...');
+                            this.priceSource.shutdown();
+                        }
+
+                        log.info('Setting up pricelist...');
+
+                        const pricelist = Array.isArray(data.pricelist)
+                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
+                                  buff[e.sku] = e;
+                                  return buff;
+                              }, {}) as PricesDataObject)
+                            : data.pricelist || {};
+
+                        this.pricelist
+                            .setPricelist(pricelist, this)
+                            .then(() => {
+                                callback(null);
+                            })
+                            .catch(err => {
+                                callback(err);
+                            });
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
@@ -524,9 +603,6 @@ export default class Bot {
                         return resolve();
                     }
 
-                    log.debug('Setting Steam API Key to schema');
-                    this.botManager.setAPIKeyForSchema = this.manager.apiKey;
-
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
@@ -539,7 +615,7 @@ export default class Bot {
         });
     }
 
-    private setProperties(): void {
+    setProperties(): void {
         this.effects = this.schema.getUnusualEffects();
         this.paints = this.schema.getPaints();
         this.strangeParts = this.schema.getStrangeParts();
@@ -556,11 +632,26 @@ export default class Bot {
             sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
             spy: this.schema.getWeaponsForCraftingByClass('Spy')
         };
+
+        clearInterval(this.updateSchemaPropertiesInterval);
+        this.refreshSchemaProperties();
+    }
+
+    private refreshSchemaProperties(): void {
+        this.updateSchemaPropertiesInterval = setInterval(() => {
+            this.setProperties();
+        }, 24 * 60 * 60 * 1000);
     }
 
     setCookies(cookies: string[]): Promise<void> {
         this.bptf.setCookies(cookies);
         this.community.setCookies(cookies);
+
+        if (this.listingManager) {
+            const userID = this.bptf._getUserID();
+            this.userID = userID;
+            this.listingManager.setUserID(userID);
+        }
 
         return new Promise((resolve, reject) => {
             this.manager.setCookies(cookies, err => {
@@ -598,10 +689,11 @@ export default class Bot {
     }
 
     private get getCookies(): string[] {
-        return this.community._jar
+        const cookies = this.community._jar
             .getCookies('https://steamcommunity.com')
             .filter(cookie => ['sessionid', 'steamLogin', 'steamLoginSecure'].includes(cookie.key))
             .map(cookie => `${cookie.key}=${cookie.value}`);
+        return cookies;
     }
 
     private get getBptfAPICredentials(): Promise<{
@@ -744,7 +836,7 @@ export default class Bot {
                     this.client.removeListener('loggedOn', loggedOnEvent);
                     clearTimeout(timeout);
 
-                    log.debug('Failed to sign in to Steam: ', err);
+                    log.error('Failed to sign in to Steam: ', err);
 
                     reject(err);
                 };
@@ -768,16 +860,27 @@ export default class Bot {
 
     sendMessage(steamID: SteamID | string, message: string): void {
         const steamID64 = steamID.toString();
-        this.client.chatMessage(steamID, message);
-
         const friend = this.friends.getFriend(steamID64);
-        if (friend === null) {
+
+        if (!friend) {
+            // If not friend, we send message with chatMessage
+            this.client.chatMessage(steamID, message);
             void this.getPartnerDetails(steamID).then(name => {
-                log.info(`Message sent to ${name} (${steamID64}): ${message}`);
+                log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
             });
-        } else {
-            log.info(`Message sent to ${friend.player_name} (${steamID64}): ${message}`);
+            return;
         }
+
+        // else, we use the new chat.sendFriendMessage
+        const friendName = friend.player_name;
+        this.client.chat.sendFriendMessage(steamID, message, { chatEntryType: 1 }, err => {
+            if (err) {
+                log.warn(`Failed to send message to ${friendName} (${steamID64}):`, err);
+                return;
+            }
+
+            log.info(`Message sent to ${friendName} (${steamID64}): ${message}`);
+        });
     }
 
     private getPartnerDetails(steamID: SteamID | string): Promise<string> {
@@ -796,12 +899,19 @@ export default class Bot {
         return this.ready && !this.botManager.isStopping;
     }
 
-    private onMessage(steamID: SteamID, message: string): void {
+    private async onMessage(steamID: SteamID, message: string): Promise<void> {
         if (message.startsWith('[tradeoffer sender=') && message.endsWith('[/tradeoffer]')) {
             return;
         }
 
-        this.handler.onMessage(steamID, message);
+        await this.handler.onMessage(steamID, message);
+    }
+
+    private onNewItems(count: number): void {
+        if (count !== 0) {
+            log.debug(`Received ${count} item notifications, resetting to zero`);
+            this.community.resetItemNotifications();
+        }
     }
 
     private onWebSession(sessionID: string, cookies: string[]): void {
@@ -813,7 +923,7 @@ export default class Bot {
     private onSessionExpired(): void {
         log.debug('Web session has expired');
 
-        this.client.webLogOn();
+        if (this.client.steamID) this.client.webLogOn();
     }
 
     private onConfKeyNeeded(tag: string, callback: (err: Error | null, time: number, confKey: string) => void): void {
@@ -938,7 +1048,8 @@ export default class Bot {
     private get getLoginAttemptsWithinPeriod(): dayjs.Dayjs[] {
         const now = dayjs();
 
-        return this.loginAttempts.filter(attempt => now.diff(attempt, 'millisecond') < this.loginPeriodTime);
+        const filtered = this.loginAttempts.filter(attempt => now.diff(attempt, 'millisecond') < this.loginPeriodTime);
+        return filtered;
     }
 
     private newLoginAttempt(): void {

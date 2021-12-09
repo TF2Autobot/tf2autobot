@@ -1,24 +1,21 @@
 import async from 'async';
-import SchemaManager from 'tf2-schema-2';
+import SchemaManager from '@tf2autobot/tf2-schema';
 import pm2 from 'pm2';
 import Bot from './Bot';
 import log from '../lib/logger';
 import { waitForWriting } from '../lib/files';
 import Options from './Options';
 import { EPersonaState } from 'steam-user';
-import SocketManager from './MyHandler/SocketManager';
 import EconItem from '@tf2autobot/tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from 'steamcommunity/classes/CEconItem.js';
 import TradeOffer from '@tf2autobot/tradeoffer-manager/lib/classes/TradeOffer';
 import { camelCase } from 'change-case';
-import Pricer from './Pricer';
+import IPricer from './IPricer';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
 export default class BotManager {
-    private readonly socketManager: SocketManager;
-
-    private readonly schemaManager: SchemaManager;
+    private schemaManager: SchemaManager;
 
     public bot: Bot = null;
 
@@ -30,17 +27,13 @@ export default class BotManager {
 
     private exiting = false;
 
-    constructor(private readonly pricer: Pricer) {
+    constructor(private readonly pricer: IPricer) {
         this.pricer = pricer;
-        this.schemaManager = new SchemaManager({});
-        this.patchSchemaManager();
         this.extendTradeOfferApis();
-        const priceToken = pricer.getOptions().pricerApiToken;
-        this.socketManager = new SocketManager(pricer.getOptions().pricerUrl, priceToken ? priceToken : null);
     }
 
     private extendTradeOfferApis() {
-        ['hasDescription', 'getAction', 'getTag', 'getSKU'].forEach(v => {
+        ['hasDescription', 'getAction', 'getItemTag', 'getSKU'].forEach(v => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
             EconItem.prototype[v] = require('../lib/extend/item/' + v);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
@@ -51,34 +44,6 @@ export default class BotManager {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
             TradeOffer.prototype[v] = require('../lib/extend/offer/' + v);
         });
-    }
-
-    private patchSchemaManager() {
-        // Make the schema manager request the schema from PricesTF/custom pricer
-        const priceManager = this.pricer;
-        this.schemaManager.getSchema = function (callback): void {
-            priceManager
-                .getSchema()
-                .then(schema => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-                    this.setSchema(schema, true);
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    callback(null, this.schema);
-                })
-                .catch(err => callback(err));
-        };
-    }
-
-    get getSchema(): SchemaManager.Schema | null {
-        return this.schemaManager.schema;
-    }
-
-    set setAPIKeyForSchema(apiKey: string) {
-        this.schemaManager.setAPIKey(apiKey);
-    }
-
-    get getSocketManager(): SocketManager {
-        return this.socketManager;
     }
 
     get isStopping(): boolean {
@@ -104,16 +69,8 @@ export default class BotManager {
                         void this.connectToPM2().asCallback(callback);
                     },
                     (callback): void => {
-                        log.info('Starting Socket Manager...');
-                        void this.socketManager.init().asCallback(callback);
-                    },
-                    (callback): void => {
-                        log.info('Getting TF2 schema...');
-                        void this.initializeSchema().asCallback(callback);
-                    },
-                    (callback): void => {
                         log.info('Starting bot...');
-
+                        this.pricer.init();
                         this.bot = new Bot(this, options, this.pricer);
 
                         void this.bot.start().asCallback(callback);
@@ -136,6 +93,13 @@ export default class BotManager {
                         // Shutdown is requested, stop the bot
                         return this.stop(null, false, false);
                     }
+
+                    if (this.bot?.options.enableSocket) {
+                        log.info('Connecting to socket server...');
+                        this.pricer.connect();
+                    }
+
+                    this.schemaManager = this.bot.schemaManager;
 
                     return resolve();
                 }
@@ -231,17 +195,17 @@ export default class BotManager {
             this.bot.manager.pollInterval = -1;
 
             // Stop updating schema
-            clearTimeout(this.schemaManager._updateTimeout);
-            clearInterval(this.schemaManager._updateInterval);
+            clearTimeout(this.schemaManager?._updateTimeout);
+            clearInterval(this.schemaManager?._updateInterval);
             clearInterval(this.bot.updateSchemaPropertiesInterval);
 
             // Stop heartbeat and inventory timers
-            clearInterval(this.bot.listingManager._heartbeatInterval);
-            clearInterval(this.bot.listingManager._inventoryInterval);
+            clearInterval(this.bot.listingManager?._heartbeatInterval);
+            clearInterval(this.bot.listingManager?._inventoryInterval);
         }
 
         // Disconnect from socket server to stop price updates
-        this.socketManager.shutDown();
+        this.pricer.shutdown();
     }
 
     private exit(err: Error | null): void {
@@ -253,7 +217,7 @@ export default class BotManager {
 
         if (this.bot !== null) {
             this.bot.manager.shutdown();
-            this.bot.listingManager.shutdown();
+            this.bot.listingManager?.shutdown();
             this.bot.client.logOff();
         }
 
@@ -276,18 +240,6 @@ export default class BotManager {
     connectToPM2(): Promise<void> {
         return new Promise((resolve, reject) => {
             pm2.connect(err => {
-                if (err) {
-                    return reject(err);
-                }
-
-                return resolve();
-            });
-        });
-    }
-
-    initializeSchema(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.schemaManager.init(err => {
                 if (err) {
                     return reject(err);
                 }

@@ -3,17 +3,17 @@ import pluralize from 'pluralize';
 import request from 'request-retry-dayjs';
 import async from 'async';
 import dayjs from 'dayjs';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import sleepasync from 'sleep-async';
 import Bot from './Bot';
-import { Entry } from './Pricelist';
+import { Entry, PricesObject } from './Pricelist';
 import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
-import { Paints, StrangeParts } from 'tf2-schema-2';
+import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 
 export default class Listings {
     private checkingAllListings = false;
@@ -56,18 +56,22 @@ export default class Listings {
             return;
         }
 
-        // Autobump is enabled, add heartbeat listener
+        // Autobump is enabled, add autorelist listener
 
-        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
-        this.bot.listingManager.on('heartbeat', this.checkFn);
+        this.bot.listingManager.removeListener('autorelist', this.checkFn);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.bot.listingManager.on('autorelist', this.checkFn);
 
         // Get account info
         this.checkAccountInfo();
     }
 
     disableAutorelistOption(): void {
-        this.bot.listingManager.removeListener('heartbeat', this.checkFn);
-        this.disableAutoRelist(false, 'permanent');
+        if (this.bot.listingManager) {
+            this.bot.listingManager.removeListener('autorelist', this.checkFn);
+            this.disableAutoRelist(false, 'permanent');
+        }
     }
 
     private enableAutoRelist(): void {
@@ -110,8 +114,6 @@ export default class Listings {
     }
 
     private checkAccountInfo(): void {
-        log.debug('Checking account info');
-
         void this.getAccountInfo.asCallback((err, info) => {
             if (err) {
                 log.warn('Failed to get account info from backpack.tf: ', err);
@@ -178,15 +180,16 @@ export default class Listings {
 
         let doneSomething = false;
 
-        const match = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const match = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         let hasBuyListing = false;
         let hasSellListing = false;
 
-        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(sku, true, generics);
-        const amountCanSell = this.bot.inventoryManager.amountCanTrade(sku, false, generics);
         const invManager = this.bot.inventoryManager;
         const inventory = invManager.getInventory;
+
+        const amountCanBuy = invManager.amountCanTrade(sku, true, generics);
+        const amountCanSell = invManager.amountCanTrade(sku, false, generics);
 
         const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable; // false by default
 
@@ -219,7 +222,6 @@ export default class Listings {
                 doneSomething = true;
                 listing.remove();
             } else if (
-                match !== null &&
                 listing.intent === 0 &&
                 !invManager.isCanAffordToBuy(match.buy, invManager.getInventory) &&
                 isFilterCantAfford
@@ -240,7 +242,17 @@ export default class Listings {
                         inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
                     );
 
-                    if (listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '')) {
+                    const keyPrice = this.bot.pricelist.getKeyPrice;
+
+                    // if listing note don't have any parameters (%price%, %amount_trade%, etc), then we check if there's any changes with currencies
+                    const isCurrenciesChanged =
+                        listing.currencies?.toValue(keyPrice.metal) !==
+                        match[listing.intent === 0 ? 'buy' : 'sell']?.toValue(keyPrice.metal);
+
+                    const isListingDetailsChanged =
+                        listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '');
+
+                    if (isCurrenciesChanged || isListingDetailsChanged) {
                         if (showLogs) {
                             log.debug(`Listing details don't match, updated listing`, {
                                 sku: sku,
@@ -253,97 +265,61 @@ export default class Listings {
                         const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
 
                         listing.update({
-                            time: match.time || dayjs().unix(),
                             currencies: currencies,
-                            promoted: listing.intent === 0 ? 0 : match.promoted,
+                            //promoted: listing.intent === 0 ? 0 : match.promoted,
                             details: newDetails
                         });
+                        //TODO: make promote, demote
                     }
                 }
             }
         });
 
-        const matchNew = data && data.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const matchNew = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
 
         if (matchNew !== null && matchNew.enabled === true) {
             const assetids = inventory.findBySKU(sku, true);
 
-            // Check if we are already making a listing for same type of item + intent
-            const created = this.bot.listingManager.actions.create;
-            let alreadyMakingAListing = false;
+            const canAffordToBuy = isFilterCantAfford
+                ? invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory)
+                : true;
 
-            if (showLogs) {
-                // we use showLogs here because this will always false on start
+            if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
+                if (showLogs) {
+                    log.debug(`We have no buy order and we can buy more items, create buy listing.`);
+                }
 
-                alreadyMakingAListing =
-                    created.length > 0
-                        ? created.some(element => {
-                              if (element.intent === 1) {
-                                  /*
-                                   * Example
-                                   * {"time":1613388425,"id":"9479836596","intent":1,"promoted":0,
-                                   * "details":"⚡ I am selling 23 for 0.11 ref each. Send offer or add me and send 💬 !buy Reserve Shooter 💬 Thank you!",
-                                   * "currencies":{"keys":0,"metal":0.11}}
-                                   */
-                                  return element.id === assetids[assetids.length - 1];
-                              } else if (element.intent === 0) {
-                                  /*
-                                   * Example
-                                   * {"time":1613388426,"sku":"415;6;uncraftable","intent":0,
-                                   * "details":"⚡ [Scrap.TF down? Sell your craft weapons to me, 2 for 1 scrap or any 1 of my craft weapons!] I am buying 4 for
-                                   *  0.05 ref each. Thank you!","currencies":{"keys":0,"metal":0.05},
-                                   * "item":{"item_name":"Reserve Shooter","quality":"Unique","craftable":0}}
-                                   */
-                                  return element.sku === matchNew.sku;
-                              }
+                doneSomething = true;
 
-                              return false;
-                          })
-                        : false;
+                this.bot.listingManager.createListing({
+                    time: matchNew.time || dayjs().unix(),
+                    sku: sku,
+                    intent: 0,
+                    details: this.getDetails(0, amountCanBuy, matchNew),
+                    currencies: matchNew.buy
+                });
             }
 
-            if (!alreadyMakingAListing) {
-                const canAffordToBuy = isFilterCantAfford
-                    ? invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory)
-                    : true;
-
-                if (!hasBuyListing && amountCanBuy > 0 && canAffordToBuy && !/;[p][0-9]+/.test(sku)) {
-                    if (showLogs) {
-                        log.debug(`We have no buy order and we can buy more items, create buy listing.`);
-                    }
-
-                    doneSomething = true;
-
-                    this.bot.listingManager.createListing({
-                        time: matchNew.time || dayjs().unix(),
-                        sku: sku,
-                        intent: 0,
-                        details: this.getDetails(0, amountCanBuy, matchNew),
-                        currencies: matchNew.buy
-                    });
+            if (!hasSellListing && amountCanSell > 0) {
+                if (showLogs) {
+                    log.debug(`We have no sell order and we can sell items, create sell listing.`);
                 }
 
-                if (!hasSellListing && amountCanSell > 0) {
-                    if (showLogs) {
-                        log.debug(`We have no sell order and we can sell items, create sell listing.`);
-                    }
+                doneSomething = true;
 
-                    doneSomething = true;
-
-                    this.bot.listingManager.createListing({
-                        time: matchNew.time || dayjs().unix(),
-                        id: assetids[assetids.length - 1],
-                        intent: 1,
-                        promoted: matchNew.promoted,
-                        details: this.getDetails(
-                            1,
-                            amountCanSell,
-                            matchNew,
-                            inventory.getItems[sku]?.filter(item => item.id === assetids[assetids.length - 1])[0]
-                        ),
-                        currencies: matchNew.sell
-                    });
-                }
+                this.bot.listingManager.createListing({
+                    time: matchNew.time || dayjs().unix(),
+                    id: assetids[assetids.length - 1],
+                    intent: 1,
+                    promoted: matchNew.promoted,
+                    details: this.getDetails(
+                        1,
+                        amountCanSell,
+                        matchNew,
+                        inventory.getItems[sku]?.filter(item => item.id === assetids[assetids.length - 1])[0]
+                    ),
+                    currencies: matchNew.sell
+                });
             }
         }
 
@@ -377,45 +353,40 @@ export default class Listings {
 
                 const keyPrice = this.bot.pricelist.getKeyPrice;
 
-                const pricelist = this.bot.pricelist.getPrices
-                    .filter(entry => {
-                        if (!this.bot.options.pricelist.filterCantAfford.enable) {
-                            // if this option is set to false, then always return true
-                            return true;
-                        }
-
-                        // Filter pricelist to only items we can sell and we can afford to buy
-
-                        const amountCanBuy = this.bot.inventoryManager.amountCanTrade(entry.sku, true);
-                        const amountCanSell = this.bot.inventoryManager.amountCanTrade(entry.sku, false);
+                const pricelist = this.bot.pricelist.getPrices;
+                let skus = Object.keys(pricelist);
+                if (this.bot.options.pricelist.filterCantAfford.enable) {
+                    skus = skus.filter(sku => {
+                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
 
                         if (
-                            (amountCanBuy > 0 &&
-                                inventoryManager.isCanAffordToBuy(entry.buy, inventoryManager.getInventory)) ||
-                            amountCanSell > 0
+                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
+                            inventory.getAmount(sku, false, true) > 0
                         ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountCanSell is more than 0
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
                             return true;
                         }
 
                         // Else ignore
                         return false;
-                    })
+                    });
+                }
+                skus = skus
                     .sort((a, b) => {
                         return (
                             currentPure.keys -
-                            (b.buy.keys - a.buy.keys) * keyPrice.toValue() +
-                            (currentPure.metal - Currencies.toScrap(b.buy.metal - a.buy.metal))
+                            (pricelist[b].buy.keys - pricelist[a].buy.keys) * keyPrice.toValue() +
+                            (currentPure.metal - Currencies.toScrap(pricelist[b].buy.metal - pricelist[a].buy.metal))
                         );
                     })
                     .sort((a, b) => {
-                        return inventory.findBySKU(b.sku).length - inventory.findBySKU(a.sku).length;
+                        return inventory.findBySKU(b).length - inventory.findBySKU(a).length;
                     });
 
-                log.debug('Checking listings for ' + pluralize('item', pricelist.length, true) + '...');
+                log.debug('Checking listings for ' + pluralize('item', skus.length, true) + '...');
 
-                void this.recursiveCheckPricelist(pricelist).asCallback(() => {
+                void this.recursiveCheckPricelist(skus, pricelist).asCallback(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -433,24 +404,30 @@ export default class Listings {
         });
     }
 
-    recursiveCheckPricelist(pricelist: Entry[], withDelay = false, time?: number, showLogs = false): Promise<void> {
+    recursiveCheckPricelist(
+        skus: string[],
+        pricelist: PricesObject,
+        withDelay = false,
+        time?: number,
+        showLogs = false
+    ): Promise<void> {
         return new Promise(resolve => {
             let index = 0;
 
             const iteration = async (): Promise<void> => {
-                if (pricelist.length <= index || this.cancelCheckingListings) {
+                if (skus.length <= index || this.cancelCheckingListings) {
                     this.cancelCheckingListings = false;
                     return resolve();
                 }
 
                 if (withDelay) {
-                    this.checkBySKU(pricelist[index].sku, pricelist[index], false, showLogs);
+                    this.checkBySKU(skus[index], pricelist[skus[index]], false, showLogs);
                     index++;
                     await sleepasync().Promise.sleep(time ? time : 200);
                     void iteration();
                 } else {
                     setImmediate(() => {
-                        this.checkBySKU(pricelist[index].sku, pricelist[index]);
+                        this.checkBySKU(skus[index], pricelist[skus[index]]);
                         index++;
                         void iteration();
                     });
@@ -575,12 +552,12 @@ export default class Listings {
             if (item) {
                 const toJoin: string[] = [];
 
-                const optD = this.bot.options.details.highValue;
+                const optD = opt.details.highValue;
                 const cT = optD.customText;
                 const cTSpt = optD.customText.separator;
                 const cTEnd = optD.customText.ender;
 
-                const optR = this.bot.options.detailsExtra;
+                const optR = opt.detailsExtra;
                 const getPaints = this.bot.paints;
                 const getStrangeParts = this.bot.strangeParts;
 
@@ -662,17 +639,28 @@ export default class Listings {
             }
         }
 
-        const optDs = this.bot.options.details.uses;
+        const optDs = opt.details.uses;
         let details: string;
+        const inventory = this.bot.inventoryManager.getInventory;
+        const showBoldText = opt.details.showBoldText;
+        const isShowBoldOnPrice = showBoldText.onPrice;
+        const isShowBoldOnAmount = showBoldText.onAmount;
+        const isShowBoldOnCurrentStock = showBoldText.onCurrentStock;
+        const isShowBoldOnMaxStock = showBoldText.onMaxStock;
+        const style = showBoldText.style;
 
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
-            const inventory = this.bot.inventoryManager.getInventory;
+            const price = entry[key].toString();
+            const maxStock = entry.max === -1 ? '∞' : entry.max.toString();
+            const currentStock = inventory.getAmount(entry.sku, false, true).toString();
+            const amountTrade = amountCanTrade.toString();
+
             return details
-                .replace(/%price%/g, entry[key].toString())
+                .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
                 .replace(/%name%/g, entry.name)
-                .replace(/%max_stock%/g, entry.max === -1 ? '∞' : entry.max.toString())
-                .replace(/%current_stock%/g, inventory.getAmount(entry.sku, true).toString())
-                .replace(/%amount_trade%/g, amountCanTrade.toString());
+                .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
+                .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
+                .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;
@@ -742,4 +730,56 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
     else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+}
+
+function boldDetails(str: string, style: number): string {
+    // https://lingojam.com/BoldTextGenerator
+
+    if ([1, 2].includes(style)) {
+        // Bold numbers (serif)
+        str = str
+            .replace(/0/g, '𝟎') // can't use replaceAll yet 😪
+            .replace(/1/g, '𝟏')
+            .replace(/2/g, '𝟐')
+            .replace(/3/g, '𝟑')
+            .replace(/4/g, '𝟒')
+            .replace(/5/g, '𝟓')
+            .replace(/6/g, '𝟔')
+            .replace(/7/g, '𝟕')
+            .replace(/8/g, '𝟖')
+            .replace(/9/g, '𝟗')
+            .replace('.', '.')
+            .replace(',', ',');
+
+        if (style === 1) {
+            // Style 1 - Bold (serif)
+            return str.replace('ref', '𝐫𝐞𝐟').replace('keys', '𝐤𝐞𝐲𝐬').replace('key', '𝐤𝐞𝐲');
+        }
+
+        // Style 2 - Italic Bold (serif)
+        return str.replace('ref', '𝒓𝒆𝒇').replace('keys', '𝒌𝒆𝒚𝒔').replace('key', '𝒌𝒆𝒚');
+    }
+
+    // Bold numbers (sans):
+    str = str
+        .replace(/0/g, '𝟬')
+        .replace(/1/g, '𝟭')
+        .replace(/2/g, '𝟮')
+        .replace(/3/g, '𝟯')
+        .replace(/4/g, '𝟰')
+        .replace(/5/g, '𝟱')
+        .replace(/6/g, '𝟲')
+        .replace(/7/g, '𝟳')
+        .replace(/8/g, '𝟴')
+        .replace(/9/g, '𝟵')
+        .replace('.', '.')
+        .replace(',', ',');
+
+    if (style === 3) {
+        // Style 3 - Bold (sans)
+        return str.replace('ref', '𝗿𝗲𝗳').replace('keys', '𝗸𝗲𝘆𝘀').replace('key', '𝗸𝗲𝘆');
+    }
+
+    // Style 4 - Italic Bold (sans)
+    return str.replace('ref', '𝙧𝙚𝙛').replace('keys', '𝙠𝙚𝙮𝙨').replace('key', '𝙠𝙚𝙮');
 }

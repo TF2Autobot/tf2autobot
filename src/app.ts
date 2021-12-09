@@ -1,10 +1,8 @@
 import 'module-alias/register';
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const { version: BOT_VERSION } = require('../package.json');
-import { getPricer } from '@pricer/pricer';
-import Pricer, { GetPricerFn } from './classes/Pricer';
+import { getPricer } from './lib/pricer/pricer';
 import { loadOptions } from './classes/Options';
-import HttpManager from './classes/HttpManager';
 
 process.env.BOT_VERSION = BOT_VERSION as string;
 
@@ -45,13 +43,12 @@ if (process.env.pm_id === undefined) {
 }
 
 import BotManager from './classes/BotManager';
-function _getPricer(): Pricer {
-    return (getPricer as GetPricerFn)({
+const botManager = new BotManager(
+    getPricer({
         pricerUrl: options.customPricerUrl,
         pricerApiToken: options.customPricerApiToken
-    });
-}
-const botManager = new BotManager(_getPricer());
+    })
+);
 
 import ON_DEATH from 'death';
 import * as inspect from 'util';
@@ -85,7 +82,10 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
             const sendAlertWebhook: Webhook = {
                 username: optDW.displayName ? optDW.displayName : 'Your beloved bot',
                 avatar_url: optDW.avatarURL ? optDW.avatarURL : '',
-                content: optDW.sendAlert.isMention ? `<@!${optDW.ownerID}>` : '',
+                content:
+                    optDW.sendAlert.isMention && optDW.ownerID.length > 0
+                        ? optDW.ownerID.map(id => `<@!${id}>`).join(', ')
+                        : '',
                 embeds: [
                     {
                         title: 'Bot crashed!',
@@ -133,12 +133,14 @@ void botManager.start(options).asCallback(err => {
     }
 
     if (options.enableHttpApi) {
-        const httpManager = new HttpManager(options);
+        void import('./classes/HttpManager').then(({ default: HttpManager }) => {
+            const httpManager = new HttpManager(options);
 
-        void httpManager.start().asCallback(err => {
-            if (err) {
-                throw err;
-            }
+            void httpManager.start().asCallback(err => {
+                if (err) {
+                    throw err;
+                }
+            });
         });
     }
 });

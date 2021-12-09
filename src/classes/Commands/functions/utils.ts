@@ -1,14 +1,15 @@
 import SteamID from 'steamid';
 import pluralize from 'pluralize';
-import SKU from 'tf2-sku-2';
-import SchemaManager from 'tf2-schema-2';
+import SKU from '@tf2autobot/tf2-sku';
+import SchemaManager from '@tf2autobot/tf2-schema';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
-import { Item } from '../../../types/TeamFortress2';
+import { MinimumItem } from '../../../types/TeamFortress2';
 import Bot from '../../Bot';
 import { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
+import { testSKU } from '../../../lib/tools/export';
 
 export function getItemAndAmount(
     steamID: SteamID,
@@ -52,7 +53,7 @@ export function getItemAndAmount(
         return null;
     }
 
-    let match = bot.pricelist.searchByName(name, true);
+    let match = testSKU(name) ? bot.pricelist.getPrice(name, true) : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 
@@ -62,6 +63,7 @@ export function getItemAndAmount(
                 steamID,
                 custom ? custom.replace(/%itemName%/g, match.name) : `❌ ${from} command is disabled for ${match.name}.`
             );
+
             return null;
         }
     }
@@ -74,7 +76,21 @@ export function getItemAndAmount(
         let closestUnusualMatch: Entry = null;
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
         const genericEffect = genericNameAndMatch(name, bot.effects);
-        for (const pricedItem of bot.pricelist.getPrices) {
+        const pricelist = bot.pricelist.getPrices;
+        for (const sku in pricelist) {
+            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                continue;
+            }
+
+            const pricedItem = pricelist[sku];
+            if (pricedItem.name === null) {
+                // This looks impossible, but can occur I guess.
+                // https://github.com/TF2Autobot/tf2autobot/issues/882
+
+                bot.sendMessage(steamID, `❌ Something went wrong. Please try again.`);
+                return null;
+            }
+
             if (pricedItem.enabled) {
                 const itemDistance = levenshtein(pricedItem.name, name);
                 if (itemDistance < lowestDistance) {
@@ -107,6 +123,7 @@ export function getItemAndAmount(
                         'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
                         `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
                         `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `If you're entering the sku, make sure it's correct`,
                         `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
@@ -159,6 +176,7 @@ export function getItemAndAmount(
                         'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
                         `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
                         `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                        `If you're entering the sku, make sure it's correct`,
                         `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
                     ].join('\n• ')
             );
@@ -192,12 +210,26 @@ export function getItemFromParams(
     steamID: SteamID | string,
     params: UnknownDictionaryKnownValues,
     bot: Bot
-): Item | null {
+): MinimumItem | null {
     const item = SKU.fromString('');
     delete item.craftnumber;
 
     let foundSomething = false;
-    if (params.name !== undefined) {
+    if (params.item !== undefined) {
+        foundSomething = true;
+
+        const sku = bot.schema.getSkuFromName(params.item);
+
+        if (sku.includes('null') || sku.includes('undefined')) {
+            bot.sendMessage(
+                steamID,
+                `Invalid item name. The sku generate was ${sku}. Please report this to us on our Discord server, or create an issue on Github.`
+            );
+            return null;
+        }
+
+        return SKU.fromString(sku);
+    } else if (params.name !== undefined) {
         foundSomething = true;
         // Look for all items that have the same name
 
@@ -207,8 +239,15 @@ export function getItemFromParams(
         const itemsCount = items.length;
 
         for (let i = 0; i < itemsCount; i++) {
-            if (items[i].item_name === params.name) {
-                match.push(items[i]);
+            const item = items[i];
+
+            if (item.item_name === 'Name Tag' && item.defindex === 2093) {
+                // skip and let it find Name Tag with defindex 5020
+                continue;
+            }
+
+            if (item.item_name === params.name) {
+                match.push(item);
             }
         }
 
@@ -257,7 +296,7 @@ export function getItemFromParams(
     if (!foundSomething) {
         bot.sendMessage(
             steamID,
-            '⚠️ Missing item properties. Please refer to: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist%3F'
+            '⚠️ Missing item properties. Please refer to: https://github.com/TF2Autobot/tf2autobot/wiki/What-is-the-pricelist'
         );
         return null;
     }
@@ -277,6 +316,75 @@ export function getItemFromParams(
         if (item.quality === 0) {
             item.quality = schemaItem.item_quality;
         }
+    }
+
+    if (
+        [
+            5726, // Rocket Launcher
+            5727, // Scattergun
+            5728, // Sniper Rifle
+            5729, // Shotgun
+            5730, // Ubersaw
+            5731, // GRU
+            5732, // Spy-cicle
+            5733, // Axtinguisher
+            5743, // Sticky Launcher
+            5744, // Minigun
+            5745, // Direct Hit
+            5746, // Huntsman
+            5747, // Backburner
+            5748, // Backscatter
+            5749, // Kritzkrieg
+            5750, // Ambassador
+            5751, // Frontier Justice
+            5793, // Flaregun
+            5794, // Wrench
+            5795, // Revolver
+            5796, // Machina
+            5797, // Baby Face Blaster
+            5798, // Huo Long Heatmaker
+            5799, // Loose Cannon
+            5800, // Vaccinator
+            5801 // Air Strike
+        ].includes(item.defindex)
+    ) {
+        // Standardize all specific Basic Killstreak Kit
+        item.defindex = 6527;
+    } else if (item.defindex === 5738) {
+        // Standardize different versions of Mann Co. Stockpile Crate
+        item.defindex = 5737;
+    } else if (
+        [
+            5661, // Pomson 6000 Strangifier
+            5721, // Pretty Boy's Pocket Pistol Strangifier
+            5722, // Phlogistinator Strangifier
+            5723, // Cleaner's Carbine Strangifier
+            5724, // Private Eye Strangifier
+            5725, // Big Chief Strangifier
+            5753, // Air Strike Strangifier
+            5754, // Classic Strangifier
+            5755, // Manmelter Strangifier
+            5756, // Vaccinator Strangifier
+            5757, // Widowmaker Strangifier
+            5758, // Anger Strangifier
+            5759, // Apparition's Aspect Strangifier
+            5783, // Cow Mangler 5000 Strangifier
+            5784, // Third Degree Strangifier
+            5804 // Righteous Bison Strangifier
+        ].includes(item.defindex)
+    ) {
+        // Standardize defindex for Strangifier
+        item.defindex = 6522;
+    } else if (
+        [
+            20001, // Cosmetic Strangifier Recipe 1 Rare
+            20005, // Cosmetic Strangifier Recipe 2
+            20008, // Rebuild Strange Weapon Recipe
+            20009 // Cosmetic Strangifier Recipe 3
+        ].includes(item.defindex)
+    ) {
+        // Standardize defindex for Strangifier Chemistry Set
+        item.defindex = 20000;
     }
 
     if (typeof params.quality === 'number') {
@@ -592,10 +700,4 @@ export function fixSKU(sku: string): string {
 
 export function removeLinkProtocol(message: string): string {
     return message.replace(/(\w+:|^)\/\//g, '');
-}
-
-export function testSKU(sku: string): boolean {
-    return /^(\d+);([0-9]|[1][0-5])(;((uncraftable)|(untradable)|(australium)|(festive)|(strange)|((u|pk|td-|c|od-|oq-|p)\d+)|(w[1-5])|(kt-[1-3])|(n((100)|[1-9]\d?))))*?$/.test(
-        sku
-    );
 }

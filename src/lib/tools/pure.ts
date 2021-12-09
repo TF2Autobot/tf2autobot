@@ -1,4 +1,4 @@
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import pluralize from 'pluralize';
 import Bot from '../../classes/Bot';
 
@@ -43,8 +43,16 @@ export function stock(bot: Bot): string[] {
     return pureStock;
 }
 
-export function currPure(bot: Bot): { key: number; scrap: number; rec: number; ref: number; refTotalInScrap: number } {
-    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons);
+interface CurrentPure {
+    key: number;
+    scrap: number;
+    rec: number;
+    ref: number;
+    refTotalInScrap: number;
+}
+
+export function currPure(bot: Bot): CurrentPure {
+    const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons, true);
 
     const currKeys = currencies['5021;6'].length;
     const currScrap = currencies['5000;6'].length;

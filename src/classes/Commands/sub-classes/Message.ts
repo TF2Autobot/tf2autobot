@@ -1,6 +1,7 @@
 import SteamID from 'steamid';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
+import log from '../../../lib/logger';
 import { generateLinks, timeNow } from '../../../lib/tools/export';
 import { sendPartnerMessage, sendAdminMessage } from '../../../lib/DiscordWebhook/export';
 
@@ -11,8 +12,10 @@ export default class MessageCommand {
 
     message(steamID: SteamID, message: string): void {
         const isAdmin = this.bot.isAdmin(steamID);
-        const custom = this.bot.options.commands.message.customReply;
-        if (!this.bot.options.commands.enable) {
+        const optComm = this.bot.options.commands.message;
+        const custom = optComm.customReply;
+
+        if (!optComm.enable) {
             if (isAdmin) {
                 this.bot.sendMessage(
                     steamID,
@@ -38,6 +41,7 @@ export default class MessageCommand {
             try {
                 recipientSteamID = new SteamID(parts[0]);
             } catch (err) {
+                log.error('Wrong input (SteamID): ', err);
                 return this.bot.sendMessage(
                     steamID,
                     '❌ Your syntax is wrong or the SteamID is incorrectly formatted. Here\'s an example: "!message 76561198120070906 Hi"' +
@@ -64,14 +68,18 @@ export default class MessageCommand {
             }
 
             const recipientDetails = this.bot.friends.getFriend(recipientSteamID);
+            const adminDetails = this.bot.friends.getFriend(steamID);
             const reply = steamIdAndMessage.substr(steamIDString.length);
+            const isShowOwner = optComm.showOwnerName;
 
             // Send message to recipient
             this.bot.sendMessage(
                 recipientSteamID,
                 custom.fromOwner
                     ? custom.fromOwner.replace(/%reply%/g, reply)
-                    : `/quote 💬 Message from the owner: ${reply}` +
+                    : `/quote 💬 Message from ${
+                          isShowOwner && adminDetails ? adminDetails.player_name : 'the owner'
+                      }: ${reply}` +
                           '\n\n❔ Hint: You can use the !message command to respond to the owner of this bot.' +
                           '\nExample: !message Hi Thanks!'
             );
@@ -91,9 +99,9 @@ export default class MessageCommand {
                 this.bot.messageAdmins(
                     `${
                         customInitializer ? customInitializer : '/quote'
-                    } 💬 Message sent to #${recipientSteamID.toString()} (${
-                        recipientDetails.player_name
-                    }): "${reply}". `,
+                    } 💬 Message sent to #${recipientSteamID.toString()}${
+                        recipientDetails ? ` (${recipientDetails.player_name})` : ''
+                    }: "${reply}". `,
                     []
                 );
             }
@@ -146,7 +154,9 @@ export default class MessageCommand {
                 this.bot.messageAdmins(
                     `${
                         customInitializer ? customInitializer : '/quote'
-                    } 💬 You've got a message from #${steamID.toString()} (${senderDetails.player_name}):` +
+                    } 💬 You've got a message from #${steamID.toString()}${
+                        senderDetails ? ` (${senderDetails.player_name})` : ''
+                    }:` +
                         `"${msg}". ` +
                         `\nSteam: ${links.steam}` +
                         `\nBackpack.tf: ${links.bptf}` +

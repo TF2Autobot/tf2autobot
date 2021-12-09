@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
-import Currencies from 'tf2-currencies-2';
+import Currencies from '@tf2autobot/tf2-currencies';
 import dayjs from 'dayjs';
 
 import * as c from './sub-classes/export';
@@ -16,7 +16,7 @@ import UserCart from '../Carts/UserCart';
 import DonateCart from '../Carts/DonateCart';
 import PremiumCart from '../Carts/PremiumCart';
 import CartQueue from '../Carts/CartQueue';
-import Pricer from '../Pricer';
+import IPricer from '../IPricer';
 import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
@@ -51,18 +51,21 @@ export default class Commands {
 
     private status: c.StatusCommands;
 
+    private crafting: c.CraftingCommands;
+
     adminInventory: UnknownDictionary<Inventory> = {};
 
-    constructor(private readonly bot: Bot, private readonly pricer: Pricer) {
+    constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
         this.help = new c.HelpCommands(bot);
         this.manager = new c.ManagerCommands(bot);
         this.message = new c.MessageCommand(bot);
         this.misc = new c.MiscCommands(bot);
         this.opt = new c.OptionsCommand(bot);
-        this.pManager = new c.PricelistManager(bot);
+        this.pManager = new c.PricelistManager(bot, pricer);
         this.request = new c.RequestCommands(bot, pricer);
         this.review = new c.ReviewCommands(bot);
         this.status = new c.StatusCommands(bot);
+        this.crafting = new c.CraftingCommands(bot);
     }
 
     private get cartQueue(): CartQueue {
@@ -84,7 +87,7 @@ export default class Commands {
         this.opt.updateOptionsCommand(steamID, message);
     }
 
-    processMessage(steamID: SteamID, message: string): void {
+    async processMessage(steamID: SteamID, message: string): Promise<void> {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
         const isWhitelisted = this.bot.isWhitelisted(steamID);
@@ -151,7 +154,7 @@ export default class Commands {
         };
 
         if (command === 'help') {
-            this.help.helpCommand(steamID);
+            void this.help.helpCommand(steamID);
         } else if (command === 'how2trade') {
             this.help.howToTradeCommand(steamID);
         } else if (['price', 'pc'].includes(command)) {
@@ -182,46 +185,57 @@ export default class Commands {
             this.manager.autokeysCommand(steamID);
         } else if (command === 'message') {
             this.message.message(steamID, message);
-        } else if (['craftweapon', 'uncraftweapon'].includes(command)) {
-            this.misc.weaponCommand(steamID, command as CraftUncraft);
-        } else if (command === 'snapshots' && isAdmin) {
-            void this.request.getSnapshotsCommand(steamID, message);
+        } else if (['craftweapon', 'craftweapons', 'uncraftweapon', 'uncraftweapons'].includes(command)) {
+            void this.misc.weaponCommand(
+                steamID,
+                command === 'craftweapons'
+                    ? 'craftweapon'
+                    : command === 'uncraftweapons'
+                    ? 'uncraftweapon'
+                    : (command as CraftUncraft)
+            );
         } else if (['deposit', 'd'].includes(command) && isAdmin) {
             void this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
-            this.pManager.addCommand(steamID, message);
+            await this.pManager.addCommand(steamID, message);
+        } else if (command === 'addbulk' && isAdmin) {
+            void this.pManager.addbulkCommand(steamID, message);
         } else if (command === 'update' && isAdmin) {
             void this.pManager.updateCommand(steamID, message);
+        } else if (command === 'updatebulk' && isAdmin) {
+            void this.pManager.updatebulkCommand(steamID, message);
         } else if (command === 'remove' && isAdmin) {
             void this.pManager.removeCommand(steamID, message);
+        } else if (command === 'removebulk' && isAdmin) {
+            this.pManager.removebulkCommand(steamID, message);
         } else if (command === 'get' && isAdmin) {
             this.pManager.getCommand(steamID, message);
         } else if (command === 'getall' && isAdmin) {
             void this.pManager.getAllCommand(steamID, message);
-        } else if (command === 'getslots' && isAdmin) {
+        } else if (command === 'ppu' && isAdmin) {
+            void this.pManager.partialPriceUpdateCommand(steamID, message);
+        } else if (['getslots', 'listings'].includes(command) && isAdmin) {
             void this.pManager.getSlotsCommand(steamID);
         } else if (command === 'autoadd' && isAdmin) {
-            void this.pManager.autoAddCommand(steamID, message);
+            this.pManager.autoAddCommand(steamID, message);
         } else if (command === 'stopautoadd' && isAdmin) {
             this.pManager.stopAutoAddCommand();
-        } else if (command === 'shuffle' && isAdmin) {
-            void this.pManager.shuffleCommand(steamID);
         } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
             this.manager.TF2GCCommand(steamID, message, command as TF2GC);
         } else if (['name', 'avatar'].includes(command) && isAdmin) {
             this.manager.nameAvatarCommand(steamID, message, command as NameAvatar);
         } else if (['block', 'unblock'].includes(command) && isAdmin) {
             this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
+        } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
+            void this.manager.blockedListCommand(steamID);
         } else if (command === 'clearfriends' && isAdmin) {
             void this.manager.clearFriendsCommand(steamID);
         } else if (command === 'stop' && isAdmin) {
             this.manager.stopCommand(steamID);
         } else if (command === 'restart' && isAdmin) {
             this.manager.restartCommand(steamID);
-        } else if (command === 'updaterepo' && isAdmin) {
-            this.manager.updaterepoCommand(steamID);
         } else if (command === 'refreshautokeys' && isAdmin) {
             this.manager.refreshAutokeysCommand(steamID);
         } else if (command === 'refreshlist' && isAdmin) {
@@ -258,6 +272,8 @@ export default class Commands {
             void this.opt.optionsCommand(steamID, message);
         } else if (command === 'config' && isAdmin) {
             this.opt.updateOptionsCommand(steamID, message);
+        } else if (command === 'cleararray' && isAdmin) {
+            this.opt.clearArrayCommand(steamID, message);
         } else if (command === 'donatebptf' && isAdmin) {
             this.donateBPTFCommand(steamID, message);
         } else if (command === 'donatenow' && isAdmin) {
@@ -266,6 +282,12 @@ export default class Commands {
             this.donateCartCommand(steamID);
         } else if (command === 'premium' && isAdmin) {
             this.buyBPTFPremiumCommand(steamID, message);
+        } else if (command === 'sku' && isAdmin) {
+            this.getSKU(steamID, message);
+        } else if (command === 'refreshschema' && isAdmin) {
+            this.manager.refreshSchema(steamID);
+        } else if (command === 'crafttoken' && isAdmin) {
+            this.crafting.craftTokenCommand(steamID, message);
         } else if (
             ignoreWords.startsWith.some(word => message.startsWith(word)) ||
             ignoreWords.endsWith.some(word => message.endsWith(word))
@@ -277,6 +299,17 @@ export default class Commands {
                 steamID,
                 custom ? custom : '❌ I don\'t know what you mean, please type "!help" for all of my commands!'
             );
+        }
+    }
+
+    private getSKU(steamID: SteamID, message: string): void {
+        const itemName = CommandParser.removeCommand(removeLinkProtocol(message));
+        const sku = this.bot.schema.getSkuFromName(itemName);
+
+        this.bot.sendMessage(steamID, sku);
+
+        if (sku.includes('null') || sku.includes('undefined')) {
+            this.bot.sendMessage(steamID, 'Please check the name. If correct, please let us know. Thank you.');
         }
     }
 
@@ -346,7 +379,7 @@ export default class Commands {
             }
         }
 
-        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, true)}`;
+        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true)}`;
 
         if (match.max !== -1 && isBuying) {
             reply += ` / ${match.max}`;
@@ -439,10 +472,10 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(info.match.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, false, true);
         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.match.sku, false) - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(info.match.sku), false);
+        const name = info.match.name;
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -656,9 +689,11 @@ export default class Commands {
 
             void this.bot.trades.getOffer(activeOffer).asCallback((err, offer) => {
                 if (err || !offer) {
+                    const errStringify = JSON.stringify(err);
+                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${JSON.stringify(err)}` +
+                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${errMessage}` +
                             (!offer ? ` (or the offer might already be canceled)` : '')
                     );
                 }
@@ -670,6 +705,7 @@ export default class Commands {
                     // will get an alert from the onTradeOfferChanged handler
 
                     if (err) {
+                        log.warn('Error while trying to cancel an offer: ', err);
                         this.bot.sendMessage(
                             steamID,
                             `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
@@ -812,9 +848,11 @@ export default class Commands {
                 await adminInventory.fetch();
                 this.adminInventory[steamid] = adminInventory;
             } catch (err) {
+                log.error('Error fetching inventory: ', err);
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ Error fetching inventory, steam might down. Please try again later.`
+                    `❌ Error fetching inventory, steam might down. Please try again later. ` +
+                        `If you have private profile/inventory, please set to public and try again.`
                 );
             }
         }
@@ -899,7 +937,7 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
         const amountCanTrade = ourAmount - cartAmount;
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
 
@@ -991,7 +1029,7 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
         const amountCanTrade = ourAmount - cart.getOurCount(params.sku) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
@@ -1101,7 +1139,7 @@ export default class Commands {
         const numEvens = numMonths - numOdds;
         const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
 
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', false, true);
 
         if (ourAmount < amountKeys) {
             return this.bot.sendMessage(

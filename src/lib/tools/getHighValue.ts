@@ -1,24 +1,27 @@
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import { Items } from '@tf2autobot/tradeoffer-manager';
 import { spellsData, killstreakersData, sheensData } from '../data';
 import Bot from '../../classes/Bot';
-import { Paints, StrangeParts } from 'tf2-schema-2';
+import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import { testSKU } from '../tools/export';
 
-export default function getHighValueItems(
-    items: Items,
-    bot: Bot,
-    paints: Paints,
-    parts: StrangeParts
-): { [name: string]: string } {
-    const itemsWithName: {
-        [name: string]: string;
-    } = {};
+interface ItemsWithName {
+    [name: string]: string;
+}
+
+export default function getHighValueItems(items: Items, bot: Bot, paints: Paints, parts: StrangeParts): ItemsWithName {
+    const itemsWithName: ItemsWithName = {};
 
     const cT = bot.options.tradeSummary.customText;
     const normalizePaint = bot.options.normalize.painted.our === false || bot.options.normalize.painted.their === false;
+    let hasNotFull = false;
 
     for (const sku in items) {
         if (!Object.prototype.hasOwnProperty.call(items, sku)) {
+            continue;
+        }
+
+        if (!testSKU(sku)) {
             continue;
         }
 
@@ -28,7 +31,11 @@ export default function getHighValueItems(
 
         Object.keys(items[sku]).forEach(attachment => {
             if (attachment === 'isFull') {
-                toString += `\n💯 Full uses: ${items[sku].isFull ? '✅' : '❌'}`;
+                if (!items[sku].isFull) {
+                    hasNotFull = true;
+                }
+
+                toString += `\n💯 All full uses: ${!hasNotFull ? '✅' : '❌'}`;
             } else {
                 if (items[sku][attachment]) {
                     if (attachment === 's') {
@@ -78,5 +85,7 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
 }
 
 function getKeyByValue(object: { [key: string]: any }, value: any): string {
-    return Object.keys(object).find(key => object[key] === value);
+    const keys = Object.keys(object);
+    const key = keys.find(key => object[key] === value);
+    return key;
 }

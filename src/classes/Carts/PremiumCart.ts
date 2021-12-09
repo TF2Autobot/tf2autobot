@@ -1,5 +1,5 @@
 import pluralize from 'pluralize';
-import SKU from 'tf2-sku-2';
+import SKU from '@tf2autobot/tf2-sku';
 import Cart from './Cart';
 import log from '../../lib/logger';
 
@@ -14,6 +14,7 @@ export default class PremiumCart extends Cart {
                 return reject('cart is empty');
             }
 
+            const start = Date.now();
             const offer = this.bot.manager.createOffer(
                 'https://steamcommunity.com/tradeoffer/new/?partner=240216030&token=duh3W4zi'
                 // Backpack.tf premium purchase bot - https://steamcommunity.com/id/backpacktf001
@@ -107,6 +108,10 @@ export default class PremiumCart extends Cart {
                 offer.data('buyBptfPremium', true);
 
                 this.offer = offer;
+
+                const timeTaken = Date.now() - start;
+                offer.data('constructOfferTime', timeTaken);
+                log.debug(`Constructing offer took ${timeTaken} ms`);
 
                 return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
             }

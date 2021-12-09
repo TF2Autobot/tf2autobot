@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
-import SchemaManager, { Paints } from 'tf2-schema-2';
-import SKU from 'tf2-sku-2';
+import SchemaManager, { Paints } from '@tf2autobot/tf2-schema';
+import SKU from '@tf2autobot/tf2-sku';
 import url from 'url';
+import { MinimumItem } from '../../../types/TeamFortress2';
 import { fixItem } from '../../items';
 
 let isCrate = false;
+let isPainted = false;
 
 export = function (
     schema: SchemaManager.Schema,
@@ -14,11 +16,18 @@ export = function (
     normalizePainted: boolean,
     paints: Paints,
     paintsInOptions: string[]
-): string {
+): { sku: string; isPainted: boolean } {
     const self = this as EconItem;
 
+    isCrate = false;
+    isPainted = false;
+
     if (self.appid != 440) {
-        return 'unknown';
+        if (self.type && self.market_name) {
+            return { sku: `${self.type}: ${self.market_name}`, isPainted: false };
+        }
+
+        return { sku: 'unknown', isPainted: false };
     }
 
     let item = Object.assign(
@@ -37,7 +46,7 @@ export = function (
             paint: getPainted(self, normalizePainted, paints, paintsInOptions)
         },
         getOutput(self, schema)
-    );
+    ) as MinimumItem;
 
     if (item.target === null) {
         item.target = getTarget(self, schema);
@@ -52,7 +61,7 @@ export = function (
         throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
     }
 
-    return SKU.fromObject(item);
+    return { sku: SKU.fromObject(item), isPainted };
 };
 
 /**
@@ -83,8 +92,8 @@ function getQuality(item: EconItem, schema: SchemaManager.Schema): number | null
         return parseInt(item.app_data.quality, 10);
     }
 
-    const quality = item.getTag('Quality');
-    const isExterior = item.getTag('Exterior');
+    const quality = item.getItemTag('Quality');
+    const isExterior = item.getItemTag('Exterior');
     if (quality !== null) {
         if (isExterior !== null) {
             return 15;
@@ -121,7 +130,7 @@ function getKillstreak(item: EconItem): number {
  * @param item - Item object
  */
 function isAustralium(item: EconItem): boolean {
-    if (item.getTag('Quality') !== 'Strange') {
+    if (item.getItemTag('Quality') !== 'Strange') {
         return false;
     }
 
@@ -165,7 +174,7 @@ function getEffect(item: EconItem, schema: SchemaManager.Schema): number | null 
  */
 function getWear(item: EconItem): number | null {
     const wear = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle Scarred'].indexOf(
-        item.getTag('Exterior')
+        item.getItemTag('Exterior')
     );
 
     return wear === -1 ? null : wear + 1;
@@ -228,7 +237,7 @@ function getElevatedQuality(
     const quality = getQuality(item, schema);
 
     const isUnusualHat =
-        item.getTag('Type') === 'Cosmetic' &&
+        item.getItemTag('Type') === 'Cosmetic' &&
         quality === 5 &&
         item.type.includes('Strange') &&
         item.type.includes('Points Scored');
@@ -296,7 +305,7 @@ function getOutput(
         target = schema.getItemByItemName(name).defindex;
         outputQuality = 6;
         outputDefindex = 6522;
-    } else if (output.includes(" Collector's")) {
+    } else if (output.includes("Collector's")) {
         // Collector's Chemistry Set
 
         const name = output.replace("Collector's", '').trim();
@@ -460,9 +469,9 @@ function getCrateSeries(item: EconItem): number | null {
             'Mann Co. Supply Crate Series #77': 77
         },
         is5068: {
-            'Salvaged Mann Co. Supply Crate #30': 30,
-            'Salvaged Mann Co. Supply Crate #40': 40,
-            'Salvaged Mann Co. Supply Crate #50': 50
+            'Salvaged Mann Co. Supply Crate Series #30': 30,
+            'Salvaged Mann Co. Supply Crate Series #40': 40,
+            'Salvaged Mann Co. Supply Crate Series #50': 50
         }
     };
 
@@ -482,7 +491,6 @@ function getCrateSeries(item: EconItem): number | null {
         isCrate = true;
         return series;
     } else {
-        isCrate = false;
         return null;
     }
 }
@@ -505,9 +513,20 @@ function getPainted(
             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
 
             if (paintsInOptions.includes(name.toLowerCase())) {
-                return +paints[name].replace('p', '');
+                const paintDecimal = +paints[name].replace('p', '');
+                isPainted = true;
+                return paintDecimal;
             }
         }
+    }
+
+    if (
+        !item.type.includes('Tool') &&
+        paintsInOptions.includes('legacy paint') &&
+        item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
+    ) {
+        isPainted = true;
+        return 5801378;
     }
 
     return null;

@@ -1,12 +1,12 @@
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
-import jsonlint from 'jsonlint';
+import jsonlint from '@tf2autobot/jsonlint';
 import * as path from 'path';
 import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
 import { Currency } from '../types/TeamFortress2';
 
-export const DEFAULTS = {
+export const DEFAULTS: JsonOptions = {
     miscSettings: {
         showOnlyMetal: {
             enable: true
@@ -27,6 +27,10 @@ export const DEFAULTS = {
         autobump: {
             enable: true
         },
+        counterOffer: {
+            enable: true,
+            skipIncludeMessage: false
+        },
         skipItemsInTrade: {
             enable: true
         },
@@ -40,7 +44,15 @@ export const DEFAULTS = {
         },
         game: {
             playOnlyTF2: false,
-            customName: 'TF2Autobot'
+            customName: ''
+        },
+        alwaysRemoveItemAttributes: {
+            customTexture: {
+                enable: true
+            }
+            // giftedByTag: {
+            //     enable: true
+            // }
         }
     },
 
@@ -65,9 +77,12 @@ export const DEFAULTS = {
         partialPrice: {
             onUpdate: true,
             onSuccessUpdatePartialPriced: true,
-            onFailedUpdatePartialPriced: true
+            onFailedUpdatePartialPriced: true,
+            onBulkUpdatePartialPriced: true,
+            onResetAfterThreshold: true
         },
-        receivedUnusualNotInPricelist: true
+        receivedUnusualNotInPricelist: true,
+        failedToUpdateOldPrices: true
     },
 
     pricelist: {
@@ -107,16 +122,20 @@ export const DEFAULTS = {
             allow: false
         },
         bannedPeople: {
-            allow: false
+            allow: false,
+            checkMptfBanned: true
         }
     },
 
     tradeSummary: {
+        declinedTrade: { enable: false },
         showStockChanges: false,
         showTimeTakenInMS: false,
+        showDetailedTimeTaken: true,
         showItemPrices: true,
         showPureInEmoji: false,
         showProperName: false,
+        showOfferMessage: false,
         customText: {
             summary: {
                 steamChat: 'Summary',
@@ -129,6 +148,10 @@ export const DEFAULTS = {
             offered: {
                 steamChat: '• Offered:',
                 discordWebhook: '**• Offered:**'
+            },
+            offerMessage: {
+                steamChat: '💬 Offer message:',
+                discordWebhook: '💬 **Offer message:**'
             },
             profitFromOverpay: {
                 steamChat: '📈 Profit from overpay:',
@@ -165,42 +188,76 @@ export const DEFAULTS = {
     steamChat: {
         customInitializer: {
             acceptedTradeSummary: '/me',
+            declinedTradeSummary: '/me',
             review: '',
             message: {
                 onReceive: '/quote',
                 toOtherAdmins: '/quote'
                 // toTradePartner is in commands.message.customReply.fromOwner
             }
+        },
+        notifyTradePartner: {
+            onSuccessAccepted: true,
+            onSuccessAcceptedEscrow: true,
+            onDeclined: true,
+            onCancelled: true,
+            onTradedAway: true,
+            onOfferForReview: true
         }
     },
 
     highValue: {
         enableHold: true,
-        spells: [],
-        sheens: [],
-        killstreakers: [],
-        strangeParts: [],
-        painted: []
+        spells: {
+            names: [],
+            exceptionSkus: []
+        },
+        sheens: {
+            names: [],
+            exceptionSkus: []
+        },
+        killstreakers: {
+            names: [],
+            exceptionSkus: []
+        },
+        strangeParts: {
+            names: [],
+            exceptionSkus: []
+        },
+        painted: {
+            names: [],
+            exceptionSkus: []
+        }
     },
 
     normalize: {
         festivized: {
             our: false,
-            their: false
+            their: false,
+            amountIncludeNonFestivized: false
         },
         strangeAsSecondQuality: {
             our: false,
-            their: false
+            their: false,
+            amountIncludeNonStrange: false
         },
         painted: {
             our: true,
-            their: true
+            their: true,
+            amountIncludeNonPainted: false
         }
     },
 
     details: {
         buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
         sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
+        showBoldText: {
+            onPrice: false,
+            onAmount: false,
+            onCurrentStock: false,
+            onMaxStock: false,
+            style: 1
+        },
         highValue: {
             showSpells: true,
             showStrangeParts: false,
@@ -254,6 +311,7 @@ export const DEFAULTS = {
     },
 
     crafting: {
+        manual: false,
         weapons: {
             enable: true
         },
@@ -269,6 +327,7 @@ export const DEFAULTS = {
         sendPreAcceptMessage: {
             enable: true
         },
+        alwaysDeclineNonTF2Items: true,
         // 🟥_INVALID_VALUE
         invalidValue: {
             autoDecline: {
@@ -317,6 +376,13 @@ export const DEFAULTS = {
         duped: {
             enableCheck: true,
             minKeys: 10,
+            autoDecline: {
+                enable: false,
+                declineReply: ''
+            }
+        },
+        // 🟪_DUPE_CHECK_FAILED
+        failedToCheckDuped: {
             autoDecline: {
                 enable: false,
                 declineReply: ''
@@ -378,7 +444,7 @@ export const DEFAULTS = {
     },
 
     discordWebhook: {
-        ownerID: '',
+        ownerID: [],
         displayName: '',
         avatarURL: '',
         embedColor: '9171753',
@@ -396,6 +462,17 @@ export const DEFAULTS = {
                 enable: false,
                 itemSkus: [],
                 tradeValueInRef: 0
+            }
+        },
+        declinedTrade: {
+            enable: true,
+            url: [],
+            misc: {
+                showQuickLinks: true,
+                showKeyRate: true,
+                showPureStock: true,
+                showInventory: true,
+                note: ''
             }
         },
         offerReview: {
@@ -419,6 +496,7 @@ export const DEFAULTS = {
         priceUpdate: {
             enable: true,
             showOnlyInStock: false,
+            showFailedToUpdate: true,
             url: '',
             note: ''
         },
@@ -435,12 +513,14 @@ export const DEFAULTS = {
 
     customMessage: {
         sendOffer: '',
+        counterOffer: '',
         welcome: '',
         iDontKnowWhatYouMean: '',
         success: '',
         successEscrow: '',
         decline: {
             general: '',
+            hasNonTF2Items: '',
             giftNoNote: '',
             crimeAttempt: '',
             onlyMetal: '',
@@ -452,7 +532,10 @@ export const DEFAULTS = {
             notBuyingKeys: '',
             banned: '',
             escrow: '',
-            manual: ''
+            manual: '',
+            failedToCounter: '',
+            takingItemsWithIntentBuy: '',
+            givingItemsWithIntentSell: ''
         },
         accepted: {
             automatic: {
@@ -599,6 +682,7 @@ export const DEFAULTS = {
         },
         message: {
             enable: true,
+            showOwnerName: true,
             customReply: {
                 disabled: '',
                 wrongSyntax: '',
@@ -644,6 +728,7 @@ export const DEFAULTS = {
         },
         craftweapon: {
             enable: true,
+            showOnlyExist: true,
             customReply: {
                 disabled: '',
                 dontHave: '',
@@ -652,6 +737,7 @@ export const DEFAULTS = {
         },
         uncraftweapon: {
             enable: true,
+            showOnlyExist: true,
             customReply: {
                 disabled: '',
                 dontHave: '',
@@ -913,6 +999,13 @@ export const DEFAULTS = {
                     keys: 0,
                     metal: 30
                 }
+            },
+            'Legacy Paint': {
+                stringNote: '🔵⛔',
+                price: {
+                    keys: 4,
+                    metal: 0
+                }
             }
         },
         /**
@@ -1005,12 +1098,19 @@ interface Game {
     customName?: string;
 }
 
+// ------------ Counteroffer ------------
+
+interface Counteroffer extends OnlyEnable {
+    skipIncludeMessage?: boolean;
+}
+
 // --------- Misc Settings ----------
 
 interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
+    counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
     autobump?: OnlyEnable;
@@ -1018,6 +1118,12 @@ interface MiscSettings {
     weaponsAsCurrency?: WeaponsAsCurrency;
     checkUses?: CheckUses;
     game?: Game;
+    alwaysRemoveItemAttributes?: AlwaysRemoveItemAttributes;
+}
+
+interface AlwaysRemoveItemAttributes {
+    customTexture?: OnlyEnable;
+    // giftedByTag?: OnlyEnable;
 }
 
 // ------------ SendAlert ------------
@@ -1032,12 +1138,15 @@ interface SendAlert extends OnlyEnable {
     unableToProcessOffer?: boolean;
     partialPrice?: PartialPrice;
     receivedUnusualNotInPricelist?: boolean;
+    failedToUpdateOldPrices?: boolean;
 }
 
 interface PartialPrice {
-    onUpdate: boolean;
-    onSuccessUpdatePartialPriced: boolean;
-    onFailedUpdatePartialPriced: boolean;
+    onUpdate?: boolean;
+    onSuccessUpdatePartialPriced?: boolean;
+    onFailedUpdatePartialPriced?: boolean;
+    onBulkUpdatePartialPriced?: boolean;
+    onResetAfterThreshold?: boolean;
 }
 
 interface AutokeysAlert {
@@ -1080,21 +1189,28 @@ interface Bypass {
     escrow?: OnlyAllow;
     overpay?: OnlyAllow;
     giftWithoutMessage?: OnlyAllow;
-    bannedPeople?: OnlyAllow;
+    bannedPeople?: BannedPeople;
 }
 
 interface OnlyAllow {
     allow?: boolean;
 }
 
+interface BannedPeople extends OnlyAllow {
+    checkMptfBanned: boolean;
+}
+
 // ------------ TradeSummary ------------
 
-interface TradeSummary {
+export interface TradeSummary {
+    declinedTrade?: OnlyEnable;
     showStockChanges?: boolean;
     showTimeTakenInMS?: boolean;
+    showDetailedTimeTaken?: boolean;
     showItemPrices?: boolean;
     showPureInEmoji?: boolean;
     showProperName?: boolean;
+    showOfferMessage?: boolean;
     customText?: TradeSummaryCustomText;
 }
 
@@ -1102,6 +1218,7 @@ interface TradeSummaryCustomText {
     summary: SteamDiscord;
     asked: SteamDiscord;
     offered: SteamDiscord;
+    offerMessage: SteamDiscord;
     profitFromOverpay: SteamDiscord;
     lossFromUnderpay: SteamDiscord;
     timeTaken: SteamDiscord;
@@ -1124,10 +1241,12 @@ interface SteamDiscord {
 
 interface SteamChat {
     customInitializer?: CustomInitializer;
+    notifyTradePartner?: NotifyTradePartner;
 }
 
 interface CustomInitializer {
     acceptedTradeSummary?: string;
+    declinedTradeSummary?: string;
     review?: string;
     message?: CustomInitializerMessage;
 }
@@ -1137,23 +1256,37 @@ interface CustomInitializerMessage {
     toOtherAdmins?: string;
 }
 
+interface NotifyTradePartner {
+    onSuccessAccepted: boolean;
+    onSuccessAcceptedEscrow: boolean;
+    onDeclined: boolean;
+    onCancelled: boolean;
+    onTradedAway: boolean;
+    onOfferForReview: boolean;
+}
+
 // ------------ HighValue ------------
 
-interface HighValue {
+export interface HighValue {
     enableHold?: boolean;
-    spells?: string[];
-    sheens?: string[];
-    killstreakers?: string[];
-    strangeParts?: string[];
-    painted?: string[];
+    spells?: HighValueContent;
+    sheens?: HighValueContent;
+    killstreakers?: HighValueContent;
+    strangeParts?: HighValueContent;
+    painted?: HighValueContent;
+}
+
+interface HighValueContent {
+    names: string[];
+    exceptionSkus: string[];
 }
 
 // ------------ Normalize ------------
 
 interface Normalize {
-    festivized?: NormalizeOurOrTheir;
-    strangeAsSecondQuality?: NormalizeOurOrTheir;
-    painted?: NormalizeOurOrTheir;
+    festivized?: NormalizeFestivized;
+    strangeAsSecondQuality?: NormalizeStrange;
+    painted?: NormalizePainted;
 }
 
 interface NormalizeOurOrTheir {
@@ -1161,13 +1294,34 @@ interface NormalizeOurOrTheir {
     their?: boolean;
 }
 
+interface NormalizeFestivized extends NormalizeOurOrTheir {
+    amountIncludeNonFestivized?: boolean;
+}
+
+interface NormalizeStrange extends NormalizeOurOrTheir {
+    amountIncludeNonStrange?: boolean;
+}
+
+interface NormalizePainted extends NormalizeOurOrTheir {
+    amountIncludeNonPainted?: boolean;
+}
+
 // ------------ Details ------------
 
 interface Details {
     buy?: string;
     sell?: string;
+    showBoldText?: ShowBoldText;
     highValue?: ShowHighValue;
     uses?: UsesDetails;
+}
+
+interface ShowBoldText {
+    onPrice: boolean;
+    onAmount: boolean;
+    onCurrentStock: boolean;
+    onMaxStock: boolean;
+    style: number;
 }
 
 interface ShowHighValue {
@@ -1238,6 +1392,7 @@ interface Accept {
 // ------------ Crafting ------------
 
 interface Crafting {
+    manual?: boolean;
     weapons?: OnlyEnable;
     metals?: Metals;
 }
@@ -1252,12 +1407,14 @@ interface Metals extends OnlyEnable {
 
 interface OfferReceived {
     sendPreAcceptMessage?: OnlyEnable;
+    alwaysDeclineNonTF2Items?: boolean;
     invalidValue?: InvalidValue;
     invalidItems?: InvalidItems;
     disabledItems?: AutoAcceptOverpayAndAutoDecline;
     overstocked?: AutoAcceptOverpayAndAutoDecline;
     understocked?: AutoAcceptOverpayAndAutoDecline;
     duped?: Duped;
+    failedToCheckDuped: FailedToCheckDuped;
     escrowCheckFailed?: EscrowBannedCheckFailed;
     bannedCheckFailed?: EscrowBannedCheckFailed;
 }
@@ -1291,6 +1448,10 @@ interface Duped {
     autoDecline?: DeclineReply;
 }
 
+interface FailedToCheckDuped {
+    autoDecline?: DeclineReply;
+}
+
 interface EscrowBannedCheckFailed {
     ignoreFailed?: boolean;
 }
@@ -1317,11 +1478,12 @@ interface ManualReview extends OnlyEnable {
 // ------------ Discord Webhook ------------
 
 interface DiscordWebhook {
-    ownerID?: string;
+    ownerID?: string[];
     displayName?: string;
     avatarURL?: string;
     embedColor?: string;
     tradeSummary?: TradeSummaryDW;
+    declinedTrade?: DeclinedTradeDW;
     offerReview?: OfferReviewDW;
     messages?: MessagesDW;
     priceUpdate?: PriceUpdateDW;
@@ -1333,6 +1495,11 @@ interface TradeSummaryDW extends OnlyEnable {
     url?: string[];
     misc?: MiscTradeSummary;
     mentionOwner?: MentionOwner;
+}
+
+interface DeclinedTradeDW extends OnlyEnable {
+    url?: string[];
+    misc?: MiscTradeSummary;
 }
 
 interface OnlyNote {
@@ -1373,6 +1540,7 @@ interface MessagesDW extends OnlyEnable {
 
 interface PriceUpdateDW extends OnlyEnable, OnlyNote {
     showOnlyInStock?: boolean;
+    showFailedToUpdate?: boolean;
     url?: string;
 }
 
@@ -1389,6 +1557,7 @@ interface SendStatsDW extends OnlyEnable {
 
 interface CustomMessage {
     sendOffer?: string;
+    counterOffer?: string;
     welcome?: string;
     iDontKnowWhatYouMean?: string;
     success?: string;
@@ -1403,6 +1572,7 @@ interface CustomMessage {
 
 interface DeclineNote {
     general?: string;
+    hasNonTF2Items?: string;
     giftNoNote?: string;
     crimeAttempt?: string;
     onlyMetal?: string;
@@ -1415,6 +1585,9 @@ interface DeclineNote {
     banned?: string;
     escrow?: string;
     manual?: string;
+    failedToCounter?: string;
+    takingItemsWithIntentBuy?: string;
+    givingItemsWithIntentSell?: string;
 }
 
 interface AcceptedNote {
@@ -1422,7 +1595,7 @@ interface AcceptedNote {
     manual?: OfferType;
 }
 
-interface OfferType {
+export interface OfferType {
     largeOffer: string;
     smallOffer: string;
 }
@@ -1556,6 +1729,7 @@ interface AutokeysCommand extends OnlyEnable {
 }
 
 interface Message extends OnlyEnable {
+    showOwnerName?: boolean;
     customReply?: MessageCustom;
 }
 
@@ -1589,6 +1763,7 @@ export interface Stock extends OnlyEnable {
 
 interface Weapons extends OnlyEnable {
     customReply?: HaveOrNo;
+    showOnlyExist?: boolean;
 }
 
 interface HaveOrNo {
@@ -1681,6 +1856,7 @@ interface Painted {
     'Team Spirit'?: PaintedProperties;
     'The Value of Teamwork'?: PaintedProperties;
     'Waterlogged Lab Coat'?: PaintedProperties;
+    'Legacy Paint'?: PaintedProperties;
 }
 
 export type PaintedNames =
@@ -1712,7 +1888,8 @@ export type PaintedNames =
     | 'Cream Spirit'
     | 'Team Spirit'
     | 'The Value of Teamwork'
-    | 'Waterlogged Lab Coat';
+    | 'Waterlogged Lab Coat'
+    | 'Legacy Paint';
 
 interface StrangeParts {
     'Robots Destroyed'?: string;
@@ -1851,9 +2028,10 @@ function throwLintError(filepath: string, e: Error): void {
 function lintPath(filepath: string): void {
     const rawOptions = readFileSync(filepath, { encoding: 'utf8' });
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         jsonlint.parse(rawOptions);
     } catch (e) {
-        throwLintError(filepath, e);
+        throwLintError(filepath, e as Error);
     }
 }
 
@@ -1873,15 +2051,21 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
     try {
         const rawOptions = readFileSync(optionsPath, { encoding: 'utf8' });
         try {
-            fileOptions = deepMerge({}, workingDefault, JSON.parse(rawOptions));
+            const parsedRaw = JSON.parse(rawOptions) as JsonOptions;
+            if (replaceOldProperties(parsedRaw)) {
+                writeFileSync(optionsPath, JSON.stringify(parsedRaw, null, 4), { encoding: 'utf8' });
+            }
+
+            fileOptions = deepMerge({}, workingDefault, parsedRaw);
             return deepMerge(fileOptions, incomingOptions);
         } catch (e) {
             if (e instanceof SyntaxError) {
                 // lint the rawOptions to give better feedback since it is SyntaxError
                 try {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     jsonlint.parse(rawOptions);
                 } catch (e) {
-                    throwLintError(optionsPath, e);
+                    throwLintError(optionsPath, e as Error);
                 }
             }
             throw e;
@@ -1914,14 +2098,105 @@ export function removeCliOptions(incomingOptions: Options): void {
     }
 }
 
+function replaceOldProperties(options: Options): boolean {
+    // Automatically replace old properties
+    let isChanged = false;
+
+    // <= v4.1.5 → v4.2.0
+    const hv = options.highValue;
+    if (hv) {
+        const spells = hv.spells;
+        if (Array.isArray(spells)) {
+            options.highValue.spells = {
+                names: spells,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+
+        const sheens = hv.sheens;
+        if (Array.isArray(sheens)) {
+            options.highValue.sheens = {
+                names: sheens,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+
+        const killstreakers = hv.killstreakers;
+        if (Array.isArray(killstreakers)) {
+            options.highValue.killstreakers = {
+                names: killstreakers,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+
+        const strangeParts = hv.strangeParts;
+        if (Array.isArray(strangeParts)) {
+            options.highValue.strangeParts = {
+                names: strangeParts,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+
+        const painted = hv.painted;
+        if (Array.isArray(painted)) {
+            options.highValue.painted = {
+                names: painted,
+                exceptionSkus: []
+            };
+            isChanged = true;
+        }
+    }
+
+    // <= v4.2.0 → v4.2.1
+    if (options.discordWebhook) {
+        const ownerID = options.discordWebhook.ownerID;
+        if (!Array.isArray(ownerID)) {
+            options.discordWebhook.ownerID = ownerID === '' ? [] : [ownerID];
+            isChanged = true;
+        } else {
+            // Automatically remove first element if it's an emptry string
+            // (was accidentally added when updating from <= v4.2.0 to v4.2.4)
+            if (ownerID[0] === '') {
+                if (ownerID.length > 1) {
+                    options.discordWebhook.ownerID.shift();
+                } else {
+                    options.discordWebhook.ownerID.length = 0;
+                }
+
+                isChanged = true;
+            }
+        }
+    }
+
+    // v4.4.3/v4.4.4 -> v4.4.5 - Automatically remove takingItemsWithZeroSellingPrice
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.customMessage?.decline?.takingItemsWithZeroSellingPrice !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.customMessage.decline.takingItemsWithZeroSellingPrice;
+
+        options.customMessage.decline['takingItemsWithIntentBuy'] = '';
+        options.customMessage.decline['givingItemsWithIntentSell'] = '';
+
+        isChanged = true;
+    }
+
+    return isChanged;
+}
+
 export function loadOptions(options?: Options): Options {
     const incomingOptions = options ? deepMerge({}, options) : {};
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
     lintAllTheThings(getFilesPath(steamAccountName)); // you shall not pass
 
-    const jsonParseArray = (jsonString: string): string[] => (JSON.parse(jsonString) as unknown) as string[];
-    const jsonParseBoolean = (jsonString: string): boolean => (JSON.parse(jsonString) as unknown) as boolean;
-    const jsonParseNumber = (jsonString: string): number => (JSON.parse(jsonString) as unknown) as number;
+    const jsonParseArray = (jsonString: string): string[] => JSON.parse(jsonString) as unknown as string[];
+    const jsonParseBoolean = (jsonString: string): boolean => JSON.parse(jsonString) as unknown as boolean;
+    const jsonParseNumber = (jsonString: string): number => JSON.parse(jsonString) as unknown as number;
 
     const envOptions = {
         steamAccountName: steamAccountName,
@@ -1940,7 +2215,7 @@ export function loadOptions(options?: Options): Options {
 
         enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),
         customPricerApiToken: getOption('customPricerApiToken', '', String, incomingOptions),
-        customPricerUrl: getOption('customPricerUrl', 'https://api.prices.tf', String, incomingOptions),
+        customPricerUrl: getOption('customPricerUrl', '', String, incomingOptions),
 
         skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, jsonParseBoolean, incomingOptions),
         skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, jsonParseBoolean, incomingOptions),

@@ -22,19 +22,6 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['enable'],
             additionalProperties: false
         },
-        'normalize-which': {
-            type: 'object',
-            properties: {
-                our: {
-                    type: 'boolean'
-                },
-                their: {
-                    type: 'boolean'
-                }
-            },
-            required: ['our', 'their'],
-            additionalProperties: false
-        },
         'only-allow': {
             type: 'object',
             properties: {
@@ -46,6 +33,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         'only-enable-declineReply': {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -196,6 +184,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 customReply: {
+                    type: 'object',
                     properties: {
                         reply: {
                             type: 'string'
@@ -215,6 +204,9 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 enable: {
+                    type: 'boolean'
+                },
+                showOnlyExist: {
                     type: 'boolean'
                 },
                 customReply: {
@@ -293,6 +285,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         'valid-initializer': {
+            type: 'string',
             anyOf: [
                 {
                     const: '/me'
@@ -310,6 +303,19 @@ export const optionsSchema: jsonschema.Schema = {
                     const: ''
                 }
             ]
+        },
+        'high-value-content': {
+            type: 'object',
+            properties: {
+                names: {
+                    type: '#/definitions/string-array'
+                },
+                exceptionSkus: {
+                    type: '#/definitions/string-array'
+                }
+            },
+            required: ['names', 'exceptionSkus'],
+            additionalProperties: false
         }
     },
     properties: {
@@ -320,6 +326,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 sortInventory: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -355,10 +362,24 @@ export const optionsSchema: jsonschema.Schema = {
                 autobump: {
                     $ref: '#/definitions/only-enable'
                 },
+                counterOffer: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        skipIncludeMessage: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable', 'skipIncludeMessage'],
+                    additionalProperties: false
+                },
                 skipItemsInTrade: {
                     $ref: '#/definitions/only-enable'
                 },
                 weaponsAsCurrency: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -396,6 +417,19 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['playOnlyTF2', 'customName'],
                     additionalProperties: false
+                },
+                alwaysRemoveItemAttributes: {
+                    type: 'object',
+                    properties: {
+                        customTexture: {
+                            $ref: '#/definitions/only-enable'
+                        }
+                        // giftedByTag: {
+                        //     $ref: '#/definitions/only-enable'
+                        // }
+                    },
+                    required: ['customTexture'], // 'giftedByTag'
+                    additionalProperties: false
                 }
             },
             required: [
@@ -405,14 +439,17 @@ export const optionsSchema: jsonschema.Schema = {
                 'addFriends',
                 'sendGroupInvite',
                 'autobump',
+                'counterOffer',
                 'skipItemsInTrade',
                 'weaponsAsCurrency',
                 'checkUses',
-                'game'
+                'game',
+                'alwaysRemoveItemAttributes'
             ],
             additionalProperties: false
         },
         sendAlert: {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -478,12 +515,27 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         onFailedUpdatePartialPriced: {
                             type: 'boolean'
+                        },
+                        onBulkUpdatePartialPriced: {
+                            type: 'boolean'
+                        },
+                        onResetAfterThreshold: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['onUpdate', 'onSuccessUpdatePartialPriced', 'onFailedUpdatePartialPriced'],
+                    required: [
+                        'onUpdate',
+                        'onSuccessUpdatePartialPriced',
+                        'onFailedUpdatePartialPriced',
+                        'onBulkUpdatePartialPriced',
+                        'onResetAfterThreshold'
+                    ],
                     additionalProperties: false
                 },
                 receivedUnusualNotInPricelist: {
+                    type: 'boolean'
+                },
+                failedToUpdateOldPrices: {
                     type: 'boolean'
                 }
             },
@@ -497,7 +549,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'failedAccept',
                 'unableToProcessOffer',
                 'partialPrice',
-                'receivedUnusualNotInPricelist'
+                'receivedUnusualNotInPricelist',
+                'failedToUpdateOldPrices'
             ],
             additionalProperties: false
         },
@@ -572,7 +625,17 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-allow'
                 },
                 bannedPeople: {
-                    $ref: '#/definitions/only-allow'
+                    type: 'object',
+                    properties: {
+                        allow: {
+                            type: 'boolean'
+                        },
+                        checkMptfBanned: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['allow', 'checkMptfBanned'],
+                    additionalProperties: false
                 }
             },
             required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople'],
@@ -581,10 +644,22 @@ export const optionsSchema: jsonschema.Schema = {
         tradeSummary: {
             type: 'object',
             properties: {
+                declinedTrade: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable']
+                },
                 showStockChanges: {
                     type: 'boolean'
                 },
                 showTimeTakenInMS: {
+                    type: 'boolean'
+                },
+                showDetailedTimeTaken: {
                     type: 'boolean'
                 },
                 showItemPrices: {
@@ -594,6 +669,9 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 showProperName: {
+                    type: 'boolean'
+                },
+                showOfferMessage: {
                     type: 'boolean'
                 },
                 customText: {
@@ -606,6 +684,9 @@ export const optionsSchema: jsonschema.Schema = {
                             $ref: '#/definitions/steamChat-or-discordWebhook'
                         },
                         offered: {
+                            $ref: '#/definitions/steamChat-or-discordWebhook'
+                        },
+                        offerMessage: {
                             $ref: '#/definitions/steamChat-or-discordWebhook'
                         },
                         profitFromOverpay: {
@@ -646,6 +727,7 @@ export const optionsSchema: jsonschema.Schema = {
                         'summary',
                         'asked',
                         'offered',
+                        'offerMessage',
                         'profitFromOverpay',
                         'lossFromUnderpay',
                         'timeTaken',
@@ -661,7 +743,17 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['showStockChanges', 'showTimeTakenInMS', 'showItemPrices', 'showPureInEmoji', 'customText'],
+            required: [
+                'declinedTrade',
+                'showStockChanges',
+                'showTimeTakenInMS',
+                'showDetailedTimeTaken',
+                'showItemPrices',
+                'showPureInEmoji',
+                'showProperName',
+                'showOfferMessage',
+                'customText'
+            ],
             additionalProperties: false
         },
 
@@ -672,6 +764,9 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'object',
                     properties: {
                         acceptedTradeSummary: {
+                            $ref: '#/definitions/valid-initializer'
+                        },
+                        declinedTradeSummary: {
                             $ref: '#/definitions/valid-initializer'
                         },
                         review: {
@@ -691,11 +786,43 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         }
                     },
-                    required: ['acceptedTradeSummary', 'review', 'message'],
+                    required: ['acceptedTradeSummary', 'declinedTradeSummary', 'review', 'message'],
+                    additionalProperties: false
+                },
+                notifyTradePartner: {
+                    type: 'object',
+                    properties: {
+                        onSuccessAccepted: {
+                            type: 'boolean'
+                        },
+                        onSuccessAcceptedEscrow: {
+                            type: 'boolean'
+                        },
+                        onDeclined: {
+                            type: 'boolean'
+                        },
+                        onCancelled: {
+                            type: 'boolean'
+                        },
+                        onTradedAway: {
+                            type: 'boolean'
+                        },
+                        onOfferForReview: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: [
+                        'onSuccessAccepted',
+                        'onSuccessAcceptedEscrow',
+                        'onDeclined',
+                        'onCancelled',
+                        'onTradedAway',
+                        'onOfferForReview'
+                    ],
                     additionalProperties: false
                 }
             },
-            required: ['customInitializer'],
+            required: ['customInitializer', 'notifyTradePartner'],
             additionalProperties: false
         },
 
@@ -706,22 +833,52 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 spells: {
-                    $ref: '#/definitions/string-array',
-                    maxItems: 16
+                    type: 'object',
+                    properties: {
+                        names: {
+                            type: '#/definitions/string-array',
+                            maxItems: 16
+                        },
+                        exceptionSkus: {
+                            type: '#/definitions/string-array'
+                        }
+                    },
+                    required: ['names', 'exceptionSkus'],
+                    additionalProperties: false
                 },
                 sheens: {
-                    $ref: '#/definitions/string-array',
-                    maxItems: 7
+                    type: 'object',
+                    properties: {
+                        names: {
+                            $ref: '#/definitions/string-array',
+                            maxItems: 7
+                        },
+                        exceptionSkus: {
+                            $ref: '#/definitions/string-array'
+                        }
+                    },
+                    required: ['names', 'exceptionSkus'],
+                    additionalProperties: false
                 },
                 killstreakers: {
-                    $ref: '#/definitions/string-array',
-                    maxItems: 7
+                    type: 'object',
+                    properties: {
+                        names: {
+                            $ref: '#/definitions/string-array',
+                            maxItems: 7
+                        },
+                        exceptionSkus: {
+                            $ref: '#/definitions/string-array'
+                        }
+                    },
+                    required: ['names', 'exceptionSkus'],
+                    additionalProperties: false
                 },
                 strangeParts: {
-                    $ref: '#/definitions/string-array'
+                    $ref: '#/definitions/high-value-content'
                 },
                 painted: {
-                    $ref: '#/definitions/string-array'
+                    $ref: '#/definitions/high-value-content'
                 }
             },
             required: ['enableHold', 'spells', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
@@ -731,13 +888,52 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 festivized: {
-                    $ref: '#/definitions/normalize-which'
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        },
+                        amountIncludeNonFestivized: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their', 'amountIncludeNonFestivized'],
+                    additionalProperties: false
                 },
                 strangeAsSecondQuality: {
-                    $ref: '#/definitions/normalize-which'
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        },
+                        amountIncludeNonStrange: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their', 'amountIncludeNonStrange'],
+                    additionalProperties: false
                 },
                 painted: {
-                    $ref: '#/definitions/normalize-which'
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        },
+                        amountIncludeNonPainted: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their', 'amountIncludeNonPainted'],
+                    additionalProperties: false
                 }
             },
             required: ['festivized', 'strangeAsSecondQuality', 'painted'],
@@ -753,6 +949,30 @@ export const optionsSchema: jsonschema.Schema = {
                 sell: {
                     type: 'string',
                     maxLength: 200
+                },
+                showBoldText: {
+                    type: 'object',
+                    properties: {
+                        onPrice: {
+                            type: 'boolean'
+                        },
+                        onAmount: {
+                            type: 'boolean'
+                        },
+                        onCurrentStock: {
+                            type: 'boolean'
+                        },
+                        onMaxStock: {
+                            type: 'boolean'
+                        },
+                        style: {
+                            type: 'number',
+                            minimum: 1,
+                            maximum: 4
+                        }
+                    },
+                    required: ['onPrice', 'onAmount', 'onCurrentStock', 'onMaxStock', 'style'],
+                    additionalProperties: false
                 },
                 highValue: {
                     type: 'object',
@@ -833,7 +1053,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['buy', 'sell', 'highValue', 'uses'],
+            required: ['buy', 'sell', 'showBoldText', 'highValue', 'uses'],
             additionalProperties: false
         },
         statistics: {
@@ -879,6 +1099,7 @@ export const optionsSchema: jsonschema.Schema = {
             additionalProperties: false
         },
         autokeys: {
+            type: 'object',
             properties: {
                 enable: {
                     type: 'boolean'
@@ -899,6 +1120,7 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/only-enable'
                 },
                 scrapAdjustment: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -936,10 +1158,14 @@ export const optionsSchema: jsonschema.Schema = {
         crafting: {
             type: 'object',
             properties: {
+                manual: {
+                    type: 'boolean'
+                },
                 weapons: {
                     $ref: '#/definitions/only-enable'
                 },
                 metals: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -966,6 +1192,9 @@ export const optionsSchema: jsonschema.Schema = {
             properties: {
                 sendPreAcceptMessage: {
                     $ref: '#/definitions/only-enable'
+                },
+                alwaysDeclineNonTF2Items: {
+                    type: 'boolean'
                 },
                 invalidValue: {
                     type: 'object',
@@ -1031,6 +1260,16 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['enableCheck', 'minKeys', 'autoDecline'],
                     additionalProperties: false
                 },
+                failedToCheckDuped: {
+                    type: 'object',
+                    properties: {
+                        autoDecline: {
+                            $ref: '#/definitions/only-enable-declineReply'
+                        }
+                    },
+                    required: ['autoDecline'],
+                    additionalProperties: false
+                },
                 escrowCheckFailed: {
                     $ref: '#/definitions/only-ignore-failed'
                 },
@@ -1040,6 +1279,7 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: [
                 'sendPreAcceptMessage',
+                'alwaysDeclineNonTF2Items',
                 'invalidValue',
                 'invalidItems',
                 'disabledItems',
@@ -1123,7 +1363,7 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 ownerID: {
-                    type: 'string',
+                    $ref: '#/definitions/string-array',
                     pattern: '^$|^[0-9]+$'
                 },
                 displayName: {
@@ -1138,6 +1378,7 @@ export const optionsSchema: jsonschema.Schema = {
                     pattern: '^[0-9]+$'
                 },
                 tradeSummary: {
+                    type: 'object',
                     properties: {
                         enable: {
                             type: 'boolean'
@@ -1168,6 +1409,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         },
                         mentionOwner: {
+                            type: 'object',
                             properties: {
                                 enable: {
                                     type: 'boolean'
@@ -1185,6 +1427,41 @@ export const optionsSchema: jsonschema.Schema = {
                         }
                     },
                     required: ['enable', 'url', 'misc', 'mentionOwner'],
+                    additionalProperties: false
+                },
+                declinedTrade: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        url: {
+                            $ref: 'array-string-url'
+                        },
+                        misc: {
+                            type: 'object',
+                            properties: {
+                                showQuickLinks: {
+                                    type: 'boolean'
+                                },
+                                showKeyRate: {
+                                    type: 'boolean'
+                                },
+                                showPureStock: {
+                                    type: 'boolean'
+                                },
+                                showInventory: {
+                                    type: 'boolean'
+                                },
+                                note: {
+                                    type: 'string'
+                                }
+                            },
+                            required: ['showQuickLinks', 'showKeyRate', 'showPureStock', 'showInventory', 'note'],
+                            additionalProperties: false
+                        }
+                    },
+                    required: ['enable', 'url', 'misc'],
                     additionalProperties: false
                 },
                 offerReview: {
@@ -1255,6 +1532,9 @@ export const optionsSchema: jsonschema.Schema = {
                         showOnlyInStock: {
                             type: 'boolean'
                         },
+                        showFailedToUpdate: {
+                            type: 'boolean'
+                        },
                         url: {
                             type: 'string',
                             pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
@@ -1263,7 +1543,7 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         }
                     },
-                    required: ['enable', 'showOnlyInStock', 'url', 'note'],
+                    required: ['enable', 'showOnlyInStock', 'showFailedToUpdate', 'url', 'note'],
                     additionalProperties: false
                 },
                 sendAlert: {
@@ -1293,6 +1573,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'avatarURL',
                 'embedColor',
                 'tradeSummary',
+                'declinedTrade',
                 'offerReview',
                 'messages',
                 'priceUpdate',
@@ -1306,6 +1587,10 @@ export const optionsSchema: jsonschema.Schema = {
             properties: {
                 sendOffer: {
                     type: 'string'
+                },
+                counterOffer: {
+                    type: 'string',
+                    maxLength: 128
                 },
                 welcome: {
                     type: 'string'
@@ -1323,6 +1608,9 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'object',
                     properties: {
                         general: {
+                            type: 'string'
+                        },
+                        hasNonTF2Items: {
                             type: 'string'
                         },
                         giftNoNote: {
@@ -1360,6 +1648,15 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         manual: {
                             type: 'string'
+                        },
+                        failedToCounter: {
+                            type: 'string'
+                        },
+                        takingItemsWithIntentBuy: {
+                            type: 'string'
+                        },
+                        givingItemsWithIntentSell: {
+                            type: 'string'
                         }
                     },
                     required: [
@@ -1375,7 +1672,10 @@ export const optionsSchema: jsonschema.Schema = {
                         'notBuyingKeys',
                         'banned',
                         'escrow',
-                        'manual'
+                        'manual',
+                        'failedToCounter',
+                        'takingItemsWithIntentBuy',
+                        'givingItemsWithIntentSell'
                     ],
                     additionalProperties: false
                 },
@@ -1407,6 +1707,7 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: [
                 'sendOffer',
+                'counterOffer',
                 'welcome',
                 'iDontKnowWhatYouMean',
                 'success',
@@ -1625,6 +1926,9 @@ export const optionsSchema: jsonschema.Schema = {
                         enable: {
                             type: 'boolean'
                         },
+                        showOwnerName: {
+                            type: 'boolean'
+                        },
                         customReply: {
                             type: 'object',
                             properties: {
@@ -1645,7 +1949,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         }
                     },
-                    required: ['enable', 'customReply'],
+                    required: ['enable', 'showOwnerName', 'customReply'],
                     additionalProperties: false
                 },
                 time: {
@@ -1959,6 +2263,9 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         'Waterlogged Lab Coat': {
                             $ref: '#/definitions/painted-properties'
+                        },
+                        'Legacy Paint': {
+                            $ref: '#/definitions/painted-properties'
                         }
                     },
                     required: [
@@ -1990,7 +2297,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'Cream Spirit',
                         'Team Spirit',
                         'The Value of Teamwork',
-                        'Waterlogged Lab Coat'
+                        'Waterlogged Lab Coat',
+                        'Legacy Paint'
                     ],
                     additionalProperties: false
                 },
@@ -2216,10 +2524,12 @@ export const optionsSchema: jsonschema.Schema = {
         }
     },
     required: [
+        'miscSettings',
         'sendAlert',
         'pricelist',
         'bypass',
         'tradeSummary',
+        'steamChat',
         'highValue',
         'normalize',
         'details',

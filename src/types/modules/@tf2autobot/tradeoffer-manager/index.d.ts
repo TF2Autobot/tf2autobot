@@ -2,8 +2,8 @@
 declare module '@tf2autobot/tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
-    import SchemaManager, { Paints } from 'tf2-schema-2';
-    import Currencies from 'tf2-currencies-2';
+    import SchemaManager, { Paints } from '@tf2autobot/tf2-schema';
+    import Currencies from '@tf2autobot/tf2-currencies';
 
     interface UnknownKeys<T> {
         [key: string]: T;
@@ -89,32 +89,31 @@ declare module '@tf2autobot/tradeoffer-manager' {
         };
 
         export interface OfferData {
-            partner?: string; // checked
-            handleTimestamp?: number; // checked
-            notify?: boolean; // checked
-            dict?: ItemsDict; // checked
-            value?: ItemsValue; // ADMIN don't have this
-            prices?: Prices; // ADMIN don't have this // checked
-            handledByUs?: boolean; // checked
-            handleTime?: number; // Offer sent don't have this // checked
-            actionTimestamp?: number; // checked
-            actionTime?: number; // checked
-            actedOnConfirmation?: boolean; // checked
-            actedOnConfirmationTimestamp?: number; // checked
-            confirmationTime?: number; // checked
-            finishTimestamp?: number; // checked
-            isAccepted?: boolean; // checked
-            action?: Action; // checked
+            partner?: string;
+            handleTimestamp?: number;
+            notify?: boolean;
+            dict?: ItemsDict;
+            value?: ItemsValue;
+            prices?: Prices;
+            handledByUs?: boolean;
+            processOfferTime?: number;
+            constructOfferTime?: number;
+            processCounterTime?: number;
+            actionTimestamp?: number;
+            confirmationTime?: number;
+            finishTimestamp?: number;
+            isAccepted?: boolean;
+            action?: Action;
             meta?: Meta;
-            highValue?: HighValueOutput; // Only offer sent // checked
-            _dupeCheck?: string[]; // Only offer sent // checked
-            _ourItems?: OutItems[]; // checked
-            canceledByUser?: boolean; // checked
-            isFailedConfirmation?: boolean; // added
-            isCanceledUnknown?: boolean; // added
+            highValue?: HighValueOutput;
+            _dupeCheck?: string[];
+            _ourItems?: OutItems[];
+            canceledByUser?: boolean;
+            isFailedConfirmation?: boolean;
+            isCanceledUnknown?: boolean;
             isInvalid?: boolean;
             isDeclined?: boolean;
-            switchedState?: number; // checked
+            switchedState?: number;
             donation?: boolean;
             buyBptfPremium?: boolean;
         }
@@ -140,17 +139,15 @@ declare module '@tf2autobot/tradeoffer-manager' {
             metal: number;
         }
 
-        export interface PricesContent {
-            buy?: Currencies;
-            sell?: Currencies;
-        }
-
         export interface Prices {
-            [sku: string]: PricesContent;
+            [sku: string]: {
+                buy?: Currencies;
+                sell?: Currencies;
+            };
         }
 
         export interface Action {
-            action: 'accept' | 'decline' | 'skip';
+            action: 'accept' | 'decline' | 'skip' | 'counter';
             reason: string;
         }
 
@@ -189,6 +186,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             reason: '🟥_INVALID_VALUE';
             our: number;
             their: number;
+            missing: number;
         }
 
         export interface DupeCheckFailed {
@@ -240,7 +238,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             [partialSKU: string]: boolean;
         }
 
-        interface ItemAttributes {
+        export interface ItemAttributes {
             s?: PartialSKUWithMention;
             sp?: PartialSKUWithMention;
             ks?: PartialSKUWithMention;
@@ -258,24 +256,15 @@ declare module '@tf2autobot/tradeoffer-manager' {
             isMention: boolean;
         }
 
-        interface HighValueBoolean {
-            our: boolean;
-            their: boolean;
-        }
-
-        interface HighValueItemsWhich {
-            our: Items;
-            their: Items;
-        }
-
-        export interface HighValueInput {
-            our: HighValue;
-            their: HighValue;
-        }
-
         export interface HighValueOutput {
-            items: HighValueItemsWhich;
-            isMention: HighValueBoolean;
+            items: {
+                our: Items;
+                their: Items;
+            };
+            isMention: {
+                our: boolean;
+                their: boolean;
+            };
         }
 
         export interface OutItems {
@@ -366,10 +355,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             // Custom function added to prototype
             getAction(action: string): string | null;
 
-            // FIXME: Don't overwrite getTag prototype as it already exists
-
             // Custom function added to prototype
-            getTag(category: string): string | null;
+            getItemTag(category: string): string | null;
 
             // Custom function added to prototype
             getSKU(
@@ -379,7 +366,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
                 normalizePainted: boolean,
                 paints: Paints,
                 paintsInOptions: string[]
-            ): string | null;
+            ): { sku: string; isPainted: boolean } | null;
         }
 
         type TradeOfferItem = {
@@ -442,6 +429,14 @@ declare module '@tf2autobot/tradeoffer-manager' {
 
             addTheirItems(items: TradeOfferItem[]): number;
 
+            removeMyItem(item: TradeOfferItem): boolean;
+
+            removeMyItems(items: TradeOfferItem[]): number;
+
+            removeTheirItem(item: TradeOfferItem): boolean;
+
+            removeTheirItems(items: TradeOfferItem[]): number;
+
             setToken(token: string): void;
 
             setMessage(message: string): void;
@@ -455,6 +450,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             send(callback?: (err: Error | null, state?: string) => void): void;
 
             decline(callback?: (err: Error | null) => void): void;
+
+            counter(): TradeOffer;
 
             /**
              * Alias of decline
