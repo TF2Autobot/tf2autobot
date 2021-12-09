@@ -29,28 +29,45 @@ export default class ipcHandler extends IPC {
             //bind handlers
             this.ourServer.on('connect', this.connected.bind(this));
             this.ourServer.on('getInfo', this.sendInfo.bind(this));
-            this.ourServer.on('getInfo', this.sendPricelist.bind(this));
-            this.ourServer.on('getInfo', this.disconnect.bind(this));
+            this.ourServer.on('getPricelist', this.sendPricelist.bind(this));
+            this.ourServer.on('disconnected', this.disconnected.bind(this));
+            this.ourServer.on('addItem', this.addItem.bind(this));
         });
     }
 
     /* HANDLERS */
-    connected(): void {
-        log.info('IPC connected');
-        this.sendInfo();
+    private addItem(item): void {
+        log.info(item);
+        if (item?.name) delete item.name;
+
+        this.bot.pricelist
+            .addPrice(item, true)
+            .then(e => {
+                this.ourServer.emit('itemAdded', e);
+            })
+            .catch((e: any) => {
+                this.ourServer.emit('itemAdded', e);
+            });
     }
 
-    disconnect(): void {
+    private connected(): void {
+        log.info('IPC connected');
+        // this.sendInfo();
+    }
+
+    private disconnected(): void {
         log.warn('IPC disconnect');
     }
 
-    sendInfo(): void {
+    private sendInfo(): void {
         this.ourServer.emit('info', {
-            id: this.bot.client.steamID.getSteamID64()
+            id: this.bot.client.steamID.getSteamID64(),
+            admins: this.bot.getAdmins.map(id => id.getSteamID64())
         });
     }
 
     sendPricelist(): void {
-        this.ourServer.emit('pricelist', this.bot.pricelist.getPrices);
+        if (this.bot.pricelist) this.ourServer.emit('pricelist', this.bot.pricelist.getPrices);
+        else this.ourServer.emit('pricelist', false);
     }
 }

@@ -127,7 +127,6 @@ export default class Bot {
             cancelTime: 15 * 60 * 1000,
             pendingCancelTime: 1.5 * 60 * 1000
         });
-
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
 
@@ -138,6 +137,7 @@ export default class Bot {
         this.tf2gc = new TF2GC(this);
 
         this.handler = new MyHandler(this, this.priceSource);
+        this.ipc = new ipcHandler(this);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
 
@@ -351,13 +351,6 @@ export default class Bot {
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        this.addListener(this.listingManager, 'heartbeat', this.handler.onHeartbeat.bind(this), true);
-
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        this.addListener(this.pricelist, 'pricelist', this.handler.onPricelist.bind(this.handler), false);
-        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
-        this.addListener(this.pricelist, 'pricelist', this.ipc.sendPricelist.bind(this.ipc), false); //TODO adapt
-
         return new Promise((resolve, reject) => {
             async.eachSeries(
                 [
@@ -406,7 +399,7 @@ export default class Bot {
                             }
 
                             log.info('Signed in to Steam!');
-
+                            this.ipc.init();
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         };
@@ -464,6 +457,8 @@ export default class Bot {
                         log.info('Setting properties, inventory, etc...');
                         this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
                         this.pricelist.init();
+                        this.ipc.sendPricelist();
+                        this.addListener(this.pricelist, 'pricelist', this.ipc.sendPricelist.bind(this.ipc), false); //TODO adapt
                         this.inventoryManager = new InventoryManager(this.pricelist);
 
                         const userID = this.bptf._getUserID();
