@@ -103,7 +103,7 @@ export default class HelpCommands {
                 steamID,
                 '.\n✨=== Crafting ===✨\n- ' +
                     [
-                        '!craftToken <info|check> - Check the availability to craft tokens 🔨',
+                        '!craftToken <info|check> - Check the availability to craft tokens ℹ️🔨',
                         '!craftToken <tokenType> <subTokenType> <amount> - Craft Class or Slot Tokens 🔨'
                     ].join('\n- ')
             );
