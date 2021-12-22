@@ -37,10 +37,13 @@ export default class PricesTfPricer implements IPricer {
         do {
             await Promise.delay(delay);
             const start = new Date().getTime();
-            log.debug('Getting page ' + currentPage.toString() + ' of ' + totalPages.toString());
+            log.debug('Requesting pricelist pages...');
             const response = await this.api.getPricelistPage(currentPage);
-            currentPage++;
+
+            log.debug('Getting page ' + currentPage.toString() + ' of ' + totalPages.toString());
             totalPages = response.meta.totalPages;
+            currentPage++;
+
             prices = prices.concat(response.items);
             const time = new Date().getTime() - start;
 
