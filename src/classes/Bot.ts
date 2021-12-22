@@ -12,6 +12,8 @@ import async from 'async';
 import semver from 'semver';
 import request from 'request-retry-dayjs';
 
+import sleepasync from 'sleep-async';
+
 import InventoryManager from './InventoryManager';
 import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
 import Friends from './Friends';
@@ -266,7 +268,7 @@ export default class Bot {
     }
 
     get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string }> {
-        return this.getLatestVersion.then(content => {
+        return this.getLatestVersion.then(async content => {
             const latestVersion = content.version;
 
             const hasNewVersion = semver.lt(process.env.BOT_VERSION, latestVersion);
@@ -280,6 +282,48 @@ export default class Bot {
                         `Release note: https://github.com/TF2Autobot/tf2autobot/releases`,
                     []
                 );
+
+                await sleepasync().Promise.sleep(1000);
+
+                if (process.platform === 'win32') {
+                    this.messageAdmins(
+                        'version',
+                        `\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n`,
+                        []
+                    );
+                    this.messageAdmins(
+                        'version',
+                        `/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js`,
+                        []
+                    );
+                } else if (
+                    process.platform === 'linux' ||
+                    process.platform === 'darwin' ||
+                    process.platform === 'openbsd' ||
+                    process.platform === 'freebsd'
+                ) {
+                    this.messageAdmins(
+                        'version',
+                        `\n💻 To update run the following command inside your tf2autobot directory:\n`,
+                        []
+                    );
+                    this.messageAdmins(
+                        'version',
+                        `/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json`,
+                        []
+                    );
+                } else {
+                    this.messageAdmins(
+                        'version',
+                        `❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n`,
+                        []
+                    );
+                    this.messageAdmins(
+                        'version',
+                        `/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json`,
+                        []
+                    );
+                }
             }
 
             return { hasNewVersion, latestVersion };
