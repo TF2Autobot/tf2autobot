@@ -35,7 +35,7 @@
         "async": "^3.2.1",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
-        "body-parser": "^1.19.0",
+        "body-parser": "^1.19.1",
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
         "cheerio": "^1.0.0-rc.10",
@@ -71,7 +71,7 @@
         "xmlhttprequest-ts": "^1.0.1"
     },
     "devDependencies": {
-        "@babel/preset-typescript": "^7.16.0",
+        "@babel/preset-typescript": "^7.16.5",
         "@types/async": "^3.2.10",
         "@types/bluebird-global": "^3.5.13",
         "@types/cheerio": "^0.22.30",
@@ -98,8 +98,8 @@
         "nodemon": "^2.0.15",
         "prettier": "^2.5.1",
         "socket.io-mock": "^1.3.2",
-        "ts-jest": "^27.0.5",
-        "typescript": "^4.5.4"
+        "typescript": "^4.5.4",
+        "ts-jest": "^27.1.2"
     },
     "private": true,
     "_moduleAliases": {
