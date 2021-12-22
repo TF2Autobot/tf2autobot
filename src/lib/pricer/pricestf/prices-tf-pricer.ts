@@ -8,7 +8,7 @@ import IPricer, {
     RequestCheckResponse
 } from '../../../classes/IPricer';
 import PricesTfApi, { PricesTfItem, PricesTfItemMessageEvent } from './prices-tf-api';
-import logger from '../../logger';
+import log from '../../logger';
 
 export default class PricesTfPricer implements IPricer {
     private socketManager: PricesTfSocketManager;
@@ -37,7 +37,7 @@ export default class PricesTfPricer implements IPricer {
         do {
             await Promise.delay(delay);
             const start = new Date().getTime();
-            logger.debug('Getting page ' + currentPage.toString() + ' of ' + totalPages.toString());
+            log.debug('Getting page ' + currentPage.toString() + ' of ' + totalPages.toString());
             const response = await this.api.getPricelistPage(currentPage);
             currentPage++;
             totalPages = response.meta.totalPages;
@@ -119,7 +119,7 @@ export default class PricesTfPricer implements IPricer {
                     onPriceChange(item);
                 }
             } catch (e) {
-                logger.exception(e as Error);
+                log.exception(e as Error);
             }
         });
     }
