@@ -122,7 +122,7 @@ export default class PricesTfPricer implements IPricer {
                     onPriceChange(item);
                 }
             } catch (e) {
-                log.exception(e as Error);
+                log.error(e as Error);
             }
         });
     }

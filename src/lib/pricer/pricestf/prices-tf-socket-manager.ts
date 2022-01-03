@@ -50,7 +50,7 @@ export default class PricesTfSocketManager {
                 log.debug('JWT expired');
                 void this.api.setupToken().then(() => this.ws.reconnect());
             } else {
-                log.exception(err.error);
+                log.error(err.error);
             }
         });
 

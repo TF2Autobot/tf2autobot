@@ -107,7 +107,7 @@ export default class PricesTfApi {
             log.debug('got new access token');
             this.token = r.accessToken;
         } catch (e) {
-            log.exception(e as Error);
+            log.error(e as Error);
         }
     }
 
