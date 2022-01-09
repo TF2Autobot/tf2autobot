@@ -919,7 +919,7 @@ export default class Pricelist extends EventEmitter {
         return (
             `${
                 this.isDwAlertEnabled
-                    ? `[${currPrices.name}](https://www.prices.tf/items/${currPrices.sku})`
+                    ? `[${currPrices.name}](https://autobot.tf/items/${currPrices.sku})`
                     : currPrices.name
             } (${currPrices.sku}):\n▸ ` +
             [
@@ -935,7 +935,7 @@ export default class Pricelist extends EventEmitter {
         return (
             `${
                 this.isDwAlertEnabled
-                    ? `[${currPrices.name}](https://www.prices.tf/items/${currPrices.sku})`
+                    ? `[${currPrices.name}](https://autobot.tf/items/${currPrices.sku})`
                     : currPrices.name
             } (${currPrices.sku}):\n▸ ` +
             [

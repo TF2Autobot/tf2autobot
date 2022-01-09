@@ -189,8 +189,6 @@ export default function updateListings(
                 group: 'painted'
             } as EntryData;
 
-            const isCustomPricer = bot.pricelist.isUseCustomPricer;
-
             bot.pricelist
                 .addPrice(entry, true)
                 .then(data => {
@@ -202,9 +200,7 @@ export default function updateListings(
                         `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
                             priceFromOptions.metal
                         } ref)` +
-                        (isCustomPricer
-                            ? '\n - Base selling price was fetched from custom auto-pricer'
-                            : `\nhttps://www.prices.tf/items/${sku}`);
+                        `\nItem page: https://autobot.tf/items/${sku}`;
 
                     log.debug(msg);
 
@@ -272,8 +268,6 @@ export default function updateListings(
                 group: 'painted'
             } as EntryData;
 
-            const isCustomPricer = bot.pricelist.isUseCustomPricer;
-
             bot.pricelist
                 .addPrice(entry, true)
                 .then(data => {
@@ -284,9 +278,7 @@ export default function updateListings(
                         `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
                             priceFromOptions.metal
                         } ref)` +
-                        (isCustomPricer
-                            ? '\n - Base selling price was fetched from custom auto-pricer'
-                            : `\nhttps://www.prices.tf/items/${skuNoPaint}`);
+                        `\nItem page: https://autobot.tf/items/${skuNoPaint}`;
 
                     log.debug(msg);
 
@@ -368,7 +360,7 @@ export default function updateListings(
             // from ADMINS, and opt.pricelist.autoAddInvalidUnusual is false, then notify admin.
             const msg =
                 'I have received an Unusual bought with Generic Unusual feature\n\nItem info: ' +
-                (dwEnabled ? `[${name}](https://www.prices.tf/items/${sku}) (${sku})` : `${name} (${sku})`);
+                (dwEnabled ? `[${name}](https://autobot.tf/items/${sku}) (${sku})` : `${name} (${sku})`);
 
             if (opt.sendAlert.enable && opt.sendAlert.receivedUnusualNotInPricelist) {
                 if (dwEnabled) {
@@ -489,7 +481,7 @@ export default function updateListings(
                 .updatePrice(entry, true)
                 .then(data => {
                     const msg =
-                        `${dwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})\n▸ ` +
+                        `${dwEnabled ? `[${name}](https://autobot.tf/items/${sku})` : name} (${sku})\n▸ ` +
                         [
                             `old: ${oldPrice.buy.toString()}/${oldPrice.sell.toString()}`,
                             `new: ${data.buy.toString()}/${data.sell.toString()}`
