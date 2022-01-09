@@ -2279,7 +2279,7 @@ export default function sendWebHookPriceUpdateV1(
             {
                 author: {
                     name: itemName,
-                    url: `https://www.prices.tf/items/${sku}`,
+                    url: `https://autobot.tf/items/${sku}`,
                     icon_url: isCustomPricer
                         ? 'https://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/81/818fb1e235ccf685e8532a17f111f2697451b0d0_full.jpg'
                         : 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
@@ -2327,6 +2327,10 @@ class PriceUpdateQueue {
         this.url = url;
     }
 
+    private static sleepTime = 1000;
+
+    private static isRateLimited = false;
+
     private static isProcessing = false;
 
     static enqueue(sku: string, webhook: Webhook): void {
@@ -2356,8 +2360,11 @@ class PriceUpdateQueue {
 
         this.isProcessing = true;
 
-        if (this.size() >= 5) {
-            await sleepasync().Promise.sleep(500);
+        await sleepasync().Promise.sleep(this.sleepTime);
+
+        if (this.isRateLimited) {
+            this.sleepTime = 1000;
+            this.isRateLimited = false;
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
@@ -2366,6 +2373,16 @@ class PriceUpdateQueue {
             })
             .catch(err => {
                 log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
+
+                /*eslint-disable */
+                if (err.text) {
+                    const errContent = JSON.parse(err.text);
+                    if (errContent.message === 'The resource is being rate limited.') {
+                        this.sleepTime = errContent.retry_after;
+                        this.isRateLimited = true;
+                    }
+                }
+                /*eslint-enable */
             })
             .finally(() => {
                 this.isProcessing = false;
