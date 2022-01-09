@@ -213,7 +213,7 @@ function getSummary(
                                 ? pureEmoji.get(sku)
                                 : name
                             : name
-                    }](https://www.prices.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
+                    }](https://autobot.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
                     }${
                         which === 'our'

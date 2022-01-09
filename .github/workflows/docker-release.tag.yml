@@ -14,11 +14,11 @@ jobs:
     strategy:
       matrix:
         node:
-          - 14.16.0-alpine
-          - 14.16.0-buster
-          - 14.16.0-buster-slim
-          - 14.16.0-stretch
-          - 14.16.0-stretch-slim
+          - 16.13.0-alpine
+          - 16.13.0-buster
+          - 16.13.0-buster-slim
+          - 16.13.0-stretch
+          - 16.13.0-stretch-slim
 
     name: Tag Release (node:${{ matrix.node }})
 

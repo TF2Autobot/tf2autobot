@@ -50,14 +50,7 @@ export default class MiscCommands {
             );
         } else if (command === 'rate') {
             const key = this.bot.pricelist.getKeyPrices;
-            const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
             const keyRate = key.sell.toString();
-            const source =
-                key.src === 'manual'
-                    ? 'manual'
-                    : isCustomPricer
-                    ? 'custom-pricer'
-                    : 'https://api.prices.tf/items/5021;6?src=bptf';
 
             this.bot.sendMessage(
                 steamID,
@@ -65,15 +58,13 @@ export default class MiscCommands {
                     ? custom
                           .replace(/%keyRate%/g, keyRate)
                           .replace(/%keyPrices%/g, `${key.buy.metal} / ${key.sell.toString()}`)
-                          .replace(/%source%/g, source)
                     : 'I value 🔑 Mann Co. Supply Crate Keys at ' +
                           keyRate +
                           '. This means that one key is the same as ' +
                           keyRate +
                           ', and ' +
                           keyRate +
-                          ' is the same as one key.' +
-                          `\n\nKey rate source: ${source}`
+                          ' is the same as one key.'
             );
         } else if (command === 'owner') {
             const firstAdmin = this.bot.getAdmins[0];

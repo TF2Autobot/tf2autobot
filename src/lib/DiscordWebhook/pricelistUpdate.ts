@@ -2160,6 +2160,228 @@ const strangifierImages: { [sku: string]: string } = {
         '22VDJi7H1Xt_a_ZTOvTKwRf8pKzbHnf0aTOVLniNSAc8RLMPZG6K-mXw4-zAEWyfFespEFtQeaEGoGAcI4nXaARkidAKlH3oyhQzTE59NMxLd16E0iVOYfNzm3RULMYFmEu5JpnZm1thaFAzB-_mOfXDYoG7lyckS0snX_lOaY-RuDO1pcD8M6TZc7soJ7V1_suA0mkVSs8ZTJQ99JNHqZn39V0QPthrGQ9NR71_ZG7TV6zhyn-QX-C1aucMt5dRAloZHk-7yXYuDBg3qKeOs5jNmRs'
 };
 
+const unusualifierImages: { [sku: string]: string } = {
+    // Taunt: The High Five!
+    '9258;5;uncraftable;td-167':
+        '3G9DJDbH1X1qbeNlLs75zATppufDTHH2MGGXfyCASwk_SeYIMGje_GGn4uvBRGqfROkpFlsGe_RQpm1Jb9fJYUUrjdpc-lqgxxktUEV9IoNPfQjq9WxCbO1rn3RCY8IPziWfb5TUhUFnaEZ8A-WwV9OLboyljiYkXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7Rp6taS1lobScgZTKIyyo1BvtDz6FkQO45tTA5ER-ssY2zUVviyl3mcVre1N-JctJcEX1EdS0q9kiJyEQl3v5G7azBP',
+    // Taunt: The Director's Vision
+    '9258;5;uncraftable;td-438':
+        '3G9DJDbHz3F9aeR1B8fH0gL-7-aJRHCgbmPCfCWNSQw9TLZbPWyIrzGs7eiVEG3PEu4rSwEALvEDpGVXfZfeKUtgg4ZkszXlxwouS0Zue8hBITCjmylDf-pwmGcbKMxT9m3wK5THgF9ifh83DbmIH73Pb5-skC8yDFonRvQXYI-Vrnyxr5qoOajYbudyOrR06sSL3lAbStMjUpwszJoIus2m6F1FO99tQwhOE-97MGuAAa3gx3bMWeuxarBfsclYUFgfSkbrkmo7UR51RlcBdg',
+    // Taunt: The Schadenfreude
+    '9258;5;uncraftable;td-463':
+        'yWJaFS75yHNlWvFtLcXS_wn6s-WIUnfyOGDAeXLbSQo-H7VeY2rQqGCtt-qXQDifQesvRwkBK_AEpmAaPpuXf0xqwt5WrDSHjxQgTlh7J5UAeQK8m0sLYOB1hnZHdY0LxHPxSd3ZiF98bUZqTOG6Ab2tJoCokDEtXRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5y8dCUwlceRscVW48Bx55UvJu8ul4XONg7SwlMSe98N2-EAfvmliqfWuvmOOkKsJAGA1ESTU64m30tBldptq40q3gINg',
+    // Taunt: The Meet the Medic
+    '9258;5;uncraftable;td-477':
+        'xWtSIyHH1XF_auxvB9_H1Qvvnu6MDnPyJjHFKSOATAc7H7IPZGiI_zTx4-2WQjDOR755Eg0CfKJRoGwdO8-LNxUjlNlc7Wy1kBVCBkZ1IosVJV_9w3kUYII9mXxCa5xXmTKpe8PY6hZiZUZ0X7jnQOWfOIDK2S4pXQRuH6AMNcvV4XHh_JPxfK7bevVuN65p7IqS2UMBWsAQV5s3zo15t5_gvAgNattpSA4aQe5-bW-DBv_ilnyZC7e1O-ld4slTAghMHke1nHV-D0B_4eeZNFpbPDU9qA',
+    // Taunt: Square Dance
+    '9258;5;uncraftable;td-1106':
+        '3G9DJDbH2Xt-bOFjB8fH0gL-77fZHiDybmeTfXmNSw46T-VfYGmIrTattOvCQW6fQe5_S1sFfvQCoWNXfZfeKUtgg4ZkszXlxwouS0Zue8hBITCjmylDf-pwmGcbKMxT9m3wK5THgF9ifh83DbmIH73Pb5-skC8yDFonRvQXYI-Vrnyxr5qoOajYbudyOrR06sSL3lAbStMjUpwszJoIus2m6F1FO99tQwhOE-97MGuAAa3gx3bMWeuxarBfsclYUFgfSkbrkmo7UR7-VSCkHg',
+    // Taunt: Flippin' Awesome
+    '9258;5;uncraftable;td-1107':
+        '3G9DJDbH23hkddpgOdnBxUv-oLbVT3CjPWSQKyKARA9sSrteN2_crTP0s-iRQzzPEOp9FwAAeqEF7CQXat_QYkU8u88L9jX2xBEtWB8ldZR5aF7mmjpEZO1jwSwVdPQbmSnwOJHZhUk7NRFrNfHmW7zcZoGlhn5kHUMzEqQeZJ3M5XLhocSuNLSZaKZyJ7Rm88yB3lMAcM0dTJo7hZ4V782ivV0UO9BrSVxKRLx8ZDzVU_3vl3mQXbbjabUB7cZRUlkTHEaj2yos6mcPtdE',
+    // Taunt: Buy A Life
+    '9258;5;uncraftable;td-1108':
+        '3G9DJDbH32F0WuRTNMLAxTr3oPCKGTqnbm6TLnDcHQo9SrddMWzb_jv3truWRGrLRO4qSw9Ve_QA9GIdOJ-OIVJjg5FSpmLpqFwtQ0ZmIZAWNga2zSUsKex4mG9FcJtEwHmnJ_uQhVJidkNqWq6-C-vDAMiknS86VBpnCfFaJNLBtSHo-IGoN6CLdKtoOrIo6suSxEMTQ8gaV5gs9JNHqZn39QwQP9ttHQ5LQeF4ZzuHUazlwivMWee6a-YB5pQBAQ0SQki8nnRyWUA3qKeOi_862W0',
+    // Taunt: Results Are In
+    '9258;5;uncraftable;td-1109':
+        '3G9DJDbHz3F-cOl4K_TH0gDEqOyyEHXlbzKKdiLYSwttGeUPNmuK-GWi4OiSS2nPReh_SwAGKKVX8WUbac6LbBNr0ZlLpWL-nkl6TykwIpgWPlzumjIaPLp09zlDeJtMniHwMM2E0l4NIUZnWqbiVrzUNtzykUBtXBdnAakaZJ3E-GW1rJr1bveQdKVgaahk8MuUmEMcWtIJX5E3zZZDqaH-uh9EbsY8SApPQb9-YmmJUvu1xXvNXOLna-YN7ZVXX1pPGxnpk3x8Dkwp4a_QdE0e51GVhZmj',
+    // Taunt: Rock, Paper, Scissors
+    '9258;5;uncraftable;td-1110':
+        '3G9DJDbHz2R-WultKszDjgOq8bDcH3WmPjPHfXWBGFwxGLtaPWnRrWajtuydQDCfSOp5QQ8DfqYasjoeK5DUaBNSnIcG-yvrwhQ7FxsvI_peIVLrhCNGYfssxSZDGtJSlCTuI5TZkwY_P0cFE7nqVqLLb4GzwW9kBE5qG6QactLI7yi1q8ivKejDc710IaBr9sOO0kQtQ8AOWZhwyswS6M7061oTM95vGQhJFOt_MD2GUPGzxHabC7Lka-kB4sBVV1BMQ1H9xSOOrjlDUA',
+    // Taunt: Skullcracker
+    '9258;5;uncraftable;td-1111':
+        '3G9DJDbHzn94aelvKsrFywDpnu6MDnPyJjGdeiSOSVwwS-BZMzrQ_mWn7eiRQjnPRrl4R1oNLPcEoDFIbJzbbkAjlNlc7Wy1kBVCBkZ1IosVJV_9w3kUYII9mXxCa5xXmTKpe8PY6hZiZUZ0X7jnQOWfOIDK2S4pXQRuH6AMNcvV4XHh_JPxfK7bevVuN65p7IqS2UMBWsAQV5s3zo15t5_gvAgNattpSA4aQe5-bW-DBv_ilnyZC7e1O-ld4slTAghMHke1nHV-D0B_4eeZNFric_v7DQ',
+    // Taunt: Party Trick
+    '9258;5;uncraftable;td-1112':
+        '3G9DJDbHzXV_cfxTLNnPww7EreOfG3G5OGTFeCWMHlg5TOVWY2zY92et5OuQRG6aEO4pF1gBfKQMoWUfNJvaOQx9itAdomi_xntlTkt4PJYTIEmyx3NCDqV0lXFccp5Sj32tcZW2zF9vaFhvWrjxD-GVbu7skSIkQxNnH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNCJwkUHTs0VWJQ72aBKuoz1vkNCONxuS1hMRul2Y2vTUvyywX_NCuS2N7UO7cIFBg9OQke6mnF7Bh8g9rmHPY0WM7LF',
+    // Taunt: Fresh Brewed Victory
+    '9258;5;uncraftable;td-1113':
+        '3G9DJDbH22Zodu1TOtnD1wD_nu6MDnPyJjKWLiWMSQ1rSLQPMT7YrTGmtr-QSzCdQOx_R1hVKaRV-2cfacCKP0MjlNlc7Wy1kBVCBkZ1IosVJV_9w3kUYII9mXxCa5xXmTKpe8PY6hZiZUZ0X7jnQOWfOIDK2S4pXQRuH6AMNcvV4XHh_JPxfK7bevVuN65p7IqS2UMBWsAQV5s3zo15t5_gvAgNattpSA4aQe5-bW-DBv_ilnyZC7e1O-ld4slTAghMHke1nHV-D0B_4eeZNFqdPTpu-w',
+    // Taunt: Spent Well Spirits
+    '9258;5;uncraftable;td-1114':
+        '3G9DJDbHzmRoa_FTL87KzDr3oPCKGTqnPWWQfyCASwk8SLdcZ2zfrDat5emdQznIF7wlFQkBeaJS9jUfbsGBIVJjg5FSpmLpqFwtQ0ZmIZAWNga2zSUsKex4mG9FcJtEwHmnJ_uQhVJidkNqWq6-C-vDAMiknS86VBpnCfFaJNLBtSHo-IGoN6CLdKtoOrIo6suSxEMTQ8gaV5gs9JNHqZn39QwQP9ttHQ5LQeF4ZzuHUazlwivMWee6a-YB5pQBAQ0SQki8nnRyWUA3qKeOcuoeDys',
+    // Taunt: Rancho Relaxo
+    '9258;5;uncraftable;td-1115':
+        '3G9DJDbHz3VjZu1jB9nDzATjrt2BHWbwbXmQd3TbSls-G-ZcPWvb92ag4u3AS27OSL0lF18FKaZQ-mUaNcHaPBA7ysdVrCOxmkMsIQ54L5UII1rrjH0eNuwa0HBPdYVVnCTmf8mOhDAraEtqRL3nVqqbMtak_2YlUBp5FqAactrV-Hy49ZP1auHfcK86PaJo8dbIwlgHXNQdUpQ4wppUhJLzqQpGJYluTw1MF-l5ZWGHVqvhxiuaX7bmOOUBscZYVAxLHBu1k3N6CkkgvvDHKlMXXR4r2AE',
+    // Taunt: I See You
+    '9258;5;uncraftable;td-1116':
+        '3G9DJDbH1Et-YOBTIcTT_wn6s-WIUiOvPWWXf3aKGA84G7pbN2nb_TDx4rvGFG7IErslQABRfvcE8GRNOMCXf0xqwt5WrDSHjxQgTlh7J5UAeQK8m0sLYOB1hnZHdY0LxHPxSd3ZiF98bUZqTOG6Ab2tJoCokDEtXRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5y8dCUwlceRscVW48Bx55UvJu8ul4XONg7SwlMSe98N2-EAfvmliqfWuvmOOkKsJAGA1ESTU64m30tBldptq6VqzN9uw',
+    // Taunt: Battin' a Thousand
+    '9258;5;uncraftable;td-1117':
+        '3G9DJDbH33V5cexiB9_OzxDooOyJI3j2ejDBYXKMHlsxSrpaMWGK_zKn5O3FQz_MR-gtEABQKfBSpmZJa83Yaxo909UVu2u_0U1wGUcXapUbIEHonyRVOLAimR4KdJZShyP1JoKA2AhjBw9qV7j5U7zCedj4xy5LFBtqH74TZIuD6WWsocP8bvOGO6FqM_xu_MqJxBkHQdQPS5wywplPvozNtwxRbI1zGg1IQukoZW6BXP_lkXidC-GzarUO4ckEUFEZHx7rz3xzCEgs6PCPYxMA7imBQxehPA',
+    // Taunt: Conga
+    '9258;5;uncraftable;td-1118':
+        '3G9DJDbH3ntjYuRTNMrUxwC19bPeGSP1PjaSKyffTwxuROVcYG7Zrzat7LyURG3MQL19EF0AdfEDo3oJY56fZk9q1ehD-zjo2RcoTlAhf8IXTxfqlyRdZuh1jigfIpo90CT9JorchV90MRs9W9euV7HCcYilkDl1HVo-S60eYIuD4Xi79c6iNanFMr1pIbJy_smO0V8XXf4QX485ztFH6Mqh6wsTPNhlTQweR-wrZ2jUAP7jyyqfVuDnbrdd7clXVlwaQxm0hTQlWFnjj8ik',
+    // Taunt: Deep Fried Desire
+    '9258;5;uncraftable;td-1119':
+        '3G9DJDbH2XFoddpqKsLDxDr3oPCKGTqiOzOcfHiKSlhtGLZePWrRqjvx7bmcFmrBQ-l4ElsAK6tWp2cfPcDaIVJjg5FSpmLpqFwtQ0ZmIZAWNga2zSUsKex4mG9FcJtEwHmnJ_uQhVJidkNqWq6-C-vDAMiknS86VBpnCfFaJNLBtSHo-IGoN6CLdKtoOrIo6suSxEMTQ8gaV5gs9JNHqZn39QwQP9ttHQ5LQeF4ZzuHUazlwivMWee6a-YB5pQBAQ0SQki8nnRyWUA3qKeOvmOvPO8',
+    // Taunt: Oblooterated
+    '9258;5;uncraftable;td-1120':
+        '3G9DJDbH0nZhaup4PdnH1AD_nu6MDnPyJmCcKiCAHV9rGbpZNWvZ-DWhseqWFDyfRb0vQF8BKaUE92UfP8DYa0AjlNlc7Wy1kBVCBkZ1IosVJV_9w3kUYII9mXxCa5xXmTKpe8PY6hZiZUZ0X7jnQOWfOIDK2S4pXQRuH6AMNcvV4XHh_JPxfK7bevVuN65p7IqS2UMBWsAQV5s3zo15t5_gvAgNattpSA4aQe5-bW-DBv_ilnyZC7e1O-ld4slTAghMHke1nHV-D0B_4eeZNFqh4_koKg',
+    // Taunt: Kazotsky Kick
+    '9258;5;uncraftable;td-1157':
+        '3G9DJDbHz2F-duxtNvTKwRf8pKzbSy2kPDORe3KNGAs-RLpWYzqL-mei4OvFET2cSOwkEgkCLPdQpjVAI4nXaARkidAKlH3oyhQzTUN4NMxLd16E0iVOYfNynXFULMYFmEu5JpnZm1piaFAzB-_mOfXDYoG7mS8kS0snX_lOaY-RuDO1pcD8M6TZc7soIa9y7NCG218URsQOYZE_2ZhD9Z-h714TbdhqSwZKQ7t4YDyDVayzxHqQCuS6PLRYs5VYX14bT0-0zX1lTxd-2SiuArU',
+    // Taunt: Mannrobics
+    '9258;5;uncraftable;td-1162':
+        '3G9DJDbH0HVjd-puMcj5zATppufDHyPyaWaSfCWIHw04SLILMTvYrDess-2cR23ORL0rRgpRL6sB8GROPtfJYUUrjdpc-lqgxxktUEV9IoNPfQjq9WxCbO1rn3RCY8IPziWfb5TUhUFnaEZ8A-WwV9OLboyljiYkXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7Rp6taS1lobScgZTKIyyo1BvtDz6FkQO45tTA5ER-ssY2zUVviyl3mcVre1N-JctJcEX1EdS0q9kiJyEQl3vyqTuF9f',
+    // Taunt: The Carlton
+    '9258;5;uncraftable;td-1168':
+        '3G9DJDbH22Zodu1uPcrS0zr3oPCKGTqjP2PAdniAGA85H-JZPGjb_jH34uiWE2vPQrskQgEBfqpS8TIdbMzdIVJjg5FSpmLpqFwtQ0ZmIZAWNga2zSUsKex4mG9FcJtEwHmnJ_uQhVJidkNqWq6-C-vDAMiknS86VBpnCfFaJNLBtSHo-IGoN6CLdKtoOrIo6suSxEMTQ8gaV5gs9JNHqZn39QwQP9ttHQ5LQeF4ZzuHUazlwivMWee6a-YB5pQBAQ0SQki8nnRyWUA3qKeOgTAap7Q',
+    // Taunt: The Victory Lap
+    '9258;5;uncraftable;td-1172':
+        '3G9DJDbH32FgdeB-O8rU_wn6s-WIUif2PTLHfHmIS1w6HLJZZjra-WKisOySEzCdF759RgAEKKpW8DdOaZyXf0xqwt5WrDSHjxQgTlh7J5UAeQK8m0sLYOB1hnZHdY0LxHPxSd3ZiF98bUZqTOG6Ab2tJoCokDEtXRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5y8dCUwlceRscVW48Bx55UvJu8ul4XONg7SwlMSe98N2-EAfvmliqfWuvmOOkKsJAGA1ESTU64m30tBldptq7LjysSRA',
+    // Taunt: The Table Tantrum
+    '9258;5;uncraftable;td-1174':
+        '3G9DJDbHyXVvaeBTPsfP0Dr3oPCKGTr1MGTGK3XaSgs7SbZXMjvf-zas7LjAQz6dRuArSltSfadW-zAab87fIVJjg5FSpmLpqFwtQ0ZmIZAWNga2zSUsKex4mG9FcJtEwHmnJ_uQhVJidkNqWq6-C-vDAMiknS86VBpnCfFaJNLBtSHo-IGoN6CLdKtoOrIo6suSxEMTQ8gaV5gs9JNHqZn39QwQP9ttHQ5LQeF4ZzuHUazlwivMWee6a-YB5pQBAQ0SQki8nnRyWUA3qKeOIhVsbj0',
+    // Taunt: The Boiling Point
+    '9258;5;uncraftable;td-1175':
+        '3G9DJDbHyXVvaeBTPsfP0Dr3oPCKGTr1MGTGK3XaSgs7SbZXMjvf-zas7LjAQz6dRuArSltSfadW-zAab87fIVJjg5FSpmLpqFwtQ0ZmIZAWNga2zSUsKex4mG9FcJtEwHmnJ_uQhVJidkNqWq6-C-vDAMiknS86VBpnCfFaJNLBtSHo-IGoN6CLdKtoOrIo6suSxEMTQ8gaV5gs9JNHqZn39QwQP9ttHQ5LQeF4ZzuHUazlwivMWee6a-YB5pQBAQ0SQki8nnRyWUA3qKeOIhVsbj0',
+    // Taunt: Yeti Punch
+    '9258;5;uncraftable;td-1182':
+        '3G9DJDbHxHF5bNp8LcXFyDr3oPCKGTqvPGSQLHjcTVg6TrNWY2_a_WCm4LuWQjuYEuF4QVwFe_EGpjJLa8vfIVJjg5FSpmLpqFwtQ0ZmIZAWNga2zSUsKex4mG9FcJtEwHmnJ_uQhVJidkNqWq6-C-vDAMiknS86VBpnCfFaJNLBtSHo-IGoN6CLdKtoOrIo6suSxEMTQ8gaV5gs9JNHqZn39QwQP9ttHQ5LQeF4ZzuHUazlwivMWee6a-YB5pQBAQ0SQki8nnRyWUA3qKeOw30xaus',
+    // Taunt: Yeti Smash
+    '9258;5;uncraftable;td-1183':
+        '3G9DJDbHxHF5bNpgOdnBxUus8LfZHyOmOW7GfiCISQw6SeUIY2vcqDSg7OmRFG7LE7osElwFfPEH7CQXat_QYkU8u88L9jX2xBEtWB8ldZR5aF7mmjpEZO1jwSwVdPQbmSnwOJHZhUk7NRFrNfHmW7zcZoGlhn5kHUMzEqQeZJ3M5XLhocSuNLSZaKZyJ7Rm88yB3lMAcM0dTJo7hZ4V782ivV0UO9BrSVxKRLx8ZDzVU_3vl3mQXbbjabUB7cZRUlkTHEaj2yosolyS6nU',
+    // Taunt: Panzer Pants
+    '9258;5;uncraftable;td-1196':
+        '3G9DJDbHyXVjbtpgOdnBxUut8bWPSSzyMWfHK3OAGgw6G-ZWPGjd-2en4e3ARTvAErsuRVtWK6sN7CQXat_QYkU8u88L9jX2xBEtWB8ldZR5aF7mmjpEZO1jwSwVdPQbmSnwOJHZhUk7NRFrNfHmW7zcZoGlhn5kHUMzEqQeZJ3M5XLhocSuNLSZaKZyJ7Rm88yB3lMAcM0dTJo7hZ4V782ivV0UO9BrSVxKRLx8ZDzVU_3vl3mQXbbjabUB7cZRUlkTHEaj2yosNchx9Do',
+    // Taunt: The Scooty Scoot
+    '9258;5;uncraftable;td-1197':
+        '3G9DJDbH0Ht9YOFTNMrUxwC1-eDaSCWmaTXAfCWPGlpuH7QLPTzZq2Cj5rjHQzHNQbl-EQFWKKcF-3oJY56fZk9q1ehD-zjo2RcoTlAhf8IXTxfqlyRdZuh1jigfIpo90CT9JorchV90MRs9W9euV7HCcYilkDl1HVo-S60eYIuD4Xi79c6iNanFMr1pIbJy_smO0V8XXf4QX485ztFH6Mqh6wsTPNhlTQweR-wrZ2jUAP7jyyqfVuDnbrdd7clXVlwaQxm0hTQlWCjfMoXM',
+    // Taunt: Pool Party
+    '9258;5;uncraftable;td-30570':
+        'yWJaFSf3yXhSceR5Nt_5zATppufDHyWkbWLGfSLbGFo4RbRWPDnR9zqm4r7FRzqaFe4lFQANfacF8zdMONfJYUUrjdpc-lqgxxktUEV9IoNPfQjq9WxCbO1rn3RCY8IPziWfb5TUhUFnaEZ8A-WwV9OLboyljiYkXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7Rp6taS1lobScgZTKIyyo1BvtDz6FkQO45tTA5ER-ssY2zUVviyl3mcVre1N-JctJcEX1EdS0q9kiJyEQl3vynOXuMW',
+    // Taunt: The Boston Breakdance
+    '9258;5;uncraftable;td-30572':
+        '3G9DJDbHyXxoWudjK9_Jzjr5s-eMF3D2ZjTBEC3YDlltU7ZXY2rR_Tqk4OmWRj-cRu4sRgEDfadWpzIdNcCKaUQ11IUMqmPolUIzDhgvNMxLd16E0iROYfN2nXFULMYFmEu4J5nZm1hnaFAzB-_mOfXCYoG7lS8kS0M6SKF1LYqYuDvl-JfnO7fGdKw6YPU3ucyK0AsbTM4STdIrxYpVrp_-sgtKbpoCF18OFrxgNGqFV_mxw3mYVuWwbecMsMNRAg0dTkfpnHx4Whh_vPHRbQxFsHdw-7zS8ZotfMNKxw',
+    // Taunt: The Killer Solo
+    '9258;5;uncraftable;td-30609':
+        '3G9DJDbH1n1haeB-B9jJzArEreOfG3G5OmSTfSOIRQc_G-dZPTyLqzWisOSQQm3MQegsFQoEKaYE82NNb8jaPQx9itAdomi_xntlTkt4PJYTIEmyx3NCDqV0lXFccp5Sj32tcZW2zF9vaFhvWrjxD-GVbu7skSIkQxNnH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNCJwkUHTs0VWJQ72aBKuoz1vkNCONxuS1hMRul2Y2vTUvyywX_NCuS2N7UO7cIFBg9OQke6mnF7Bh8g9rmHPfqE9HgF',
+    // Taunt: Most Wanted
+    '9258;5;uncraftable;td-30614':
+        '3G9DJDbH0Ht-cdp7OcXSxQHEreOfG3G5OWSWenCPTFg7HrUMNGCIrDul4uqdEGzNFO8tEAsAeacDoGJIOZiBOQx9itAdomi_xntlTkt4PJYTIEmyx3NCDqV0lXFccp5Sj32tcZW2zF9vaFhvWrjxD-GVbu7skSIkQxNnH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNCJwkUHTs0VWJQ72aBKuoz1vkNCONxuS1hMRul2Y2vTUvyywX_NCuS2N7UO7cIFBg9OQke6mnF7Bh8g9rmHPUi5kB-d',
+    // Taunt: The Box Trot
+    '9258;5;uncraftable;td-30615':
+        '3G9DJDbHzmR0WudjIN_UzxHEreOfG3G5bGWRdyePHV0-GLQMZG_drDOh4L_HSznAEO4oRAEHf6RVozAcP86BOAx9itAdomi_xntlTkt4PJYTIEmyx3NCDqV0lXFccp5Sj32tcZW2zF9vaFhvWrjxD-GVbu7skSIkQxNnH7ZLJMvM7Cjo_JfnM6rRIKFkO690sNCJwkUHTs0VWJQ72aBKuoz1vkNCONxuS1hMRul2Y2vTUvyywX_NCuS2N7UO7cIFBg9OQke6mnF7Bh8g9rmHPVktbNWM',
+    // Taunt: The Proletariat Posedown
+    '9258;5;uncraftable;td-30616':
+        '3G9DJDbHznt7bOB4B9jOzxL0p-SyEHXlbzKKLXiASlswTuYPND7er2Lws--cED7ORrl_RApWKaUGoGRAPcuAaRps0JlLpWL-nkl6TykwIpgWPlzumjIaPLp09zlDeJtMniHwMM2E0l4NIUZnWqbiVrzUNtzykUBtXBdnAakaZJ3E-GW1rJr1bveQdKVgaahk8MuUmEMcWtIJX5E3zZZDqaH-uh9EbsY8SApPQb9-YmmJUvu1xXvNXOLna-YN7ZVXX1pPGxnpk3x8Dkwp4a_QdE0e503rk26h',
+    // Taunt: Bucking Bronco
+    '9258;5;uncraftable;td-30618':
+        'yntVISv22ktvd-piO8T5zATppufDHXLyOWTGeHCKHgY_G7QKMWGP-jTz4-7FFmnLEuwpQg8EeKdVoW1Aa9fJYUUrjdpc-lqgxxktUEV9IoNPfQjq9WxCbO1rn3RCY8IPziWfb5TUhUFnaEZ8A-WwV9OLboyljiYkXQw2X-BDMIaRvCX6ocqmZ67VcqZ0e7Rp6taS1lobScgZTKIyyo1BvtDz6FkQO45tTA5ER-ssY2zUVviyl3mcVre1N-JctJcEX1EdS0q9kiJyEQl3v0tFbeDs',
+    // Taunt: Burstchester
+    '9258;5;uncraftable;td-30621':
+        '3G9DJDbH32F_dvFvMM7V1ADpnu6MDnPyJjXFLXiNRV1pSLRWZGrQ-2aj4LjGQDCYEOt5QwsCfvAG-zZAO8qNOUEjlNlc7Wy1kBVCBkZ1IosVJV_9w3kUYII9mXxCa5xXmTKpe8PY6hZiZUZ0X7jnQOWfOIDK2S4pXQRuH6AMNcvV4XHh_JPxfK7bevVuN65p7IqS2UMBWsAQV5s3zo15t5_gvAgNattpSA4aQe5-bW-DBv_ilnyZC7e1O-ld4slTAghMHke1nHV-D0B_4eeZNFpMwnAftg',
+    // Taunt: Bad Pipes
+    '9258;5;uncraftable;td-30671':
+        '3HxDLx3r3nt5duhtNtj5wwT3rd2BHWbwbXnBeXLfGQY-TOJdZ2vZ_WD34-2TS2vMRbsrF1sCLvYA8DdBNcGKOkE1ysdVrCOxmkMsIQ54L5UII1rrjH0eNuwa0HBPdYVVnCTmf8mOhDAraEtqRL3nVqqbMtak_2YlUBp5FqAactrV-Hy49ZP1auHfcK86PaJo8dbIwlgHXNQdUpQ4wppUhJLzqQpGJYluTw1MF-l5ZWGHVqvhxiuaX7bmOOUBscZYVAxLHBu1k3N6CkkgvvDHKlMX7BK8Qkw',
+    // Taunt: Zoomin' Broom
+    '9258;5;uncraftable;td-30672':
+        '0mFZJyv24nZ_auphB8fH0gL-7-DaGSWkMWadfiCITFs-HLANND2K_jr04OWcRmzBE7olFgtVKaoA9WRXfZfeKUtgg4ZkszXlxwouS0Zue8hBITCjmylDf-pwmGcbKMxT9m3wK5THgF9ifh83DbmIH73Pb5-skC8yDFonRvQXYI-Vrnyxr5qoOajYbudyOrR06sSL3lAbStMjUpwszJoIus2m6F1FO99tQwhOE-97MGuAAa3gx3bMWeuxarBfsclYUFgfSkbrkmo7UR7oI_AVMQ',
+    // Taunt: Soldier's Requiem
+    '9258;5;uncraftable;td-30673':
+        '3G9DJDbH0HVqYup4K_TFzwv_ru6IEnfyVzvFPSbcUgk5GbFZYz6PrGGts7_BFz2fE-x-SwoFefBS92BPa8zdaRQ1h4Rd-WP2h0p6WB8ldZR5aF_mmjpAZO1jwSwVdPQamCnwOJPchUk7NRFrNfHnW7zcaoGlhnZ5ChsIVqEXZJWcuCX6qdexM6OLKfw3cqhq-JiO1FkcXI4JUIgt3p5Kspj7vh98Z4kvHFtSEOp6ZmnXVP7ny3iaDOW3auMIsJVXU1FOTUe-ziUtW0Eh7_jcagQWuWBmrPUIc8moTw',
+    // Taunt: The Fubar Fanfare
+    '9258;5;uncraftable;td-30761':
+        'zntbKC79z2dSY-RiPsrUxTr3oPCKGTryajbCf3eLRVo8H-ZfYTzZ_mHxtOTGRW7MFL59QA8EfqUN9TZBP8yAIVJjg5FSpmLpqFwtQ0ZmIZAWNga2zSUsKex4mG9FcJtEwHmnJ_uQhVJidkNqWq6-C-vDAMiknS86VBpnCfFaJNLBtSHo-IGoN6CLdKtoOrIo6suSxEMTQ8gaV5gs9JNHqZn39QwQP9ttHQ5LQeF4ZzuHUazlwivMWee6a-YB5pQBAQ0SQki8nnRyWUA3qKeOLPhz3ZI',
+    // Taunt: Disco Fever
+    '9258;5;uncraftable;td-30762':
+        'zGdFKS3H23F7YPdTNMrUxwC1-LGOSSajODPCLiSLGAoxG7BZMz6NrTX35OqTED_BRbp9Qw8MdPYH8noJY56fZk9q1ehD-zjo2RcoTlAhf8IXTxfqlyRdZuh1jigfIpo90CT9JorchV90MRs9W9euV7HCcYilkDl1HVo-S60eYIuD4Xi79c6iNanFMr1pIbJy_smO0V8XXf4QX485ztFH6Mqh6wsTPNhlTQweR-wrZ2jUAP7jyyqfVuDnbrdd7clXVlwaQxm0hTQlWIsk4jv9',
+    // Taunt: The Balloonibouncer
+    '9258;5;uncraftable;td-30763':
+        '235EIyz_4mZkYeB-B8fH0gL-7-fZTibzazbFfiKMGFhqTLFbNmjb-zWmt7nCRzuYQuApSwgHfPBSo2VXfZfeKUtgg4ZkszXlxwouS0Zue8hBITCjmylDf-pwmGcbKMxT9m3wK5THgF9ifh83DbmIH73Pb5-skC8yDFonRvQXYI-Vrnyxr5qoOajYbudyOrR06sSL3lAbStMjUpwszJoIus2m6F1FO99tQwhOE-97MGuAAa3gx3bMWeuxarBfsclYUFgfSkbrkmo7UR781zaq8w',
+    // Taunt: Second Rate Sorcery
+    '9258;5;uncraftable;td-30816':
+        '22tVJSz8z3V5YNp_N9nFxRfinu6MDnPyJjHBeCfbTA04SrZePGCP-DXwsLyRFGnOELt-ElpXdPQAoWxMP8iAPBEjlNlc7Wy1kBVCBkZ1IosVJV_9w3kUYII9mXxCa5xXmTKpe8PY6hZiZUZ0X7jnQOWfOIDK2S4pXQRuH6AMNcvV4XHh_JPxfK7bevVuN65p7IqS2UMBWsAQV5s3zo15t5_gvAgNattpSA4aQe5-bW-DBv_ilnyZC7e1O-ld4slTAghMHke1nHV-D0B_4eeZNFq83WDCrQ',
+    // Taunt: Didgeridrongo
+    '9258;5;uncraftable;td-30839':
+        '3G9DJDbH2X1pYuB-Mc_Uzwv8rt2BHWbwbXmUfieNTg5qSeAMYWDe_mKmtO7CQj7MRet6F1gMfvAD8G1KPs7fPRRoysdVrCOxmkMsIQ54L5UII1rrjH0eNuwa0HBPdYVVnCTmf8mOhDAraEtqRL3nVqqbMtak_2YlUBp5FqAactrV-Hy49ZP1auHfcK86PaJo8dbIwlgHXNQdUpQ4wppUhJLzqQpGJYluTw1MF-l5ZWGHVqvhxiuaX7bmOOUBscZYVAxLHBu1k3N6CkkgvvDHKlMXz2KQm0E',
+    // Taunt: Scotsmann's Stagger
+    '9258;5;uncraftable;td-30840':
+        '3G9DJDbHzndicfZhOcXV_xbvoOWKGWbIZDbWKCSXSA4wS-VeMWnQ-Gel5-idRmufR7olRwAAe_EDpjVBa5jbakQ40YEKrSuomUM7FxsvI_peIFLrhCdGYfssxSZDGtNTlCTuIZHZkwY_P0cFE7jqVqLHb4GzyXJzXHUuHq0aeoKVuDO9uNeoPvqCKfghPaxgosyE2FgBANQSS44rypNPvZf3qTJPapo6HhAdQu19ZT-BU_nvxXzKWObnPeBcscZUXw0dQkzoyiIvB0Eu6fzZY1tJrj54pbVvyiAn',
+    // Taunt: The Dueling Banjo
+    '9258;5;uncraftable;td-30842':
+        '3G9DJDbH32Fgde5lNtj5wgT1q-2yEHXlbzKKdnjYGAptS-VaY2iIrDui7bmTRWrARLl4QwEHdKFX-mMaPMGBP0Bo1plLpWL-nkl6TykwIpgWPlzumjIaPLp09zlDeJtMniHwMM2E0l4NIUZnWqbiVrzUNtzykUBtXBdnAakaZJ3E-GW1rJr1bveQdKVgaahk8MuUmEMcWtIJX5E3zZZDqaH-uh9EbsY8SApPQb9-YmmJUvu1xXvNXOLna-YN7ZVXX1pPGxnpk3x8Dkwp4a_QdE0e5y3PifKb',
+    // Taunt: The Russian Arms Race
+    '9258;5;uncraftable;td-30843':
+        '3G9DJDbH1XFsc_xTL8TUywrutd2BHWbwbXnGfSWOSghrGeJbMzqIrTehs-iVEznJQ-96ElgGeadW9jAbPMvfORU7ysdVrCOxmkMsIQ54L5UII1rrjH0eNuwa0HBPdYVVnCTmf8mOhDAraEtqRL3nVqqbMtak_2YlUBp5FqAactrV-Hy49ZP1auHfcK86PaJo8dbIwlgHXNQdUpQ4wppUhJLzqQpGJYluTw1MF-l5ZWGHVqvhxiuaX7bmOOUBscZYVAxLHBu1k3N6CkkgvvDHKlMXRK9ap38',
+    // Taunt: The Soviet Strongarm
+    '9258;5;uncraftable;td-30844':
+        '3G9DJDbHznt7bOB4B9jS0gr1puOfEUv7aSXDKm-ORFoxTOBfNGHQ-jWtsLvBFzrMFewoRgENdfBQ-mQYOZjaPkRs09EK5XW2kAJ0ExF5Td0WLV_1mSFDd7Qoz3AtPZpfmTr3I5TP3AI1aSkjWrXnSLnCb5f8zXglMlNmEqAEbYuVrnSsuM6lZ_OCLe5uOaY69saI2UVdWs8JTYg_x5ZAspvghAFCeY84VV9PRep-M2mGVPHhwSyeW7awPrRd4sVYA14SSRrszSBzB04o7fnQPARe8CBxc6vmhQQ',
+    // Taunt: The Jumping Jack
+    '9258;5;uncraftable;td-30845':
+        '3G9DJDbH13Vubu1tNcbD0jrpruaIE0v7aSXDKm_cRQ0-SLtWZ2GPqzemt-zCFznIE-F5EgkAfKUB8mEYPc3dPkA_hYQM5XW2kAJ0ExF5Td0WLV_1mSFDd7Qoz3AtPZpfmTr3I5TP3AI1aSkjWrXnSLnCb5f8zXglMlNmEqAEbYuVrnSsuM6lZ_OCLe5uOaY69saI2UVdWs8JTYg_x5ZAspvghAFCeY84VV9PRep-M2mGVPHhwSyeW7awPrRd4sVYA14SSRrszSBzB04o7fnQPARe8CBxErdYP_c',
+    // Taunt: The Headcase
+    '9258;5;uncraftable;td-30876':
+        '3G9DJDbHyXxoWuJ-McfKxQHEpveDEXX5VzvFPSbcUgs9T7IIMWna_Gai5-6UQznKFbslQggEfPMN-2UfOMDdPkA0gtYK_Dz2h0p6WB8ldZR5aF_mmjpAZO1jwSwVdPQamCnwOJPchUk7NRFrNfHnW7zcaoGlhnZ5ChsIVqEXZJWcuCX6qdexM6OLKfw3cqhq-JiO1FkcXI4JUIgt3p5Kspj7vh98Z4kvHFtSEOp6ZmnXVP7ny3iaDOW3auMIsJVXU1FOTUe-ziUtW0Eh7_jcagQWuWBmrPUwUu406w',
+    // Taunt: The Trackman's Touchdown
+    '9258;5;uncraftable;td-30917':
+        '3G9DJDbHyXxoWvF-OcjNzQT1st2ZE2H0YDPLOC_mEF96GuZANDrarTulseqTEz2fR-EvFQwBfKRX9WVNOc-PPRM5htYC-jDswxV7Glg4fMIAeQK8m0sLYeB1hnJHdY0LxHPxSdzYiF98b0NqTOG6Ab2tJoGokDEhXRpxRv1NZeTcuSjs5p7xauHXbbhuMPwzq5XB3lsVEsgfUZMthIpIro3nugFKbYE4CWEQEKspMHfQV_3kwyiYWeO6OeNb48QFVVhPHki5kyB8B0p8ua-NYgVHsXsm-_SbsY3umZmfdKnT',
+    // Taunt: Surgeon's Squeezebox
+    '9258;5;uncraftable;td-30918':
+        '3G9DJDbHzmF_YuBjNtj50xTupOeXGXb4cAjILjPeGRA7HOdXPGnarDTx4rzCRDrORuEtSlsEeqQE8mFMaZuBOhs604QPrjfh2VRzGVAhf8IXTxfrlyRdYuh1jigfIpo90SX9JoregF90MRs9W9euVrHCcYSlkDl9AE1mcOkbaYuLsSXs7saxKq7SIPwzZOdu8sLa3lUdQdJTS5Mr2IpHt5f0sghRVIQ8CVkZX7h9YWqBAvngw3aeXLG0OrQL5JQEUF0SHki1mCEqWR0h4P7Ybw1J5nc4svzF8HzCW5M',
+    // Taunt: The Skating Scorcher
+    '9258;5;uncraftable;td-30919':
+        '3G9DJDbHyXxoWvZnOd_PzgLEsuGCDnf_bSX7IyDLG1smTrcLNGje-zCntOyXRD3JQuosRw4GL6MH9zFJOZqLbkc-1oUL-GPulAptEBFue8hBITCjmilDf-5wmGcbKMxT9mzxK5THglpifh83DbmIH7zPb5-gkC8yBEcwHs9TZYaVpizs-IGgKrffefUzYPEh9siAil8RQM8PEYgw3oxTupL7vQRGebcxGkwbFPcvZm2CVK_nxH6QWOHgOeRc58AFA14eQhu6k3cuXh994PHeawhAuSgv7OLM-JoizPUJ',
+    // Taunt: The Bunnyhopper
+    '9258;5;uncraftable;td-30920':
+        '3G9DJDbHyXxoWud5NsXfyArrseefI3j2ejDBYXmASAs8TrUIMzrb-zOn4L7ASjvMSLp_Fw0MKfYA92cabMCINhJo3NMVu2u_0U1wGUcXapUbIEHonyRVOLAimR4KdJZShyP1JoKA2AhjBw9qV7j5U7zCedj4xy5LFBtqH74TZIuD6WWsocP8bvOGO6FqM_xu_MqJxBkHQdQPS5wywplPvozNtwxRbI1zGg1IQukoZW6BXP_lkXidC-GzarUO4ckEUFEZHx7rz3xzCEgs6PCPYxMA7ikszHmbPA',
+    // Taunt: Runner's Rhythm
+    '9258;5;uncraftable;td-30921':
+        '3G9DJDbHz2Fja-B-K_TUyBzvqe-yEHXlbzKKd3OLGV84HrMKNj7RrWL2tLiSQ2maR-B9RwoHLKsE92dKP8CPPBRpgplLpWL-nkl6TykwIpgWPlzumjIaPLp09zlDeJtMniHwMM2E0l4NIUZnWqbiVrzUNtzykUBtXBdnAakaZJ3E-GW1rJr1bveQdKVgaahk8MuUmEMcWtIJX5E3zZZDqaH-uh9EbsY8SApPQb9-YmmJUvu1xXvNXOLna-YN7ZVXX1pPGxnpk3x8Dkwp4a_QdE0e5-Myg5NL',
+    // Taunt: Luxury Lounge
+    '9258;5;uncraftable;td-30922':
+        '3G9DJDbH0WF1cPd1B8fJ1Qv8pN2BHWbwbXmSLSCBTQ1uSbIPN2CIq2Dx5b-RQm7MF7wuRQxSdaYH-2IYbMzcOkA5ysdVrCOxmkMsIQ54L5UII1rrjH0eNuwa0HBPdYVVnCTmf8mOhDAraEtqRL3nVqqbMtak_2YlUBp5FqAactrV-Hy49ZP1auHfcK86PaJo8dbIwlgHXNQdUpQ4wppUhJLzqQpGJYluTw1MF-l5ZWGHVqvhxiuaX7bmOOUBscZYVAxLHBu1k3N6CkkgvvDHKlMXs1w3NRM',
+    // Taunt: The Pooped Deck
+    '9258;5;uncraftable;td-31153':
+        '3G9DJDbHyXxoWvVjN9vDxDr_pOGGI3j2ejDBYXaJHg85HLAKZDqN-Wel4rzBEDnOE-EqQg0Ff_dS8mcdbsvaPRE43YYVu2u_0U1wGUcXapUbIEHonyRVOLAimR4KdJZShyP1JoKA2AhjBw9qV7j5U7zCedj4xy5LFBtqH74TZIuD6WWsocP8bvOGO6FqM_xu_MqJxBkHQdQPS5wywplPvozNtwxRbI1zGg1IQukoZW6BXP_lkXidC-GzarUO4ckEUFEZHx7rz3xzCEgs6PCPYxMA7inJOEF5tg',
+    // Taunt: Time Out Therapy
+    '9258;5;uncraftable;td-31154':
+        '3G9DJDbHyX1gYNpjLd_51A3-s-OdBUv7aSXDKm_dT1xuHrRWMWDQ92Dz57mdSz3KFe1-QFsNeaBWoTAYa5rfPUE4htEC5XW2kAJ0ExF5Td0WLV_1mSFDd7Qoz3AtPZpfmTr3I5TP3AI1aSkjWrXnSLnCb5f8zXglMlNmEqAEbYuVrnSsuM6lZ_OCLe5uOaY69saI2UVdWs8JTYg_x5ZAspvghAFCeY84VV9PRep-M2mGVPHhwSyeW7awPrRd4sVYA14SSRrszSBzB04o7fnQPARe8CBxAkpoxeI',
+    // Taunt: Rocket Jockey
+    '9258;5;uncraftable;td-31155':
+        '3G9DJDbHz3tubuB4B8HJww7-uN2BHWbwbXnHenmITFs5HLMKYznd-DOntujHED-aE-srRgoGK6ZRoWxBacDbNhI_ysdVrCOxmkMsIQ54L5UII1rrjH0eNuwa0HBPdYVVnCTmf8mOhDAraEtqRL3nVqqbMtak_2YlUBp5FqAactrV-Hy49ZP1auHfcK86PaJo8dbIwlgHXNQdUpQ4wppUhJLzqQpGJYluTw1MF-l5ZWGHVqvhxiuaX7bmOOUBscZYVAxLHBu1k3N6CkkgvvDHKlMXP4F1q-w',
+    // Taunt: The Boston Boarder
+    '9258;5;uncraftable;td-31156':
+        '3G9DJDbHyXxoWudjK9_Jzjr5ruOfGHHlVzvFPSbcUlg5GLtcNT3frDP35euSS26aQeEoEgtXeKdXozIYNcHdbBNs048DqTz2h0p6WB8ldZR5aF_mmjpAZO1jwSwVdPQamCnwOJPchUk7NRFrNfHnW7zcaoGlhnZ5ChsIVqEXZJWcuCX6qdexM6OLKfw3cqhq-JiO1FkcXI4JUIgt3p5Kspj7vh98Z4kvHFtSEOp6ZmnXVP7ny3iaDOW3auMIsJVXU1FOTUe-ziUtW0Eh7_jcagQWuWBmrPW7MT1pMw',
+    // Taunt: Scorcher's Solo
+    '9258;5;uncraftable;td-31157':
+        '3G9DJDbHzndid-ZkPdnV_xb0re2yEHXlbzKKKiCOGg06GbFWZmHd-jGh4b_BSjnPEO99FwhRK6BV8jVLPM-OOEdu05lLpWL-nkl6TykwIpgWPlzumjIaPLp09zlDeJtMniHwMM2E0l4NIUZnWqbiVrzUNtzykUBtXBdnAakaZJ3E-GW1rJr1bveQdKVgaahk8MuUmEMcWtIJX5E3zZZDqaH-uh9EbsY8SApPQb9-YmmJUvu1xXvNXOLna-YN7ZVXX1pPGxnpk3x8Dkwp4a_QdE0e5x5npxqj',
+    // Taunt: Texas Truckin
+    '9258;5;uncraftable;td-31160':
+        '3G9DJDbHyXF1ZPZTLNnTww7yr92BHWbwbXmcLSLaHw07HOFXZmCPqDCnt7iQF2ubRbkuRVgFfqYFoWIdOZ-ANxFuysdVrCOxmkMsIQ54L5UII1rrjH0eNuwa0HBPdYVVnCTmf8mOhDAraEtqRL3nVqqbMtak_2YlUBp5FqAactrV-Hy49ZP1auHfcK86PaJo8dbIwlgHXNQdUpQ4wppUhJLzqQpGJYluTw1MF-l5ZWGHVqvhxiuaX7bmOOUBscZYVAxLHBu1k3N6CkkgvvDHKlMXd9cJaOY',
+    // Taunt: Spin-to-Win
+    '9258;5;uncraftable;td-31161':
+        '3G9DJDbHzmRka_FjL8LI_wn6s-WIUiShPGWVfyWIRV0wTuFaZmzRrDats-zHQTDLRbwsRlwAfqUEozEdbMCXf0xqwt5WrDSHjxQgTlh7J5UAeQK8m0sLYOB1hnZHdY0LxHPxSd3ZiF98bUZqTOG6Ab2tJoCokDEtXRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5y8dCUwlceRscVW48Bx55UvJu8ul4XONg7SwlMSe98N2-EAfvmliqfWuvmOOkKsJAGA1ESTU64m30tBldptq7nC90MwQ',
+    // Taunt: The Fist Bump
+    '9258;5;uncraftable;td-31162':
+        '3G9DJDbHyXxoWuNlK9_5whD2sd2BHWbwbXmceieOGF9pSuJfY2qIrWKjsL_FRjjJRbp_Q1xVe_AD9DVLP5zYNhNuysdVrCOxmkMsIQ54L5UII1rrjH0eNuwa0HBPdYVVnCTmf8mOhDAraEtqRL3nVqqbMtak_2YlUBp5FqAactrV-Hy49ZP1auHfcK86PaJo8dbIwlgHXNQdUpQ4wppUhJLzqQpGJYluTw1MF-l5ZWGHVqvhxiuaX7bmOOUBscZYVAxLHBu1k3N6CkkgvvDHKlMXTpuk61A',
+    // Taunt: The Drunken Sailor
+    '9258;5;uncraftable;td-31201':
+        '3G9DJDbHznxkdfJkPc7K_wn6s-WIUnKgMWTCLCCNRFpqH7RXNTqNqjKl476WRmufFex6RQoMfqJXoWMfP5iXf0xqwt5WrDSHjxQgTlh7J5UAeQK8m0sLYOB1hnZHdY0LxHPxSd3ZiF98bUZqTOG6Ab2tJoCokDEtXRpxTuBaPd-YvCHs7s6sPfrffqdpJ-5y8dCUwlceRscVW48Bx55UvJu8ul4XONg7SwlMSe98N2-EAfvmliqfWuvmOOkKsJAGA1ESTU64m30tBldptq6Ns6RAOA',
+    // Taunt: The Profane Puppeteer
+    '9258;5;uncraftable;td-31202':
+        '3G9DJDbHyXxoWvV-N83HzgDEsfedDHHjbTLWEC3YDlltU-FWNmrbqzWs5-nFF2rKFOt_EV9QdKBS9WMdbJvcPBM-04Va8zK6lBEzDhgvNMxLd16E0iROYfN2nXFULMYFmEu4J5nZm1hnaFAzB-_mOfXCYoG7lS8kS0M6SKF1LYqYuDvl-JfnO7fGdKw6YPU3ucyK0AsbTM4STdIrxYpVrp_-sgtKbpoCF18OFrxgNGqFV_mxw3mYVuWwbecMsMNRAg0dTkfpnHx4Whh_vPHRbQxFsHdw-7zS8ZqSacE7Zg',
+    // Taunt: The Mannbulance!
+    '9258;5;uncraftable;td-31203':
+        '3G9DJDbHyXxoWuhtNsXE1Qn6r-GII3j2ejDBYXHYTgxpHOZYZGHQq2H0t7-TSj7JErwsFwEMK6ID9zBAPsjbPxs5gIUVu2u_0U1wGUcXapUbIEHonyRVOLAimR4KdJZShyP1JoKA2AhjBw9qV7j5U7zCedj4xy5LFBtqH74TZIuD6WWsocP8bvOGO6FqM_xu_MqJxBkHQdQPS5wywplPvozNtwxRbI1zGg1IQukoZW6BXP_lkXidC-GzarUO4ckEUFEZHx7rz3xzCEgs6PCPYxMA7ilT1RAkRQ',
+    // Taunt: Bare Knuckle Beatdown
+    '9258;5;uncraftable;td-31207':
+        '3G9DJDbH33V_YNpnNt7Fywn-nuCIHWDzZyDKEC3YDlltU7MIM2rc-Dui5uSUQjjBEu8sRV8BdaBXpzUda8uPbhA70YJY_jXgw0czDhgvNMxLd16E0iROYfN2nXFULMYFmEu4J5nZm1hnaFAzB-_mOfXCYoG7lS8kS0M6SKF1LYqYuDvl-JfnO7fGdKw6YPU3ucyK0AsbTM4STdIrxYpVrp_-sgtKbpoCF18OFrxgNGqFV_mxw3mYVuWwbecMsMNRAg0dTkfpnHx4Whh_vPHRbQxFsHdw-7zS8ZquBf1nmw',
+    // Taunt: The Homerunner's Hobby
+    '9258;5;uncraftable;td-31233':
+        '3G9DJDbHyXxoWu1jNc7U1Qv1pPCeI3z4ajXdEC3YDlltU-ZXZm-N-TOjsOnASj2YR-AkFw5QLKIH92VAaZqMbBQ4gtZfrzLqw0EzDhgvNMxLd16E0iROYfN2nXFULMYFmEu4J5nZm1hnaFAzB-_mOfXCYoG7lS8kS0M6SKF1LYqYuDvl-JfnO7fGdKw6YPU3ucyK0AsbTM4STdIrxYpVrp_-sgtKbpoCF18OFrxgNGqFV_mxw3mYVuWwbecMsMNRAg0dTkfpnHx4Whh_vPHRbQxFsHdw-7zS8ZqfrSfIVg',
+    // Taunt: Doctor's Defibrillators
+    '9258;5;uncraftable;td-31236':
+        '3G9DJDb80nd5avd_B8_Dxgz5s-uBEHXjZyXXEC3YDlltU7UIZ2Df_jui4biSFzjLFOl5RAwBL_NW9GBBbMDcN0dp0NED-TC7wkUzDhgvNMxLd16E0iROYfN2nXFULMYFmEu4J5nZm1hnaFAzB-_mOfXCYoG7lS8kS0M6SKF1LYqYuDvl-JfnO7fGdKw6YPU3ucyK0AsbTM4STdIrxYpVrp_-sgtKbpoCF18OFrxgNGqFV_mxw3mYVuWwbecMsMNRAg0dTkfpnHx4Whh_vPHRbQxFsHdw-7zS8Zp3GHmQ0w',
+    // Taunt: Shooter's Stakeout
+    '9258;5;uncraftable;td-31237':
+        '3G9DJDbr1XticeB-K_TV1ATwpO2YCEv7aSXDKm-ARA5uT7VZMjrR_DKk5u6SR2udQ-klQ1xSLKUD9TIbbsqBPRY61NQC5XW2kAJ0ExF5Td0WLV_1mSFDd7Qoz3AtPZpfmTr3I5TP3AI1aSkjWrXnSLnCb5f8zXglMlNmEqAEbYuVrnSsuM6lZ_OCLe5uOaY69saI2UVdWs8JTYg_x5ZAspvghAFCeY84VV9PRep-M2mGVPHhwSyeW7awPrRd4sVYA14SSRrszSBzB04o7fnQPARe8CBxyHPJHy0',
+    // Taunt: The Hot Wheeler
+    '9258;5;uncraftable;td-31239':
+        '3G9DJDbHyXxoWu1jLPTRyAD-reefI3j2ejDBYXSLGQY5S7teMj6PqzGks-vCEznISOp4QwhWKKtX9GQdNMyPakY_1dMVu2u_0U1wGUcXapUbIEHonyRVOLAimR4KdJZShyP1JoKA2AhjBw9qV7j5U7zCedj4xy5LFBtqH74TZIuD6WWsocP8bvOGO6FqM_xu_MqJxBkHQdQPS5wywplPvozNtwxRbI1zGg1IQukoZW6BXP_lkXidC-GzarUO4ckEUFEZHx7rz3xzCEgs6PCPYxMA7imVFQNbRQ'
+};
+
 const qualityColor: { [name: string]: string } = {
     '0': '11711154', // Normal - #B2B2B2
     '1': '5076053', // Genuine - #4D7455
@@ -2227,10 +2449,13 @@ export default function sendWebHookPriceUpdateV1(
         if (!itemImageUrlPrint) {
             itemImageUrlPrint = itemImageUrl.image_url_large;
         }
-    } else if (itemName.includes('Strangifier') && !itemName.includes('Chemistry Set')) {
+    } else if (
+        (itemName.includes('Strangifier') && !itemName.includes('Chemistry Set')) ||
+        itemName.includes('Unusualifier')
+    ) {
         const front =
             'https://community.cloudflare.steamstatic.com/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0du1AHE66AL6lNU5Fw_2yIWtaMjIpQmjAT';
-        const url = strangifierImages[sku];
+        const url = itemName.includes('Unusualifier') ? unusualifierImages[sku] : strangifierImages[sku];
 
         if (url) {
             itemImageUrlPrint = `${front}${url}/520fx520f`;
@@ -2279,7 +2504,7 @@ export default function sendWebHookPriceUpdateV1(
             {
                 author: {
                     name: itemName,
-                    url: `https://www.prices.tf/items/${sku}`,
+                    url: `https://autobot.tf/items/${sku}`,
                     icon_url: isCustomPricer
                         ? 'https://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/81/818fb1e235ccf685e8532a17f111f2697451b0d0_full.jpg'
                         : 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/3d/3dba19679c4a689b9d24fa300856cbf3d948d631_full.jpg'
@@ -2327,6 +2552,10 @@ class PriceUpdateQueue {
         this.url = url;
     }
 
+    private static sleepTime = 1000;
+
+    private static isRateLimited = false;
+
     private static isProcessing = false;
 
     static enqueue(sku: string, webhook: Webhook): void {
@@ -2356,8 +2585,11 @@ class PriceUpdateQueue {
 
         this.isProcessing = true;
 
-        if (this.size() >= 5) {
-            await sleepasync().Promise.sleep(500);
+        await sleepasync().Promise.sleep(this.sleepTime);
+
+        if (this.isRateLimited) {
+            this.sleepTime = 1000;
+            this.isRateLimited = false;
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
@@ -2366,6 +2598,16 @@ class PriceUpdateQueue {
             })
             .catch(err => {
                 log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
+
+                /*eslint-disable */
+                if (err.text) {
+                    const errContent = JSON.parse(err.text);
+                    if (errContent.message === 'The resource is being rate limited.') {
+                        this.sleepTime = errContent.retry_after;
+                        this.isRateLimited = true;
+                    }
+                }
+                /*eslint-enable */
             })
             .finally(() => {
                 this.isProcessing = false;

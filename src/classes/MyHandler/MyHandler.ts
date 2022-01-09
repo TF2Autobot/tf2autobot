@@ -357,7 +357,7 @@ export default class MyHandler extends Handler {
                 `because no longer in stock or exceed the threshold:\n\n• ${bulkResetPartiallyPriced
                     .map(sku => {
                         const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
-                        return `${isDwEnabled ? `[${name}](https://www.prices.tf/items/${sku})` : name} (${sku})`;
+                        return `${isDwEnabled ? `[${name}](https://autobot.tf/items/${sku})` : name} (${sku})`;
                     })
                     .join('\n• ')}`;
 
