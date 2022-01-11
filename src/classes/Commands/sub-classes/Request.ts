@@ -123,7 +123,7 @@ export default class RequestCommands {
 
             this.bot.sendMessage(
                 steamID,
-                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\n\n'Item page: https://autobot.tf/items/${
+                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\nhttps://autobot.tf/items/${
                     params.sku as string
                 }`
             );

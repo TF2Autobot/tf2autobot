@@ -20,6 +20,7 @@ import IPricer from '../IPricer';
 import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
+import { testSKU } from '../../lib/tools/export';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -303,13 +304,24 @@ export default class Commands {
     }
 
     private getSKU(steamID: SteamID, message: string): void {
-        const itemName = CommandParser.removeCommand(removeLinkProtocol(message));
-        const sku = this.bot.schema.getSkuFromName(itemName);
+        const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
 
-        this.bot.sendMessage(steamID, sku);
+        if (!testSKU(itemNameOrSku)) {
+            // Receive name
+            const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
 
-        if (sku.includes('null') || sku.includes('undefined')) {
-            this.bot.sendMessage(steamID, 'Please check the name. If correct, please let us know. Thank you.');
+            if (sku.includes('null') || sku.includes('undefined')) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`
+                );
+            }
+
+            this.bot.sendMessage(steamID, `• ${sku}\nhttps://autobot.tf/items/${sku}`);
+        } else {
+            // Receive sku
+            const name = this.bot.schema.getName(SKU.fromString(itemNameOrSku), false);
+            this.bot.sendMessage(steamID, `• ${name}\nhttps://autobot.tf/items/${itemNameOrSku}`);
         }
     }
 
