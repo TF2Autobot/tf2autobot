@@ -2382,6 +2382,157 @@ const unusualifierImages: { [sku: string]: string } = {
         '3G9DJDbHyXxoWu1jLPTRyAD-reefI3j2ejDBYXSLGQY5S7teMj6PqzGks-vCEznISOp4QwhWKKtX9GQdNMyPakY_1dMVu2u_0U1wGUcXapUbIEHonyRVOLAimR4KdJZShyP1JoKA2AhjBw9qV7j5U7zCedj4xy5LFBtqH74TZIuD6WWsocP8bvOGO6FqM_xu_MqJxBkHQdQPS5wywplPvozNtwxRbI1zGg1IQukoZW6BXP_lkXidC-GzarUO4ckEUFEZHx7rz3xzCEgs6PCPYxMA7imVFQNbRQ'
 };
 
+const festivizedImages = {
+    // https://wiki.teamfortress.com/wiki/Festivizer#List_of_possible_Festivized_weapons
+    // Image for Australium - Not available
+    // Scattergun (Stock)
+    13: 'gdzjAM2FC-8OiJU22oNW2CJ_lBN8Ie2KNjJ0Zg3UBO4LDaw-oV_vXiFquZBhVoLi9b1eK1m94oOUZrElONpETMjRXPWOM12u9Atm1w3ZZzLf',
+    // Scattergun (Ugradeable)
+    200: 'gdzjAM2FC-8OiJU22oNW2CJ_lBN8Ie2KNjJ0Zg3UBO4LDaw-oV_vXiFquZBhVoLi9b1eK1m94oOUZrElONpETMjRXPWOM12u9Atm1w3ZZzLf',
+    // Shortstop
+    220: 'mMnvA-aHAfQ_ktk664Ma2gl4mQ5pIPChPydYdAHRFalIWbtqo1ztWCUxscIxBoG09O9WKF-74YLHYbd9Y9lIGMnYX_fVN1yo6k4_nuEDeJM27UjL',
+    // Soda Popper
+    448: 'mMnvA-aHAfQ_ktk664Ma2gl4ngV6C_O6ICdiYDvEBLNKVeM_ul26WyIwvJZiAYfiruxSKgTqs4LDNLJ6Y9BJHJSDW_7XYwj17khrhvdDb8veG9zCAUE',
+    // Winger
+    449: 'mMnvA-aHAfQ_ktk664Ma2gl8mA98MfGKID50ZgvOPqZbT-Ez4g2iX3dhsZY3A4e0o-5UcQ3m5YfHYrV6Yt9OHpKGX_WONV-sv04-g_IMeYvJ_n1YWwf0LA',
+    // Sandman
+    44: 'mMnvA-aHAfQ_ktk664Ma2gl8ng5_Me2KMjZzTQLHErRXSvB0pgm4UXJm7JMxUo_u8r5RLAu-s4TAMrQrOItITcLUWPfXZlv_6kk4gr8dccKR07Q1YQ',
+    // Holy Mackerel
+    221: 'mMnvA-aHAfQ_ktk664Ma2gljng1iOeK2OzJ1dwj9B6VNSPws8UbtUH5jupA7V4fgoL9fLVnqsILPYrF6ONxFGZLWDqCAYFz-vEpu0qdfMdXX91YeCV-Z',
+    // Rocket Launcher (Stock)
+    18: 'mMnvA-aHAfQ_ktk664Mazgl5ngJwMfe5MSJpcQzHE59YWeYu_R7pRyNrvMUyAoXi9usAelq9sdTGOrAoNt9KF5XQWqPUNAmuu0pu06Nbe8GX4HS442Tl65s',
+    // Rocket Launcher (Upgradeable)
+    205: 'mMnvA-aHAfQ_ktk664Mazgl5ngJwMfe5MSJpcQzHE59YWeYu_R7pRyNrvMUyAoXi9usAelq9sdTGOrAoNt9KF5XQWqPUNAmuu0pu06Nbe8GX4HS442Tl65s',
+    // Black Box
+    228: 'mMnvA-aHAfQ_ktk664Ma2glpnQB4P-G6KAhhdxfWCLZbEvdipA29DSNru5A3VdXh874AfAW6sYHGNrUoYd5MTsXVWaKOYV31vEkmwP8K_nCcIBs',
+    // Air Raider
+    30163: 'mMnvA-aHAfQ_ktk664Ma2glqhQ52C--0JTlkegHQPqZbT-Ez4g2iC3IwvJJlBIXupL5XeFm64tfDOuItMI4eGsaEXqKEM1z040pshagILovJ_n1MZJ-SGg',
+    // Shovel (Stock)
+    6: 'gdzjAM2FC-8OiJUi2oNd1iBunT59MfChOSFiPFCSB_gPD_NpoQ3uUSJhscJmBtWy9uJULQS75YDEYuYuYtxJTZSBXfCYJleq4FDYwgM',
+    // Shovel (Upgradeable)
+    196: 'gdzjAM2FC-8OiJUi2oNd1iBunT59MfChOSFiPFCSB_gPD_NpoQ3uUSJhscJmBtWy9uJULQS75YDEYuYuYtxJTZSBXfCYJleq4FDYwgM',
+    // Disciplinary Action
+    447: 'mMnvA-aHAfQ_ktk664Ma2gl5mAVyOuSKMyVoYjvEBLNKVeM_ugu4XyU0upRlDYOyp-hVLQju54TCZeEtN91NHcWCWfaHNwH4v0M_1KlDb8veY0c1Jgs',
+    // Flame Thrower (Stock)
+    21: 'mMnvA-aHAfQ_ktk664Ma2gltnQB2Mfe9Ijhwdxb9B6VNSPws8UboDyFq7JA1Adbk8b8DeV28tovFZrd_M94dTZLXWv-EZlj_60gwgPJVMdXX9xoC6KKj',
+    // Flame Thrower (Upgradeable)
+    208: 'mMnvA-aHAfQ_ktk664Ma2gltnQB2Mfe9Ijhwdxb9B6VNSPws8UboDyFq7JA1Adbk8b8DeV28tovFZrd_M94dTZLXWv-EZlj_60gwgPJVMdXX9xoC6KKj',
+    // Degreaser
+    215: 'mMnvA-aHAfQ_ktk664Ma2glvlAZpMeKmNSVYdAHRFalIWbs-rV-9W3Iz6ZI6DYOyrrkEfQTos4rOYbAuMNkfGsSBXfSCZVuuvEhunuEDePkjcjx9',
+    // Dragon's Fury
+    1178: 'mMnvA-aHAfQ_ktk664Ma2gltnQB2MeG0PDtYdAHRFalIWbs4olq-XSVjvsY7A4eyr74HcQjntNPFNbJ_MIxFH8nVW6LSYwH5v006nuEDeAjrNpAS',
+    // Detonator
+    351: 'mMnvA-aHAfQ_ktk664Ma2glvlBV0OuKhPyVYdAHRFalIWbs8plm0XH82v8JmBYbnp-NQKwTsvIrEZ7J4N90eF5XRWf-Gbgus6RhqnuEDeJvWAiGu',
+    // Scorch Shot
+    740: 'mMnvA-aHAfQ_ktk664Ma2gl4kg5pN-uKIz9oZjvEBLNKVeM_uly0W3FksZI6VYe0pe0DeV7ostfAMLB6Mo5EF8bSW__VYlj46klthfdDb8vepVwce3Y',
+    // Fire Axe (Stock)
+    2: 'gdzjAM2FC-8OiJU22pZcyzNqiQREJPqnPwhhdxfWCLZbEqU_8VrvUHEzvMY1Vdbupe9VfVm74dHHZbgqYY1LTcfUCP6DYVz7uEwmwP8Ka6Vd2_w',
+    // Fire Axe (Upgradeable)
+    192: 'gdzjAM2FC-8OiJU22pZcyzNqiQREJPqnPwhhdxfWCLZbEqU_8VrvUHEzvMY1Vdbupe9VfVm74dHHZbgqYY1LTcfUCP6DYVz7uEwmwP8Ka6Vd2_w',
+    // Powerjack
+    214: 'mMnvA-aHAfQ_ktk664Ma2gl7nhZ-Jum0MzxYdAHRFalIWbtq8lu1X3c27ZdiVoPjpupUflm75oeXNLB9NItIHMDVWqCPYVisu086nuEDeFPHg4Ii',
+    // Back Scratcher
+    326: 'mMnvA-aHAfQ_ktk664Ma2glpkAJwC_C2IjZzcQzHE59YWeYu_R7pR3Y0vcI1DYfu8upXKwXn54TPOrYrZNFNSsXVX_XXZVyo7kI50qVZfZGX4HS4iSUSJJg',
+    // Grenade Launcher (Stock)
+    19: 'mMnvA-aHAfQ_ktk664MazglsgwR1NeewPDZyfAfKBLJhWvAp4AH6DGlivpRgUIfkru4AKFq8vITAYLksNNBKTMTQWvHUMwH77k0xgKYPesCBvmqxipGAMI4W',
+    // Grenade Launcher (Upgradeable)
+    206: 'mMnvA-aHAfQ_ktk664MazglsgwR1NeewPDZyfAfKBLJhWvAp4AH6DGlivpRgUIfkru4AKFq8vITAYLksNNBKTMTQWvHUMwH77k0xgKYPesCBvmqxipGAMI4W',
+    // Loch-n-Load
+    308: 'mMnvA-aHAfQ_ktk664Ma2glnngJzOu-6MTNYdAHRFalIWbs4rFC1XiNisZEzVoSy9L1eeA_s4NeSYeMvMYpLSZbWCKWAN1j-6B87nuEDeKZdWooR',
+    // Loose Cannon
+    996: 'mMnvA-aHAfQ_ktk664Ma2glvlAx0C-C0PjlofDvEBLNKVeM_ugq4WyE3uJBhAoez9OkALV3osdbBNrl-N9xFGJaGWKPSNAz06RprgPJDb8vexfy9M9w',
+    // Iron Bomber
+    1151: 'mMnvA-aHAfQ_ktk664Ma2gl6hAB_NuK5PAhhdxfWCLZbEqI7ogruUCYz6541AoKz9blUfl-6sIvOZ-ElOd4YS8aFWPOOblur6kMmwP8K-WPSeq4',
+    // Stickybomb Launcher (Stock)
+    20: 'mMnvA-aHAfQ_ktk664Mazgl4hQh4P_q3PzplTQjDFK5dVPAoyw7pGjM7_sItV9azr79RewTusdDHNbR9Yo5EHJGEDvGBNAz9vEIw0vRfe8OAoC7rjDOpZDm3UkupEg',
+    // Stickybomb Launcher (Upgradeable)
+    207: 'mMnvA-aHAfQ_ktk664Mazgl4hQh4P_q3PzplTQjDFK5dVPAoyw7pGjM7_sItV9azr79RewTusdDHNbR9Yo5EHJGEDvGBNAz9vEIw0vRfe8OAoC7rjDOpZDm3UkupEg',
+    // Scottish Resistance
+    130: 'gdzjAM2FC-8OiJUi2oNB0DVgiAN0OeGKNDJhdwrGBLJhWvAp4AH6DGk26Z82AtS1oOpfKFjotNCSM-N9YdEYG8XWWqSDMAGpuEk7iPVbK5Pavmqxim3ssbav',
+    // Scotsman's Skullcutter
+    172: 'mMnvA-aHAfQ_ktk664Ma2glpkBVvOOa0KDJYdAHRFalIWbtqoFq8WXI07p4zAI6ypO9Vfgjn4IOXYbV-ZdpNTJTQDPKFYlysuUNrnuEDeNYyRZx5',
+    // Claidheamh mòr
+    327: 'mMnvA-aHAfQ_ktk664Ma2glonQByMOuwMTpoegnNE59YWeYu_R7pRyY3sJY6V9W0ruMHLAy95YaQO7QkZokfSZSEDKeHZQr67007haQPJ5CX4HS4-hMYP8I',
+    // Persian Persuader
+    404: 'mMnvA-aHAfQ_ktk664Ma2glvlAx0C_CgPCNmfDvRFq9MWMo88Rv4ADE3ppYzUoaypuwAeQ_rvIfCO-IkYokYGMbUW__XNA_6vko60vNceZPYpy7xnXO-vCtpMzI',
+    // Minigun (Stock)
+    15: 'mMnvA-aHAfQ_ktk664MazglmmA9yM_a7DzFiYRDLF6UQXadu8FG_WSZju5M3A4e18epRKlrn5oHONLB9MtBKGMTQX_aBbwmo6VV43vbQD4iYJA',
+    // Minigun (Upgradeable)
+    202: 'mMnvA-aHAfQ_ktk664MazglmmA9yM_a7DzFiYRDLF6UQXadu8FG_WSZju5M3A4e18epRKlrn5oHONLB9MtBKGMTQX_aBbwmo6VV43vbQD4iYJA',
+    // Natascha
+    41: 'mMnvA-aHAfQ_ktk664Ma2gl8rg1uMO68PDZYdAHRFalIWbs-plzpUXBqvcZlAIW1ruJfLQzqtNHFYuN_OY5MGJPZUvaONQH16k89nuEDeFy8HWb9',
+    // Brass Beast
+    312: 'mMnvA-aHAfQ_ktk664Ma2glskBV3Pe2yDzByfDvEBLNKVeM_ugu-WyZl7JY7Uo7h8eIDLQ3mtNeUMeR_ZNAaHMfTU_-ONFv9705pifRDb8ve3L1xhl4',
+    // Tomislav
+    424: 'mMnvA-aHAfQ_ktk664Ma2gl_ngxyJ--0JghhdxfWCLZbEvZvpVvvWyRh65E2UNLnoOpUKAq9vIOQZ7V5ON8aHsXSXaWEZwn57k0mwP8K3eFvtuc',
+    // Family Business
+    425: 'mMnvA-aHAfQ_ktk664Ma2gl5hBJoPeK7DyVufRD9B6VNSPws8UbvDHYzuMYxDdbm9OlSegm74dbPO-F_NdFLF5bUDvOCYQmp7UJtiaRVMdXX98ZDdd5K',
+    // Rescue Ranger
+    997: 'mMnvA-aHAfQ_ktk664Ma2gl_lA1-C_C9PyNgZwr9B6VNSPws8Ua9DSNm7ME7BI61ob0EKAS65YTENbErOIpIFpLZW_SPNV317B5sgaNbMdXX9_4dTjRZ',
+    // Wrench (Stock)
+    7: 'mMnvA-aHAfQ_ktk664Mazgl8gwR1N-uKNjJ0Zg3UBO5dD6Fj9l2_UHdqscVgBIbhpr4EegS94tDFN7Z4Zt5ETMTVWqXSYgv-9Atm154WXioA',
+    // Wrench (Upgradeable)
+    197: 'mMnvA-aHAfQ_ktk664Mazgl8gwR1N-uKNjJ0Zg3UBO5dD6Fj9l2_UHdqscVgBIbhpr4EegS94tDFN7Z4Zt5ETMTVWqXSYgv-9Atm154WXioA',
+    // Jag
+    329: 'gdzjAM2FC-8OiJU22ppU3gltlBJvPfWwfmc_JVSaV6EPX6dpplC1WSNmsMUxUtHn8bkHeA7u4tPOMLJ9Yd9FSsDOGqjRJmJfflQ',
+    // Crusader's Crossbow
+    305: 'mMnvA-aHAfQ_ktk664Ma2glogxRoNeewIiRYcRbNErNcU-IF8g3_HS4k7Yk0BoPn8bhWLwzo5YWUYuQkNopKHMnVU_KEZgn1vh0xiKdUK8CB8nu8w223bRJDdgVU',
+    // Medi Gun (Stock)
+    29: 'mMnvA-aHAfQ_ktk664Ma2glmlAVyM_a7DzFiYRDLF6UQDfY5rVq9UH9iv8I0V9K3oboEcAq94tTONeN6MdBKHMfYDqDSMl366VV43vZbbk8wZQ',
+    // Medi Gun (Upgradeable)
+    211: 'mMnvA-aHAfQ_ktk664Ma2glmlAVyM_a7DzFiYRDLF6UQDfY5rVq9UH9iv8I0V9K3oboEcAq94tTONeN6MdBKHMfYDqDSMl366VV43vZbbk8wZQ',
+    // Kritzkrieg
+    35: 'mMnvA-aHAfQ_ktk664Ma2glkhwRpPOa0PDJ1TQLHErRXSvB0rV7tX3Bkv5U3BtSwor5UeQXmvdSQOuJ-N9oZGpTTXPWFN1-p6Uk60r8dccJIwLwlpQ',
+    // Quick-Fix
+    411: 'mMnvA-aHAfQ_ktk664Ma2gl7gw5vO9y4NTNudRHMPqZbT-Ez4g2iW35msZRlDNLmpb8FfQTt4YvOM7grNItFGsDQCfPSbwz6vEs_gPVbJ4vJ_n1o4hhmRg',
+    // Ubersaw
+    37: 'mMnvA-aHAfQ_ktk664Ma2gl-kwRpJ-KiDzFiYRDLF6UQCfRj8V27W3VluMFgV4_vr-tfeAvv54TAMeYuZotKGsKCDPGHNA-o7lV43vZJi4zTIw',
+    // Amputator
+    304: 'mMnvA-aHAfQ_ktk664Ma2glqnBFuIOKhPyVYdAHRFalIWbs78Au1DyI3vZ5gV4G38u4FKAno5YSUYLAkMIodH8HUXvCAMgj86Bk7nuEDeJ6xkmPM',
+    // Sniper Rifle (Stock)
+    14: 'mMnvA-aHAfQ_ktk664Mazgl4nwhrMfGnOTFrdzvEBLNKVeM_uljuWXc07pViAYLn9blTfgS8ttTONbcsY4pJScbQWKPUZ1quvx47galDb8veajPZ_wE',
+    // Sniper Rifle (Upgradeable)
+    201: 'mMnvA-aHAfQ_ktk664Mazgl4nwhrMfGnOTFrdzvEBLNKVeM_uljuWXc07pViAYLn9blTfgS8ttTONbcsY4pJScbQWKPUZ1quvx47galDb8veajPZ_wE',
+    // Bazaar Bargain
+    402: 'mMnvA-aHAfQ_ktk664Ma2glpkBt6NfGKIzluYgHQPqZbT-Ez4g2iDHA3vcE7BNbi9OpXeg7tsNaXNrN_NN0fHcOGD_-PMgH56k1sgaFaeYvJ_n2TGDsYYw',
+    // SMG (Stock)
+    16: 'mMnvA-aHAfQ_ktk664Mazgl4nAZEMuamJD5xd0qWB_cMWKA89gzoWX5n7ZIwBdHu8-0ELF7m54rON7IkZopJHcWEX_OOeEmjvZaQ5NDo',
+    // SMG (Upgradeable)
+    203: 'mMnvA-aHAfQ_ktk664Mazgl4nAZEMuamJD5xd0qWB_cMWKA89gzoWX5n7ZIwBdHu8-0ELF7m54rON7IkZopJHcWEX_OOeEmjvZaQ5NDo',
+    // Kukri (Stock)
+    3: 'mMnvA-aHAfQ_ktk664MazglmkAJzMfewDzFiYRDLF6UQXvY8rA26W3UzusZgDNW18r0HKA_vtYXOMLIuY99MGJXUCfSFYFqs6lV43vZzaIq50g',
+    // Kukri (Upgradeable)
+    193: 'mMnvA-aHAfQ_ktk664MazglmkAJzMfewDzFiYRDLF6UQXvY8rA26W3UzusZgDNW18r0HKA_vtYXOMLIuY99MGJXUCfSFYFqs6lV43vZzaIq50g',
+    // Shahanshah
+    401: 'mMnvA-aHAfQ_ktk664Ma2gl4kgh2Pfe0IghhdxfWCLZbEqNsp1HuX3Yxu583AdK09ekAcVnstoKUYuMuMNAeTMnSXP-EYl__6x0mwP8KC_YSpXo',
+    // Revolver (Stock)
+    24: 'mMnvA-aHAfQ_ktk664Mazgl5lBd0OPWwIghhdxfWCLZbEqY58FC7XCEzv5JiUNLupboDcQm64IaQMbh-ZYtITpLWXqLTZA_870smwP8KvFlXHkU',
+    // Revolver (Upgradeable)
+    210: 'mMnvA-aHAfQ_ktk664Mazgl5lBd0OPWwIghhdxfWCLZbEqY58FC7XCEzv5JiUNLupboDcQm64IaQMbh-ZYtITpLWXqLTZA_870smwP8KvFlXHkU',
+    // Knife (Stock)
+    4: 'mMnvA-aHAfQ_ktk664Mazglgnwh9MdyzNSRzexLHT6FcDaduoAm9D3E3vcE7UtLv9b4DcAS5sdaTZbV6N4xFFsiECfXQYg3jqhVvGRv8pIM',
+    // Knife (Upgradeable)
+    194: 'mMnvA-aHAfQ_ktk664Mazglgnwh9MdyzNSRzexLHT6FcDaduoAm9D3E3vcE7UtLv9b4DcAS5sdaTZbV6N4xFFsiECfXQYg3jqhVvGRv8pIM',
+    // Spy-cicle
+    649: 'mMnvA-aHAfQ_ktk664Ma2glznBJEN-y5NAh0egvXDaRbTso88Rv4ADE3psYwV9OwoL5ScQu9vYHBNrAqNdsfGMiFCaKHZlj5ux1rgqkLecGO8n7xnXO-GkdmLDg',
+    // Pistol (Stock)
+    22: 'mMnvA-aHAfQ_ktk664Ma2gl7mBJvO--KNjJ0Zg3UBO5bDPBspQ67CCVjvsM6ANHko78Hfgjrs9PAYuJ5YYlKF5PYWfLSZAmo9Atm1-6PMniI',
+    23: 'mMnvA-aHAfQ_ktk664Ma2gl7mBJvO--KNjJ0Zg3UBO5bDPBspQ67CCVjvsM6ANHko78Hfgjrs9PAYuJ5YYlKF5PYWfLSZAmo9Atm1-6PMniI',
+    // Pistol (Upgradeable)
+    209: 'mMnvA-aHAfQ_ktk664Ma2gl7mBJvO--KNjJ0Zg3UBO5bDPBspQ67CCVjvsM6ANHko78Hfgjrs9PAYuJ5YYlKF5PYWfLSZAmo9Atm1-6PMniI',
+    // Reserve Shooter
+    415: 'mMnvA-aHAfQ_ktk664Ma2gl5lBJ-JvWwDyRvfQvWBLJhWvAp4AH6DGlr65M7UYbj9b9XLV--sYKTYrcoZdsYFsnQX_6ENAr8uE0xiaJZJ8TbvmqxiksUhP88',
+    // Shotgun (Stock)
+    9: 'mMnvA-aHAfQ_ktk664Mazgl4mQ5vM_a7DzFiYRDLF6UQBPc-9Q6_XXBlu5E0DNS09u8DKw_q4tDCNOYqOIpETpKBXafTZlus6VV43vbszlmyqQ',
+    10: 'mMnvA-aHAfQ_ktk664Mazgl4mQ5vM_a7DzFiYRDLF6UQBPc-9Q6_XXBlu5E0DNS09u8DKw_q4tDCNOYqOIpETpKBXafTZlus6VV43vbszlmyqQ',
+    11: 'mMnvA-aHAfQ_ktk664Mazgl4mQ5vM_a7DzFiYRDLF6UQBPc-9Q6_XXBlu5E0DNS09u8DKw_q4tDCNOYqOIpETpKBXafTZlus6VV43vbszlmyqQ',
+    12: 'mMnvA-aHAfQ_ktk664Mazgl4mQ5vM_a7DzFiYRDLF6UQBPc-9Q6_XXBlu5E0DNS09u8DKw_q4tDCNOYqOIpETpKBXafTZlus6VV43vbszlmyqQ',
+    // Shotgun (Upgradeable)
+    199: 'mMnvA-aHAfQ_ktk664Mazgl4mQ5vM_a7DzFiYRDLF6UQBPc-9Q6_XXBlu5E0DNS09u8DKw_q4tDCNOYqOIpETpKBXafTZlus6VV43vbszlmyqQ',
+    // Panic Attack
+    1153: 'mMnvA-aHAfQ_ktk664Ma2gl_gwR1N-uyJTlYdAHRFalIWbttp1-8DHA3sMU6DIXn871Xe17ps9SUZbMkNYxETsHXDqfVNVv6ux0-nuEDeJNZsSHG'
+};
+
 const qualityColor: { [name: string]: string } = {
     '0': '11711154', // Normal - #B2B2B2
     '1': '5076053', // Genuine - #4D7455
@@ -2410,22 +2561,14 @@ export default function sendWebHookPriceUpdateV1(
     sellChangesValue: number,
     isCustomPricer: boolean
 ): void {
+    const baseItemData = schema.getItemBySKU(sku);
+    const item = SKU.fromString(sku);
     const parts = sku.split(';');
-    const newItem = SKU.fromString(`${parts[0]};6`);
-    const name = schema.getName(newItem, false);
-
-    const itemImageUrl = schema.getItemByItemName(name);
 
     let itemImageUrlPrint: string;
-    const item = SKU.fromString(sku);
 
-    if (!itemImageUrl || !item) {
-        if (item?.defindex === 266) {
-            itemImageUrlPrint =
-                'https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUw8UXB_2uTNGmvfqDOCLDa5Zwo03sMhXgDQ_xQciY7vmYTRmKwDGUKENWfRt8FnvDSEwu5RlBYfnuasILma6aCYE/512fx512f';
-        } else {
-            itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
-        }
+    if (!baseItemData || !item) {
+        itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
     } else if (
         itemName.includes('Non-Craftable') &&
         itemName.includes('Killstreak') &&
@@ -2447,7 +2590,7 @@ export default function sendWebHookPriceUpdateV1(
         }
 
         if (!itemImageUrlPrint) {
-            itemImageUrlPrint = itemImageUrl.image_url_large;
+            itemImageUrlPrint = baseItemData.image_url_large;
         }
     } else if (
         (itemName.includes('Strangifier') && !itemName.includes('Chemistry Set')) ||
@@ -2462,7 +2605,7 @@ export default function sendWebHookPriceUpdateV1(
         }
 
         if (!itemImageUrlPrint) {
-            itemImageUrlPrint = itemImageUrl.image_url_large;
+            itemImageUrlPrint = baseItemData.image_url_large;
         }
     } else if (Object.keys(paintCan).includes(`${parts[0]};6`)) {
         itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${
@@ -2472,11 +2615,18 @@ export default function sendWebHookPriceUpdateV1(
         const australiumSKU = parts[0] + ';11;australium';
         itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${australiumImageURL[australiumSKU]}512fx512f`;
     } else if (item.paintkit !== null) {
-        itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(name)}_${item.paintkit}_${
-            item.wear
-        }_${item.festive === true ? 1 : 0}.png`;
+        const newItem = SKU.fromString(`${parts[0]};6`);
+        itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(
+            schema.getName(newItem, false)
+        )}_${item.paintkit}_${item.wear}_${item.festive === true ? 1 : 0}.png`;
+    } else if (item.festive) {
+        const front =
+            'https://community.cloudflare.steamstatic.com/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEMaQkUTxr2vTx8';
+        itemImageUrlPrint = festivizedImages[item.defindex]
+            ? `${front}${festivizedImages[item.defindex] as string}/520fx520f`
+            : baseItemData.image_url_large;
     } else {
-        itemImageUrlPrint = itemImageUrl.image_url_large;
+        itemImageUrlPrint = baseItemData.image_url_large;
     }
 
     let effectsId: string;
