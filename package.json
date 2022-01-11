@@ -32,7 +32,7 @@
         "@tf2autobot/tf2-schema": "^2.2.3",
         "@tf2autobot/tf2-sku": "^2.0.3",
         "@tf2autobot/tradeoffer-manager": "^2.11.4",
-        "async": "^3.2.1",
+        "async": "^3.2.3",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
         "body-parser": "^1.19.1",
