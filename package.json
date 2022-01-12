@@ -42,7 +42,7 @@
         "dayjs": "^1.10.7",
         "death": "^1.1.0",
         "dot-prop": "^6.0.1",
-        "dotenv": "^10.0.0",
+        "dotenv": "^11.0.0",
         "express": "^4.17.2",
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",
