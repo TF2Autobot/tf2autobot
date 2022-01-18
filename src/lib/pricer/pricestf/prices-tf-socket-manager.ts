@@ -50,7 +50,7 @@ export default class PricesTfSocketManager {
                 log.debug('JWT expired');
                 void this.api.setupToken().then(() => this.ws.reconnect());
             } else {
-                log.error(err.error);
+                log.error(err);
             }
         });
 
@@ -66,6 +66,10 @@ export default class PricesTfSocketManager {
             this.ws.close();
             this.ws = undefined;
         }
+    }
+
+    send(data: string): void {
+        this.ws.send(data);
     }
 
     on<T extends keyof Events.WebSocketEventListenerMap>(name: T, handler: Events.WebSocketEventListenerMap[T]): void {
