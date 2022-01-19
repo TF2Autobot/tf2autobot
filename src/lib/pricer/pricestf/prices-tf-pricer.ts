@@ -118,7 +118,7 @@ export default class PricesTfPricer implements IPricer {
             try {
                 const data = this.parsePricesTfMessageEvent(message.data);
 
-                if (message.type === 'AUTH_REQUIRED') {
+                if (data.type === 'AUTH_REQUIRED') {
                     // might be nicer to put this elsewhere
 
                     log.info('prices.tf re-authorization required');
