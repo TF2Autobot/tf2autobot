@@ -80,24 +80,24 @@ const consoleFormat = winston.format.combine(
     })
 );
 
-export interface BetterLogger extends winston.Logger {
-    exception: (error: Error, prefix?: string) => BetterLogger;
-}
+// export interface BetterLogger extends winston.Logger {
+//     exception: (error: Error, prefix?: string) => BetterLogger;
+// }
 
 const logger = winston.createLogger({
     levels: levels
-}) as BetterLogger;
+});
 
-// Monkey patching Winston because it incorrectly logs `Error` instances even in 2020
-// Related issue: https://github.com/winstonjs/winston/issues/1498
-logger.exception = function (error, prefix?) {
-    const message = error.message || error.toString();
-    const stack = error.stack;
-    prefix = prefix ? `${prefix} ` : '';
+// // Monkey patching Winston because it incorrectly logs `Error` instances even in 2020
+// // Related issue: https://github.com/winstonjs/winston/issues/1498
+// logger.exception = function (error, prefix?) {
+//     const message = error.message || error.toString();
+//     const stack = error.stack;
+//     prefix = prefix ? `${prefix} ` : '';
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    return this.error(`${prefix}${message}, stack ${stack}`) as BetterLogger;
-};
+//     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+//     return this.error(`${prefix}${message}, stack ${stack}`) as BetterLogger;
+// };
 
 export function init(paths: Paths, options: Options): void {
     const debugConsole = options.debug;

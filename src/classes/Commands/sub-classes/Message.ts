@@ -90,7 +90,7 @@ export default class MessageCommand {
                     recipientSteamID.toString(),
                     reply,
                     recipientDetails,
-                    generateLinks(steamID.toString()),
+                    generateLinks(recipientSteamID.toString()),
                     timeNow(this.bot.options).time,
                     this.bot
                 );

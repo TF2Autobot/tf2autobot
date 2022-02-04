@@ -3,7 +3,6 @@ import log from '../../../lib/logger';
 import WS from 'ws';
 import * as Events from 'reconnecting-websocket/events';
 import PricesTfApi from './prices-tf-api';
-import logger from '../../../lib/logger';
 
 export default class PricesTfSocketManager {
     private readonly socketClass;
@@ -51,7 +50,7 @@ export default class PricesTfSocketManager {
                 log.debug('JWT expired');
                 void this.api.setupToken().then(() => this.ws.reconnect());
             } else {
-                logger.exception(err.error);
+                log.error(err);
             }
         });
 
@@ -67,6 +66,10 @@ export default class PricesTfSocketManager {
             this.ws.close();
             this.ws = undefined;
         }
+    }
+
+    send(data: string): void {
+        this.ws.send(data);
     }
 
     on<T extends keyof Events.WebSocketEventListenerMap>(name: T, handler: Events.WebSocketEventListenerMap[T]): void {

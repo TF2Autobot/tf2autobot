@@ -8,7 +8,7 @@ import IPricer, {
     RequestCheckResponse
 } from '../../../classes/IPricer';
 import PricesTfApi, { PricesTfItem, PricesTfItemMessageEvent } from './prices-tf-api';
-import logger from '../../logger';
+import log from '../../logger';
 
 export default class PricesTfPricer implements IPricer {
     private socketManager: PricesTfSocketManager;
@@ -37,10 +37,13 @@ export default class PricesTfPricer implements IPricer {
         do {
             await Promise.delay(delay);
             const start = new Date().getTime();
-            logger.debug('Getting page ' + currentPage.toString() + ' of ' + totalPages.toString());
+            log.debug('Requesting pricelist pages...');
             const response = await this.api.getPricelistPage(currentPage);
-            currentPage++;
+
+            log.debug('Getting page ' + currentPage.toString() + ' of ' + totalPages.toString());
             totalPages = response.meta.totalPages;
+            currentPage++;
+
             prices = prices.concat(response.items);
             const time = new Date().getTime() - start;
 
@@ -114,12 +117,27 @@ export default class PricesTfPricer implements IPricer {
         this.socketManager.on('message', (message: MessageEvent) => {
             try {
                 const data = this.parsePricesTfMessageEvent(message.data);
-                if (data.type === 'PRICE_UPDATED') {
+
+                if (data.type === 'AUTH_REQUIRED') {
+                    // might be nicer to put this elsewhere
+
+                    log.info('prices.tf re-authorization required');
+                    void this.api.setupToken().then(() => {
+                        this.socketManager.send(
+                            JSON.stringify({
+                                type: 'AUTH',
+                                data: {
+                                    accessToken: this.api.token
+                                }
+                            })
+                        );
+                    });
+                } else if (data.type === 'PRICE_CHANGED') {
                     const item = this.parsePriceUpdatedData(data);
                     onPriceChange(item);
                 }
             } catch (e) {
-                logger.exception(e as Error);
+                log.error(e as Error);
             }
         });
     }

@@ -243,6 +243,13 @@ export default class Autokeys {
 
         // Check and set new min and max
         if (isBuyingKeys) {
+            const inventoryManager = this.bot.inventoryManager;
+            if (!inventoryManager.isCanAffordToBuy(currKeyPrice.buy, inventoryManager.getInventory)) {
+                // if the bot can't afford to buy, just abort
+                // this is very unlikely, but possible I guess.
+                return;
+            }
+
             // If buying - we need to set min = currKeys and max = currKeys + CanBuy
             const min = currKeys;
             setMinKeys = min <= userMinKeys ? userMinKeys : min;
@@ -257,6 +264,13 @@ export default class Autokeys {
             }
             //
         } else if (isBankingBuyKeysWithEnoughRefs && isEnableKeyBanking) {
+            const inventoryManager = this.bot.inventoryManager;
+            if (!inventoryManager.isCanAffordToBuy(currKeyPrice.buy, inventoryManager.getInventory)) {
+                // if the bot can't afford to buy, just abort
+                // example, set min ref to 60 ref, but the bot have 50 ref and the current buying price is 68 ref
+                return;
+            }
+
             // If buying (while banking) - we need to set min = currKeys and max = currKeys + CanBankMax
             const min = currKeys;
             setMinKeys = min <= userMinKeys ? userMinKeys : min;
