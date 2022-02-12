@@ -60,7 +60,7 @@
         "steam-openid-login-dayjs": "^1.0.7",
         "steam-totp": "^2.1.1",
         "steam-user": "^4.20.2",
-        "steamcommunity": "^3.43.1",
+        "steamcommunity": "^3.44.0",
         "steamid": "^2.0.0",
         "url": "^0.11.0",
         "valid-url": "^1.0.9",
