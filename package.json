@@ -65,7 +65,7 @@
         "url": "^0.11.0",
         "valid-url": "^1.0.9",
         "websocket-extensions": "^0.1.4",
-        "winston": "^3.4.0",
+        "winston": "^3.6.0",
         "winston-daily-rotate-file": "^4.6.0",
         "ws": "^8.5.0",
         "xmlhttprequest-ts": "^1.0.1"
