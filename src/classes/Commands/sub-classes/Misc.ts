@@ -2,9 +2,11 @@ import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
+import { removeLinkProtocol } from '../functions/utils';
+import CommandParser from '../../CommandParser';
 import Bot from '../../Bot';
 import { Discord, Stock } from '../../Options';
-import { pure, timeNow, uptime } from '../../../lib/tools/export';
+import { pure, timeNow, uptime, testSKU } from '../../../lib/tools/export';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -14,7 +16,7 @@ export default class MiscCommands {
         this.bot = bot;
     }
 
-    miscCommand(steamID: SteamID, command: Misc): void {
+    miscCommand(steamID: SteamID, command: Misc, message?: string): void {
         const opt = this.bot.options.commands[command];
         if (!opt.enable) {
             if (!this.bot.isAdmin(steamID)) {
@@ -93,6 +95,31 @@ export default class MiscCommands {
             }
             this.bot.sendMessage(steamID, reply);
         } else {
+            const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
+            let reply = '';
+            let isWithSomething = false;
+
+            if (itemNameOrSku !== '!sku') {
+                if (!testSKU(itemNameOrSku)) {
+                    // Receive name
+                    const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
+
+                    if (sku.includes('null') || sku.includes('undefined')) {
+                        reply = `Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`;
+                    } else {
+                        const assetids = this.bot.inventoryManager.getInventory.findBySKU(sku);
+                        reply = `/pre I am currently have ${assetids.length} of ${itemNameOrSku} (${sku}).`;
+                        isWithSomething = true;
+                    }
+                } else {
+                    // Receive sku
+                    const assetids = this.bot.inventoryManager.getInventory.findBySKU(itemNameOrSku);
+                    const name = this.bot.schema.getName(SKU.fromString(itemNameOrSku), false);
+
+                    reply = `/pre I am currently have ${assetids.length} of ${name} (${itemNameOrSku}).`;
+                    isWithSomething = true;
+                }
+            }
             const inventory = this.bot.inventoryManager.getInventory;
             const dict = inventory.getItems;
             const items: { amount: number; name: string }[] = [];
@@ -163,9 +190,11 @@ export default class MiscCommands {
             }
 
             const custom = opt.customReply.reply;
-            let reply = custom
+            reply += custom
                 ? custom.replace(/%stocklist%/g, stock.join(', \n'))
-                : `/pre 📜 Here's a list of all the items that I have in my inventory:\n${stock.join(', \n')}`;
+                : `${
+                      isWithSomething ? '\n\n' : '/pre'
+                  }📜 Here's a list of all the items that I have in my inventory:\n${stock.join(', \n')}`;
 
             if (left > 0) {
                 reply += `,\nand ${left} other ${pluralize('item', left)}`;

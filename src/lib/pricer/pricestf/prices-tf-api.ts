@@ -67,15 +67,16 @@ export default class PricesTfApi {
         }
     }
 
-    private static async apiRequest<I, B>(
+    public static async apiRequest<I, B>(
         httpMethod: string,
         path: string,
         input: I,
-        headers?: Record<string, unknown>
+        headers?: Record<string, unknown>,
+        customURL?: string
     ): Promise<B> {
         const options: OptionsWithUrl & { headers: Record<string, unknown> } = {
             method: httpMethod,
-            url: `${this.URL}${path}`,
+            url: customURL ? `${customURL}${path}` : `${this.URL}${path}`,
             headers: {
                 'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
                 ...headers

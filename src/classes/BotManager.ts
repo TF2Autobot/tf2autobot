@@ -169,6 +169,13 @@ export default class BotManager {
 
     restartProcess(): Promise<boolean> {
         return new Promise((resolve, reject) => {
+            // When running Docker, just signal the process to kill.
+            // Setting --restart=Always will make sure the container is restarted.
+            if (process.env.DOCKER !== undefined) {
+                this.stop(null);
+                return resolve(true);
+            }
+
             if (process.env.pm_id === undefined) {
                 return resolve(false);
             }
