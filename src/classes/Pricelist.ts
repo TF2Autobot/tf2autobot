@@ -485,7 +485,7 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
-        if (!this.bot.schema.checkExistence(SKU.fromString(entryData.sku))) {
+        if (!this.schema.checkExistence(SKU.fromString(entryData.sku))) {
             throw new Error(`Item with sku ${entryData.sku} does not exist.`);
         }
 
