@@ -481,14 +481,7 @@ export default class Listings {
 
                 log.debug('Removing all listings...');
 
-                // Remove all current listings
-                this.bot.listingManager.listings.forEach(listing => listing.remove());
-
-                // Clear timeout
-                clearTimeout(this.bot.listingManager._timeout);
-
-                // Remove listings
-                this.bot.listingManager._processActions(err => {
+                this.bot.listingManager.deleteAllListings(err => {
                     if (err) {
                         return reject(err);
                     }
