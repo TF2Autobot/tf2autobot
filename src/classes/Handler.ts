@@ -113,8 +113,9 @@ export default abstract class Handler {
      * Called when a friend message has been sent to the bot
      * @param steamID - SteamID object of the sender
      * @param message - The message from the sender
+     * @param respondChat - Should bot return response or respond to SteamID in chat
      */
-    async onMessage(steamID: SteamID, message: string): Promise<void> {
+    async onMessage(steamID: SteamID, message: string, respondChat: boolean): Promise<void | string> {
         // empty function
     }
 

@@ -34,6 +34,8 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('addItem', this.addItem.bind(this));
             this.ourServer.on('updateItem', this.updateItem.bind(this));
             this.ourServer.on('removeItem', this.removeItem.bind(this));
+            this.ourServer.on('getTrades', this.sendTrades.bind(this));
+            this.ourServer.on('sendChat', this.sendChat.bind(this));
         });
     }
 
@@ -99,5 +101,20 @@ export default class ipcHandler extends IPC {
     sendPricelist(): void {
         if (this.bot.pricelist) this.ourServer.emit('pricelist', this.bot.pricelist.getPrices);
         else this.ourServer.emit('pricelist', false);
+    }
+
+    sendTrades(): void {
+        this.ourServer.emit('polldata', this.bot.manager.pollData);
+    }
+
+    private sendChat(message: string): void {
+        this.bot.handler
+            .onMessage(this.bot.getAdmins[0], message, false)
+            .then(msg => {
+                this.ourServer.emit('chatResp', msg);
+            })
+            .catch((e: string) => {
+                this.ourServer.emit('chatResp', e);
+            });
     }
 }

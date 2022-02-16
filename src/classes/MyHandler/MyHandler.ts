@@ -444,39 +444,55 @@ export default class MyHandler extends Handler {
         }
     }
 
-    async onMessage(steamID: SteamID, message: string): Promise<void> {
-        if (!this.opt.commands.enable) {
-            if (!this.bot.isAdmin(steamID)) {
-                const custom = this.opt.commands.customDisableReply;
-                return this.bot.sendMessage(steamID, custom ? custom : '❌ Command function is disabled by the owner.');
-            }
+    async onMessage(steamID: SteamID, message: string, respondChat = true): Promise<void | string> {
+        const old = this.bot.sendMessage.bind(this);
+        let resp = '';
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises,no-async-promise-executor
+            resp = await new Promise<string>(async resolve => {
+                if (!respondChat) this.bot.sendMessage = (id: SteamID, message: string): void => resolve(message);
+                if (!this.opt.commands.enable) {
+                    if (!this.bot.isAdmin(steamID) && respondChat) {
+                        const custom = this.opt.commands.customDisableReply;
+                        return this.bot.sendMessage(
+                            steamID,
+                            custom ? custom : '❌ Command function is disabled by the owner.'
+                        );
+                    }
+                }
+
+                if (this.isUpdating) {
+                    return this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
+                }
+
+                const steamID64 = steamID.toString();
+                if (respondChat && !this.bot.friends.isFriend(steamID64)) {
+                    return;
+                }
+
+                const friend = this.bot.friends.getFriend(steamID64);
+                if (!respondChat) {
+                    log.info(`Message from IPC: ${message}`);
+                } else if (friend === null) {
+                    log.info(`Message from ${steamID64}: ${message}`);
+                } else {
+                    log.info(`Message from ${friend.player_name} (${steamID64}): ${message}`);
+                }
+
+                if (this.recentlySentMessage[steamID64] !== undefined && this.recentlySentMessage[steamID64] >= 1) {
+                    return;
+                }
+
+                this.recentlySentMessage[steamID64] =
+                    (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
+
+                await this.commands.processMessage(steamID, message);
+            });
+        } finally {
+            //MAKE SURE this happens
+            if (!respondChat) this.bot.sendMessage = old;
         }
-
-        if (this.isUpdating) {
-            return this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
-        }
-
-        const steamID64 = steamID.toString();
-        if (!this.bot.friends.isFriend(steamID64)) {
-            return;
-        }
-
-        const friend = this.bot.friends.getFriend(steamID64);
-
-        if (friend === null) {
-            log.info(`Message from ${steamID64}: ${message}`);
-        } else {
-            log.info(`Message from ${friend.player_name} (${steamID64}): ${message}`);
-        }
-
-        if (this.recentlySentMessage[steamID64] !== undefined && this.recentlySentMessage[steamID64] >= 1) {
-            return;
-        }
-
-        this.recentlySentMessage[steamID64] =
-            (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
-
-        await this.commands.processMessage(steamID, message);
+        if (!respondChat) return resp;
     }
 
     onLoginKey(loginKey: string): void {
