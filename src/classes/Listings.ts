@@ -232,45 +232,47 @@ export default class Listings {
                 doneSomething = true;
                 listing.remove();
             } else {
-                if (listing.intent === 0 && /;[p][0-9]+/.test(sku)) {
-                    // do nothing
-                } else {
-                    const newDetails = this.getDetails(
-                        listing.intent,
-                        listing.intent === 0 ? amountCanBuy : amountCanSell,
-                        match,
-                        inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
-                    );
+                const newDetails = this.getDetails(
+                    listing.intent,
+                    listing.intent === 0 ? amountCanBuy : amountCanSell,
+                    match,
+                    inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
+                );
 
-                    const keyPrice = this.bot.pricelist.getKeyPrice;
+                const keyPrice = this.bot.pricelist.getKeyPrice;
 
-                    // if listing note don't have any parameters (%price%, %amount_trade%, etc), then we check if there's any changes with currencies
-                    const isCurrenciesChanged =
-                        listing.currencies?.toValue(keyPrice.metal) !==
-                        match[listing.intent === 0 ? 'buy' : 'sell']?.toValue(keyPrice.metal);
+                // if listing note don't have any parameters (%price%, %amount_trade%, etc), then we check if there's any changes with currencies
+                const isCurrenciesChanged =
+                    listing.currencies?.toValue(keyPrice.metal) !==
+                    match[listing.intent === 0 ? 'buy' : 'sell']?.toValue(keyPrice.metal);
 
-                    const isListingDetailsChanged =
-                        listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '');
+                const isListingDetailsChanged =
+                    listing.details?.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '') !== newDetails.replace('[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬]', '');
 
-                    if (isCurrenciesChanged || isListingDetailsChanged) {
-                        if (showLogs) {
-                            log.debug(`Listing details don't match, updated listing`, {
-                                sku: sku,
-                                intent: listing.intent
-                            });
-                        }
-
-                        doneSomething = true;
-
-                        const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
-
-                        listing.update({
-                            currencies: currencies,
-                            //promoted: listing.intent === 0 ? 0 : match.promoted,
-                            details: newDetails
+                if (isCurrenciesChanged || isListingDetailsChanged) {
+                    if (showLogs) {
+                        log.debug(`Listing details don't match, updated listing`, {
+                            sku: sku,
+                            intent: listing.intent
                         });
-                        //TODO: make promote, demote
                     }
+
+                    doneSomething = true;
+
+                    const currencies = match[listing.intent === 0 ? 'buy' : 'sell'];
+
+                    const toUpdate = {
+                        currencies: currencies,
+                        //promoted: listing.intent === 0 ? 0 : match.promoted,
+                        details: newDetails
+                    };
+
+                    if (listing.intent === 0) {
+                        toUpdate['quantity'] = amountCanBuy;
+                    }
+
+                    listing.update(toUpdate);
+                    //TODO: make promote, demote
                 }
             }
         });
@@ -295,6 +297,7 @@ export default class Listings {
                     time: matchNew.time || dayjs().unix(),
                     sku: sku,
                     intent: 0,
+                    quantity: amountCanBuy,
                     details: this.getDetails(0, amountCanBuy, matchNew),
                     currencies: matchNew.buy
                 });
