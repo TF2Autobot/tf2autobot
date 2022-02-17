@@ -266,6 +266,7 @@ export default class Listings {
 
                         listing.update({
                             currencies: currencies,
+                            amount: amountCanBuy,
                             //promoted: listing.intent === 0 ? 0 : match.promoted,
                             details: newDetails
                         });
@@ -295,6 +296,7 @@ export default class Listings {
                     time: matchNew.time || dayjs().unix(),
                     sku: sku,
                     intent: 0,
+                    amount: amountCanBuy,
                     details: this.getDetails(0, amountCanBuy, matchNew),
                     currencies: matchNew.buy
                 });
