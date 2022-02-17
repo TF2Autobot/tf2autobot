@@ -263,13 +263,12 @@ export default class Listings {
 
                     const toUpdate = {
                         currencies: currencies,
-                        amount: amountCanBuy,
                         //promoted: listing.intent === 0 ? 0 : match.promoted,
                         details: newDetails
                     };
 
                     if (listing.intent === 0) {
-                        toUpdate['amount'] = amountCanBuy;
+                        toUpdate['quantity'] = amountCanBuy;
                     }
 
                     listing.update(toUpdate);
@@ -298,7 +297,7 @@ export default class Listings {
                     time: matchNew.time || dayjs().unix(),
                     sku: sku,
                     intent: 0,
-                    amount: amountCanBuy,
+                    quantity: amountCanBuy,
                     details: this.getDetails(0, amountCanBuy, matchNew),
                     currencies: matchNew.buy
                 });
