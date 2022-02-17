@@ -103,20 +103,22 @@ export default class MiscCommands {
                 if (!testSKU(itemNameOrSku)) {
                     // Receive name
                     const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
-
-                    if (sku.includes('null') || sku.includes('undefined')) {
-                        reply = `Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`;
-                    } else {
-                        const assetids = this.bot.inventoryManager.getInventory.findBySKU(sku);
-                        reply = `/pre I am currently have ${assetids.length} of ${itemNameOrSku} (${sku}).`;
-                        isWithSomething = true;
+                    if (itemNameOrSku !== '!stock') {
+                        if (sku.includes('null') || sku.includes('undefined')) {
+                            reply = `/pre Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`;
+                            isWithSomething = true;
+                        } else {
+                            const assetids = this.bot.inventoryManager.getInventory.findBySKU(sku);
+                            reply = `/pre I currently have ${assetids.length} of ${itemNameOrSku} (${sku}).`;
+                            isWithSomething = true;
+                        }
                     }
                 } else {
                     // Receive sku
                     const assetids = this.bot.inventoryManager.getInventory.findBySKU(itemNameOrSku);
                     const name = this.bot.schema.getName(SKU.fromString(itemNameOrSku), false);
 
-                    reply = `/pre I am currently have ${assetids.length} of ${name} (${itemNameOrSku}).`;
+                    reply = `/pre I currently have ${assetids.length} of ${name} (${itemNameOrSku}).`;
                     isWithSomething = true;
                 }
             }
@@ -193,7 +195,7 @@ export default class MiscCommands {
             reply += custom
                 ? custom.replace(/%stocklist%/g, stock.join(', \n'))
                 : `${
-                      isWithSomething ? '\n\n' : '/pre'
+                      isWithSomething ? '\n\n' : '/pre '
                   }📜 Here's a list of all the items that I have in my inventory:\n${stock.join(', \n')}`;
 
             if (left > 0) {
