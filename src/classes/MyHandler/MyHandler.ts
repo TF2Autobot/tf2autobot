@@ -2297,13 +2297,13 @@ export default class MyHandler extends Handler {
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
-        log.debug(`Sending friend request to ${steamID64}...`);
+        log.debug(`Accepting friend request from ${steamID64}...`);
         this.bot.client.addFriend(steamID, err => {
             if (err) {
-                log.warn(`Failed to a send friend request to ${steamID64}: `, err);
+                log.warn(`Failed to accept friend request from ${steamID64}: `, err);
                 return;
             }
-            log.debug('Friend request has been sent / accepted');
+            log.debug('Friend request has been accepted');
         });
     }
 
