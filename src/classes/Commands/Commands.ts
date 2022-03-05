@@ -177,6 +177,9 @@ export default class Commands {
         } else if (command === 'queue') {
             this.queueCommand(steamID);
         } else if (['time', 'uptime', 'pure', 'rate', 'owner', 'discord', 'stock'].includes(command)) {
+            if (command === 'stock') {
+                return this.misc.miscCommand(steamID, command as Misc, message);
+            }
             this.misc.miscCommand(steamID, command as Misc);
         } else if (command === 'paints' && isAdmin) {
             this.misc.paintsCommand(steamID);
@@ -305,6 +308,10 @@ export default class Commands {
 
     private getSKU(steamID: SteamID, message: string): void {
         const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
+
+        if (itemNameOrSku === '!sku') {
+            return this.bot.sendMessage(steamID, `❌ Missing item name or item sku!`);
+        }
 
         if (!testSKU(itemNameOrSku)) {
             // Receive name

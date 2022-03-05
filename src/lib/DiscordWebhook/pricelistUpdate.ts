@@ -1744,6 +1744,24 @@ const festivizedImages = {
     1153: 'mMnvA-aHAfQ_ktk664Ma2gl_gwR1N-uyJTlYdAHRFalIWbttp1-8DHA3sMU6DIXn871Xe17ps9SUZbMkNYxETsHXDqfVNVv6ux0-nuEDeJNZsSHG'
 };
 
+const retiredKeys = {
+    5049: 'https://wiki.teamfortress.com/w/images/c/c7/Backpack_Festive_Winter_Crate_Key.png',
+    5067: 'https://steamcdn-a.akamaihd.net/apps/440/icons/key_summer_large.f49710a191ae35c9f9b83df51c2a734cf143530d.png',
+    5072: 'https://steamcdn-a.akamaihd.net/apps/440/icons/xmas_wicked_key_large.226fac08f92f09a21964f3680f3728bcda1165e6.png',
+    5073: 'https://steamcdn-a.akamaihd.net/apps/440/icons/xmas_key_large.f39ee76a332c53c9bdfed8b3affdf9aca1f02dd5.png',
+    5079: 'https://steamcdn-a.akamaihd.net/apps/440/icons/fire_key_large.20be1b7a01c70a7447132834a125c4cf3d27ead2.png',
+    5081: 'https://steamcdn-a.akamaihd.net/apps/440/icons/fall_key_large.fffc5be5e86b0c37276d1d1d40f0af35beed5236.png',
+    5628: 'https://steamcdn-a.akamaihd.net/apps/440/icons/skeleton_key_large.16f037666afb600ba24a1a5680f49deb40900a3d.png',
+    5631: 'https://steamcdn-a.akamaihd.net/apps/440/icons/smissmass_key_wicked_large.fd2981b2b94e8d5d11c61931c36c1cbba376af59.png',
+    5632: 'https://steamcdn-a.akamaihd.net/apps/440/icons/smissmass_key_large.597ded9890d23737127c9382d037a9d663e7ec67.png',
+    5713: 'https://steamcdn-a.akamaihd.net/apps/440/icons/skeleton_key_02_large.fe725e038cfb51d7a2b43bac57a9932b63dbbbb1.png',
+    5716: 'https://steamcdn-a.akamaihd.net/apps/440/icons/winter2013_naughty_key_large.d95b1d82021ab7bd993f815894b23dd1d246643d.png',
+    5717: 'https://steamcdn-a.akamaihd.net/apps/440/icons/winter2013_nice_key_large.11e8d9592dbba89926c3ad1a50fe7bec5347d0eb.png',
+    5762: 'https://steamcdn-a.akamaihd.net/apps/440/icons/wading_key_large.34ef244f2d9ebc40d2fea3978e378465d5eb45d3.png',
+    5791: 'http://media.steampowered.com/apps/440/icons/winter2013_naughty_key_large.d95b1d82021ab7bd993f815894b23dd1d246643d.png',
+    5792: 'http://media.steampowered.com/apps/440/icons/winter2014_nice_key_large.7246c86cea44b1aa0022e8017dac8d23dee64ea4.png'
+};
+
 const qualityColor: { [name: string]: string } = {
     '0': '11711154', // Normal - #B2B2B2
     '1': '5076053', // Genuine - #4D7455
@@ -1780,6 +1798,8 @@ export default function sendWebHookPriceUpdateV1(
 
     if (!baseItemData || !item) {
         itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+    } else if (retiredKeys[item.defindex] !== undefined) {
+        itemImageUrlPrint = retiredKeys[item.defindex] as string;
     } else if (
         itemName.includes('Non-Craftable') &&
         itemName.includes('Killstreak') &&
@@ -1854,7 +1874,7 @@ export default function sendWebHookPriceUpdateV1(
     let effectURL: string;
     if (!effectsId) {
         effectURL = '';
-    } else effectURL = `https://marketplace.tf/images/particles/${effectsId}_94x94.png`;
+    } else effectURL = `https://autobot.tf/images/effects/${effectsId}_94x94.png`;
 
     const qualityItem = parts[1];
     const qualityColorPrint = qualityColor[qualityItem];

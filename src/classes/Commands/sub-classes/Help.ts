@@ -174,7 +174,7 @@ export default class HelpCommands {
                         '!uptime - Show the bot uptime 🔌',
                         "!pure - Get the bot's current pure stock 💰",
                         "!rate - Get the bot's current key rates 🔑",
-                        '!stock - Get a list of items that the bot owns',
+                        '!stock [sku|item name] - Get a list of items that the bot owns',
                         "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
                         "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
                         '!paints - Get a list of paints partial sku 🎨'
@@ -201,7 +201,7 @@ export default class HelpCommands {
                 '!uptime - Show the bot uptime 🔌',
                 "!pure - Get the bot's current pure stock 💰",
                 "!rate - Get the bot's current key rates 🔑",
-                '!stock - Get a list of items that the bot owns',
+                '!stock [sku|item name] - Get a list of items that the bot owns',
                 "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
                 "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫"
             ].join('\n- ')}`

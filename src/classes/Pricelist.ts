@@ -485,6 +485,10 @@ export default class Pricelist extends EventEmitter {
             }
         }
 
+        if (!this.schema.checkExistence(SKU.fromString(entryData.sku))) {
+            throw new Error(`Item with sku ${entryData.sku} does not exist.`);
+        }
+
         const entry = Entry.fromData(entryData, this.schema);
 
         if (isBulk && pricerItems !== null && this.transformedPricelistForBulk === undefined) {
