@@ -3,22 +3,72 @@
 import { IPC } from 'node-ipc';
 import log from '../lib/logger';
 import Bot from './Bot';
+import fs from 'fs';
+import { generateKeyPairSync } from 'crypto';
+import path from 'path';
+import Options from './Options';
 
 export default class ipcHandler extends IPC {
     ourServer: any;
 
     bot: Bot;
 
+    options: Options;
+
+    privateKey?: string;
+
+    publicKey?: string;
+
+    serverKey?: string;
+
     constructor(bot: Bot) {
         super();
         this.server = null;
         this.bot = bot;
+        this.options = bot.options;
+        if (this.options.tls) {
+            this.publicKey = path.join(__dirname, `../../files/${this.bot.options.steamAccountName}/client.pub`);
+            this.privateKey = path.join(__dirname, `../../files/${this.bot.options.steamAccountName}/client.key`);
+            this.serverKey = path.join(__dirname, `../../files/${this.bot.options.steamAccountName}/server.pub`);
+        }
     }
 
     init(): void {
         this.config.id = this.bot.client.steamID.getSteamID64();
         this.config.retry = 15000;
         //this.config.silent = true;
+
+        if (this.options.tls) {
+            this.config.networkHost = this.options.tlsHost;
+            this.config.networkPort = this.options.tlsPort;
+            if (!fs.existsSync(this.publicKey) || !fs.existsSync(this.privateKey)) {
+                //no keys found, generate them
+                const { publicKey, privateKey } = generateKeyPairSync('rsa', {
+                    modulusLength: 4096,
+                    publicKeyEncoding: {
+                        type: 'spki',
+                        format: 'pem'
+                    },
+                    privateKeyEncoding: {
+                        type: 'pkcs8',
+                        format: 'pem'
+                    }
+                });
+                fs.writeFileSync(this.publicKey, publicKey);
+                fs.writeFileSync(this.privateKey, privateKey);
+            }
+
+            if (!fs.existsSync(this.serverKey)) {
+                log.error('Servers public key not found');
+                throw new Error('Servers public key not found');
+            }
+            this.config.tls = {
+                private: this.privateKey,
+                public: this.publicKey,
+                rejectUnauthorized: true,
+                trustedConnections: this.serverKey
+            } as Record<string, unknown>; //Ignore TS once again
+        }
 
         // eslint-disable-next-line
         this.connectTo('autobot_gui_dev', () => {
