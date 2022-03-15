@@ -47,7 +47,7 @@ jobs:
 
       - name: Build and push (node:${{ matrix.node }})
         id: docker
-        uses: docker/build-push-action@v2.9.0
+        uses: docker/build-push-action@v2.10.0
         with:
           push: true
           context: .
