@@ -53,6 +53,9 @@ export const DEFAULTS: JsonOptions = {
             // giftedByTag: {
             //     enable: true
             // }
+        },
+        deleteUntradableJunk: {
+            enable: false
         }
     },
 
@@ -1119,6 +1122,7 @@ interface MiscSettings {
     checkUses?: CheckUses;
     game?: Game;
     alwaysRemoveItemAttributes?: AlwaysRemoveItemAttributes;
+    deleteUntradableJunk?: OnlyEnable;
 }
 
 interface AlwaysRemoveItemAttributes {

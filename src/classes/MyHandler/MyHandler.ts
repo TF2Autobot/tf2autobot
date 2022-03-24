@@ -165,6 +165,10 @@ export default class MyHandler extends Handler {
         return this.opt.crafting.manual;
     }
 
+    private get isDeletingUntradableJunk(): boolean {
+        return this.opt.miscSettings.deleteUntradableJunk.enable;
+    }
+
     private isPremium = false;
 
     private botName = '';
@@ -274,6 +278,11 @@ export default class MyHandler extends Handler {
                 // called after 5 seconds to craft metals and duplicated weapons first.
                 void craftClassWeapons(this.bot);
             }, 5 * 1000);
+        }
+
+        if (this.isDeletingUntradableJunk) {
+            // Delete untradable junk
+            this.deleteUntradableJunk();
         }
 
         // Auto sell and buy keys if ref < minimum
@@ -2201,6 +2210,11 @@ export default class MyHandler extends Handler {
                 }, 5 * 1000);
             }
 
+            if (this.isDeletingUntradableJunk) {
+                // Delete untradable junk
+                this.deleteUntradableJunk();
+            }
+
             // Sort inventory
             this.sortInventory();
 
@@ -2485,6 +2499,15 @@ export default class MyHandler extends Handler {
                 });
             }
         });
+    }
+
+    private deleteUntradableJunk(): void {
+        const assetidsToDelete = this.bot.inventoryManager.getInventory.findUntradableJunk();
+
+        for (const assetid of assetidsToDelete) {
+            log.debug(`Deleting junk item ${assetid}`);
+            this.bot.tf2gc.deleteItem(assetid);
+        }
     }
 
     onPollData(pollData: PollData): void {
