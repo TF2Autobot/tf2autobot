@@ -35,7 +35,7 @@
         "async": "^3.2.3",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
-        "body-parser": "^1.19.2",
+        "body-parser": "^1.20.0",
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
         "cheerio": "^1.0.0-rc.10",
