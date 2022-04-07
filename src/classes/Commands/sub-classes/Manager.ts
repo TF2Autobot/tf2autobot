@@ -354,7 +354,7 @@ export default class ManagerCommands {
             return this.bot.sendMessage(steamID, `❌ No friends to remove.`);
         }
 
-        const totalTime = total * 2 * 1000;
+        const totalTime = total * 5 * 1000;
         const aSecond = 1000;
         const aMin = 60 * 1000;
         const anHour = 60 * 60 * 1000;
@@ -362,7 +362,7 @@ export default class ManagerCommands {
         this.bot.sendMessage(
             steamID,
             `⌛ Removing ${total} friends...` +
-                `\n2 seconds between each person, so it will be about ${
+                `\n5 seconds between each person, so it will be about ${
                     totalTime < aMin
                         ? `${Math.round(totalTime / aSecond)} seconds`
                         : totalTime < anHour
@@ -389,7 +389,7 @@ export default class ManagerCommands {
             this.bot.client.removeFriend(steamid);
 
             // Prevent Steam from detecting the bot as spamming
-            await sleepasync().Promise.sleep(2000);
+            await sleepasync().Promise.sleep(5000);
         }
 
         this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
