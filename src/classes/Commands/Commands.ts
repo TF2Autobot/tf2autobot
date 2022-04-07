@@ -309,6 +309,10 @@ export default class Commands {
     private getSKU(steamID: SteamID, message: string): void {
         const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
 
+        if (itemNameOrSku === '!sku') {
+            return this.bot.sendMessage(steamID, `❌ Missing item name or item sku!`);
+        }
+
         if (!testSKU(itemNameOrSku)) {
             // Receive name
             const sku = this.bot.schema.getSkuFromName(itemNameOrSku);

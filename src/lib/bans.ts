@@ -38,7 +38,7 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
                     'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
                 }
             },
-            (err, response, body: RepTF) => {
+            (err, response, body: string) => {
                 if (err) {
                     log.warn('Failed to obtain data from Rep.tf: ', err);
                     if (checkMptf) {
@@ -52,20 +52,22 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
                     return resolve(false);
                 }
 
-                const isBptfBanned = body.bptfBans ? body.bptfBans.banned === 'bad' : false;
+                const bans = JSON.parse(body) as RepTF;
+
+                const isBptfBanned = bans.bptfBans ? bans.bptfBans.banned === 'bad' : false;
                 log[isBptfBanned ? 'warn' : 'debug'](
-                    'Backpack.tf: ' + (isBptfBanned ? `banned - ${body.bptfBans.message}` : 'clean')
+                    'Backpack.tf: ' + (isBptfBanned ? `banned - ${bans.bptfBans.message}` : 'clean')
                 );
 
-                const isSteamRepBanned = body.srBans ? body.srBans.banned === 'bad' : false;
+                const isSteamRepBanned = bans.srBans ? bans.srBans.banned === 'bad' : false;
                 log[isSteamRepBanned ? 'warn' : 'debug'](
-                    'Backpack.tf: ' + (isSteamRepBanned ? `banned - ${body.srBans.message}` : 'clean')
+                    'Backpack.tf: ' + (isSteamRepBanned ? `banned - ${bans.srBans.message}` : 'clean')
                 );
 
-                const isMptfBanned = body.mpBans ? body.mpBans.banned === 'bad' : false;
+                const isMptfBanned = bans.mpBans ? bans.mpBans.banned === 'bad' : false;
                 if (checkMptf) {
                     log[isMptfBanned ? 'warn' : 'debug'](
-                        'Marketplace.tf (from Rep.tf): ' + (isMptfBanned ? `banned - ${body.mpBans.message}` : 'clean')
+                        'Marketplace.tf (from Rep.tf): ' + (isMptfBanned ? `banned - ${bans.mpBans.message}` : 'clean')
                     );
                 }
 
