@@ -90,7 +90,7 @@
         "@typescript-eslint/parser": "^4.32.0",
         "eslint": "^7.32.0",
         "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-jest": "^26.1.0",
+        "eslint-plugin-jest": "^26.1.4",
         "eslint-plugin-prettier": "^4.0.0",
         "eslint-plugin-tsdoc": "^0.2.14",
         "jest": "^27.5.1",
