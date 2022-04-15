@@ -39,7 +39,7 @@
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
         "cheerio": "^1.0.0-rc.10",
-        "dayjs": "^1.11.0",
+        "dayjs": "^1.11.1",
         "death": "^1.1.0",
         "dot-prop": "^6.0.1",
         "dotenv": "^16.0.0",
