@@ -1,4 +1,5 @@
 import fs from 'fs';
+import writeFileAtomic from 'write-file-atomic';
 import path from 'path';
 
 import { exponentialBackoff } from './helpers';
@@ -64,7 +65,7 @@ export function writeFile(p: string, data: unknown, json: boolean): Promise<void
 
         function writeToFile(): void {
             filesBeingSaved++;
-            fs.writeFile(p, write, { encoding: 'utf8' }, err => {
+            writeFileAtomic(p, write, { encoding: 'utf8' }, err => {
                 filesBeingSaved--;
 
                 if (err) {
