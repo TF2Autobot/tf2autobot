@@ -267,9 +267,9 @@ export default class Listings {
                         details: newDetails
                     };
 
-                    if (listing.intent === 0) {
-                        toUpdate['quantity'] = amountCanBuy;
-                    }
+                    // if (listing.intent === 0) {
+                    //     toUpdate['quantity'] = amountCanBuy;
+                    // }
 
                     listing.update(toUpdate);
                     //TODO: make promote, demote
@@ -297,7 +297,7 @@ export default class Listings {
                     time: matchNew.time || dayjs().unix(),
                     sku: sku,
                     intent: 0,
-                    quantity: amountCanBuy,
+                    // quantity: amountCanBuy,
                     details: this.getDetails(0, amountCanBuy, matchNew),
                     currencies: matchNew.buy
                 });
