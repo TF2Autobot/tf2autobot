@@ -346,7 +346,7 @@ export default class Bot {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                     return resolve({ version: body.version });
                 }
-            );
+            ).end();
         });
     }
 

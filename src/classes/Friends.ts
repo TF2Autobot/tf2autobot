@@ -74,7 +74,7 @@ export default class Friends {
                 this.maxFriends = base + level * multiplier;
 
                 resolve(this.maxFriends);
-            });
+            }).end();
         });
     }
 }
