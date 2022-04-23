@@ -73,7 +73,7 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
 
                 return resolve(isBptfBanned || isSteamRepBanned || (checkMptf ? isMptfBanned : false));
             }
-        );
+        ).end();
     });
 }
 
@@ -108,7 +108,7 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
 
                 return resolve(isBptfBanned);
             }
-        );
+        ).end();
     });
 }
 
@@ -145,7 +145,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string, use
 
                 return resolve(isSteamRepBanned);
             }
-        );
+        ).end();
     });
 }
 
@@ -173,7 +173,7 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string, userID:
 
                 return resolve(isSteamRepBanned);
             }
-        );
+        ).end();
     });
 }
 

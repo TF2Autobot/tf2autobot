@@ -165,7 +165,7 @@ export default class Listings {
                 }
 
                 return resolve((body as BPTFGetUserInfo).users[steamID64]);
-            });
+            }).end();
         });
     }
 

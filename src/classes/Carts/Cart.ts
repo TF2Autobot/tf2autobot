@@ -571,7 +571,7 @@ export default abstract class Cart {
 
                     return resolve(totalBackpackSlots);
                 }
-            );
+            ).end();
         });
     }
 }
