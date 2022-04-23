@@ -140,10 +140,6 @@ export default class MyHandler extends Handler {
         };
     }
 
-    private get isAutoRelistEnabled(): boolean {
-        return this.opt.miscSettings.autobump.enable;
-    }
-
     private get invalidValueException(): number {
         return Currencies.toScrap(this.opt.offerReceived.invalidValue.exceptionValue.valueInRef);
     }
@@ -288,9 +284,6 @@ export default class MyHandler extends Handler {
         // Check group invites that we got while offline
         this.checkGroupInvites();
 
-        // Set up autorelist if enabled in environment variable
-        this.bot.listings.setupAutorelist();
-
         // Initialize send stats
         this.sendStats();
 
@@ -395,8 +388,6 @@ export default class MyHandler extends Handler {
         if (this.retryRequest) {
             clearTimeout(this.retryRequest);
         }
-
-        this.bot.listings.disableAutorelistOption();
 
         return new Promise(resolve => {
             if (this.opt.autokeys.enable) {
@@ -529,7 +520,7 @@ export default class MyHandler extends Handler {
 
     enableAutoRefreshListings(): void {
         // Automatically check for missing listings every 30 minutes
-        if (this.isAutoRelistEnabled && this.isPremium === false) {
+        if (this.isPremium === false) {
             return;
         }
 

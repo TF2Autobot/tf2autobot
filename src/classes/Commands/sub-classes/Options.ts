@@ -868,14 +868,6 @@ export default class OptionsCommands {
                     );
                 }
 
-                if (knownParams.miscSettings?.autobump?.enable === true) {
-                    this.bot.listings.setupAutorelist();
-                    this.bot.handler.disableAutoRefreshListings();
-                } else if (knownParams.miscSettings?.autobump?.enable === false) {
-                    this.bot.listings.disableAutorelistOption();
-                    this.bot.handler.enableAutoRefreshListings();
-                }
-
                 if (knownParams.statistics?.sendStats?.enable === true) {
                     this.bot.handler.sendStats();
                 } else if (knownParams.statistics?.sendStats?.enable === false) {

@@ -1,13 +1,10 @@
 import callbackQueue from 'callback-queue';
 import pluralize from 'pluralize';
-import request from 'request-retry-dayjs';
-import async from 'async';
 import dayjs from 'dayjs';
 import Currencies from '@tf2autobot/tf2-currencies';
 import sleepasync from 'sleep-async';
 import Bot from './Bot';
 import { Entry, PricesObject } from './Pricelist';
-import { BPTFGetUserInfo, UserSteamID } from './MyHandler/interfaces';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
@@ -22,21 +19,11 @@ export default class Listings {
 
     private cancelCheckingListings = false;
 
-    private autoRelistEnabled = false;
-
-    private autoRelistTimeout: NodeJS.Timeout;
-
-    private get isAutoRelistEnabled(): boolean {
-        return this.bot.options.miscSettings.autobump.enable;
-    }
-
     private get isCreateListing(): boolean {
         return this.bot.options.miscSettings.createListings.enable;
     }
 
     private templates: { buy: string; sell: string };
-
-    private readonly checkFn;
 
     constructor(private readonly bot: Bot) {
         this.bot = bot;
@@ -46,127 +33,6 @@ export default class Listings {
                 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
             sell: this.bot.options.details.sell || 'I am selling my %name% for %price%, I am selling %amount_trade%.'
         };
-
-        this.checkFn = this.checkAccountInfo.bind(this);
-    }
-
-    setupAutorelist(): void {
-        if (!this.isAutoRelistEnabled || !this.isCreateListing) {
-            // Autobump is not enabled
-            return;
-        }
-
-        // Autobump is enabled, add autorelist listener
-
-        this.bot.listingManager.removeListener('autorelist', this.checkFn);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.bot.listingManager.on('autorelist', this.checkFn);
-
-        // Get account info
-        this.checkAccountInfo();
-    }
-
-    disableAutorelistOption(): void {
-        if (this.bot.listingManager) {
-            this.bot.listingManager.removeListener('autorelist', this.checkFn);
-            this.disableAutoRelist(false, 'permanent');
-        }
-    }
-
-    private enableAutoRelist(): void {
-        if (this.autoRelistEnabled || !this.isCreateListing) {
-            return;
-        }
-
-        log.debug('Enabled autorelist');
-        this.autoRelistEnabled = true;
-        clearTimeout(this.autoRelistTimeout);
-
-        const doneWait = (): void => {
-            async.eachSeries(
-                [
-                    (callback): void => {
-                        void this.redoListings().asCallback(callback);
-                    },
-                    (callback): void => {
-                        void this.waitForListings().asCallback(callback);
-                    }
-                ],
-                (item, callback) => {
-                    if (this.bot.botManager.isStopping) {
-                        return;
-                    }
-
-                    item(callback);
-                },
-                () => {
-                    log.debug('Done relisting');
-                    if (this.autoRelistEnabled) {
-                        log.debug('Waiting 30 minutes before relisting again');
-                        this.autoRelistTimeout = setTimeout(doneWait, 30 * 60 * 1000);
-                    }
-                }
-            );
-        };
-
-        this.autoRelistTimeout = setTimeout(doneWait, 30 * 60 * 1000);
-    }
-
-    private checkAccountInfo(): void {
-        void this.getAccountInfo.asCallback((err, info) => {
-            if (err) {
-                log.warn('Failed to get account info from backpack.tf: ', err);
-                // temporarilyy disable autoRelist, so on the next check, when backpack.tf
-                // back alive, might trigger to call this.enableAutoRelist()
-                clearTimeout(this.autoRelistTimeout);
-                this.disableAutoRelist(false, 'temporary');
-                return;
-            }
-
-            if (this.autoRelistEnabled && info.premium === 1) {
-                log.warn('Disabling autorelist! - Your account is premium, no need to forcefully bump listings');
-            } else if (!this.autoRelistEnabled && info.premium !== 1) {
-                log.warn(
-                    'Enabling autorelist! - Consider paying for backpack.tf premium instead of forcefully bumping listings: https://backpack.tf/donate'
-                );
-                this.enableAutoRelist();
-            } else if (this.isAutoRelistEnabled && info.premium === 1) {
-                log.warn('Disabling autobump! - Your account is premium, no need to forcefully bump listings');
-                this.bot.handler.commands.useUpdateOptionsCommand(null, '!config miscSettings.autobump.enable=false');
-            }
-        });
-    }
-
-    private disableAutoRelist(setValue: boolean, type: 'temporary' | 'permanent') {
-        clearTimeout(this.autoRelistTimeout);
-        this.autoRelistEnabled = setValue;
-        log.debug(type === 'temporary' ? 'Temporarily disabled autorelist' : 'Disabled autorelist');
-    }
-
-    private get getAccountInfo(): Promise<UserSteamID> {
-        return new Promise((resolve, reject) => {
-            const steamID64 = this.bot.manager.steamID.getSteamID64();
-
-            const options = {
-                url: 'https://api.backpack.tf/api/users/info/v1',
-                method: 'GET',
-                qs: {
-                    key: this.bot.options.bptfAPIKey,
-                    steamids: steamID64
-                },
-                gzip: true,
-                json: true
-            };
-
-            void request(options, (err, reponse, body) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                return resolve((body as BPTFGetUserInfo).users[steamID64]);
-            }).end();
-        });
     }
 
     checkBySKU(sku: string, data?: Entry | null, generics = false, showLogs = false): void {
@@ -535,7 +401,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem): string {
+    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem, useSku = false): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -653,7 +519,7 @@ export default class Listings {
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
-                .replace(/%name%/g, entry.name)
+                .replace(/%name%/g, useSku ? entry.sku : entry.name)
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
@@ -710,7 +576,26 @@ export default class Listings {
             //
         }
 
-        return details + (highValueString.length > 0 ? ' ' + highValueString : '');
+        const string = details + (highValueString.length > 0 ? ' ' + highValueString : '');
+
+        if (string.length > 200) {
+            if (details.length < 200) {
+                // if details only < 200 characters, we only use this.
+                return details;
+            }
+
+            // else we reconstruct, but replace %name% with sku instead of item full name
+            const newDetails = this.getDetails(intent, amountCanTrade, entry, item, true);
+
+            if (newDetails.length > 200) {
+                // if still more than 200 characters, we cut to at least 200 characters.
+                return newDetails.substring(0, 200);
+            }
+
+            return newDetails;
+        }
+
+        return string;
     }
 }
 
