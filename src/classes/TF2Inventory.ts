@@ -125,7 +125,7 @@ export default class TF2Inventory {
 
                     return resolve();
                 }
-            );
+            ).end();
         });
     }
 
@@ -170,7 +170,7 @@ export default class TF2Inventory {
                         history: []
                     });
                 }
-            );
+            ).end();
         });
     }
 }

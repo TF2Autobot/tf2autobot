@@ -2447,7 +2447,7 @@ export default class MyHandler extends Handler {
                     this.isPremium = user.premium ? user.premium === 1 : false;
                     return resolve();
                 }
-            );
+            ).end();
         });
     }
 

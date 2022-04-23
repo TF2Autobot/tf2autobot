@@ -98,7 +98,7 @@ export default class CustomPricerApi {
                 }
 
                 resolve(body);
-            });
+            }).end();
         });
     }
 
