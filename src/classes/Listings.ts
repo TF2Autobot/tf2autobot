@@ -401,7 +401,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem): string {
+    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem, useSku = false): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -519,7 +519,7 @@ export default class Listings {
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
-                .replace(/%name%/g, entry.name)
+                .replace(/%name%/g, useSku ? entry.sku : entry.name)
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
@@ -576,7 +576,26 @@ export default class Listings {
             //
         }
 
-        return details + (highValueString.length > 0 ? ' ' + highValueString : '');
+        const string = details + (highValueString.length > 0 ? ' ' + highValueString : '');
+
+        if (string.length > 200) {
+            if (details.length < 200) {
+                // if details only < 200 characters, we only use this.
+                return details;
+            }
+
+            // else we reconstruct, but replace %name% with sku instead of item full name
+            const newDetails = this.getDetails(intent, amountCanTrade, entry, item, true);
+
+            if (newDetails.length > 200) {
+                // if still more than 200 characters, we cut to at least 200 characters.
+                return newDetails.substring(0, 200);
+            }
+
+            return newDetails;
+        }
+
+        return string;
     }
 }
 
