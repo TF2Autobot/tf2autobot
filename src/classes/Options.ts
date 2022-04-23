@@ -24,9 +24,6 @@ export const DEFAULTS: JsonOptions = {
         sendGroupInvite: {
             enable: true
         },
-        autobump: {
-            enable: true
-        },
         counterOffer: {
             enable: true,
             skipIncludeMessage: false
@@ -1113,7 +1110,6 @@ interface MiscSettings {
     counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
-    autobump?: OnlyEnable;
     skipItemsInTrade?: OnlyEnable;
     weaponsAsCurrency?: WeaponsAsCurrency;
     checkUses?: CheckUses;
@@ -2182,6 +2178,17 @@ function replaceOldProperties(options: Options): boolean {
 
         options.customMessage.decline['takingItemsWithIntentBuy'] = '';
         options.customMessage.decline['givingItemsWithIntentSell'] = '';
+
+        isChanged = true;
+    }
+
+    // v4.7.0 -> v4.7.1 - Automatically remove miscSettings.autobump
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.miscSettings?.autobump !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.miscSettings.autobump;
 
         isChanged = true;
     }
