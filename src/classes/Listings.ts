@@ -149,7 +149,7 @@ export default class Listings {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
             const options = {
-                url: 'https://backpack.tf/api/users/info/v1',
+                url: 'https://api.backpack.tf/api/users/info/v1',
                 method: 'GET',
                 qs: {
                     key: this.bot.options.bptfAPIKey,

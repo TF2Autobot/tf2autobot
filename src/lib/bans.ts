@@ -83,7 +83,7 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
     return new Promise((resolve, reject) => {
         void request(
             {
-                url: 'https://backpack.tf/api/users/info/v1',
+                url: 'https://api.backpack.tf/api/users/info/v1',
                 headers: {
                     'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
                     Cookie: 'user-id=' + userID
@@ -118,7 +118,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string, use
     return new Promise((resolve, reject) => {
         void request(
             {
-                url: 'https://backpack.tf/api/users/info/v1',
+                url: 'https://api.backpack.tf/api/users/info/v1',
                 qs: {
                     key: bptfApiKey,
                     steamids: steamID64
