@@ -507,8 +507,6 @@ export default class Bot {
                             token: this.options.bptfAccessToken,
                             userID,
                             userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
-                            batchSize: 25,
-                            waitTime: 100,
                             schema: this.schema
                         });
 
