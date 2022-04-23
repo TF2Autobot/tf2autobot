@@ -73,7 +73,7 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
 
                 return resolve(isBptfBanned || isSteamRepBanned || (checkMptf ? isMptfBanned : false));
             }
-        );
+        ).end();
     });
 }
 
@@ -83,7 +83,7 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
     return new Promise((resolve, reject) => {
         void request(
             {
-                url: 'https://backpack.tf/api/users/info/v1',
+                url: 'https://api.backpack.tf/api/users/info/v1',
                 headers: {
                     'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
                     Cookie: 'user-id=' + userID
@@ -108,7 +108,7 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
 
                 return resolve(isBptfBanned);
             }
-        );
+        ).end();
     });
 }
 
@@ -118,7 +118,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string, use
     return new Promise((resolve, reject) => {
         void request(
             {
-                url: 'https://backpack.tf/api/users/info/v1',
+                url: 'https://api.backpack.tf/api/users/info/v1',
                 qs: {
                     key: bptfApiKey,
                     steamids: steamID64
@@ -145,7 +145,7 @@ function isBptfSteamRepBanned(steamID: SteamID | string, bptfApiKey: string, use
 
                 return resolve(isSteamRepBanned);
             }
-        );
+        ).end();
     });
 }
 
@@ -173,7 +173,7 @@ function isSteamRepMarked(steamID: SteamID | string, bptfApiKey: string, userID:
 
                 return resolve(isSteamRepBanned);
             }
-        );
+        ).end();
     });
 }
 

@@ -346,7 +346,7 @@ export default class Bot {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                     return resolve({ version: body.version });
                 }
-            );
+            ).end();
         });
     }
 
@@ -507,8 +507,6 @@ export default class Bot {
                             token: this.options.bptfAccessToken,
                             userID,
                             userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
-                            batchSize: 25,
-                            waitTime: 100,
                             schema: this.schema
                         });
 
@@ -517,6 +515,12 @@ export default class Bot {
                             this.listingManager,
                             'createListingsError',
                             this.handler.onCreateListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'updateListingsError',
+                            this.handler.onUpdateListingsError.bind(this),
                             true
                         );
                         this.addListener(
