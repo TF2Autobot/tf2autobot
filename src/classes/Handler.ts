@@ -197,6 +197,14 @@ export default abstract class Handler {
     }
 
     /**
+     * Called on error when updating listings
+     * @param err - Error message
+     */
+    onUpdateListingsError(err: Error): void {
+        // empty function
+    }
+
+    /**
      * Called on error when deleting listings
      * @param err - Error message
      */
