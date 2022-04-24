@@ -430,6 +430,9 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['customTexture'], // 'giftedByTag'
                     additionalProperties: false
+                },
+                deleteUntradableJunk: {
+                    $ref: '#/definitions/only-enable'
                 }
             },
             required: [
@@ -444,7 +447,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'weaponsAsCurrency',
                 'checkUses',
                 'game',
-                'alwaysRemoveItemAttributes'
+                'alwaysRemoveItemAttributes',
+                'deleteUntradableJunk'
             ],
             additionalProperties: false
         },
