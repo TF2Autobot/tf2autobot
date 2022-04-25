@@ -56,7 +56,7 @@
         "request-retry-dayjs": "^1.1.2",
         "retry": "^0.13.1",
         "sleep-async": "^1.0.5",
-        "socket.io-client": "^4.4.1",
+        "socket.io-client": "^4.5.0",
         "steam-openid-login-dayjs": "^1.0.9",
         "steam-totp": "^2.1.2",
         "steam-user": "^4.24.3",
