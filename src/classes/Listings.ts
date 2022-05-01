@@ -65,7 +65,7 @@ export default class Listings {
                     log.debug('Already have a sell listing, remove the listing.');
                 }
                 doneSomething = true;
-                this.bot.listingManager.removeListing(listing.id);
+                listing.remove();
                 return;
             }
 
@@ -80,13 +80,13 @@ export default class Listings {
                     log.debug('We are not trading the item, remove the listing.');
                 }
                 doneSomething = true;
-                this.bot.listingManager.removeListing(listing.id);
+                listing.remove();
             } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
                 if (showLogs) {
                     log.debug(`We are not ${listing.intent === 0 ? 'buying' : 'selling'} more, remove the listing.`);
                 }
                 doneSomething = true;
-                this.bot.listingManager.removeListing(listing.id);
+                listing.remove();
             } else if (
                 listing.intent === 0 &&
                 !invManager.isCanAffordToBuy(match.buy, invManager.getInventory) &&
@@ -96,7 +96,7 @@ export default class Listings {
                     log.debug(`we can't afford to buy, remove the listing.`);
                 }
                 doneSomething = true;
-                this.bot.listingManager.removeListing(listing.id);
+                listing.remove();
             } else {
                 const newDetails = this.getDetails(
                     listing.intent,
@@ -137,7 +137,7 @@ export default class Listings {
                     //     toUpdate['quantity'] = amountCanBuy;
                     // }
 
-                    this.bot.listingManager.updateListing(listing.id, toUpdate);
+                    listing.update(toUpdate);
                     //TODO: make promote, demote
                 }
             }
