@@ -595,14 +595,14 @@ export default class MyHandler extends Handler {
                             if (!canAffordToBuy) {
                                 // Listing for buying exist but we can't afford to buy, remove.
                                 log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
-                                listing.remove();
+                                this.bot.listingManager.removeListing(listing.id);
                             }
                         }
 
                         if (listing.intent === 1 && match !== null && !match.enabled) {
                             // Listings for selling exist, but the item is currently disabled, remove it.
                             log.debug(`Intent sell, removed because not selling: ${match.sku}`);
-                            listing.remove();
+                            this.bot.listingManager.removeListing(listing.id);
                         }
 
                         if (listingsSKUs[listingSKU]) {
