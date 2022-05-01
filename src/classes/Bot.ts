@@ -513,6 +513,24 @@ export default class Bot {
                         this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
                         this.addListener(
                             this.listingManager,
+                            'createListingsSuccessful',
+                            this.handler.onCreateListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'updateListingsSuccessful',
+                            this.handler.onUpdateListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteListingsSuccessful',
+                            this.handler.onDeleteListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
                             'createListingsError',
                             this.handler.onCreateListingsError.bind(this),
                             true

@@ -2524,6 +2524,18 @@ export default class MyHandler extends Handler {
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
 
+    onCreateListingsSuccessful(response: { created: number; archived: number; errors: any[] }): void {
+        log.debug('Successfully create listings:', response);
+    }
+
+    onUpdateListingsSuccessful(response: { updated: number; errors: any[] }): void {
+        log.debug('Successfully update listings:', response);
+    }
+
+    onDeleteListingsSuccessful(response: Record<string, unknown>): void {
+        log.debug('Successfully delete listings:', response);
+    }
+
     onCreateListingsError(err: Error): void {
         log.error('Error on create listings:', err);
     }
