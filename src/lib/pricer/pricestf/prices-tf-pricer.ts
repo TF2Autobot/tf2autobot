@@ -146,7 +146,7 @@ export default class PricesTfPricer implements IPricer {
                             })
                         );
                     });
-                } else if (data.type === 'PRICE_CHANGED') {
+                } else if (data.type === 'PRICE_UPDATED') {
                     const item = this.parsePriceUpdatedData(data);
                     onPriceChange(item);
                 }
