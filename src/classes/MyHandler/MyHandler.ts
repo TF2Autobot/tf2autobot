@@ -140,10 +140,6 @@ export default class MyHandler extends Handler {
         };
     }
 
-    private get isAutoRelistEnabled(): boolean {
-        return this.opt.miscSettings.autobump.enable;
-    }
-
     private get invalidValueException(): number {
         return Currencies.toScrap(this.opt.offerReceived.invalidValue.exceptionValue.valueInRef);
     }
@@ -288,9 +284,6 @@ export default class MyHandler extends Handler {
         // Check group invites that we got while offline
         this.checkGroupInvites();
 
-        // Set up autorelist if enabled in environment variable
-        this.bot.listings.setupAutorelist();
-
         // Initialize send stats
         this.sendStats();
 
@@ -395,8 +388,6 @@ export default class MyHandler extends Handler {
         if (this.retryRequest) {
             clearTimeout(this.retryRequest);
         }
-
-        this.bot.listings.disableAutorelistOption();
 
         return new Promise(resolve => {
             if (this.opt.autokeys.enable) {
@@ -545,7 +536,7 @@ export default class MyHandler extends Handler {
 
     enableAutoRefreshListings(): void {
         // Automatically check for missing listings every 30 minutes
-        if (this.isAutoRelistEnabled && this.isPremium === false) {
+        if (this.isPremium === false) {
             return;
         }
 
@@ -2313,13 +2304,13 @@ export default class MyHandler extends Handler {
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
-        log.debug(`Sending friend request to ${steamID64}...`);
+        log.debug(`Accepting friend request from ${steamID64}...`);
         this.bot.client.addFriend(steamID, err => {
             if (err) {
-                log.warn(`Failed to a send friend request to ${steamID64}: `, err);
+                log.warn(`Failed to accept friend request from ${steamID64}: `, err);
                 return;
             }
-            log.debug('Friend request has been sent / accepted');
+            log.debug('Friend request has been accepted');
         });
     }
 
@@ -2431,7 +2422,7 @@ export default class MyHandler extends Handler {
 
             void request(
                 {
-                    url: 'https://backpack.tf/api/users/info/v1',
+                    url: 'https://api.backpack.tf/api/users/info/v1',
                     method: 'GET',
                     headers: {
                         'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
@@ -2463,7 +2454,7 @@ export default class MyHandler extends Handler {
                     this.isPremium = user.premium ? user.premium === 1 : false;
                     return resolve();
                 }
-            );
+            ).end();
         });
     }
 
@@ -2551,6 +2542,10 @@ export default class MyHandler extends Handler {
 
     onCreateListingsError(err: Error): void {
         log.error('Error on create listings:', err);
+    }
+
+    onUpdateListingsError(err: Error): void {
+        log.error('Error on update listings:', err);
     }
 
     onDeleteListingsError(err: Error): void {

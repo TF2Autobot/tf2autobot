@@ -125,7 +125,7 @@ export default class TF2Inventory {
 
                     return resolve();
                 }
-            );
+            ).end();
         });
     }
 
@@ -140,7 +140,7 @@ export default class TF2Inventory {
         return new Promise((resolve, reject) => {
             void request(
                 {
-                    url: 'https://backpack.tf/item/' + assetid,
+                    url: 'https://old.backpack.tf/item/' + assetid,
                     method: 'GET',
                     headers: {
                         'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
@@ -170,7 +170,7 @@ export default class TF2Inventory {
                         history: []
                     });
                 }
-            );
+            ).end();
         });
     }
 }
