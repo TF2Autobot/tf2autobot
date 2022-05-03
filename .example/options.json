@@ -16,9 +16,6 @@
         "sendGroupInvite": {
             "enable": true
         },
-        "autobump": {
-            "enable": true
-        },
         "counterOffer": {
             "enable": true,
             "skipIncludeMessage": false
@@ -465,7 +462,10 @@
         },
         "sendStats": {
             "enable": false,
-            "url": ""
+            "url": {
+                "main": "",
+                "partialPriceUpdate": ""
+            }
         }
     },
     "customMessage": {
