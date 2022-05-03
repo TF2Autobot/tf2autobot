@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot",
-    "version": "4.6.3",
+    "version": "4.9.0-dev.3",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
@@ -24,7 +24,7 @@
     },
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
-        "@tf2autobot/bptf-listings": "^4.0.1",
+        "@tf2autobot/bptf-listings": "^4.3.1",
         "@tf2autobot/bptf-login": "^2.1.0",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/tf2": "^1.1.0",

@@ -189,6 +189,30 @@ export default abstract class Handler {
     }
 
     /**
+     * Called on successful creating listings
+     * @param response - created, archived, errrors
+     */
+    onCreateListingsSuccessful(response: { created: number; archived: number; errors: any[] }): void {
+        // empty function
+    }
+
+    /**
+     * Called on successful updating listings
+     * @param response - updated, errrors
+     */
+    onUpdateListingsSuccessful(response: { updated: number; errors: any[] }): void {
+        // empty function
+    }
+
+    /**
+     * Called on successful deleting listings
+     * @param response - any
+     */
+    onDeleteListingsSuccessful(response: Record<string, unknown>): void {
+        // empty function
+    }
+
+    /**
      * Called on error when creating listings
      * @param err - Error message
      */
