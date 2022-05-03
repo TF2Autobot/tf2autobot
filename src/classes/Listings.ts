@@ -117,7 +117,7 @@ export default class Listings {
 
                 if (isCurrenciesChanged || isListingDetailsChanged) {
                     if (showLogs) {
-                        log.debug(`Listing details don't match, updated listing`, {
+                        log.debug(`Listing details don't match, update listing`, {
                             sku: sku,
                             intent: listing.intent
                         });
