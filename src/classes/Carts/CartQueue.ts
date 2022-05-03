@@ -62,7 +62,7 @@ export default class CartQueue {
         if (position >= 2) {
             const dwEnabled =
                 this.bot.options.discordWebhook.sendAlert.enable &&
-                this.bot.options.discordWebhook.sendAlert.url !== '';
+                this.bot.options.discordWebhook.sendAlert.url.main !== '';
 
             // determine whether it's good time to restart or not
             try {

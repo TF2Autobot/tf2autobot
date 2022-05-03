@@ -569,7 +569,7 @@ export default class PricelistManagerCommands {
             if (!isPremium) {
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`
+                    `❌ This account is not Backpack.tf Premium. You can't use "promoted" parameter.`
                 );
             }
 
@@ -916,7 +916,7 @@ export default class PricelistManagerCommands {
             if (!isPremium) {
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`
+                    `❌ This account is not Backpack.tf Premium. You can't use "promoted" parameter.`
                 );
             }
 
@@ -1234,7 +1234,7 @@ export default class PricelistManagerCommands {
                 if (!isPremium) {
                     return this.bot.sendMessage(
                         steamID,
-                        `❌ This account is not Backpack.tf Premium. You can't use "promoted" paramter.`
+                        `❌ This account is not Backpack.tf Premium. You can't use "promoted" parameter.`
                     );
                 }
 

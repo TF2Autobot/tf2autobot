@@ -39,16 +39,12 @@ export default function sendPartnerMessage(
         ]
     };
 
-    sendWebhook(opt.messages.url, discordPartnerMsg, 'partner-message')
-        .then(() =>
-            log.debug(`✅ Sent partner-message webhook (from ${their ? their.player_name : steamID}) to Discord.`)
+    sendWebhook(opt.messages.url, discordPartnerMsg, 'partner-message').catch(err =>
+        log.warn(
+            `❌ Failed to send partner-message webhook (from ${their ? their.player_name : steamID}) to Discord: `,
+            err
         )
-        .catch(err =>
-            log.warn(
-                `❌ Failed to send partner-message webhook (from ${their ? their.player_name : steamID}) to Discord: `,
-                err
-            )
-        );
+    );
 }
 
 interface Links {

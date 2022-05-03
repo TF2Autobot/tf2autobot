@@ -297,7 +297,7 @@ export default class MyHandler extends Handler {
 
         if (failedToUpdateOldPrices.length > 0) {
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && dw.url.main !== '';
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.failedToUpdateOldPrices) {
                 if (isDwEnabled) {
@@ -323,7 +323,7 @@ export default class MyHandler extends Handler {
         if (count > 0 && count < 20) {
             // we send only if less than 20
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
 
             const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced.join(
                 '\n --- '
@@ -343,7 +343,7 @@ export default class MyHandler extends Handler {
 
         if (bulkResetPartiallyPriced.length > 0) {
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
 
             const msg =
                 `All partially priced items below has been reset to use the current prices ` +
@@ -554,7 +554,7 @@ export default class MyHandler extends Handler {
                 log.debug('Running automatic check for missing listings...');
 
                 const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
-                this.bot.listingManager.getListings(async err => {
+                this.bot.listingManager.getListings(false, async err => {
                     if (err) {
                         log.warn('Error getting listings on auto-refresh listings operation:', err);
                         setTimeout(() => {
@@ -928,7 +928,7 @@ export default class MyHandler extends Handler {
             const optDw = opt.discordWebhook;
 
             if (opt.sendAlert.enable && opt.sendAlert.unableToProcessOffer) {
-                if (optDw.sendAlert.enable && optDw.sendAlert.url !== '') {
+                if (optDw.sendAlert.enable && optDw.sendAlert.url.main !== '') {
                     sendAlert('failed-processing-offer', this.bot, null, null, null, [
                         offer.partner.getSteamID64(),
                         offer.id
@@ -1090,7 +1090,7 @@ export default class MyHandler extends Handler {
             );
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                     for (const name in itemsName) {
                         if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
                             continue;
@@ -1583,7 +1583,7 @@ export default class MyHandler extends Handler {
                 const result: (boolean | null)[] = await Promise.fromCallback(callback => {
                     async.series(requests, callback);
                 });
-                log.debug('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
+                log.info('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
 
                 const resultCount = result.length;
 
@@ -1649,7 +1649,7 @@ export default class MyHandler extends Handler {
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
                         log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    } else log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
+                    } else log.info(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
                 });
 
                 return {
@@ -2443,8 +2443,6 @@ export default class MyHandler extends Handler {
     }
 
     private checkGroupInvites(): void {
-        log.debug('Checking group invites');
-
         for (const groupID64 in this.bot.client.myGroups) {
             if (!Object.prototype.hasOwnProperty.call(this.bot.client.myGroups, groupID64)) {
                 continue;
@@ -2502,9 +2500,6 @@ export default class MyHandler extends Handler {
     }
 
     onPriceChange(sku: string, entry: Entry): void {
-        if (!this.isPriceUpdateWebhook) {
-            log.debug(`${sku} updated`);
-        }
         this.bot.listings.checkBySKU(sku, entry, false, true);
     }
 
@@ -2512,7 +2507,7 @@ export default class MyHandler extends Handler {
         if (pulse.client) {
             delete pulse.client;
         }
-        log.debug('user-agent', pulse);
+        // log.debug('user-agent', pulse);
     }
 
     onLoginThrottle(wait: number): void {
@@ -2522,6 +2517,18 @@ export default class MyHandler extends Handler {
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
+    }
+
+    onCreateListingsSuccessful(response: { created: number; archived: number; errors: any[] }): void {
+        log.debug('Successfully create listings:', response);
+    }
+
+    onUpdateListingsSuccessful(response: { updated: number; errors: any[] }): void {
+        log.debug('Successfully update listings:', response);
+    }
+
+    onDeleteListingsSuccessful(response: Record<string, unknown>): void {
+        log.debug('Successfully delete listings:', response);
     }
 
     onCreateListingsError(err: Error): void {

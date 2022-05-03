@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot",
-    "version": "4.8.0",
+    "version": "4.9.0-dev.5",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
@@ -24,14 +24,15 @@
     },
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
-        "@tf2autobot/bptf-listings": "^4.0.1",
+        "@tf2autobot/bptf-listings": "^5.0.1",
         "@tf2autobot/bptf-login": "^2.1.0",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/tf2": "^1.1.0",
         "@tf2autobot/tf2-currencies": "^2.0.1",
-        "@tf2autobot/tf2-schema": "^2.4.4",
+        "@tf2autobot/tf2-schema": "^2.5.1",
         "@tf2autobot/tf2-sku": "^2.0.3",
         "@tf2autobot/tradeoffer-manager": "^2.11.4",
+        "@types/write-file-atomic": "^4.0.0",
         "async": "^3.2.3",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
@@ -43,7 +44,7 @@
         "death": "^1.1.0",
         "dot-prop": "^6.0.1",
         "dotenv": "^16.0.0",
-        "express": "^4.17.3",
+        "express": "^4.18.1",
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",
         "jsonschema": "^1.4.0",
@@ -56,7 +57,7 @@
         "request-retry-dayjs": "^1.1.2",
         "retry": "^0.13.1",
         "sleep-async": "^1.0.5",
-        "socket.io-client": "^4.4.1",
+        "socket.io-client": "^4.5.0",
         "steam-openid-login-dayjs": "^1.0.9",
         "steam-totp": "^2.1.2",
         "steam-user": "^4.24.3",
@@ -67,7 +68,8 @@
         "websocket-extensions": "^0.1.4",
         "winston": "^3.7.2",
         "winston-daily-rotate-file": "^4.6.1",
-        "ws": "^8.5.0",
+        "write-file-atomic": "^4.0.1",
+        "ws": "^8.6.0",
         "xmlhttprequest-ts": "^1.0.1"
     },
     "devDependencies": {
@@ -90,15 +92,15 @@
         "@typescript-eslint/parser": "^4.32.0",
         "eslint": "^7.32.0",
         "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-jest": "^26.1.0",
+        "eslint-plugin-jest": "^25.7.0",
         "eslint-plugin-prettier": "^4.0.0",
         "eslint-plugin-tsdoc": "^0.2.14",
         "jest": "^27.5.1",
-        "nodemon": "^2.0.15",
+        "nodemon": "^2.0.16",
         "prettier": "^2.6.2",
         "socket.io-mock": "^1.3.2",
         "ts-jest": "^27.1.4",
-        "typescript": "^4.6.3"
+        "typescript": "^4.6.4"
     },
     "private": true,
     "_moduleAliases": {

@@ -470,7 +470,7 @@ export default class ManagerCommands {
             );
         } else {
             const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
-            this.bot.listingManager.getListings(async err => {
+            this.bot.listingManager.getListings(false, async err => {
                 if (err) {
                     log.error('Unable to refresh listings: ', err);
 

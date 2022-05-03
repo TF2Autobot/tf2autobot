@@ -1549,8 +1549,19 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            type: 'string',
-                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                            type: 'object',
+                            properties: {
+                                main: {
+                                    type: 'string',
+                                    pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                                },
+                                partialPriceUpdate: {
+                                    type: 'string',
+                                    pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                                }
+                            },
+                            required: ['main', 'partialPriceUpdate'],
+                            additionalProperties: false
                         },
                         isMention: {
                             type: 'boolean'

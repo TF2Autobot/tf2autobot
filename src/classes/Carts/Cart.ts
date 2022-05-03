@@ -396,7 +396,7 @@ export default abstract class Cart {
                     const msg = "I don't have space for more items in my inventory";
 
                     if (opt.sendAlert.enable && opt.sendAlert.backpackFull) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                             sendAlert('full-backpack', this.bot, msg, null, err, [
                                 this.offer.partner.getSteamID64(),
                                 this.offer.id
@@ -420,7 +420,8 @@ export default abstract class Cart {
                     const ourNumItems = this.ourItemsCount;
                     const theirNumItems = this.theirItemsCount;
 
-                    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
+                    const dwEnabled =
+                        opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '';
 
                     const msg =
                         `Either I, or the trade partner${

@@ -105,7 +105,6 @@ export default class PricesTfApi {
     async setupToken(): Promise<void> {
         try {
             const r = await PricesTfApi.requestAuthAccess();
-            log.debug('got new access token');
             this.token = r.accessToken;
         } catch (e) {
             log.error(e as Error);

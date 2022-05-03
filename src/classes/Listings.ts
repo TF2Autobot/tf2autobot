@@ -117,7 +117,7 @@ export default class Listings {
 
                 if (isCurrenciesChanged || isListingDetailsChanged) {
                     if (showLogs) {
-                        log.debug(`Listing details don't match, updated listing`, {
+                        log.debug(`Listing details don't match, update listing`, {
                             sku: sku,
                             intent: listing.intent
                         });
@@ -377,7 +377,7 @@ export default class Listings {
                 log.debug('Checking listings...');
 
                 const prevCount = this.bot.listingManager.listings.length;
-                this.bot.listingManager.getListings(err => {
+                this.bot.listingManager.getListings(true, err => {
                     if (err) {
                         return reject(err);
                     }

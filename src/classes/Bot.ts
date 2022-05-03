@@ -506,11 +506,32 @@ export default class Bot {
                         this.listingManager = new ListingManager({
                             token: this.options.bptfAccessToken,
                             userID,
-                            userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
+                            userAgent:
+                                'TF2Autobot' + process.env.USERAGENT_HEADER_CUSTOM !== ''
+                                    ? ` - ${process.env.USERAGENT_HEADER_CUSTOM}`
+                                    : ' - Run your own bot for free',
                             schema: this.schema
                         });
 
                         this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
+                        this.addListener(
+                            this.listingManager,
+                            'createListingsSuccessful',
+                            this.handler.onCreateListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'updateListingsSuccessful',
+                            this.handler.onUpdateListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteListingsSuccessful',
+                            this.handler.onDeleteListingsSuccessful.bind(this),
+                            true
+                        );
                         this.addListener(
                             this.listingManager,
                             'createListingsError',

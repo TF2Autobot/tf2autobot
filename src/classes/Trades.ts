@@ -45,6 +45,8 @@ export default class Trades {
 
     private resetRetryAcceptOfferTimeout: NodeJS.Timeout;
 
+    private retryFetchInventoryTimeout: NodeJS.Timeout;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -408,7 +410,7 @@ export default class Trades {
                 const keyPrices = this.bot.pricelist.getKeyPrices;
                 const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
 
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                     const summary = t.summarizeToChat(
                         offer,
                         this.bot,
@@ -618,7 +620,10 @@ export default class Trades {
                                     opt.miscSettings.showOnlyMetal.enable
                                 );
 
-                                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                                if (
+                                    opt.discordWebhook.sendAlert.enable &&
+                                    opt.discordWebhook.sendAlert.url.main !== ''
+                                ) {
                                     const summary = t.summarizeToChat(
                                         offer,
                                         this.bot,
@@ -1444,7 +1449,7 @@ export default class Trades {
 
             const dwEnabled =
                 this.bot.options.discordWebhook.sendAlert.enable &&
-                this.bot.options.discordWebhook.sendAlert.url !== '';
+                this.bot.options.discordWebhook.sendAlert.url.main !== '';
 
             // determine whether it's good time to restart or not
             try {
@@ -1634,6 +1639,7 @@ export default class Trades {
             if (err) {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');
+                clearTimeout(this.retryFetchInventoryTimeout);
                 this.retryFetchInventory();
             }
 
@@ -1642,7 +1648,7 @@ export default class Trades {
     }
 
     private retryFetchInventory(): void {
-        setTimeout(() => {
+        this.retryFetchInventoryTimeout = setTimeout(() => {
             this.bot.inventoryManager.getInventory.fetch().catch(err => {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');

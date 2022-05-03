@@ -83,7 +83,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
 
         log.error(errorMessage);
 
-        if (options.discordWebhook.sendAlert.enable && options.discordWebhook.sendAlert.url !== '') {
+        if (options.discordWebhook.sendAlert.enable && options.discordWebhook.sendAlert.url.main !== '') {
             const optDW = options.discordWebhook;
             const sendAlertWebhook: Webhook = {
                 username: optDW.displayName ? optDW.displayName : 'Your beloved bot',
@@ -105,7 +105,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
             };
 
             const request = new XMLHttpRequest();
-            request.open('POST', optDW.sendAlert.url);
+            request.open('POST', optDW.sendAlert.url.main);
             request.setRequestHeader('Content-type', 'application/json');
             request.send(JSON.stringify(sendAlertWebhook));
         }

@@ -30,7 +30,7 @@ export default class UserCart extends Cart {
             this.bot.client.blockUser(this.partner, err => {
                 if (err) {
                     log.error(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
-                } else log.debug(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
+                } else log.info(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
             });
 
             return Promise.reject('you are banned in one or more trading communities');
@@ -67,7 +67,7 @@ export default class UserCart extends Cart {
                     async.series(requests, callback);
                 });
 
-                log.debug(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
+                log.info(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
 
                 const resultCount = result.length;
 
@@ -151,8 +151,6 @@ export default class UserCart extends Cart {
         price: Currencies,
         useKeys: boolean
     ): { currencies: { [sku: string]: number }; change: number } {
-        log.debug('Getting required currencies');
-
         const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const currencyValues: {
@@ -236,16 +234,6 @@ export default class UserCart extends Cart {
                 remaining -= Math.floor(amount) * currencyValues[key];
             }
 
-            log.debug('Iteration', {
-                index: index,
-                key: key,
-                amount: amount,
-                remaining: remaining,
-                reverse: reverse,
-                hasReversed: hasReversed,
-                picked: pickedCurrencies
-            });
-
             if (remaining === 0) {
                 // Picked the exact amount, stop
                 break;
@@ -266,8 +254,6 @@ export default class UserCart extends Cart {
         }
 
         if (remaining < 0) {
-            log.debug('Picked too much value, removing...');
-
             // Removes unnecessary items
             for (let i = 0; i < skusCount; i++) {
                 const sku = skus[i];
@@ -285,13 +271,6 @@ export default class UserCart extends Cart {
                     remaining += amount * currencyValues[sku];
                     pickedCurrencies[sku] -= amount;
                 }
-
-                log.debug('Iteration', {
-                    sku: skus[i],
-                    amount: amount,
-                    remaining: remaining,
-                    picked: pickedCurrencies
-                });
             }
         }
 
@@ -897,12 +876,6 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
-                            log.debug('Added changes:', {
-                                whose: whose,
-                                sku: sku,
-                                assetid: currencies[sku][i]
-                            });
-
                             const amount = (itemsDict[whose][sku] || 0) + 1;
                             itemsDict[whose][sku] = amount;
 

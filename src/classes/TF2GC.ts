@@ -158,15 +158,15 @@ export default class TF2GC {
 
     private handleJobQueue(): void {
         if (this.processingQueue) {
-            log.debug('Already handling queue');
+            // Already handling queue
             return;
         }
 
         if (this.jobs.length === 0) {
-            log.debug('Queue is empty');
+            // Queue is empty
 
             if (this.startedProcessing) {
-                log.debug('Done processing queue');
+                // Done processing queue
 
                 this.startedProcessing = false;
 
@@ -185,7 +185,7 @@ export default class TF2GC {
 
         this.startedProcessing = true;
 
-        log.debug('Ensuring TF2 GC connection...');
+        // Ensuring TF2 GC connection...
 
         void this.connectToGC().asCallback(err => {
             if (err) {
@@ -229,7 +229,8 @@ export default class TF2GC {
             .filter(assetid => !this.bot.trades.isInTrade(assetid));
 
         const ids = assetids.splice(0, job.type === 'smelt' ? 1 : 3);
-        log.debug('Sending craft request');
+
+        log.debug(`Sending ${job.type} request`);
         this.bot.tf2.craft(ids);
 
         const gainDefindex = job.defindex + (job.type === 'smelt' ? -1 : 1);
@@ -670,12 +671,12 @@ export default class TF2GC {
     private connectToGC(): Promise<void> {
         return new Promise((resolve, reject) => {
             if (!this.isConnectedToGC) {
-                log.debug('Not playing TF2');
+                // Not playing TF2
                 this.bot.client.gamesPlayed(440);
             }
 
             if (this.bot.tf2.haveGCSession) {
-                log.debug('Already connected to TF2 GC');
+                // Already connected to TF2 GC
                 return resolve();
             }
 
@@ -684,15 +685,15 @@ export default class TF2GC {
             this.listenForEvent(
                 'connectedToGC',
                 () => {
-                    log.debug('running connectToGC iterator...');
+                    // running connectToGC iterator...
                     return { success: true };
                 },
                 () => {
-                    log.debug('onSuccess connectToGC.');
+                    // onSuccess connectToGC.
                     resolve();
                 },
                 () => {
-                    log.debug('onFail connectToGC.');
+                    // onFail connectToGC.
                     bot.client.gamesPlayed([]);
                     reject(new Error('Could not connect to TF2 GC, restarting TF2..'));
                 }
