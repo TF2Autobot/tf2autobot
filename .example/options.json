@@ -462,7 +462,10 @@
         },
         "sendStats": {
             "enable": false,
-            "url": ""
+            "url": {
+                "main": "",
+                "partialPriceUpdate": ""
+            }
         }
     },
     "customMessage": {
