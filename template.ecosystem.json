@@ -21,6 +21,8 @@
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
 
+                "USERAGENT_HEADER_CUSTOM": "",
+
                 "ADMINS": ["<your steamid 64>"],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
                 "ITEM_STATS_WHITELIST": [],
