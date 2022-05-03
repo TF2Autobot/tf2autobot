@@ -554,7 +554,7 @@ export default class MyHandler extends Handler {
                 log.debug('Running automatic check for missing listings...');
 
                 const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
-                this.bot.listingManager.getListings(async err => {
+                this.bot.listingManager.getListings(false, async err => {
                     if (err) {
                         log.warn('Error getting listings on auto-refresh listings operation:', err);
                         setTimeout(() => {

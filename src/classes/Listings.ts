@@ -377,7 +377,7 @@ export default class Listings {
                 log.debug('Checking listings...');
 
                 const prevCount = this.bot.listingManager.listings.length;
-                this.bot.listingManager.getListings(err => {
+                this.bot.listingManager.getListings(true, err => {
                     if (err) {
                         return reject(err);
                     }
