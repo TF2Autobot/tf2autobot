@@ -21,11 +21,11 @@ jobs:
     strategy:
       matrix:
         node:
-          - 16.13.0-alpine
-          - 16.13.0-buster
-          - 16.13.0-buster-slim
-          - 16.13.0-stretch
-          - 16.13.0-stretch-slim
+          - 16.15.0-alpine
+          - 16.15.0-buster
+          - 16.15.0-buster-slim
+          - 16.15.0-stretch
+          - 16.15.0-stretch-slim
 
     name: Tag Latest (node:${{ matrix.node }})
 
