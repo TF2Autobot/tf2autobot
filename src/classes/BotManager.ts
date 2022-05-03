@@ -7,7 +7,7 @@ import { waitForWriting } from '../lib/files';
 import Options from './Options';
 import { EPersonaState } from 'steam-user';
 import EconItem from '@tf2autobot/tradeoffer-manager/lib/classes/EconItem.js';
-import CEconItem from 'steamcommunity/classes/CEconItem.js';
+import CEconItem from '@tf2autobot/steamcommunity/classes/CEconItem.js';
 import TradeOffer from '@tf2autobot/tradeoffer-manager/lib/classes/TradeOffer';
 import { camelCase } from 'change-case';
 import IPricer from './IPricer';
