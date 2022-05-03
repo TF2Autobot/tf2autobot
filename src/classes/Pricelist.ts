@@ -233,7 +233,7 @@ export default class Pricelist extends EventEmitter {
 
     get isDwAlertEnabled(): boolean {
         const opt = this.bot.options.discordWebhook.sendAlert;
-        return opt.enable && opt.url !== '';
+        return opt.enable && (opt.url.main !== '' || opt.url.partialPriceUpdate !== '');
     }
 
     init(): void {

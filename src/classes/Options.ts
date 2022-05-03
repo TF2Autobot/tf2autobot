@@ -500,7 +500,10 @@ export const DEFAULTS: JsonOptions = {
         sendAlert: {
             enable: true,
             isMention: true,
-            url: ''
+            url: {
+                main: '',
+                partialPriceUpdate: ''
+            }
         },
         sendStats: {
             enable: false,
@@ -1542,7 +1545,10 @@ interface PriceUpdateDW extends OnlyEnable, OnlyNote {
 
 interface SendAlertStatsDW extends OnlyEnable {
     isMention?: boolean;
-    url?: string;
+    url?: {
+        main: string;
+        partialPriceUpdate: string;
+    };
 }
 
 interface SendStatsDW extends OnlyEnable {
@@ -2189,6 +2195,17 @@ function replaceOldProperties(options: Options): boolean {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         delete options.miscSettings.autobump;
+
+        isChanged = true;
+    }
+
+    // v4.8.0 -> v4.9.0 - Automatically make room to separate different discord urls for sendAlert
+    if (typeof options.discordWebhook?.sendAlert?.url === 'string') {
+        const mainUrl = options.discordWebhook.sendAlert.url;
+        options.discordWebhook.sendAlert.url = {
+            main: mainUrl,
+            partialPriceUpdate: ''
+        };
 
         isChanged = true;
     }

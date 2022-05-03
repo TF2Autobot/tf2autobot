@@ -253,7 +253,24 @@ export default function sendAlert(
         ]
     };
 
-    sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert').catch(err =>
+    let url = optDW.sendAlert.url.main;
+    if (
+        [
+            'autoUpdatePartialPriceSuccess',
+            'autoUpdatePartialPriceFailed',
+            'autoResetPartialPrice',
+            'autoResetPartialPriceBulk',
+            'onBulkUpdatePartialPriced',
+            'isPartialPriced'
+        ].includes(type)
+    ) {
+        url =
+            optDW.sendAlert.url.partialPriceUpdate !== ''
+                ? optDW.sendAlert.url.partialPriceUpdate
+                : optDW.sendAlert.url.main;
+    }
+
+    sendWebhook(url, sendAlertWebhook, 'alert').catch(err =>
         log.warn(`❌ Failed to send alert webhook (${type}) to Discord: `, err)
     );
 }

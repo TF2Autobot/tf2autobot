@@ -410,7 +410,7 @@ export default class Trades {
                 const keyPrices = this.bot.pricelist.getKeyPrices;
                 const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
 
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                     const summary = t.summarizeToChat(
                         offer,
                         this.bot,
@@ -620,7 +620,10 @@ export default class Trades {
                                     opt.miscSettings.showOnlyMetal.enable
                                 );
 
-                                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                                if (
+                                    opt.discordWebhook.sendAlert.enable &&
+                                    opt.discordWebhook.sendAlert.url.main !== ''
+                                ) {
                                     const summary = t.summarizeToChat(
                                         offer,
                                         this.bot,
@@ -1446,7 +1449,7 @@ export default class Trades {
 
             const dwEnabled =
                 this.bot.options.discordWebhook.sendAlert.enable &&
-                this.bot.options.discordWebhook.sendAlert.url !== '';
+                this.bot.options.discordWebhook.sendAlert.url.main !== '';
 
             // determine whether it's good time to restart or not
             try {
