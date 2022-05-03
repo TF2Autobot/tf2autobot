@@ -507,7 +507,8 @@ export default class Bot {
                             token: this.options.bptfAccessToken,
                             userID,
                             userAgent:
-                                'TF2Autobot' + (process.env.USERAGENT_HEADER_CUSTOM !== ''
+                                'TF2Autobot' +
+                                (process.env.USERAGENT_HEADER_CUSTOM !== ''
                                     ? ` - ${process.env.USERAGENT_HEADER_CUSTOM}`
                                     : ' - Run your own bot for free'),
                             schema: this.schema
