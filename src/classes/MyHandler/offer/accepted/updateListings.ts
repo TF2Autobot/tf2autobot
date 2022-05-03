@@ -44,7 +44,7 @@ export default function updateListings(
     const inventory = bot.inventoryManager.getInventory;
     const hv = highValue.items;
     const normalizePainted = opt.normalize.painted;
-    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
+    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '';
     const pure = ['5000;6', '5001;6', '5002;6'];
     const pureWithWeapons = pure.concat(weapons);
     const isAdmin = bot.isAdmin(offer.partner);

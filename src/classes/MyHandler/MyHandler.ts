@@ -297,7 +297,7 @@ export default class MyHandler extends Handler {
 
         if (failedToUpdateOldPrices.length > 0) {
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && dw.url.main !== '';
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.failedToUpdateOldPrices) {
                 if (isDwEnabled) {
@@ -323,7 +323,7 @@ export default class MyHandler extends Handler {
         if (count > 0 && count < 20) {
             // we send only if less than 20
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
 
             const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced.join(
                 '\n --- '
@@ -343,7 +343,7 @@ export default class MyHandler extends Handler {
 
         if (bulkResetPartiallyPriced.length > 0) {
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
 
             const msg =
                 `All partially priced items below has been reset to use the current prices ` +
@@ -928,7 +928,7 @@ export default class MyHandler extends Handler {
             const optDw = opt.discordWebhook;
 
             if (opt.sendAlert.enable && opt.sendAlert.unableToProcessOffer) {
-                if (optDw.sendAlert.enable && optDw.sendAlert.url !== '') {
+                if (optDw.sendAlert.enable && optDw.sendAlert.url.main !== '') {
                     sendAlert('failed-processing-offer', this.bot, null, null, null, [
                         offer.partner.getSteamID64(),
                         offer.id
@@ -1090,7 +1090,7 @@ export default class MyHandler extends Handler {
             );
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                     for (const name in itemsName) {
                         if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
                             continue;
