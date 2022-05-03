@@ -346,7 +346,7 @@ export default class Bot {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                     return resolve({ version: body.version });
                 }
-            );
+            ).end();
         });
     }
 
@@ -507,16 +507,38 @@ export default class Bot {
                             token: this.options.bptfAccessToken,
                             userID,
                             userAgent: 'TF2Autobot@' + process.env.BOT_VERSION,
-                            batchSize: 25,
-                            waitTime: 100,
                             schema: this.schema
                         });
 
                         this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
                         this.addListener(
                             this.listingManager,
+                            'createListingsSuccessful',
+                            this.handler.onCreateListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'updateListingsSuccessful',
+                            this.handler.onUpdateListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteListingsSuccessful',
+                            this.handler.onDeleteListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
                             'createListingsError',
                             this.handler.onCreateListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'updateListingsError',
+                            this.handler.onUpdateListingsError.bind(this),
                             true
                         );
                         this.addListener(

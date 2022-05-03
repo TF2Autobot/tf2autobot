@@ -545,7 +545,7 @@ export default abstract class Cart {
         return new Promise(resolve => {
             void request(
                 {
-                    url: 'https://backpack.tf/api/users/info/v1',
+                    url: 'https://api.backpack.tf/api/users/info/v1',
                     method: 'GET',
                     headers: {
                         'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
@@ -571,7 +571,7 @@ export default abstract class Cart {
 
                     return resolve(totalBackpackSlots);
                 }
-            );
+            ).end();
         });
     }
 }

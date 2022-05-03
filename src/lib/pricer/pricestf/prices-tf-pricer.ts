@@ -53,8 +53,6 @@ export default class PricesTfPricer implements IPricer {
             const start = new Date().getTime();
             log.debug('Requesting pricelist pages...');
             const response = await this.api.getPricelistPage(currentPage);
-
-            log.debug('Getting page ' + currentPage.toString() + ' of ' + totalPages.toString());
             totalPages = response.meta.totalPages;
             currentPage++;
 
@@ -135,7 +133,6 @@ export default class PricesTfPricer implements IPricer {
                 if (data.type === 'AUTH_REQUIRED') {
                     // might be nicer to put this elsewhere
 
-                    log.info('prices.tf re-authorization required');
                     void this.api.setupToken().then(() => {
                         this.socketManager.send(
                             JSON.stringify({
@@ -146,7 +143,7 @@ export default class PricesTfPricer implements IPricer {
                             })
                         );
                     });
-                } else if (data.type === 'PRICE_CHANGED') {
+                } else if (data.type === 'PRICE_UPDATED') {
                     const item = this.parsePriceUpdatedData(data);
                     onPriceChange(item);
                 }

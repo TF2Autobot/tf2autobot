@@ -45,6 +45,8 @@ export default class Trades {
 
     private resetRetryAcceptOfferTimeout: NodeJS.Timeout;
 
+    private retryFetchInventoryTimeout: NodeJS.Timeout;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -1634,6 +1636,7 @@ export default class Trades {
             if (err) {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');
+                clearTimeout(this.retryFetchInventoryTimeout);
                 this.retryFetchInventory();
             }
 
@@ -1642,7 +1645,7 @@ export default class Trades {
     }
 
     private retryFetchInventory(): void {
-        setTimeout(() => {
+        this.retryFetchInventoryTimeout = setTimeout(() => {
             this.bot.inventoryManager.getInventory.fetch().catch(err => {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');

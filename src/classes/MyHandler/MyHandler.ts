@@ -140,10 +140,6 @@ export default class MyHandler extends Handler {
         };
     }
 
-    private get isAutoRelistEnabled(): boolean {
-        return this.opt.miscSettings.autobump.enable;
-    }
-
     private get invalidValueException(): number {
         return Currencies.toScrap(this.opt.offerReceived.invalidValue.exceptionValue.valueInRef);
     }
@@ -288,9 +284,6 @@ export default class MyHandler extends Handler {
         // Check group invites that we got while offline
         this.checkGroupInvites();
 
-        // Set up autorelist if enabled in environment variable
-        this.bot.listings.setupAutorelist();
-
         // Initialize send stats
         this.sendStats();
 
@@ -395,8 +388,6 @@ export default class MyHandler extends Handler {
         if (this.retryRequest) {
             clearTimeout(this.retryRequest);
         }
-
-        this.bot.listings.disableAutorelistOption();
 
         return new Promise(resolve => {
             if (this.opt.autokeys.enable) {
@@ -529,7 +520,7 @@ export default class MyHandler extends Handler {
 
     enableAutoRefreshListings(): void {
         // Automatically check for missing listings every 30 minutes
-        if (this.isAutoRelistEnabled && this.isPremium === false) {
+        if (this.isPremium === false) {
             return;
         }
 
@@ -1592,7 +1583,7 @@ export default class MyHandler extends Handler {
                 const result: (boolean | null)[] = await Promise.fromCallback(callback => {
                     async.series(requests, callback);
                 });
-                log.debug('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
+                log.info('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
 
                 const resultCount = result.length;
 
@@ -1658,7 +1649,7 @@ export default class MyHandler extends Handler {
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
                         log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    } else log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
+                    } else log.info(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
                 });
 
                 return {
@@ -2415,7 +2406,7 @@ export default class MyHandler extends Handler {
 
             void request(
                 {
-                    url: 'https://backpack.tf/api/users/info/v1',
+                    url: 'https://api.backpack.tf/api/users/info/v1',
                     method: 'GET',
                     headers: {
                         'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
@@ -2447,13 +2438,11 @@ export default class MyHandler extends Handler {
                     this.isPremium = user.premium ? user.premium === 1 : false;
                     return resolve();
                 }
-            );
+            ).end();
         });
     }
 
     private checkGroupInvites(): void {
-        log.debug('Checking group invites');
-
         for (const groupID64 in this.bot.client.myGroups) {
             if (!Object.prototype.hasOwnProperty.call(this.bot.client.myGroups, groupID64)) {
                 continue;
@@ -2511,9 +2500,6 @@ export default class MyHandler extends Handler {
     }
 
     onPriceChange(sku: string, entry: Entry): void {
-        if (!this.isPriceUpdateWebhook) {
-            log.debug(`${sku} updated`);
-        }
         this.bot.listings.checkBySKU(sku, entry, false, true);
     }
 
@@ -2521,7 +2507,7 @@ export default class MyHandler extends Handler {
         if (pulse.client) {
             delete pulse.client;
         }
-        log.debug('user-agent', pulse);
+        // log.debug('user-agent', pulse);
     }
 
     onLoginThrottle(wait: number): void {
@@ -2533,8 +2519,24 @@ export default class MyHandler extends Handler {
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
 
+    onCreateListingsSuccessful(response: { created: number; archived: number; errors: any[] }): void {
+        log.debug('Successfully create listings:', response);
+    }
+
+    onUpdateListingsSuccessful(response: { updated: number; errors: any[] }): void {
+        log.debug('Successfully update listings:', response);
+    }
+
+    onDeleteListingsSuccessful(response: Record<string, unknown>): void {
+        log.debug('Successfully delete listings:', response);
+    }
+
     onCreateListingsError(err: Error): void {
         log.error('Error on create listings:', err);
+    }
+
+    onUpdateListingsError(err: Error): void {
+        log.error('Error on update listings:', err);
     }
 
     onDeleteListingsError(err: Error): void {

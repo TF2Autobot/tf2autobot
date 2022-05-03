@@ -253,9 +253,9 @@ export default function sendAlert(
         ]
     };
 
-    sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert')
-        .then(() => log.debug(`✅ Sent alert webhook (${type}) to Discord.`))
-        .catch(err => log.warn(`❌ Failed to send alert webhook (${type}) to Discord: `, err));
+    sendWebhook(optDW.sendAlert.url, sendAlertWebhook, 'alert').catch(err =>
+        log.warn(`❌ Failed to send alert webhook (${type}) to Discord: `, err)
+    );
 }
 
 function generateError(err: any): string {
