@@ -252,7 +252,7 @@ export default class Commands {
             void this.status.itemStatsCommand(steamID, message);
         } else if (command === 'inventory' && isAdmin) {
             this.status.inventoryCommand(steamID);
-        } else if (command === 'version' && isAdmin) {
+        } else if (command === 'version' && (isAdmin || isWhitelisted)) {
             this.status.versionCommand(steamID);
         } else if (command === 'trades' && isAdmin) {
             this.review.tradesCommand(steamID);
