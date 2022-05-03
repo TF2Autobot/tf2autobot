@@ -1583,7 +1583,7 @@ export default class MyHandler extends Handler {
                 const result: (boolean | null)[] = await Promise.fromCallback(callback => {
                     async.series(requests, callback);
                 });
-                log.debug('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
+                log.info('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
 
                 const resultCount = result.length;
 
@@ -1649,7 +1649,7 @@ export default class MyHandler extends Handler {
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
                         log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    } else log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
+                    } else log.info(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
                 });
 
                 return {
@@ -2443,8 +2443,6 @@ export default class MyHandler extends Handler {
     }
 
     private checkGroupInvites(): void {
-        log.debug('Checking group invites');
-
         for (const groupID64 in this.bot.client.myGroups) {
             if (!Object.prototype.hasOwnProperty.call(this.bot.client.myGroups, groupID64)) {
                 continue;
@@ -2502,9 +2500,6 @@ export default class MyHandler extends Handler {
     }
 
     onPriceChange(sku: string, entry: Entry): void {
-        if (!this.isPriceUpdateWebhook) {
-            log.debug(`${sku} updated`);
-        }
         this.bot.listings.checkBySKU(sku, entry, false, true);
     }
 
@@ -2512,7 +2507,7 @@ export default class MyHandler extends Handler {
         if (pulse.client) {
             delete pulse.client;
         }
-        log.debug('user-agent', pulse);
+        // log.debug('user-agent', pulse);
     }
 
     onLoginThrottle(wait: number): void {

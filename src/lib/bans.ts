@@ -55,21 +55,22 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
                 const bans = JSON.parse(body) as RepTF;
 
                 const isBptfBanned = bans.bptfBans ? bans.bptfBans.banned === 'bad' : false;
-                log[isBptfBanned ? 'warn' : 'debug'](
-                    'Backpack.tf: ' + (isBptfBanned ? `banned - ${bans.bptfBans.message}` : 'clean')
-                );
-
                 const isSteamRepBanned = bans.srBans ? bans.srBans.banned === 'bad' : false;
-                log[isSteamRepBanned ? 'warn' : 'debug'](
-                    'Backpack.tf: ' + (isSteamRepBanned ? `banned - ${bans.srBans.message}` : 'clean')
-                );
-
                 const isMptfBanned = bans.mpBans ? bans.mpBans.banned === 'bad' : false;
+
+                const bansResult = {
+                    'Backpack.tf': isBptfBanned ? `banned - ${bans.bptfBans.message}` : 'clean',
+                    'Steamrep.com': isSteamRepBanned ? `banned - ${bans.srBans.message}` : 'clean'
+                };
+
                 if (checkMptf) {
-                    log[isMptfBanned ? 'warn' : 'debug'](
-                        'Marketplace.tf (from Rep.tf): ' + (isMptfBanned ? `banned - ${bans.mpBans.message}` : 'clean')
-                    );
+                    bansResult['Marketplace.tf'] = isMptfBanned ? `banned - ${bans.mpBans.message}` : 'clean';
                 }
+
+                log[isBptfBanned || isSteamRepBanned || (checkMptf && isMptfBanned) ? 'warn' : 'debug'](
+                    'Bans result:',
+                    bansResult
+                );
 
                 return resolve(isBptfBanned || isSteamRepBanned || (checkMptf ? isMptfBanned : false));
             }

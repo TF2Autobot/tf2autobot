@@ -709,7 +709,7 @@ export default class Pricelist extends EventEmitter {
                     });
             })
             .catch(err => {
-                log.debug('❌ Unable to get key prices: ', err);
+                log.error('❌ Unable to get key prices: ', err);
 
                 this.useTemporaryKeyPrices(entryKey);
 
@@ -737,11 +737,11 @@ export default class Pricelist extends EventEmitter {
             const temporaryKeyPrices = {
                 buy: new Currencies({
                     keys: 0,
-                    metal: 50
+                    metal: 67
                 }),
                 sell: new Currencies({
                     keys: 0,
-                    metal: 60
+                    metal: 70
                 })
             };
 
