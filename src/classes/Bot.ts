@@ -508,8 +508,8 @@ export default class Bot {
                             userID,
                             userAgent:
                                 'TF2Autobot' +
-                                (process.env.USERAGENT_HEADER_CUSTOM !== ''
-                                    ? ` - ${process.env.USERAGENT_HEADER_CUSTOM}`
+                                (this.options.userAgentHeaderCustom !== ''
+                                    ? ` - ${this.options.userAgentHeaderCustom}`
                                     : ' - Run your own bot for free'),
                             schema: this.schema
                         });
