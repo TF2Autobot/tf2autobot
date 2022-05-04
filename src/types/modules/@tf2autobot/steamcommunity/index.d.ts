@@ -1,4 +1,4 @@
-declare module 'steamcommunity' {
+declare module '@tf2autobot/steamcommunity' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
     import { CookieJar } from 'request';

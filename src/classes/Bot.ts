@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import SteamUser, { EResult } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
-import SteamCommunity from 'steamcommunity';
+import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager from '@tf2autobot/bptf-listings';
 import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
