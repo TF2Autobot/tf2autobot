@@ -24,7 +24,7 @@
     },
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
-        "@tf2autobot/bptf-listings": "^5.1.1",
+        "@tf2autobot/bptf-listings": "^5.1.2",
         "@tf2autobot/bptf-login": "^2.1.0",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/steamcommunity": "^3.45.0",
@@ -69,7 +69,7 @@
         "winston": "^3.7.2",
         "winston-daily-rotate-file": "^4.6.1",
         "write-file-atomic": "^4.0.1",
-        "ws": "^8.6.0",
+        "ws": "^8.5.0",
         "xmlhttprequest-ts": "^1.0.1"
     },
     "devDependencies": {

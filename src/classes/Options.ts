@@ -2233,7 +2233,7 @@ export function loadOptions(options?: Options): Options {
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
         bptfAPIKey: getOption('bptfAPIKey', '', String, incomingOptions),
 
-        useragentHeaderCustom: getOption('userAgentHeaderCustom', '', String, incomingOptions),
+        useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseArray, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
