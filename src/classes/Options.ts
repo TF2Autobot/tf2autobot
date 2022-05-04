@@ -1980,7 +1980,7 @@ export default interface Options extends JsonOptions {
     bptfAccessToken?: string;
     bptfAPIKey?: string;
 
-    userAgentHeaderCustom?: string;
+    useragentHeaderCustom?: string;
 
     admins?: string[];
     keep?: string[];
@@ -2233,7 +2233,7 @@ export function loadOptions(options?: Options): Options {
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
         bptfAPIKey: getOption('bptfAPIKey', '', String, incomingOptions),
 
-        userAgentHeaderCustom: getOption('userAgentHeaderCustom', '', String, incomingOptions),
+        useragentHeaderCustom: getOption('userAgentHeaderCustom', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseArray, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
