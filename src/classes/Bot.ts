@@ -392,8 +392,6 @@ export default class Bot {
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        this.addListener(this.manager, 'debug', this.onDebugSteamOffer.bind(this), true);
-
         return new Promise((resolve, reject) => {
             async.eachSeries(
                 [
@@ -1125,9 +1123,5 @@ export default class Bot {
         this.loginAttempts.push(now);
 
         this.handler.onLoginAttempts(this.loginAttempts.map(attempt => attempt.unix()));
-    }
-
-    private onDebugSteamOffer(debug: any): void {
-        log.debug('STO - ', debug);
     }
 }
