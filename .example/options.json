@@ -461,14 +461,14 @@
         "sendAlert": {
             "enable": true,
             "isMention": true,
-            "url": ""
-        },
-        "sendStats": {
-            "enable": false,
             "url": {
                 "main": "",
                 "partialPriceUpdate": ""
             }
+        },
+        "sendStats": {
+            "enable": false,
+            "url": ""
         }
     },
     "customMessage": {
