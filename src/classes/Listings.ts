@@ -401,7 +401,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem, useSku = false): string {
+    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -519,7 +519,7 @@ export default class Listings {
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
-                .replace(/%name%/g, useSku ? entry.sku : entry.name)
+                .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
@@ -584,15 +584,17 @@ export default class Listings {
                 return details;
             }
 
-            // else we reconstruct, but replace %name% with sku instead of item full name
-            const newDetails = this.getDetails(intent, amountCanTrade, entry, item, true);
+            if (details.includes(entry.name)) {
+                details = details.replace(entry.name, entry.sku);
 
-            if (newDetails.length > 200) {
-                // if still more than 200 characters, we cut to at least 200 characters.
-                return newDetails.substring(0, 200);
+                if (details.length < 200) {
+                    // if details < 200 after replacing name with sku, use this.
+                    return details;
+                }
             }
 
-            return newDetails;
+            // else if still more than 200 characters, we cut to at least 200 characters.
+            return details.substring(0, 200);
         }
 
         return string;
