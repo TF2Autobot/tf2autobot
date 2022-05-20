@@ -39,9 +39,6 @@
             "customTexture": {
                 "enable": true
             }
-        },
-        "deleteUntradableJunk": {
-            "enable": false
         }
     },
     "sendAlert": {
