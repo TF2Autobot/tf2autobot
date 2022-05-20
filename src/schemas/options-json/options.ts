@@ -589,6 +589,9 @@ export const optionsSchema: jsonschema.Schema = {
                 autoAddPaintedItems: {
                     $ref: '#/definitions/only-enable'
                 },
+                autoUpdatePaintedItems: {
+                    $ref: '#/definitions/only-enable'
+                },
                 priceAge: {
                     type: 'object',
                     properties: {
@@ -608,6 +611,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoAddInvalidItems',
                 'autoAddInvalidUnusual',
                 'autoAddPaintedItems',
+                'autoUpdatePaintedItems',
                 'priceAge'
             ],
             additionalProperties: false

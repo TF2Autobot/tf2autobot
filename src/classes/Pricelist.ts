@@ -954,8 +954,19 @@ export default class Pricelist extends EventEmitter {
             return;
         }
 
-        const match = this.getPrice(data.sku);
         const opt = this.bot.options;
+        if (opt.pricelist.autoUpdatePaintedItems.enable) {
+            Object.values(this.bot.paints).forEach(paintPartialSku => {
+                const paintedMatch = this.getPrice(`${data.sku};${paintPartialSku}`);
+
+                if (paintedMatch !== null && paintedMatch.autoprice) {
+                    this.handlePriceChangePainted(paintedMatch, data);
+                }
+            });
+        }
+
+        const match = this.getPrice(data.sku);
+
         const dw = opt.discordWebhook.priceUpdate;
         const isDwEnabled = dw.enable && dw.url !== '';
 
@@ -1161,6 +1172,10 @@ export default class Pricelist extends EventEmitter {
                 }
             }
         }
+    }
+
+    private handlePriceChangePainted(entry: Entry, data: GetItemPriceResponse): void {
+        // TODO: finish this
     }
 
     private priceChanged(sku: string, entry: Entry): void {

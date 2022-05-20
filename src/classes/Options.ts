@@ -106,6 +106,9 @@ export const DEFAULTS: JsonOptions = {
         autoAddPaintedItems: {
             enable: true
         },
+        autoUpdatePaintedItems: {
+            enable: true
+        },
         priceAge: {
             maxInSeconds: 28800
         }
@@ -1174,6 +1177,7 @@ interface Pricelist {
     autoAddInvalidItems?: OnlyEnable;
     autoAddInvalidUnusual?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
+    autoUpdatePaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
 }
 
