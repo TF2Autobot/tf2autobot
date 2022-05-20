@@ -449,6 +449,27 @@ export default class Inventory {
         return dict;
     }
 
+    findUntradableJunk(): string[] {
+        const result: string[] = [];
+        for (const sku in this.nonTradable) {
+            const item = SKU.fromString(sku);
+            if (
+                [
+                    536, // Noise Maker - TF Birthday
+                    537, // Party Hat
+                    655, // Spirit of Giving
+                    5826 // Soul Gargoyle
+                ].includes(item.defindex)
+            ) {
+                for (const itemWithAssetid of this.nonTradable[sku]) {
+                    result.push(itemWithAssetid.id);
+                }
+            }
+        }
+
+        return result;
+    }
+
     private static highValue(
         sku: string,
         econ: EconItem,
