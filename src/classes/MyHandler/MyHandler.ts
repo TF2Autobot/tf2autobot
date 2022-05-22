@@ -623,8 +623,6 @@ export default class MyHandler extends Handler {
                             listingsSKUs[listingSKU] = listing.intent;
                             listingsSKUs[listingSKU][listing.intent] = listing;
                         }
-
-                        listingsSKUs[listingSKU][listing.intent] = listing;
                     });
 
                     const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
