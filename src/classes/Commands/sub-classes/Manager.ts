@@ -545,10 +545,9 @@ export default class ManagerCommands {
 
                     if (listings) {
                         const intents = Object.keys(listings);
-                        intents.forEach((intent, index) => {
+                        intents.forEach(intent => {
                             if (
                                 intents.length === 1 &&
-                                index === 0 &&
                                 intent === '0' && // We only check if the only listing exist is buy order
                                 entry.max > 1 &&
                                 amountAvailable > 0 &&
