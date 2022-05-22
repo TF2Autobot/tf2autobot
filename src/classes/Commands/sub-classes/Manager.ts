@@ -525,7 +525,14 @@ export default class ManagerCommands {
                         listing.remove();
                     }
 
-                    listingsSKUs[listingSKU][listing.intent] = listing;
+                    if (listingsSKUs[listingSKU]) {
+                        listingsSKUs[listingSKU][listing.intent] = listing;
+                    } else {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        listingsSKUs[listingSKU] = listing.intent;
+                        listingsSKUs[listingSKU][listing.intent] = listing;
+                    }
                 });
 
                 const pricelist = Object.assign({}, this.bot.pricelist.getPrices);

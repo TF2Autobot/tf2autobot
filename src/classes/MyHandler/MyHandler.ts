@@ -615,6 +615,15 @@ export default class MyHandler extends Handler {
                             listing.remove();
                         }
 
+                        if (listingsSKUs[listingSKU]) {
+                            listingsSKUs[listingSKU][listing.intent] = listing;
+                        } else {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            listingsSKUs[listingSKU] = listing.intent;
+                            listingsSKUs[listingSKU][listing.intent] = listing;
+                        }
+
                         listingsSKUs[listingSKU][listing.intent] = listing;
                     });
 
