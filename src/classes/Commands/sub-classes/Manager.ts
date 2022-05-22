@@ -526,12 +526,12 @@ export default class ManagerCommands {
                     }
 
                     if (listingsSKUs[listingSKU]) {
-                        listingsSKUs[listingSKU][listing.intent] = listing;
+                        listingsSKUs[listingSKU][String(listing.intent)] = listing;
                     } else {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
-                        listingsSKUs[listingSKU] = listing.intent;
-                        listingsSKUs[listingSKU][listing.intent] = listing;
+                        listingsSKUs[listingSKU] = String(listing.intent);
+                        listingsSKUs[listingSKU][String(listing.intent)] = listing;
                     }
                 });
 
