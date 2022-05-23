@@ -1627,6 +1627,9 @@ export const optionsSchema: jsonschema.Schema = {
                         giftNoNote: {
                             type: 'string'
                         },
+                        giftFailedCheckBanned: {
+                            type: 'string'
+                        },
                         crimeAttempt: {
                             type: 'string'
                         },
@@ -1673,6 +1676,7 @@ export const optionsSchema: jsonschema.Schema = {
                     required: [
                         'general',
                         'giftNoNote',
+                        'giftFailedCheckBanned',
                         'crimeAttempt',
                         'onlyMetal',
                         'duelingNot5Uses',

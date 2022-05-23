@@ -968,6 +968,58 @@ export default class MyHandler extends Handler {
             return;
         }
 
+        // A list of things that is wrong about the offer and other information
+        const wrongAboutOffer: WrongAboutOffer[] = [];
+
+        let checkBannedFailed = false;
+
+        offer.log('info', 'checking escrow...');
+
+        try {
+            const hasEscrow = await this.bot.checkEscrow(offer);
+
+            if (hasEscrow) {
+                offer.log('info', 'would be held if accepted, declining...');
+                return {
+                    action: 'decline',
+                    reason: 'ESCROW',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
+            }
+        } catch (err) {
+            wrongAboutOffer.push({
+                reason: '⬜_ESCROW_CHECK_FAILED'
+            });
+            log.warn('Failed to check escrow: ', err);
+        }
+
+        offer.log('info', 'checking bans...');
+
+        try {
+            const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
+
+            if (isBanned.isBanned) {
+                offer.log('info', 'partner is banned in one or more communities, declining...');
+                this.bot.client.blockUser(offer.partner, err => {
+                    if (err) {
+                        log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
+                    } else log.info(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
+                });
+
+                return {
+                    action: 'decline',
+                    reason: 'BANNED',
+                    meta: isContainsHighValue ? { highValue: highValueMeta, banned: isBanned.contents } : undefined
+                };
+            }
+        } catch (err) {
+            checkBannedFailed = true;
+            wrongAboutOffer.push({
+                reason: '⬜_BANNED_CHECK_FAILED'
+            });
+            log.error('Failed to check banned: ', err);
+        }
+
         if (hasNonTF2Items && opt.offerReceived.alwaysDeclineNonTF2Items) {
             // Using boolean because items dict always needs to be saved
             offer.log('info', 'contains items not from TF2, declining...');
@@ -1009,6 +1061,16 @@ export default class MyHandler extends Handler {
             ].some(word => offerMessage.includes(word));
 
             if (isGift) {
+                // We can accept escrow if it's gift
+                if (checkBannedFailed) {
+                    offer.log('info', `is a gift offer, but failed to check for banned status, declining...`);
+                    return {
+                        action: 'decline',
+                        reason: 'GIFT_FAILED_CHECK_BANNED',
+                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                    };
+                }
+
                 offer.log(
                     'trade',
                     `is a gift offer, accepting. Summary:\n${JSON.stringify(
@@ -1024,8 +1086,20 @@ export default class MyHandler extends Handler {
                 };
             } else {
                 if (opt.bypass.giftWithoutMessage.allow) {
+                    if (checkBannedFailed) {
+                        offer.log(
+                            'info',
+                            `is a gift offer without any offer message, but failed to check for banned status, declining...`
+                        );
+                        return {
+                            action: 'decline',
+                            reason: 'GIFT_FAILED_CHECK_BANNED',
+                            meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                        };
+                    }
+
                     offer.log(
-                        'info',
+                        'trade',
                         'is a gift offer without any offer message, but allowed to be accepted, accepting...'
                     );
 
@@ -1149,10 +1223,6 @@ export default class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
         let hasOverstockAndIsPartialPriced = false;
-
-        // A list of things that is wrong about the offer and other information
-        const wrongAboutOffer: WrongAboutOffer[] = [];
-
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
@@ -1635,54 +1705,6 @@ export default class MyHandler extends Handler {
                     error: (err as Error).message
                 });
             }
-        }
-
-        offer.log('info', 'checking escrow...');
-
-        try {
-            const hasEscrow = await this.bot.checkEscrow(offer);
-
-            if (hasEscrow) {
-                offer.log('info', 'would be held if accepted, declining...');
-                return {
-                    action: 'decline',
-                    reason: 'ESCROW',
-                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                };
-            }
-        } catch (err) {
-            log.warn('Failed to check escrow: ', err);
-
-            wrongAboutOffer.push({
-                reason: '⬜_ESCROW_CHECK_FAILED'
-            });
-        }
-
-        offer.log('info', 'checking bans...');
-
-        try {
-            const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
-
-            if (isBanned.isBanned) {
-                offer.log('info', 'partner is banned in one or more communities, declining...');
-                this.bot.client.blockUser(offer.partner, err => {
-                    if (err) {
-                        log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    } else log.info(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
-                });
-
-                return {
-                    action: 'decline',
-                    reason: 'BANNED',
-                    meta: isContainsHighValue ? { highValue: highValueMeta, banned: isBanned.contents } : undefined
-                };
-            }
-        } catch (err) {
-            log.error('Failed to check banned: ', err);
-
-            wrongAboutOffer.push({
-                reason: '⬜_BANNED_CHECK_FAILED'
-            });
         }
 
         const manualReviewEnabled = opt.manualReview.enable;

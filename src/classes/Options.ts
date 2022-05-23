@@ -525,6 +525,7 @@ export const DEFAULTS: JsonOptions = {
             general: '',
             hasNonTF2Items: '',
             giftNoNote: '',
+            giftFailedCheckBanned: '',
             crimeAttempt: '',
             onlyMetal: '',
             duelingNot5Uses: '',
@@ -1580,6 +1581,7 @@ interface DeclineNote {
     general?: string;
     hasNonTF2Items?: string;
     giftNoNote?: string;
+    giftFailedCheckBanned?: string;
     crimeAttempt?: string;
     onlyMetal?: string;
     duelingNot5Uses?: string;

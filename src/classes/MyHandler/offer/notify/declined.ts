@@ -23,6 +23,13 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.customMessage.decline.hasNonTF2Items;
         reply = custom ? custom : declined + ` because the offer you've sent contains Non-TF2 items.`;
         //
+    } else if (offerReason.reason === 'GIFT_FAILED_CHECK_BANNED') {
+        //
+        const custom = opt.customMessage.decline.giftFailedCheckBanned;
+        reply = custom
+            ? custom
+            : declined + ` because the offer you've sent is a gift, but I've failed to check your reputation status.`;
+        //
     } else if (offerReason.reason === 'GIFT_NO_NOTE') {
         //
         const custom = opt.customMessage.decline.giftNoNote;
