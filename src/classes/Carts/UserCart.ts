@@ -26,14 +26,31 @@ export default class UserCart extends Cart {
             this.bot.checkEscrow(this.offer)
         ]);
 
-        if (banned) {
+        // Keep this banned check - in case someone that's already friend got banned and tried to trade
+
+        if (banned.isBanned) {
             this.bot.client.blockUser(this.partner, err => {
                 if (err) {
                     log.error(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
                 } else log.info(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
             });
 
-            return Promise.reject('you are banned in one or more trading communities');
+            let checkResult = '';
+            if (banned.contents) {
+                checkResult = 'Check results:\n';
+                Object.keys(banned.contents).forEach((website, index) => {
+                    if (banned.contents[website] !== 'clean') {
+                        if (index > 0) {
+                            checkResult += '\n';
+                        }
+                        checkResult += `(${index + 1}) ${website}: ${banned.contents[website]}`;
+                    }
+                });
+            }
+
+            return Promise.reject(
+                `you are banned in one or more trading communities${checkResult !== '' ? '.\n\n' + checkResult : ''}`
+            );
         }
 
         if (escrow) {

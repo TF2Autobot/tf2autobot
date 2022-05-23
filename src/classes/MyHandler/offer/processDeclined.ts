@@ -34,9 +34,24 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case 'ESCROW':
                 declined.reasonDescription = offerReceived.reason + ': Partner has trade hold.';
                 break;
-            case 'BANNED':
-                declined.reasonDescription = offerReceived.reason + ': Partner is banned in one or more communities.';
+            case 'BANNED': {
+                let checkResult = '';
+                if (meta?.banned) {
+                    checkResult = 'Check results:\n';
+                    Object.keys(meta.banned).forEach((website, index) => {
+                        if (meta.banned[website] !== 'clean') {
+                            if (index > 0) {
+                                checkResult += '\n';
+                            }
+                            checkResult += `(${index + 1}) ${website}: ${meta.banned[website]}`;
+                        }
+                    });
+                }
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    `: Partner is banned in one or more communities.${checkResult !== '' ? '\n' + checkResult : ''}`;
                 break;
+            }
             case '🟨_CONTAINS_NON_TF2':
                 declined.reasonDescription = offerReceived.reason + ': Trade includes non-TF2 items.';
                 //Maybe implement tags for them as well ?

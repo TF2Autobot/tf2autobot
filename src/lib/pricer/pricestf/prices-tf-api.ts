@@ -1,8 +1,6 @@
 import { OptionsWithUrl, ResponseAsJSON } from 'request';
-
 import request from 'request-retry-dayjs';
 import { PricerOptions } from '../../../classes/IPricer';
-import log from '../../logger';
 
 export interface PricesTfRequestCheckResponse {
     enqueued: boolean;
@@ -103,12 +101,16 @@ export default class PricesTfApi {
     }
 
     async setupToken(): Promise<void> {
-        try {
-            const r = await PricesTfApi.requestAuthAccess();
-            this.token = r.accessToken;
-        } catch (e) {
-            log.error(e as Error);
-        }
+        return new Promise((resolve, reject) => {
+            void PricesTfApi.requestAuthAccess()
+                .then(response => {
+                    this.token = response.accessToken;
+                    resolve();
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
     }
 
     async requestCheck(sku: string): Promise<PricesTfRequestCheckResponse> {

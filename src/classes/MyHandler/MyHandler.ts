@@ -48,6 +48,7 @@ import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/e
 import genPaths from '../../resources/paths';
 import IPricer, { RequestCheckFn } from '../IPricer';
 import Options, { OfferType } from '../Options';
+import { Listing } from '@tf2autobot/bptf-listings';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -560,9 +561,9 @@ export default class MyHandler extends Handler {
                 }
 
                 pricelistLength = 0;
-                log.debug('Running automatic check for missing listings...');
+                log.debug('Running automatic check for missing/mismatch listings...');
 
-                const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
+                const listings: { [sku: string]: Listing[] } = {};
                 this.bot.listingManager.getListings(false, async err => {
                     if (err) {
                         log.warn('Error getting listings on auto-refresh listings operation:', err);
@@ -614,16 +615,11 @@ export default class MyHandler extends Handler {
                             listing.remove();
                         }
 
-                        if (listingsSKUs[listingSKU]) {
-                            listingsSKUs[listingSKU].intent.push(listing.intent);
-                        } else {
-                            listingsSKUs[listingSKU] = {
-                                intent: [listing.intent]
-                            };
-                        }
+                        listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
                     });
 
                     const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
+                    const keyPrice = this.bot.pricelist.getKeyPrice.metal;
 
                     for (const sku in pricelist) {
                         if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
@@ -631,24 +627,38 @@ export default class MyHandler extends Handler {
                         }
 
                         const entry = pricelist[sku];
-                        const listing = listingsSKUs[sku];
+                        const _listings = listings[sku];
 
                         const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
                         const amountAvailable = inventory.getAmount(sku, false, true);
 
-                        if (listing) {
-                            if (
-                                listing.intent.length === 1 &&
-                                listing.intent[0] === 0 && // We only check if the only listing exist is buy order
-                                entry.max > 1 &&
-                                amountAvailable > 0 &&
-                                amountAvailable > entry.min
-                            ) {
-                                // here we only check if the bot already have that item
-                                log.debug(`Missing sell order listings: ${sku}`);
-                            } else {
-                                delete pricelist[sku];
-                            }
+                        if (_listings) {
+                            _listings.forEach(listing => {
+                                if (
+                                    _listings.length === 1 &&
+                                    listing.intent === 0 && // We only check if the only listing exist is buy order
+                                    entry.max > 1 &&
+                                    amountAvailable > 0 &&
+                                    amountAvailable > entry.min
+                                ) {
+                                    // here we only check if the bot already have that item
+                                    log.debug(`Missing sell order listings: ${sku}`);
+                                } else if (
+                                    listing.intent === 0 &&
+                                    listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
+                                ) {
+                                    // if intent is buy, we check if the buying price is not same
+                                    log.debug(`Buying price for ${sku} not updated`);
+                                } else if (
+                                    listing.intent === 1 &&
+                                    listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
+                                ) {
+                                    // if intent is sell, we check if the selling price is not same
+                                    log.debug(`Selling price for ${sku} not updated`);
+                                } else {
+                                    delete pricelist[sku];
+                                }
+                            });
 
                             continue;
                         }
@@ -958,6 +968,58 @@ export default class MyHandler extends Handler {
             return;
         }
 
+        // A list of things that is wrong about the offer and other information
+        const wrongAboutOffer: WrongAboutOffer[] = [];
+
+        let checkBannedFailed = false;
+
+        offer.log('info', 'checking escrow...');
+
+        try {
+            const hasEscrow = await this.bot.checkEscrow(offer);
+
+            if (hasEscrow) {
+                offer.log('info', 'would be held if accepted, declining...');
+                return {
+                    action: 'decline',
+                    reason: 'ESCROW',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
+            }
+        } catch (err) {
+            wrongAboutOffer.push({
+                reason: '⬜_ESCROW_CHECK_FAILED'
+            });
+            log.warn('Failed to check escrow: ', err);
+        }
+
+        offer.log('info', 'checking bans...');
+
+        try {
+            const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
+
+            if (isBanned.isBanned) {
+                offer.log('info', 'partner is banned in one or more communities, declining...');
+                this.bot.client.blockUser(offer.partner, err => {
+                    if (err) {
+                        log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
+                    } else log.info(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
+                });
+
+                return {
+                    action: 'decline',
+                    reason: 'BANNED',
+                    meta: isContainsHighValue ? { highValue: highValueMeta, banned: isBanned.contents } : undefined
+                };
+            }
+        } catch (err) {
+            checkBannedFailed = true;
+            wrongAboutOffer.push({
+                reason: '⬜_BANNED_CHECK_FAILED'
+            });
+            log.error('Failed to check banned: ', err);
+        }
+
         if (hasNonTF2Items && opt.offerReceived.alwaysDeclineNonTF2Items) {
             // Using boolean because items dict always needs to be saved
             offer.log('info', 'contains items not from TF2, declining...');
@@ -999,6 +1061,16 @@ export default class MyHandler extends Handler {
             ].some(word => offerMessage.includes(word));
 
             if (isGift) {
+                // We can accept escrow if it's gift
+                if (checkBannedFailed) {
+                    offer.log('info', `is a gift offer, but failed to check for banned status, declining...`);
+                    return {
+                        action: 'decline',
+                        reason: 'GIFT_FAILED_CHECK_BANNED',
+                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                    };
+                }
+
                 offer.log(
                     'trade',
                     `is a gift offer, accepting. Summary:\n${JSON.stringify(
@@ -1014,8 +1086,20 @@ export default class MyHandler extends Handler {
                 };
             } else {
                 if (opt.bypass.giftWithoutMessage.allow) {
+                    if (checkBannedFailed) {
+                        offer.log(
+                            'info',
+                            `is a gift offer without any offer message, but failed to check for banned status, declining...`
+                        );
+                        return {
+                            action: 'decline',
+                            reason: 'GIFT_FAILED_CHECK_BANNED',
+                            meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                        };
+                    }
+
                     offer.log(
-                        'info',
+                        'trade',
                         'is a gift offer without any offer message, but allowed to be accepted, accepting...'
                     );
 
@@ -1139,10 +1223,6 @@ export default class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
         let hasOverstockAndIsPartialPriced = false;
-
-        // A list of things that is wrong about the offer and other information
-        const wrongAboutOffer: WrongAboutOffer[] = [];
-
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
@@ -1625,54 +1705,6 @@ export default class MyHandler extends Handler {
                     error: (err as Error).message
                 });
             }
-        }
-
-        offer.log('info', 'checking escrow...');
-
-        try {
-            const hasEscrow = await this.bot.checkEscrow(offer);
-
-            if (hasEscrow) {
-                offer.log('info', 'would be held if accepted, declining...');
-                return {
-                    action: 'decline',
-                    reason: 'ESCROW',
-                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                };
-            }
-        } catch (err) {
-            log.warn('Failed to check escrow: ', err);
-
-            wrongAboutOffer.push({
-                reason: '⬜_ESCROW_CHECK_FAILED'
-            });
-        }
-
-        offer.log('info', 'checking bans...');
-
-        try {
-            const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
-
-            if (isBanned) {
-                offer.log('info', 'partner is banned in one or more communities, declining...');
-                this.bot.client.blockUser(offer.partner, err => {
-                    if (err) {
-                        log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    } else log.info(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
-                });
-
-                return {
-                    action: 'decline',
-                    reason: 'BANNED',
-                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                };
-            }
-        } catch (err) {
-            log.error('Failed to check banned: ', err);
-
-            wrongAboutOffer.push({
-                reason: '⬜_BANNED_CHECK_FAILED'
-            });
         }
 
         const manualReviewEnabled = opt.manualReview.enable;
@@ -2302,14 +2334,51 @@ export default class MyHandler extends Handler {
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
-        log.debug(`Accepting friend request from ${steamID64}...`);
-        this.bot.client.addFriend(steamID, err => {
-            if (err) {
-                log.warn(`Failed to accept friend request from ${steamID64}: `, err);
-                return;
-            }
-            log.debug('Friend request has been accepted');
-        });
+
+        void this.bot
+            .checkBanned(steamID)
+            .then(banned => {
+                if (banned.isBanned) {
+                    let checkResult = '';
+                    if (banned.contents) {
+                        checkResult = 'Check results:\n';
+                        Object.keys(banned.contents).forEach((website, index) => {
+                            if (banned.contents[website] !== 'clean') {
+                                if (index > 0) {
+                                    checkResult += '\n';
+                                }
+                                checkResult += `(${index + 1}) ${website}: ${banned.contents[website]}`;
+                            }
+                        });
+                    }
+
+                    log.info(
+                        `Declining friend request and blocking ${steamID64}${checkResult ? ', ' + checkResult : '...'}`
+                    );
+
+                    this.bot.client.removeFriend(steamID);
+                    this.bot.client.blockUser(steamID, err => {
+                        if (err) {
+                            log.error(`❌ Failed to block user ${steamID64}: `, err);
+                        } else log.info(`✅ Successfully blocked user ${steamID64}`);
+                    });
+
+                    return;
+                }
+
+                log.info(`Accepting friend request from ${steamID64}...`);
+                this.bot.client.addFriend(steamID, err => {
+                    if (err) {
+                        log.warn(`Failed to accept friend request from ${steamID64}: `, err);
+                        return;
+                    }
+                    log.debug('Friend request has been accepted');
+                });
+            })
+            .catch(err => {
+                log.error('Failed to check banned on respondToFriendRequest: ', err);
+                return; // We respond again later
+            });
     }
 
     private onNewFriend(steamID: SteamID, tries = 0): void {
