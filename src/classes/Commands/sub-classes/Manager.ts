@@ -470,7 +470,7 @@ export default class ManagerCommands {
                 )} minutes before you run refresh listings command again.`
             );
         } else {
-            const listingsSKUs: { [sku: string]: { [intent: string]: Listing } } = {};
+            const listings: { [sku: string]: Listing[] } = {};
             this.bot.listingManager.getListings(false, async err => {
                 if (err) {
                     log.error('Unable to refresh listings: ', err);
@@ -525,14 +525,7 @@ export default class ManagerCommands {
                         listing.remove();
                     }
 
-                    if (listingsSKUs[listingSKU]) {
-                        listingsSKUs[listingSKU][String(listing.intent)] = listing;
-                    } else {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        listingsSKUs[listingSKU] = String(listing.intent);
-                        listingsSKUs[listingSKU][String(listing.intent)] = listing;
-                    }
+                    listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
                 });
 
                 const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
@@ -545,17 +538,16 @@ export default class ManagerCommands {
                     }
 
                     const entry = pricelist[sku];
-                    const listings = listingsSKUs[sku];
+                    const _listings = listings[sku];
 
                     const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
                     const amountAvailable = inventory.getAmount(sku, false, true);
 
-                    if (listings) {
-                        const intents = Object.keys(listings);
-                        intents.forEach(intent => {
+                    if (_listings) {
+                        _listings.forEach(listing => {
                             if (
-                                intents.length === 1 &&
-                                intent === '0' && // We only check if the only listing exist is buy order
+                                _listings.length === 1 &&
+                                listing.intent === 0 && // We only check if the only listing exist is buy order
                                 entry.max > 1 &&
                                 amountAvailable > 0 &&
                                 amountAvailable > entry.min
@@ -563,14 +555,14 @@ export default class ManagerCommands {
                                 // here we only check if the bot already have that item
                                 log.debug(`Missing sell order listings: ${sku}`);
                             } else if (
-                                intent === '0' &&
-                                listings[intent].currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
+                                listing.intent === 0 &&
+                                listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
                             ) {
                                 // if intent is buy, we check if the buying price is not same
                                 log.debug(`Buying price for ${sku} not updated`);
                             } else if (
-                                intent === '1' &&
-                                listings[intent].currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
+                                listing.intent === 1 &&
+                                listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
                             ) {
                                 // if intent is sell, we check if the selling price is not same
                                 log.debug(`Selling price for ${sku} not updated`);
