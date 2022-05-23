@@ -26,6 +26,8 @@ export default class UserCart extends Cart {
             this.bot.checkEscrow(this.offer)
         ]);
 
+        // Keep this banned check - in case someone that's already friend got banned and tried to trade
+
         if (banned.isBanned) {
             this.bot.client.blockUser(this.partner, err => {
                 if (err) {
