@@ -5,12 +5,17 @@ import log from '../lib/logger';
 
 let isReptfFailed = false;
 
+export interface IsBanned {
+    isBanned: boolean;
+    contents?: { [website: string]: string };
+}
+
 export async function isBanned(
     steamID: SteamID | string,
     bptfApiKey: string,
     userID: string,
     checkMptfBanned: boolean
-): Promise<boolean> {
+): Promise<IsBanned> {
     const steamID64 = steamID.toString();
     const isBanned = await isBannedOverall(steamID64, checkMptfBanned);
 
@@ -20,13 +25,16 @@ export async function isBanned(
             isSteamRepMarked(steamID64, bptfApiKey, userID)
         ]);
         isReptfFailed = false;
-        return bptf || steamrep;
+        return {
+            isBanned: bptf || steamrep,
+            contents: { 'Backpack.tf': bptf ? 'banned' : 'clean', 'Steamrep.com:': steamrep ? 'banned' : 'clean' }
+        };
     }
 
     return isBanned;
 }
 
-async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): Promise<boolean> {
+async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): Promise<IsBanned> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
@@ -49,7 +57,7 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
                     // If Marketplace.tf check disabled, try get from each websites
                     log.debug('Getting data from Backpack.tf and Steamrep.com...');
                     isReptfFailed = true;
-                    return resolve(false);
+                    return resolve({ isBanned: false });
                 }
 
                 const bans = JSON.parse(body) as RepTF;
@@ -72,7 +80,10 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
                     bansResult
                 );
 
-                return resolve(isBptfBanned || isSteamRepBanned || (checkMptf ? isMptfBanned : false));
+                return resolve({
+                    isBanned: isBptfBanned || isSteamRepBanned || (checkMptf ? isMptfBanned : false),
+                    contents: bansResult
+                });
             }
         ).end();
     });

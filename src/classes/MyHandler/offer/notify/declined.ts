@@ -98,11 +98,25 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         //
     } else if (offerReason.reason === 'BANNED') {
         //
+        let checkResult = '';
+        if (meta?.banned) {
+            checkResult = 'Check results:\n';
+            Object.keys(meta.banned).forEach((website, index) => {
+                if (meta.banned[website] !== 'clean') {
+                    if (index > 0) {
+                        checkResult += '\n';
+                    }
+                    checkResult += `(${index + 1}) ${website}: ${meta.banned[website]}`;
+                }
+            });
+        }
         const custom = opt.customMessage.decline.banned;
         reply = custom
-            ? custom
+            ? custom + `${checkResult !== '' ? '\n\n' + checkResult : ''}`
             : declined +
-              " because you're currently banned on backpack.tf or labeled as a scammer on steamrep.com or another community.";
+              ` because you're currently banned in one or more trading communities.\n\n${
+                  checkResult !== '' ? '\n\n' + checkResult : ''
+              }`;
         //
     } else if (offerReason.reason === 'ESCROW') {
         //
