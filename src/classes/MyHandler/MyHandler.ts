@@ -2365,20 +2365,20 @@ export default class MyHandler extends Handler {
 
                     return;
                 }
+
+                log.info(`Accepting friend request from ${steamID64}...`);
+                this.bot.client.addFriend(steamID, err => {
+                    if (err) {
+                        log.warn(`Failed to accept friend request from ${steamID64}: `, err);
+                        return;
+                    }
+                    log.debug('Friend request has been accepted');
+                });
             })
             .catch(err => {
                 log.error('Failed to check banned on respondToFriendRequest: ', err);
                 return; // We respond again later
             });
-
-        log.info(`Accepting friend request from ${steamID64}...`);
-        this.bot.client.addFriend(steamID, err => {
-            if (err) {
-                log.warn(`Failed to accept friend request from ${steamID64}: `, err);
-                return;
-            }
-            log.debug('Friend request has been accepted');
-        });
     }
 
     private onNewFriend(steamID: SteamID, tries = 0): void {
