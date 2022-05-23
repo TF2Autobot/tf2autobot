@@ -1663,7 +1663,7 @@ export default class MyHandler extends Handler {
         try {
             const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
 
-            if (isBanned) {
+            if (isBanned.isBanned) {
                 offer.log('info', 'partner is banned in one or more communities, declining...');
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
@@ -1674,7 +1674,7 @@ export default class MyHandler extends Handler {
                 return {
                     action: 'decline',
                     reason: 'BANNED',
-                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                    meta: isContainsHighValue ? { highValue: highValueMeta, banned: isBanned.contents } : undefined
                 };
             }
         } catch (err) {

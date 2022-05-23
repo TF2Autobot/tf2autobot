@@ -26,7 +26,7 @@ import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
 
 import log from '../lib/logger';
-import { isBanned } from '../lib/bans';
+import { IsBanned, isBanned } from '../lib/bans';
 import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
@@ -176,9 +176,9 @@ export default class Bot {
         return this.itemStatsWhitelist;
     }
 
-    checkBanned(steamID: SteamID | string): Promise<boolean> {
+    checkBanned(steamID: SteamID | string): Promise<IsBanned> {
         if (this.options.bypass.bannedPeople.allow) {
-            return Promise.resolve(false);
+            return Promise.resolve({ isBanned: false });
         }
 
         return Promise.resolve(

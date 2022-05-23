@@ -213,6 +213,10 @@ declare module '@tf2autobot/tradeoffer-manager' {
             error?: string;
         }
 
+        interface BannedResults {
+            [website: string]: string;
+        }
+
         export type WrongAboutOffer =
             | Overstocked
             | Understocked
@@ -232,6 +236,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             assetids?: string[];
             sku?: string[];
             result?: boolean[];
+            banned?: BannedResults;
         }
 
         interface PartialSKUWithMention {
