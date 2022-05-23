@@ -48,6 +48,7 @@ import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/e
 import genPaths from '../../resources/paths';
 import IPricer, { RequestCheckFn } from '../IPricer';
 import Options, { OfferType } from '../Options';
+import { Listing } from '@tf2autobot/bptf-listings';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -560,9 +561,9 @@ export default class MyHandler extends Handler {
                 }
 
                 pricelistLength = 0;
-                log.debug('Running automatic check for missing listings...');
+                log.debug('Running automatic check for missing/mismatch listings...');
 
-                const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
+                const listings: { [sku: string]: Listing[] } = {};
                 this.bot.listingManager.getListings(false, async err => {
                     if (err) {
                         log.warn('Error getting listings on auto-refresh listings operation:', err);
@@ -614,16 +615,11 @@ export default class MyHandler extends Handler {
                             listing.remove();
                         }
 
-                        if (listingsSKUs[listingSKU]) {
-                            listingsSKUs[listingSKU].intent.push(listing.intent);
-                        } else {
-                            listingsSKUs[listingSKU] = {
-                                intent: [listing.intent]
-                            };
-                        }
+                        listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
                     });
 
                     const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
+                    const keyPrice = this.bot.pricelist.getKeyPrice.metal;
 
                     for (const sku in pricelist) {
                         if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
@@ -631,24 +627,38 @@ export default class MyHandler extends Handler {
                         }
 
                         const entry = pricelist[sku];
-                        const listing = listingsSKUs[sku];
+                        const _listings = listings[sku];
 
                         const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
                         const amountAvailable = inventory.getAmount(sku, false, true);
 
-                        if (listing) {
-                            if (
-                                listing.intent.length === 1 &&
-                                listing.intent[0] === 0 && // We only check if the only listing exist is buy order
-                                entry.max > 1 &&
-                                amountAvailable > 0 &&
-                                amountAvailable > entry.min
-                            ) {
-                                // here we only check if the bot already have that item
-                                log.debug(`Missing sell order listings: ${sku}`);
-                            } else {
-                                delete pricelist[sku];
-                            }
+                        if (_listings) {
+                            _listings.forEach(listing => {
+                                if (
+                                    _listings.length === 1 &&
+                                    listing.intent === 0 && // We only check if the only listing exist is buy order
+                                    entry.max > 1 &&
+                                    amountAvailable > 0 &&
+                                    amountAvailable > entry.min
+                                ) {
+                                    // here we only check if the bot already have that item
+                                    log.debug(`Missing sell order listings: ${sku}`);
+                                } else if (
+                                    listing.intent === 0 &&
+                                    listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
+                                ) {
+                                    // if intent is buy, we check if the buying price is not same
+                                    log.debug(`Buying price for ${sku} not updated`);
+                                } else if (
+                                    listing.intent === 1 &&
+                                    listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
+                                ) {
+                                    // if intent is sell, we check if the selling price is not same
+                                    log.debug(`Selling price for ${sku} not updated`);
+                                } else {
+                                    delete pricelist[sku];
+                                }
+                            });
 
                             continue;
                         }
