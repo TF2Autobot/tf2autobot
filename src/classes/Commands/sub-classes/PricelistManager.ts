@@ -175,7 +175,7 @@ export default class PricelistManagerCommands {
         params.sku = fixSKU(params.sku);
 
         return this.bot.pricelist
-            .addPrice(params as EntryData, true, PricelistChangedSource.Command)
+            .addPrice(params.sku, params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
@@ -424,7 +424,7 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .addPrice(params, true, PricelistChangedSource.Command, true, items, isLast)
+                        .addPrice(params.sku, params, true, PricelistChangedSource.Command, true, items, isLast)
                         .then(() => added++)
                         .catch(err => {
                             errorMessage.push(
@@ -460,7 +460,7 @@ export default class PricelistManagerCommands {
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .addPrice(params, true, PricelistChangedSource.Command, true)
+                    .addPrice(params.sku, params, true, PricelistChangedSource.Command, true)
                     .then(() => added++)
                     .catch(err => {
                         errorMessage.push(
@@ -1094,7 +1094,7 @@ export default class PricelistManagerCommands {
         }
 
         this.bot.pricelist
-            .updatePrice(entryData, true, PricelistChangedSource.Command)
+            .updatePrice(params.sku, entryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
@@ -1426,7 +1426,7 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .updatePrice(params, true, PricelistChangedSource.Command, true, items, isLast)
+                        .updatePrice(params.sku, params, true, PricelistChangedSource.Command, true, items, isLast)
                         .then(() => updated++)
                         .catch(err => {
                             errorMessage.push(
@@ -1464,7 +1464,7 @@ export default class PricelistManagerCommands {
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .updatePrice(params, true, PricelistChangedSource.Command, true)
+                    .updatePrice(params.sku, params, true, PricelistChangedSource.Command, true)
                     .then(() => updated++)
                     .catch(err => {
                         errorMessage.push(
@@ -2310,8 +2310,9 @@ class AutoAddQueue {
 
             void this.executeAutoAdd();
         } else {
+            const ed = this.params as EntryData;
             this.bot.pricelist
-                .addPrice(this.params as EntryData, true, PricelistChangedSource.Command)
+                .addPrice(ed.sku, ed, true, PricelistChangedSource.Command)
                 .then(entry => {
                     this.added++;
                     const remaining = this.total - this.added - this.skipped - this.failed;
