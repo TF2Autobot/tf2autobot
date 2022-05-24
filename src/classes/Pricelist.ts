@@ -271,6 +271,17 @@ export default class Pricelist extends EventEmitter {
         return /^id=[0-9]+$/.test(search);
     }
 
+    /**
+     * return true if the string matches all numbers
+     * @param search - potential match string
+     */
+    isAssetId(search: string | number): boolean {
+        if (typeof search === 'number') {
+            return true;
+        }
+        return /^[0-9]+$/.test(search);
+    }
+
     searchByName(search: string, enabledOnly = true): Entry | string[] | null {
         // if this happens to be an id search, just try to get the price
         if (this.isIdSearch(search)) {
@@ -524,7 +535,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     async updatePrice(
-        priceKey: string,
+        priceKey: string | number,
         entryData: EntryData,
         emitChange: boolean,
         src: PricelistChangedSource = PricelistChangedSource.Other,
@@ -561,13 +572,13 @@ export default class Pricelist extends EventEmitter {
         await this.validateEntry(entry, src, isBulk);
 
         // Remove old price
-        await this.removePrice(entry.sku, false);
+        await this.removePrice(priceKey, false);
 
         // Add new price
-        this.prices[entry.sku] = entry;
+        this.prices[priceKey] = entry;
 
         if (emitChange) {
-            this.priceChanged(entry.sku, entry);
+            this.priceChanged(priceKey, entry);
         }
 
         if (isBulk && isLast) {
@@ -597,7 +608,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    removePrice(priceKey: string, emitChange: boolean): Promise<Entry> {
+    removePrice(priceKey: string | number, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
             if (!this.hasPrice(priceKey)) {
                 return reject(new Error('Item is not priced'));
@@ -1177,7 +1188,7 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    private priceChanged(priceKey: string, entry: Entry): void {
+    private priceChanged(priceKey: string | number, entry: Entry): void {
         this.emit('price', priceKey, entry);
         this.emit('pricelist', this.prices);
     }

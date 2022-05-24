@@ -33,7 +33,6 @@ export default class PricelistManagerCommands {
 
     async addCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
-
         if (params.enabled === undefined) {
             params.enabled = true;
         }
@@ -174,8 +173,13 @@ export default class PricelistManagerCommands {
 
         params.sku = fixSKU(params.sku);
 
+        let priceKey: string = undefined;
+        if (params.assetid) {
+            priceKey = params.assetid;
+        }
+        priceKey = priceKey ? priceKey : params.sku;
         return this.bot.pricelist
-            .addPrice(params.sku, params as EntryData, true, PricelistChangedSource.Command)
+            .addPrice(priceKey, params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
@@ -209,7 +213,7 @@ export default class PricelistManagerCommands {
         const itemsToAdd = commandRemoved.split('\n').filter(itemString => itemString !== '');
         const count = itemsToAdd.length;
         const errorMessage: string[] = [];
-        const savedParams: EntryData[] = [];
+        const savedParams: { priceKey: string; params: EntryData }[] = [];
         let failed = 0;
         let failedNotUsingItemOrSkuParam = 0;
 
@@ -363,8 +367,13 @@ export default class PricelistManagerCommands {
             if (params.isPartialPriced === undefined) {
                 params.isPartialPriced = false;
             }
+            let priceKey: string = undefined;
+            if (params.assetid) {
+                priceKey = params.assetid;
+            }
+            priceKey = priceKey ? priceKey : params.sku;
 
-            savedParams.push(params as EntryData);
+            savedParams.push({ priceKey, params: params as EntryData });
         }
 
         if (failedNotUsingItemOrSkuParam === count) {
@@ -403,7 +412,7 @@ export default class PricelistManagerCommands {
 
         // yes it's longer, but much better than using Array.some() method
         for (let i = 0; i < count2; i++) {
-            if (savedParams[i].autoprice) {
+            if (savedParams[i].params.autoprice) {
                 isHasAutoprice = true;
                 break;
             }
@@ -420,16 +429,24 @@ export default class PricelistManagerCommands {
                 this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, adding items to our pricelist...`);
 
                 for (let i = 0; i < count2; i++) {
-                    const params = savedParams[i];
+                    const entry = savedParams[i];
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .addPrice(params.sku, params, true, PricelistChangedSource.Command, true, items, isLast)
+                        .addPrice(
+                            entry.priceKey,
+                            entry.params,
+                            true,
+                            PricelistChangedSource.Command,
+                            true,
+                            items,
+                            isLast
+                        )
                         .then(() => added++)
                         .catch(err => {
                             errorMessage.push(
-                                `❌ Error adding ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
-                                    params.sku
+                                `❌ Error adding ${this.bot.schema.getName(SKU.fromString(entry.params.sku))} (${
+                                    entry.params.sku
                                 }): ${(err as Error)?.message}`
                             );
                             failed++;
@@ -456,17 +473,17 @@ export default class PricelistManagerCommands {
             }
         } else {
             for (let i = 0; i < count2; i++) {
-                const params = savedParams[i];
+                const entry = savedParams[i];
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .addPrice(params.sku, params, true, PricelistChangedSource.Command, true)
+                    .addPrice(entry.priceKey, entry.params, true, PricelistChangedSource.Command, true)
                     .then(() => added++)
                     .catch(err => {
                         errorMessage.push(
-                            `❌ Error adding ${this.bot.schema.getName(SKU.fromString(params.sku))} (${params.sku}): ${
-                                (err as Error)?.message
-                            }`
+                            `❌ Error adding ${this.bot.schema.getName(SKU.fromString(entry.params.sku))} (${
+                                entry.params.sku
+                            }): ${(err as Error)?.message}`
                         );
                         failed++;
                     })
@@ -1092,9 +1109,14 @@ export default class PricelistManagerCommands {
 
             entryData[property] = params[property];
         }
+        let priceKey: string = undefined;
+        if (params.assetid) {
+            priceKey = params.assetid;
+        }
+        priceKey = priceKey ? priceKey : params.sku;
 
         this.bot.pricelist
-            .updatePrice(params.sku, entryData, true, PricelistChangedSource.Command)
+            .updatePrice(priceKey, entryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
@@ -1132,7 +1154,7 @@ export default class PricelistManagerCommands {
         const itemsToUpdate = commandRemoved.split('\n').filter(itemString => itemString !== '');
         const count = itemsToUpdate.length;
         const errorMessage: string[] = [];
-        const savedEntryData: EntryData[] = [];
+        const savedEntryData: { priceKey: string | number; params: EntryData }[] = [];
         let failed = 0;
         let failedNotUsingItemOrSkuParam = 0;
 
@@ -1349,7 +1371,12 @@ export default class PricelistManagerCommands {
                 params.group = String(params.group);
             }
 
-            const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON(); //TODO: CONTINUE
+            let priceKey: string = undefined;
+            if (params.assetid) {
+                priceKey = params.assetid;
+            }
+            priceKey = priceKey ? priceKey : params.sku;
+            const entryData = this.bot.pricelist.getPrice(priceKey, false).getJSON(); //TODO: CONTINUE
             delete entryData.time;
             delete params.sku;
 
@@ -1366,7 +1393,7 @@ export default class PricelistManagerCommands {
                 entryData[property] = params[property];
             }
 
-            savedEntryData.push(entryData);
+            savedEntryData.push({ priceKey, params: entryData });
         }
 
         let updated = 0;
@@ -1405,7 +1432,7 @@ export default class PricelistManagerCommands {
 
         // yes it's longer, but much better than using Array.some() method
         for (let i = 0; i < count2; i++) {
-            if (savedEntryData[i].autoprice) {
+            if (savedEntryData[i].params.autoprice) {
                 isHasAutoprice = true;
                 break;
             }
@@ -1422,18 +1449,30 @@ export default class PricelistManagerCommands {
                 this.bot.sendMessage(steamID, `⌛ Got pricer pricelist, updating items...`);
 
                 for (let i = 0; i < count2; i++) {
-                    const params = savedEntryData[i];
+                    const entry = savedEntryData[i];
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .updatePrice(params.sku, params, true, PricelistChangedSource.Command, true, items, isLast)
+                        .updatePrice(
+                            entry.priceKey,
+                            entry.params,
+                            true,
+                            PricelistChangedSource.Command,
+                            true,
+                            items,
+                            isLast
+                        )
                         .then(() => updated++)
                         .catch(err => {
-                            errorMessage.push(
-                                `❌ Error updating ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
-                                    params.sku
-                                }): ${(err as Error)?.message}`
-                            );
+                            if (this.bot.pricelist.isAssetId(entry.priceKey)) {
+                                errorMessage.push(`❌ Error removing ${entry.priceKey}): ${(err as Error)?.message}`);
+                            } else {
+                                errorMessage.push(
+                                    `❌ Error removing ${this.bot.schema.getName(
+                                        SKU.fromString(String(entry.priceKey))
+                                    )} (${entry.priceKey}): ${(err as Error)?.message}`
+                                );
+                            }
                             failed++;
                         })
                         .finally(() => {
@@ -1460,18 +1499,22 @@ export default class PricelistManagerCommands {
             }
         } else {
             for (let i = 0; i < count2; i++) {
-                const params = savedEntryData[i];
+                const entry = savedEntryData[i];
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .updatePrice(params.sku, params, true, PricelistChangedSource.Command, true)
+                    .updatePrice(entry.priceKey, entry.params, true, PricelistChangedSource.Command, true)
                     .then(() => updated++)
                     .catch(err => {
-                        errorMessage.push(
-                            `❌ Error updating ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
-                                params.sku
-                            }): ${(err as Error)?.message}`
-                        );
+                        if (this.bot.pricelist.isAssetId(entry.priceKey)) {
+                            errorMessage.push(`❌ Error removing ${entry.priceKey}): ${(err as Error)?.message}`);
+                        } else {
+                            errorMessage.push(
+                                `❌ Error removing ${this.bot.schema.getName(
+                                    SKU.fromString(String(entry.priceKey))
+                                )} (${entry.priceKey}): ${(err as Error)?.message}`
+                            );
+                        }
                         failed++;
                     })
                     .finally(() => {
@@ -1651,9 +1694,14 @@ export default class PricelistManagerCommands {
         }
 
         params.sku = fixSKU(params.sku);
+        let priceKey: string = undefined;
+        if (params.assetid) {
+            priceKey = params.assetid;
+        }
+        priceKey = priceKey ? priceKey : params.sku;
 
         this.bot.pricelist
-            .removePrice(params.sku as string, true)
+            .removePrice(priceKey, true)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
             })
@@ -1684,7 +1732,7 @@ export default class PricelistManagerCommands {
         const itemsToRemove = commandRemoved.split('\n').filter(itemString => itemString !== '');
         const count = itemsToRemove.length;
         const errorMessage: string[] = [];
-        const skusToRemove: string[] = [];
+        const priceKeysToRemove: string | number[] = [];
         let failed = 0;
         let failedNotUsingItemOrSkuParam = 0;
 
@@ -1745,7 +1793,7 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
-            skusToRemove.push(params.sku);
+            priceKeysToRemove.push(params.sku);
         }
 
         let removed = 0;
@@ -1781,21 +1829,25 @@ export default class PricelistManagerCommands {
 
         PricelistManagerCommands.isBulkOperation = true;
 
-        const count2 = skusToRemove.length;
+        const count2 = priceKeysToRemove.length;
 
         for (let i = 0; i < count2; i++) {
-            const sku = skusToRemove[i];
+            const priceKey = priceKeysToRemove[i];
             const isLast = count2 - i === 1;
 
             this.bot.pricelist
-                .removePrice(sku, true)
+                .removePrice(priceKey, true)
                 .then(() => removed++)
                 .catch(err => {
-                    errorMessage.push(
-                        `❌ Error removing ${this.bot.schema.getName(SKU.fromString(sku))} (${sku}): ${
-                            (err as Error)?.message
-                        }`
-                    );
+                    if (this.bot.pricelist.isAssetId(priceKey)) {
+                        errorMessage.push(`❌ Error removing ${priceKey}): ${(err as Error)?.message}`);
+                    } else {
+                        errorMessage.push(
+                            `❌ Error removing ${this.bot.schema.getName(
+                                SKU.fromString(String(priceKey))
+                            )} (${priceKey}): ${(err as Error)?.message}`
+                        );
+                    }
                     failed++;
                 })
                 .finally(() => {
@@ -2311,6 +2363,7 @@ class AutoAddQueue {
             void this.executeAutoAdd();
         } else {
             const ed = this.params as EntryData;
+            // todo should this be assetid to prevent profit loss?
             this.bot.pricelist
                 .addPrice(ed.sku, ed, true, PricelistChangedSource.Command)
                 .then(entry => {

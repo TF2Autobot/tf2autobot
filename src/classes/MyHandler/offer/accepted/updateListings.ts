@@ -60,10 +60,16 @@ export default function updateListings(
 
         const item = SKU.fromString(sku);
         const name = bot.schema.getName(item, false);
+        let priceKey: string = undefined;
+        // TODO we need the assetid passed in to see if it is isPrice
+        // if (null !== bot.pricelist.getPrice(assetid)) {
+        //     priceKey = assetid;
+        // }
+        priceKey = priceKey ? priceKey : sku;
 
         const isNotPure = !pure.includes(sku);
         const isNotPureOrWeapons = !pureWithWeapons.includes(sku);
-        const inPrice = bot.pricelist.getPrice(sku, false);
+        const inPrice = bot.pricelist.getPrice(priceKey, false);
         const existInPricelist = inPrice !== null;
         const amount = inventory.getAmount(sku, false, true);
 
@@ -190,7 +196,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry.sku, entry, true)
+                .addPrice(priceKey, entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
@@ -269,7 +275,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry.sku, entry, true)
+                .addPrice(priceKey, entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${name} (${sku}) to sell.` +
@@ -322,7 +328,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry.sku, entry, true)
+                .addPrice(priceKey, entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
                     addToQueu(sku, isNotPure, existInPricelist);
@@ -434,7 +440,7 @@ export default function updateListings(
             // If "automatic remove items with intent=sell" enabled and it's in the pricelist and no more stock,
             // then remove the item entry from pricelist.
             bot.pricelist
-                .removePrice(sku, true)
+                .removePrice(priceKey, true)
                 .then(() => {
                     log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
                     addToQueu(sku, isNotPure, existInPricelist);
