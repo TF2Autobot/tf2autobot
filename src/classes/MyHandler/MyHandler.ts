@@ -530,10 +530,6 @@ export default class MyHandler extends Handler {
 
     enableAutoRefreshListings(): void {
         // Automatically check for missing listings every 30 minutes
-        if (this.isPremium === false) {
-            return;
-        }
-
         let pricelistLength = 0;
 
         this.autoRefreshListingsInterval = setInterval(
