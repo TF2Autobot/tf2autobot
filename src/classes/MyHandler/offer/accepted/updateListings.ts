@@ -190,7 +190,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice(entry.sku, entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
@@ -269,7 +269,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice(entry.sku, entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${name} (${sku}) to sell.` +
@@ -322,7 +322,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice(entry.sku, entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
                     addToQueu(sku, isNotPure, existInPricelist);
@@ -399,7 +399,7 @@ export default function updateListings(
             }
 
             bot.pricelist
-                .updatePrice(entry, true)
+                .updatePrice(entry.sku, entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically disabled ${sku}, which is a high value item.`);
 
@@ -478,7 +478,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .updatePrice(entry, true)
+                .updatePrice(entry.sku, entry, true)
                 .then(data => {
                     const msg =
                         `${dwEnabled ? `[${name}](https://autobot.tf/items/${sku})` : name} (${sku})\n▸ ` +

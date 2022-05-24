@@ -590,7 +590,7 @@ export default class Autokeys {
         }
 
         this.bot.pricelist
-            .addPrice(entry, true, PricelistChangedSource.Autokeys)
+            .addPrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`))
             .catch(err => {
                 const opt2 = this.bot.options;
@@ -614,7 +614,7 @@ export default class Autokeys {
         }
 
         this.bot.pricelist
-            .addPrice(entry, true, PricelistChangedSource.Autokeys)
+            .addPrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to ${intent}.`))
             .catch(err => {
                 const opt2 = this.bot.options;
@@ -636,7 +636,7 @@ export default class Autokeys {
         }
 
         this.bot.pricelist
-            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+            .updatePrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`))
             .catch(err => {
                 const opt2 = this.bot.options;
@@ -660,7 +660,7 @@ export default class Autokeys {
         }
 
         this.bot.pricelist
-            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+            .updatePrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
             .then(() => log.debug(`✅ Automatically update Mann Co. Supply Crate Key to ${intent}.`))
             .catch(err => {
                 const opt2 = this.bot.options;
@@ -694,7 +694,7 @@ export default class Autokeys {
             }
 
             this.bot.pricelist
-                .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+                .updatePrice(entry.sku, entry, true, PricelistChangedSource.Autokeys)
                 .then(() => {
                     log.debug('✅ Automatically disabled Autokeys.');
                     resolve();
