@@ -95,7 +95,7 @@ export default class Commands {
 
         const checkMessage = message.split(' ').filter(word => word.includes(`!${command}`)).length;
 
-        if (checkMessage > 1) {
+        if (checkMessage > 1 && !isAdmin) {
             return this.bot.sendMessage(steamID, "⛔ Don't spam");
         }
 
