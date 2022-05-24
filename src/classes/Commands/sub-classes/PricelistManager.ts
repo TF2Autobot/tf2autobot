@@ -372,6 +372,7 @@ export default class PricelistManagerCommands {
             let priceKey: string = undefined;
             if (params.assetid) {
                 priceKey = params.assetid;
+                delete params.assetid;
             }
             priceKey = priceKey ? priceKey : params.sku;
 
@@ -1114,6 +1115,7 @@ export default class PricelistManagerCommands {
         let priceKey: string = undefined;
         if (params.assetid) {
             priceKey = params.assetid;
+            delete params.assetid;
         }
         priceKey = priceKey ? priceKey : params.sku;
 
@@ -1376,6 +1378,7 @@ export default class PricelistManagerCommands {
             let priceKey: string = undefined;
             if (params.assetid) {
                 priceKey = params.assetid;
+                delete params.assetid;
             }
             priceKey = priceKey ? priceKey : params.sku;
             const entryData = this.bot.pricelist.getPrice(priceKey, false).getJSON(); //TODO: CONTINUE
@@ -1699,6 +1702,7 @@ export default class PricelistManagerCommands {
         let priceKey: string = undefined;
         if (params.assetid) {
             priceKey = params.assetid;
+            delete params.assetid;
         }
         priceKey = priceKey ? priceKey : params.sku;
 
@@ -1925,8 +1929,13 @@ export default class PricelistManagerCommands {
         }
 
         params.sku = fixSKU(params.sku);
-
-        const match = this.bot.pricelist.getPrice(params.sku as string);
+        let priceKey: string = undefined;
+        if (params.assetid) {
+            priceKey = params.assetid;
+            delete params.assetid;
+        }
+        priceKey = priceKey ? priceKey : params.sku;
+        const match = this.bot.pricelist.getPrice(priceKey);
         if (match === null) {
             this.bot.sendMessage(steamID, `❌ Could not find item "${params.sku as string}" in the pricelist`);
         } else {
