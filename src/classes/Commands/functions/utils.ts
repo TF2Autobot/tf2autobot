@@ -211,6 +211,14 @@ export function getItemFromParams(
     params: UnknownDictionaryKnownValues,
     bot: Bot
 ): MinimumItem | null {
+    if (params.assetid) {
+        const item = bot.inventoryManager.getInventory.findByAssetid(params.assetid);
+        if (null !== item) {
+            return SKU.fromString(item);
+        } else {
+            return null;
+        }
+    }
     const item = SKU.fromString('');
     delete item.craftnumber;
 

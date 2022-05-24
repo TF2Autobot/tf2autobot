@@ -240,7 +240,7 @@ export default class Pricelist extends EventEmitter {
         this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
     }
 
-    hasPrice(priceKey: string | number, onlyEnabled = false): boolean {
+    hasPrice(priceKey: string, onlyEnabled = false): boolean {
         if (!this.prices[priceKey]) {
             return false;
         }
@@ -248,12 +248,12 @@ export default class Pricelist extends EventEmitter {
         return this.prices[priceKey].enabled || !onlyEnabled;
     }
 
-    getPrice(priceKey: string | number, onlyEnabled = false, generics = false): Entry | null {
+    getPrice(priceKey: string, onlyEnabled = false, generics = false): Entry | null {
         if (this.hasPrice(priceKey, onlyEnabled)) {
             return this.prices[priceKey];
         }
 
-        if (generics && 'string' === typeof priceKey) {
+        if (generics && !this.isAssetId(priceKey)) {
             const gSku = generics ? priceKey.replace(/;u\d+/, '') : null;
             if (this.hasPrice(gSku, onlyEnabled)) {
                 return this.prices[gSku];
@@ -275,17 +275,14 @@ export default class Pricelist extends EventEmitter {
      * return true if the string matches all numbers
      * @param search - potential match string
      */
-    isAssetId(search: string | number): boolean {
-        if (typeof search === 'number') {
-            return true;
-        }
+    isAssetId(search: string): boolean {
         return /^[0-9]+$/.test(search);
     }
 
     searchByName(search: string, enabledOnly = true): Entry | string[] | null {
         // if this happens to be an id search, just try to get the price
         if (this.isIdSearch(search)) {
-            return this.getPrice(parseInt(search.slice('id='.length, search.length)), enabledOnly);
+            return this.getPrice(search.slice('id='.length, search.length), enabledOnly);
         }
         const sku = this.schema.getSkuFromName(search);
 
@@ -535,7 +532,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     async updatePrice(
-        priceKey: string | number,
+        priceKey: string,
         entryData: EntryData,
         emitChange: boolean,
         src: PricelistChangedSource = PricelistChangedSource.Other,
@@ -608,7 +605,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    removePrice(priceKey: string | number, emitChange: boolean): Promise<Entry> {
+    removePrice(priceKey: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
             if (!this.hasPrice(priceKey)) {
                 return reject(new Error('Item is not priced'));

@@ -147,6 +147,8 @@ export default class PricelistManagerCommands {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
+        let priceKey: string = undefined;
+
         if (params.sku === undefined) {
             if (params.item !== undefined) {
                 params.sku = this.bot.schema.getSkuFromName(params.item);
@@ -173,9 +175,9 @@ export default class PricelistManagerCommands {
 
         params.sku = fixSKU(params.sku);
 
-        let priceKey: string = undefined;
         if (params.assetid) {
             priceKey = params.assetid;
+            delete params.assetid;
         }
         priceKey = priceKey ? priceKey : params.sku;
         return this.bot.pricelist
@@ -1154,7 +1156,7 @@ export default class PricelistManagerCommands {
         const itemsToUpdate = commandRemoved.split('\n').filter(itemString => itemString !== '');
         const count = itemsToUpdate.length;
         const errorMessage: string[] = [];
-        const savedEntryData: { priceKey: string | number; params: EntryData }[] = [];
+        const savedEntryData: { priceKey: string; params: EntryData }[] = [];
         let failed = 0;
         let failedNotUsingItemOrSkuParam = 0;
 
@@ -1732,7 +1734,7 @@ export default class PricelistManagerCommands {
         const itemsToRemove = commandRemoved.split('\n').filter(itemString => itemString !== '');
         const count = itemsToRemove.length;
         const errorMessage: string[] = [];
-        const priceKeysToRemove: string | number[] = [];
+        const priceKeysToRemove: string[] = [];
         let failed = 0;
         let failedNotUsingItemOrSkuParam = 0;
 
