@@ -147,8 +147,6 @@ export default class PricelistManagerCommands {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
-        let priceKey: string = undefined;
-
         if (params.sku === undefined) {
             if (params.item !== undefined) {
                 params.sku = this.bot.schema.getSkuFromName(params.item);
@@ -175,6 +173,7 @@ export default class PricelistManagerCommands {
 
         params.sku = fixSKU(params.sku);
 
+        let priceKey: string = undefined;
         if (params.assetid) {
             priceKey = params.assetid;
             delete params.assetid;
@@ -185,7 +184,7 @@ export default class PricelistManagerCommands {
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Added "${entry.name}" (${entry.sku})` + generateAddedReply(this.bot, isPremium, entry)
+                    `✅ Added "${entry.name}" (${priceKey})` + generateAddedReply(this.bot, isPremium, entry)
                 );
             })
             .catch(err => {
@@ -1004,11 +1003,18 @@ export default class PricelistManagerCommands {
 
         params.sku = fixSKU(params.sku);
 
-        if (!this.bot.pricelist.hasPrice(params.sku as string)) {
+        let priceKey: string = undefined;
+        if (params.assetid) {
+            priceKey = params.assetid;
+            delete params.assetid;
+        }
+        priceKey = priceKey ? priceKey : params.sku;
+
+        if (!this.bot.pricelist.hasPrice(priceKey)) {
             return this.bot.sendMessage(steamID, '❌ Item is not in the pricelist.');
         }
 
-        const itemEntry = this.bot.pricelist.getPrice(params.sku as string, false);
+        const itemEntry = this.bot.pricelist.getPrice(priceKey, false);
 
         if (typeof params.buy === 'object') {
             params.buy.keys = params.buy.keys || 0;
@@ -1096,7 +1102,7 @@ export default class PricelistManagerCommands {
             params.group = String(params.group);
         }
 
-        const entryData = this.bot.pricelist.getPrice(params.sku as string, false).getJSON(); //TODO: CONTINUE
+        const entryData = this.bot.pricelist.getPrice(priceKey, false).getJSON(); //TODO: CONTINUE
         delete entryData.time;
         delete params.sku;
 
@@ -1112,19 +1118,13 @@ export default class PricelistManagerCommands {
 
             entryData[property] = params[property];
         }
-        let priceKey: string = undefined;
-        if (params.assetid) {
-            priceKey = params.assetid;
-            delete params.assetid;
-        }
-        priceKey = priceKey ? priceKey : params.sku;
 
         this.bot.pricelist
             .updatePrice(priceKey, entryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
-                    `✅ Updated "${entry.name}" (${entry.sku})` + this.generateUpdateReply(isPremium, itemEntry, entry)
+                    `✅ Updated "${entry.name}" (${priceKey})` + this.generateUpdateReply(isPremium, itemEntry, entry)
                 );
             })
             .catch((err: ErrorRequest) => {
@@ -1211,7 +1211,14 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            if (this.bot.pricelist.getPrice(params.sku as string) === null) {
+            let priceKey: string = undefined;
+            if (params.assetid) {
+                priceKey = params.assetid;
+                delete params.assetid;
+            }
+            priceKey = priceKey ? priceKey : params.sku;
+
+            if (this.bot.pricelist.getPrice(priceKey) === null) {
                 errorMessage.push(
                     `❌ Failed to update ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
                         params.sku as string
@@ -1221,7 +1228,7 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
-            if (!this.bot.pricelist.hasPrice(params.sku as string)) {
+            if (!this.bot.pricelist.hasPrice(priceKey)) {
                 errorMessage.push(
                     `❌ Failed to update ${this.bot.schema.getName(SKU.fromString(params.sku))} (${
                         params.sku as string
@@ -1287,7 +1294,7 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            const itemEntry = this.bot.pricelist.getPrice(params.sku as string, false);
+            const itemEntry = this.bot.pricelist.getPrice(priceKey, false);
 
             if (typeof params.buy === 'object') {
                 params.buy.keys = params.buy.keys || 0;
@@ -1375,12 +1382,6 @@ export default class PricelistManagerCommands {
                 params.group = String(params.group);
             }
 
-            let priceKey: string = undefined;
-            if (params.assetid) {
-                priceKey = params.assetid;
-                delete params.assetid;
-            }
-            priceKey = priceKey ? priceKey : params.sku;
             const entryData = this.bot.pricelist.getPrice(priceKey, false).getJSON(); //TODO: CONTINUE
             delete entryData.time;
             delete params.sku;
