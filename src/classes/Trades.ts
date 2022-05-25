@@ -956,9 +956,18 @@ export default class Trades {
                         return (
                             Object.keys(dataDict[side])
                                 .map(sku => {
-                                    if (prices[sku] === undefined && !puresWithKeys.includes(sku)) {
-                                        hasMissingPrices = true;
-                                        return 0;
+                                    if (prices[sku] === undefined && dataDict && !puresWithKeys.includes(sku)) {
+                                        // if we are on our side, check to see if any assetids from ourItems[sku] have prices
+                                        if ('our' === side) {
+                                            hasMissingPrices = ourItems[sku].every(
+                                                item => prices[item.id] === undefined
+                                            );
+                                        } else {
+                                            hasMissingPrices = true;
+                                        }
+                                        if (hasMissingPrices) {
+                                            return 0;
+                                        }
                                     }
 
                                     if (sku == '5021;6')

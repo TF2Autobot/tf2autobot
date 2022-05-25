@@ -830,7 +830,7 @@ export default class MyHandler extends Handler {
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
-
+            // todo check out these items, we might need a whole concept of assetid items vs sku items to get this value calculated
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
                     continue;
@@ -1173,7 +1173,11 @@ export default class MyHandler extends Handler {
         const isInPricelist =
             ourItemsHVCount > 0 // Only check if this not empty
                 ? Object.keys(getHighValue.our.items).some(sku => {
-                      return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
+                      // look at the high value items and for the given sku see if any have a price enabled for the 'high value sku'
+                      const assetidPriceEnabled = items['our'][sku].some(
+                          item => checkExist.getPrice(item.id, false) !== null
+                      );
+                      return checkExist.getPrice(sku, false) !== null || assetidPriceEnabled; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
@@ -1243,19 +1247,49 @@ export default class MyHandler extends Handler {
         const uncraftAll = this.bot.uncraftWeapons;
 
         const itemsDiff = offer.getDiff();
-        //?
+        /* this loop goes through the following
+        buying = false; which = 'our';   intent = 'sell';
+        buying = true;  which = 'their'; intent = 'buy';
+         */
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
 
+            // TODO: Go through all assetids and check if the item is being sold for a specific price prior to processing the whole sku
+            if ('our' === which) {
+                for (const sku in items['our']) {
+                    if (!Object.prototype.hasOwnProperty.call(items['our'], sku)) {
+                        continue;
+                    }
+                    items['our'][sku] = items['our'][sku].filter(item => {
+                        const match: Entry | null = this.bot.pricelist.getPrice(item.id);
+                        // if we have a price we want to filter this item out from the generic sku items
+                        const hasAssetPrice = null !== match;
+                        if (hasAssetPrice) {
+                            // Add value of items
+                            exchange[which].value += match[intentString].toValue(keyPrice.metal);
+                            exchange[which].keys += match[intentString].keys;
+                            exchange[which].scrap += Currencies.toScrap(match[intentString].metal);
+                            itemPrices[item.id] = {
+                                buy: match.buy,
+                                sell: match.sell
+                            };
+                        }
+                        return !hasAssetPrice;
+                    });
+                }
+            }
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
                     continue;
                 }
-                // TODO: Go through all assetids and check if the item is being sold for a specific price prior to processing the whole sku
 
                 const amount = items[which][sku].length;
+
+                if (amount === 0) {
+                    continue;
+                }
 
                 let isNonTF2Items = false;
 

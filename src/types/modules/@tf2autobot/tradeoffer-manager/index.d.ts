@@ -140,7 +140,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
         }
 
         export interface Prices {
-            [sku: string]: {
+            [priceKey: string]: {
                 buy?: Currencies;
                 sell?: Currencies;
             };

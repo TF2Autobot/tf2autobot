@@ -164,7 +164,10 @@ export default class PricelistManagerCommands {
                 const item = getItemFromParams(steamID, params, this.bot);
 
                 if (item === null) {
-                    return;
+                    return this.bot.sendMessage(
+                        steamID,
+                        `❌ No item found to match parameters given check sku or assetid.`
+                    );
                 }
 
                 params.sku = SKU.fromObject(item);
