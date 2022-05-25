@@ -967,6 +967,17 @@ export default class MyHandler extends Handler {
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: WrongAboutOffer[] = [];
 
+        offer.log('info', 'checking halted...');
+
+        if (this.bot.isHalted) {
+            offer.log('info', 'bot is halted right now, declining...');
+            return {
+                action: 'decline',
+                reason: 'HALTED',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
+        }
+
         let checkBannedFailed = false;
 
         offer.log('info', 'checking escrow...');

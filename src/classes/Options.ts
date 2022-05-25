@@ -521,6 +521,7 @@ export const DEFAULTS: JsonOptions = {
         iDontKnowWhatYouMean: '',
         success: '',
         successEscrow: '',
+        halted: '',
         decline: {
             general: '',
             hasNonTF2Items: '',
@@ -534,6 +535,7 @@ export const DEFAULTS: JsonOptions = {
             notTradingKeys: '',
             notSellingKeys: '',
             notBuyingKeys: '',
+            halted: '',
             banned: '',
             escrow: '',
             manual: '',
@@ -1569,6 +1571,7 @@ interface CustomMessage {
     iDontKnowWhatYouMean?: string;
     success?: string;
     successEscrow?: string;
+    halted?: string;
     decline?: DeclineNote;
     accepted?: AcceptedNote;
     tradedAway?: string;
@@ -1590,6 +1593,7 @@ interface DeclineNote {
     notTradingKeys?: string;
     notSellingKeys?: string;
     notBuyingKeys?: string;
+    halted?: string;
     banned?: string;
     escrow?: string;
     manual?: string;

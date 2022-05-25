@@ -1615,6 +1615,9 @@ export const optionsSchema: jsonschema.Schema = {
                 successEscrow: {
                     type: 'string'
                 },
+                halted: {
+                    type: 'string'
+                },
                 decline: {
                     type: 'object',
                     properties: {
@@ -1652,6 +1655,9 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         },
                         notBuyingKeys: {
+                            type: 'string'
+                        },
+                        halted: {
                             type: 'string'
                         },
                         banned: {

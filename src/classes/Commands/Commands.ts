@@ -154,6 +154,15 @@ export default class Commands {
             endsWith: ['cart.', 'checkout.', '✅']
         };
 
+        if (this.bot.isHalted && !isAdmin) {
+            const custom = this.bot.options.customMessage.halted;
+            this.bot.sendMessage(
+                steamID,
+                custom ? custom : 'The bot is not operational right now. Please come back later.'
+            );
+            return;
+        }
+
         if (command === 'help') {
             void this.help.helpCommand(steamID);
         } else if (command === 'how2trade') {
@@ -238,6 +247,12 @@ export default class Commands {
             void this.manager.clearFriendsCommand(steamID);
         } else if (command === 'stop' && isAdmin) {
             this.manager.stopCommand(steamID);
+        } else if (command === 'halt' && isAdmin) {
+            this.manager.haltCommand(steamID);
+        } else if (command === 'unhalt' && isAdmin) {
+            this.manager.unhaltCommand(steamID);
+        } else if (command === 'haltstatus' && isAdmin) {
+            this.manager.haltStatusCommand(steamID);
         } else if (command === 'restart' && isAdmin) {
             this.manager.restartCommand(steamID);
         } else if (command === 'refreshautokeys' && isAdmin) {

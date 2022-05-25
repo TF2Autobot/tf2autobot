@@ -478,6 +478,7 @@
         "iDontKnowWhatYouMean": "",
         "success": "",
         "successEscrow": "",
+        "halted": "",
         "decline": {
             "general": "",
             "hasNonTF2Items": "",
@@ -491,6 +492,7 @@
             "notTradingKeys": "",
             "notSellingKeys": "",
             "notBuyingKeys": "",
+            "halted": "",
             "banned": "",
             "escrow": "",
             "manual": "",
