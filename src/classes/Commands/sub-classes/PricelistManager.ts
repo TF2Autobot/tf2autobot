@@ -994,14 +994,14 @@ export default class PricelistManagerCommands {
         } else if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
 
-            if (item === null) {
-                return;
+            if (item !== null) {
+                params.sku = SKU.fromObject(item);
             }
-
-            params.sku = SKU.fromObject(item);
         }
 
-        params.sku = fixSKU(params.sku);
+        if (undefined !== params.sku) {
+            params.sku = fixSKU(params.sku);
+        }
 
         let priceKey: string = undefined;
         if (params.assetid) {
@@ -1692,14 +1692,14 @@ export default class PricelistManagerCommands {
         } else if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
 
-            if (item === null) {
-                return;
+            if (item !== null) {
+                params.sku = SKU.fromObject(item);
             }
-
-            params.sku = SKU.fromObject(item);
         }
 
-        params.sku = fixSKU(params.sku);
+        if (undefined !== params.sku) {
+            params.sku = fixSKU(params.sku);
+        }
         let priceKey: string = undefined;
         if (params.assetid) {
             priceKey = params.assetid;
@@ -1918,18 +1918,16 @@ export default class PricelistManagerCommands {
         } else if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
 
-            if (item === null) {
-                return;
+            if (item !== null) {
+                params.sku = SKU.fromObject(item);
             }
-
-            params.sku = SKU.fromObject(item);
         }
 
-        if (params.sku === undefined) {
+        if (params.sku === undefined && undefined === params.assetid) {
             return this.bot.sendMessage(steamID, '❌ Missing item');
+        } else if (undefined !== params.sku) {
+            params.sku = fixSKU(params.sku);
         }
-
-        params.sku = fixSKU(params.sku);
         let priceKey: string = undefined;
         if (params.assetid) {
             priceKey = params.assetid;
@@ -1938,7 +1936,7 @@ export default class PricelistManagerCommands {
         priceKey = priceKey ? priceKey : params.sku;
         const match = this.bot.pricelist.getPrice(priceKey);
         if (match === null) {
-            this.bot.sendMessage(steamID, `❌ Could not find item "${params.sku as string}" in the pricelist`);
+            this.bot.sendMessage(steamID, `❌ Could not find item "${priceKey}" in the pricelist`);
         } else {
             this.bot.sendMessage(steamID, `/code ${this.generateOutput(match)}`);
         }
@@ -1965,12 +1963,12 @@ export default class PricelistManagerCommands {
 
         const isPremium = this.bot.handler.getBotInfo.premium;
 
-        const list = Object.keys(pricelist).map((sku, i) => {
-            const entry = pricelist[sku];
+        const list = Object.keys(pricelist).map((priceKey, i) => {
+            const entry = pricelist[priceKey];
             const name = entry.name;
-            const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
+            const stock = this.bot.inventoryManager.getInventory.getAmount(priceKey, false, true);
 
-            return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
+            return `${i + 1}. ${priceKey} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
             }, ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}, ${entry.enabled ? '✅' : '❌'}, ${
                 entry.autoprice ? '✅' : '❌'
@@ -1992,7 +1990,7 @@ export default class PricelistManagerCommands {
                     : `${
                           limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
                       }.`
-            }\n\n 📌 #. "sku" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", "group", "isPartialPriced", *"promoted")\n\n` +
+            }\n\n 📌 #. "sku|assetid" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", "group", "isPartialPriced", *"promoted")\n\n` +
                 '* - Only shown if your account is Backpack.tf Premium\n\n.'
         );
 

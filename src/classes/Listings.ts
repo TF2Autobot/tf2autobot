@@ -37,7 +37,7 @@ export default class Listings {
     }
 
     checkByPriceKey(priceKey: string, data?: Entry | null, generics = false, showLogs = false): void {
-        let sku: string;
+        let sku: string | undefined = undefined;
         const isAssetId = Pricelist.isAssetId(priceKey);
         if (isAssetId) {
             const entry = this.bot.pricelist.getPrice(priceKey, false, generics);
@@ -126,9 +126,7 @@ export default class Listings {
                     listing.intent,
                     listing.intent === 0 ? amountCanBuy : amountCanSell,
                     match,
-                    isAssetId
-                        ? inventory.getItems[priceKey][0]
-                        : inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
+                    inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
                 );
 
                 const keyPrice = this.bot.pricelist.getKeyPrice;
@@ -291,10 +289,8 @@ export default class Listings {
                     })
                     .sort((a, b) => {
                         return (
-                            (Pricelist.isAssetId(b) ? [inventory.findByAssetid(b)] : inventory.findBySKU(b))
-                                .length -
-                            (Pricelist.isAssetId(a) ? [inventory.findByAssetid(a)] : inventory.findBySKU(a))
-                                .length
+                            (Pricelist.isAssetId(b) ? [inventory.findByAssetid(b)] : inventory.findBySKU(b)).length -
+                            (Pricelist.isAssetId(a) ? [inventory.findByAssetid(a)] : inventory.findBySKU(a)).length
                         );
                     });
 

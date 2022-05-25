@@ -598,7 +598,13 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        const match = this.bot.pricelist.getPrice(listingSKU);
+                        let match: Entry | null;
+                        const assetIdPrice = this.bot.pricelist.getPrice(listing.id.slice('440_'.length));
+                        if (null !== assetIdPrice) {
+                            match = assetIdPrice;
+                        } else {
+                            match = this.bot.pricelist.getPrice(listingSKU);
+                        }
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
                             const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
@@ -621,16 +627,16 @@ export default class MyHandler extends Handler {
                     const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
                     const keyPrice = this.bot.pricelist.getKeyPrice.metal;
 
-                    for (const sku in pricelist) {
-                        if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                    for (const priceKey in pricelist) {
+                        if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey)) {
                             continue;
                         }
 
-                        const entry = pricelist[sku];
-                        const _listings = listings[sku];
+                        const entry = pricelist[priceKey];
+                        const _listings = listings[priceKey];
 
-                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
-                        const amountAvailable = inventory.getAmount(sku, false, true);
+                        const amountCanBuy = inventoryManager.amountCanTrade(priceKey, true);
+                        const amountAvailable = inventory.getAmount(priceKey, false, true);
 
                         if (_listings) {
                             _listings.forEach(listing => {
@@ -642,21 +648,21 @@ export default class MyHandler extends Handler {
                                     amountAvailable > entry.min
                                 ) {
                                     // here we only check if the bot already have that item
-                                    log.debug(`Missing sell order listings: ${sku}`);
+                                    log.debug(`Missing sell order listings: ${priceKey}`);
                                 } else if (
                                     listing.intent === 0 &&
                                     listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
                                 ) {
                                     // if intent is buy, we check if the buying price is not same
-                                    log.debug(`Buying price for ${sku} not updated`);
+                                    log.debug(`Buying price for ${priceKey} not updated`);
                                 } else if (
                                     listing.intent === 1 &&
                                     listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
                                 ) {
                                     // if intent is sell, we check if the selling price is not same
-                                    log.debug(`Selling price for ${sku} not updated`);
+                                    log.debug(`Selling price for ${priceKey} not updated`);
                                 } else {
-                                    delete pricelist[sku];
+                                    delete pricelist[priceKey];
                                 }
                             });
 
@@ -666,8 +672,8 @@ export default class MyHandler extends Handler {
                         // listing not exist
 
                         if (!entry.enabled) {
-                            delete pricelist[sku];
-                            log.debug(`${sku} disabled, skipping...`);
+                            delete pricelist[priceKey];
+                            log.debug(`${priceKey} disabled, skipping...`);
                             continue;
                         }
 
@@ -677,24 +683,26 @@ export default class MyHandler extends Handler {
                         ) {
                             // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
                             // return this entry
-                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
+                            log.debug(
+                                `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${priceKey}`
+                            );
                         } else {
-                            delete pricelist[sku];
+                            delete pricelist[priceKey];
                         }
                     }
 
-                    const skusToCheck = Object.keys(pricelist);
-                    const pricelistCount = skusToCheck.length;
+                    const priceKeysToCheck = Object.keys(pricelist);
+                    const pricelistCount = priceKeysToCheck.length;
 
                     if (pricelistCount > 0) {
                         log.debug(
                             'Checking listings for ' +
                                 pluralize('item', pricelistCount, true) +
-                                ` [${skusToCheck.join(', ')}]...`
+                                ` [${priceKeysToCheck.join(', ')}]...`
                         );
 
                         await this.bot.listings.recursiveCheckPricelist(
-                            skusToCheck,
+                            priceKeysToCheck,
                             pricelist,
                             true,
                             pricelistCount > 4000 ? 400 : 200,
