@@ -253,7 +253,7 @@ export default class Pricelist extends EventEmitter {
             return this.prices[priceKey];
         }
 
-        if (generics && !this.isAssetId(priceKey)) {
+        if (generics && !Pricelist.isAssetId(priceKey)) {
             const gSku = generics ? priceKey.replace(/;u\d+/, '') : null;
             if (this.hasPrice(gSku, onlyEnabled)) {
                 return this.prices[gSku];
@@ -267,7 +267,7 @@ export default class Pricelist extends EventEmitter {
      * return true if the string matches id=1111111111
      * @param search - potential match string
      */
-    isIdSearch(search: string): boolean {
+    static isIdSearch(search: string): boolean {
         return /^id=[0-9]+$/.test(search);
     }
 
@@ -275,13 +275,13 @@ export default class Pricelist extends EventEmitter {
      * return true if the string matches all numbers
      * @param search - potential match string
      */
-    isAssetId(search: string): boolean {
+    static isAssetId(search: string): boolean {
         return /^[0-9]+$/.test(search);
     }
 
     searchByName(search: string, enabledOnly = true): Entry | string[] | null {
         // if this happens to be an id search, just try to get the price
-        if (this.isIdSearch(search)) {
+        if (Pricelist.isIdSearch(search)) {
             return this.getPrice(search.slice('id='.length, search.length), enabledOnly);
         }
         const sku = this.schema.getSkuFromName(search);

@@ -51,7 +51,7 @@ export default class PriceCheckQueue {
         await sleepasync().Promise.sleep(2000);
 
         // Update listings (exclude weapons/pure)
-        this.bot.listings.checkBySKU(sku, null, false, true);
+        this.bot.listings.checkByPriceKey(sku, null, false, true);
 
         if (sku === '5021;6') {
             this.isProcessing = false;

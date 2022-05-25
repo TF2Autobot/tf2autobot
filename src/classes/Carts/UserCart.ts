@@ -429,7 +429,7 @@ export default class UserCart extends Cart {
                 this.removeOurItem(sku, Infinity);
                 if (skuCount.mostCanTrade === 0) {
                     alteredMessage = `I can't sell more ${skuCount.name}`;
-                    this.bot.listings.checkBySKU(sku, null, false, true);
+                    this.bot.listings.checkByPriceKey(sku, null, false, true);
                 } else {
                     alteredMessage = `I can only sell ${skuCount.mostCanTrade} more ${pluralize(
                         skuCount.name,
@@ -514,7 +514,7 @@ export default class UserCart extends Cart {
                 this.removeTheirItem(sku, Infinity);
                 if (skuCount.mostCanTrade === 0) {
                     alteredMessage = "I can't buy more " + pluralize(skuCount.name);
-                    this.bot.listings.checkBySKU(sku, null, false, true);
+                    this.bot.listings.checkByPriceKey(sku, null, false, true);
                 } else {
                     alteredMessage = `I can only buy ${skuCount.mostCanTrade} more ${pluralize(
                         skuCount.name,

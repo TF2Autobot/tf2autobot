@@ -33,19 +33,19 @@ export default class InventoryManager {
     //     return this.amountCanTrade(sku, buying) + (buying ? -diff : diff) < 0;
     // }
 
-    amountCanTrade(sku: string, buying: boolean, generics = false): number {
+    amountCanTrade(priceKey: string, buying: boolean, generics = false): number {
         if (this.inventory === undefined) {
             throw new Error('Inventory has not been set yet');
         }
 
         // Pricelist entry
-        let match = this.pricelist.getPrice(sku, true, false);
-        const matchGeneric = !match && generics ? this.pricelist.getPrice(sku, true, true) : null;
+        let match = this.pricelist.getPrice(priceKey, true, false);
+        const matchGeneric = !match && generics ? this.pricelist.getPrice(priceKey, true, true) : null;
         match = matchGeneric || match;
         // Amount in inventory should only use generic amount if there is a generic sku
         const amount = matchGeneric
-            ? this.inventory.getAmountOfGenerics(sku, true)
-            : this.inventory.getAmount(sku, true, true);
+            ? this.inventory.getAmountOfGenerics(priceKey, true)
+            : this.inventory.getAmount(priceKey, true, true);
 
         if (match === null) {
             // No price for item

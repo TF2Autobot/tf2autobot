@@ -11,7 +11,7 @@ import { UnknownDictionary, UnknownDictionaryKnownValues } from '../../../types/
 import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
+import Pricelist, { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 import validator from '../../../lib/validator';
 import { testSKU } from '../../../lib/tools/export';
 import IPricer from '../../IPricer';
@@ -1470,7 +1470,7 @@ export default class PricelistManagerCommands {
                         )
                         .then(() => updated++)
                         .catch(err => {
-                            if (this.bot.pricelist.isAssetId(entry.priceKey)) {
+                            if (Pricelist.isAssetId(entry.priceKey)) {
                                 errorMessage.push(`❌ Error removing ${entry.priceKey}): ${(err as Error)?.message}`);
                             } else {
                                 errorMessage.push(
@@ -1512,7 +1512,7 @@ export default class PricelistManagerCommands {
                     .updatePrice(entry.priceKey, entry.params, true, PricelistChangedSource.Command, true)
                     .then(() => updated++)
                     .catch(err => {
-                        if (this.bot.pricelist.isAssetId(entry.priceKey)) {
+                        if (Pricelist.isAssetId(entry.priceKey)) {
                             errorMessage.push(`❌ Error removing ${entry.priceKey}): ${(err as Error)?.message}`);
                         } else {
                             errorMessage.push(
@@ -1846,7 +1846,7 @@ export default class PricelistManagerCommands {
                 .removePrice(priceKey, true)
                 .then(() => removed++)
                 .catch(err => {
-                    if (this.bot.pricelist.isAssetId(priceKey)) {
+                    if (Pricelist.isAssetId(priceKey)) {
                         errorMessage.push(`❌ Error removing ${priceKey}): ${(err as Error)?.message}`);
                     } else {
                         errorMessage.push(

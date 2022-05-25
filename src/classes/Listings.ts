@@ -4,13 +4,14 @@ import dayjs from 'dayjs';
 import Currencies from '@tf2autobot/tf2-currencies';
 import sleepasync from 'sleep-async';
 import Bot from './Bot';
-import { Entry, PricesObject } from './Pricelist';
+import Pricelist, { Entry, PricesObject } from './Pricelist';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
 import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import ListingManager from '@tf2autobot/bptf-listings';
 
 export default class Listings {
     private checkingAllListings = false;
@@ -35,18 +36,30 @@ export default class Listings {
         };
     }
 
-    checkBySKU(sku: string, data?: Entry | null, generics = false, showLogs = false): void {
+    checkByPriceKey(priceKey: string, data?: Entry | null, generics = false, showLogs = false): void {
+        let sku: string;
+        const isAssetId = Pricelist.isAssetId(priceKey);
+        if (isAssetId) {
+            const entry = this.bot.pricelist.getPrice(priceKey, false, generics);
+            if (null !== entry) {
+                sku = entry.sku;
+            } else if (data !== null) {
+                sku = data.sku;
+            }
+        } else {
+            sku = priceKey;
+        }
         if (!this.isCreateListing) {
             return;
         }
 
         if (showLogs) {
-            log.debug(`Checking ${sku}...`);
+            log.debug(`Checking ${priceKey}...`);
         }
 
         let doneSomething = false;
 
-        const match = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const match = data?.enabled === false ? null : this.bot.pricelist.getPrice(priceKey, true, generics);
 
         let hasBuyListing = false;
         let hasSellListing = false;
@@ -54,12 +67,23 @@ export default class Listings {
         const invManager = this.bot.inventoryManager;
         const inventory = invManager.getInventory;
 
-        const amountCanBuy = invManager.amountCanTrade(sku, true, generics);
-        const amountCanSell = invManager.amountCanTrade(sku, false, generics);
+        const amountCanBuy = invManager.amountCanTrade(priceKey, true, generics);
+        const amountCanSell = invManager.amountCanTrade(priceKey, false, generics);
 
         const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable; // false by default
 
-        this.bot.listingManager.findListings(sku).forEach(listing => {
+        let listings: ListingManager.Listing[];
+        if (isAssetId) {
+            const listing = this.bot.listingManager.findListing(priceKey);
+            if (null !== listing) {
+                listings = [listing];
+            } else {
+                listings = [];
+            }
+        } else {
+            listings = this.bot.listingManager.findListings(sku);
+        }
+        listings.forEach(listing => {
             if (listing.intent === 1 && hasSellListing) {
                 if (showLogs) {
                     log.debug('Already have a sell listing, remove the listing.');
@@ -102,7 +126,9 @@ export default class Listings {
                     listing.intent,
                     listing.intent === 0 ? amountCanBuy : amountCanSell,
                     match,
-                    inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
+                    isAssetId
+                        ? inventory.getItems[priceKey][0]
+                        : inventory.getItems[sku]?.filter(item => item.id === listing.id.replace('440_', ''))[0]
                 );
 
                 const keyPrice = this.bot.pricelist.getKeyPrice;
@@ -118,7 +144,7 @@ export default class Listings {
                 if (isCurrenciesChanged || isListingDetailsChanged) {
                     if (showLogs) {
                         log.debug(`Listing details don't match, update listing`, {
-                            sku: sku,
+                            priceKey,
                             intent: listing.intent
                         });
                     }
@@ -143,10 +169,15 @@ export default class Listings {
             }
         });
 
-        const matchNew = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const matchNew = data?.enabled === false ? null : this.bot.pricelist.getPrice(priceKey, true, generics);
 
         if (matchNew !== null && matchNew.enabled === true) {
-            const assetids = inventory.findBySKU(sku, true);
+            let assetids: string[] = [];
+            if (isAssetId && null !== inventory.findByAssetid(priceKey)) {
+                assetids = [priceKey];
+            } else {
+                assetids = inventory.findBySKU(priceKey, true);
+            }
 
             const canAffordToBuy = isFilterCantAfford
                 ? invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory)
@@ -159,14 +190,18 @@ export default class Listings {
 
                 doneSomething = true;
 
-                this.bot.listingManager.createListing({
+                const listing = {
                     time: matchNew.time || dayjs().unix(),
-                    sku: sku,
-                    intent: 0,
-                    // quantity: amountCanBuy,
+                    intent: 0 as 0 | 1,
                     details: this.getDetails(0, amountCanBuy, matchNew),
                     currencies: matchNew.buy
-                });
+                };
+                if (isAssetId) {
+                    listing['id'] = priceKey;
+                } else {
+                    listing['sku'] = sku;
+                }
+                this.bot.listingManager.createListing(listing);
             }
 
             if (!hasSellListing && amountCanSell > 0) {
@@ -223,14 +258,19 @@ export default class Listings {
                 const keyPrice = this.bot.pricelist.getKeyPrice;
 
                 const pricelist = this.bot.pricelist.getPrices;
-                let skus = Object.keys(pricelist);
+                let priceKeys = Object.keys(pricelist);
                 if (this.bot.options.pricelist.filterCantAfford.enable) {
-                    skus = skus.filter(sku => {
-                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                    priceKeys = priceKeys.filter(priceKey => {
+                        const amountCanBuy = inventoryManager.amountCanTrade(priceKey, true);
 
                         if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
-                            inventory.getAmount(sku, false, true) > 0
+                            (amountCanBuy > 0 &&
+                                inventoryManager.isCanAffordToBuy(pricelist[priceKey].buy, inventory)) ||
+                            Pricelist.isAssetId(priceKey)
+                                ? null === inventory.findByAssetid(priceKey)
+                                    ? 0
+                                    : 1
+                                : inventory.getAmount(priceKey, false, true) > 0
                         ) {
                             // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
@@ -241,7 +281,7 @@ export default class Listings {
                         return false;
                     });
                 }
-                skus = skus
+                priceKeys = priceKeys
                     .sort((a, b) => {
                         return (
                             currentPure.keys -
@@ -250,12 +290,17 @@ export default class Listings {
                         );
                     })
                     .sort((a, b) => {
-                        return inventory.findBySKU(b).length - inventory.findBySKU(a).length;
+                        return (
+                            (Pricelist.isAssetId(b) ? [inventory.findByAssetid(b)] : inventory.findBySKU(b))
+                                .length -
+                            (Pricelist.isAssetId(a) ? [inventory.findByAssetid(a)] : inventory.findBySKU(a))
+                                .length
+                        );
                     });
 
-                log.debug('Checking listings for ' + pluralize('item', skus.length, true) + '...');
+                log.debug('Checking listings for ' + pluralize('item', priceKeys.length, true) + '...');
 
-                void this.recursiveCheckPricelist(skus, pricelist).asCallback(() => {
+                void this.recursiveCheckPricelist(priceKeys, pricelist).asCallback(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -274,7 +319,7 @@ export default class Listings {
     }
 
     recursiveCheckPricelist(
-        skus: string[],
+        priceKeys: string[],
         pricelist: PricesObject,
         withDelay = false,
         time?: number,
@@ -284,19 +329,19 @@ export default class Listings {
             let index = 0;
 
             const iteration = async (): Promise<void> => {
-                if (skus.length <= index || this.cancelCheckingListings) {
+                if (priceKeys.length <= index || this.cancelCheckingListings) {
                     this.cancelCheckingListings = false;
                     return resolve();
                 }
 
                 if (withDelay) {
-                    this.checkBySKU(skus[index], pricelist[skus[index]], false, showLogs);
+                    this.checkByPriceKey(priceKeys[index], pricelist[priceKeys[index]], false, showLogs);
                     index++;
                     await sleepasync().Promise.sleep(time ? time : 200);
                     void iteration();
                 } else {
                     setImmediate(() => {
-                        this.checkBySKU(skus[index], pricelist[skus[index]]);
+                        this.checkByPriceKey(priceKeys[index], pricelist[priceKeys[index]]);
                         index++;
                         void iteration();
                     });

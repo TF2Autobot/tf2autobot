@@ -5,6 +5,7 @@ import SKU from '@tf2autobot/tf2-sku';
 import Options, { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
+import Pricelist from "./Pricelist";
 
 export default class Inventory {
     private readonly steamID: SteamID;
@@ -203,7 +204,11 @@ export default class Inventory {
         return nonTradable.concat(tradable).slice(0);
     }
 
-    getAmount(sku: string, includeNonNormalized: boolean, tradableOnly?: boolean): number {
+    getAmount(priceKey: string, includeNonNormalized: boolean, tradableOnly?: boolean): number {
+        if (Pricelist.isAssetId(priceKey)) {
+            return null !== this.findByAssetid(priceKey) ? 1 : 0;
+        }
+        const sku = priceKey;
         if (includeNonNormalized && !['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) {
             // This is true only on src/lib/tools/summarizeOffer.ts @ L180, and src/classes/InventoryManager.ts @ L69
             let accAmount = this.findBySKU(sku, tradableOnly).length;
