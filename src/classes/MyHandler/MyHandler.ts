@@ -1253,6 +1253,7 @@ export default class MyHandler extends Handler {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
                     continue;
                 }
+                // TODO: Go through all assetids and check if the item is being sold for a specific price prior to processing the whole sku
 
                 const amount = items[which][sku].length;
 
@@ -1302,8 +1303,6 @@ export default class MyHandler extends Handler {
                               (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
                           )
                         : true;
-
-                    // TODO: Go through all assetids and check if the item is being sold for a specific price
 
                     if (match !== null && (sku !== '5021;6' || !exchange.contains.items)) {
                         // If we found a matching price and the item is not a key, or the we are not trading items
