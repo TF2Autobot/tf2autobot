@@ -5,7 +5,7 @@ import SKU from '@tf2autobot/tf2-sku';
 import Options, { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-import Pricelist from "./Pricelist";
+import Pricelist from './Pricelist';
 
 export default class Inventory {
     private readonly steamID: SteamID;
