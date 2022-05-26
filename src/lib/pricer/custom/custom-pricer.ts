@@ -71,20 +71,26 @@ export default class CustomPricer implements IPricer {
         return this.api.getOptions();
     }
 
-    shutdown(): void {
-        this.socketManager.shutDown();
+    shutdown(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.shutDown();
+        }
     }
 
     get isPricerConnecting(): boolean {
         return this.socketManager.isConnecting;
     }
 
-    connect(): void {
-        this.socketManager.connect();
+    connect(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.connect();
+        }
     }
 
-    init(): void {
-        return this.socketManager.init();
+    init(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.init();
+        }
     }
 
     bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void {

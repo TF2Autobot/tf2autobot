@@ -237,7 +237,9 @@ export default class Pricelist extends EventEmitter {
     }
 
     init(): void {
-        this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
+        if (this.options.enableSocket) {
+            this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
+        }
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {

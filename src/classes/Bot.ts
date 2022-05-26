@@ -613,11 +613,6 @@ export default class Bot {
                         );
                     },
                     (callback: (err?) => void): void => {
-                        if (this.options.enableSocket === false) {
-                            log.warn('Disabling socket...');
-                            this.priceSource.shutdown();
-                        }
-
                         log.info('Setting up pricelist...');
 
                         const pricelist = Array.isArray(data.pricelist)
