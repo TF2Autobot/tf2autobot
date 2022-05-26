@@ -113,6 +113,8 @@ export default class Bot {
 
     public userID: string;
 
+    private halted = false;
+
     constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
@@ -225,6 +227,20 @@ export default class Bot {
 
     get isReady(): boolean {
         return this.ready;
+    }
+
+    get isHalted(): boolean {
+        return this.halted;
+    }
+
+    halt(): void {
+        this.halted = true;
+        // TODO: remove listings here
+    }
+
+    unhalt(): void {
+        this.halted = false;
+        // TODO: place listings here
     }
 
     private addListener(

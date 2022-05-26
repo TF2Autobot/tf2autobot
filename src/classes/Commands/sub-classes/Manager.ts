@@ -405,6 +405,28 @@ export default class ManagerCommands {
         });
     }
 
+    haltCommand(steamID: SteamID): void {
+        if (this.bot.isHalted) {
+            this.bot.sendMessage(steamID, 'Already halted, nothing to halt');
+            return;
+        }
+        this.bot.sendMessage(steamID, '⌛ Halting...');
+        this.bot.halt();
+    }
+
+    unhaltCommand(steamID: SteamID): void {
+        if (!this.bot.isHalted) {
+            this.bot.sendMessage(steamID, 'Not halted, nothing to unhalt');
+            return;
+        }
+        this.bot.sendMessage(steamID, '⌛ Unhalting...');
+        this.bot.unhalt();
+    }
+
+    haltStatusCommand(steamID: SteamID): void {
+        this.bot.sendMessage(steamID, 'The bot is currently ' + (this.bot.isHalted ? '🛑 halted' : '✅ operational'));
+    }
+
     restartCommand(steamID: SteamID): void {
         this.bot.sendMessage(steamID, '⌛ Restarting...');
 

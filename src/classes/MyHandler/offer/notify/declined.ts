@@ -208,6 +208,9 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.offerReceived.duped.autoDecline.declineReply;
         reply = custom ? custom : declined + " because I don't accept duped items.";
         //
+    } else if (offerReason.reason === 'HALTED') {
+        const custom = opt.customMessage.decline.halted;
+        reply = custom ? custom : declined + ' because I am not operational right now. Please come back later.';
     } else {
         //
         const custom = opt.customMessage.decline.general;
