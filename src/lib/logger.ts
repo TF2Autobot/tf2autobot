@@ -103,33 +103,41 @@ export function init(paths: Paths, options: Options): void {
     const debugConsole = options.debug;
     // Debug to file is enabled by default
     const debugFile = options.debugFile;
+    const enableSaveLogs = options.enableSaveLogFile;
 
-    const transports = [
-        {
-            type: 'DailyRotateFile',
-            filename: paths.logs.log,
-            level: debugFile ? 'debug' : 'verbose',
-            filter: 'private',
-            datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
-            maxFiles: '14d'
-        },
-        {
-            type: 'File',
-            filename: paths.logs.trade,
-            level: 'trade',
-            filter: 'trade'
-        },
-        {
-            type: 'File',
-            filename: paths.logs.error,
-            level: 'error'
-        },
-        {
-            type: 'Console',
-            level: debugConsole ? 'debug' : 'verbose'
-        }
-    ];
+    const transports = enableSaveLogs
+        ? [
+              {
+                  type: 'DailyRotateFile',
+                  filename: paths.logs.log,
+                  level: debugFile ? 'debug' : 'verbose',
+                  filter: 'private',
+                  datePattern: 'YYYY-MM-DD',
+                  zippedArchive: true,
+                  maxFiles: '14d'
+              },
+              {
+                  type: 'File',
+                  filename: paths.logs.trade,
+                  level: 'trade',
+                  filter: 'trade'
+              },
+              {
+                  type: 'File',
+                  filename: paths.logs.error,
+                  level: 'error'
+              },
+              {
+                  type: 'Console',
+                  level: debugConsole ? 'debug' : 'verbose'
+              }
+          ]
+        : [
+              {
+                  type: 'Console',
+                  level: debugConsole ? 'debug' : 'verbose'
+              }
+          ];
 
     transports.forEach(transport => {
         const type = transport.type;
