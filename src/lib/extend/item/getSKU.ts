@@ -30,7 +30,7 @@ export = function (
         return { sku: 'unknown', isPainted: false };
     }
 
-    if (self.market_hash_name === undefined) {
+    if (!self.market_hash_name) {
         throw new Error(
             `Item ${self.id} does not have the "market_hash_name" key, unable to correctly identify the item`
         );
