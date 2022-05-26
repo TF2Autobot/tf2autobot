@@ -66,7 +66,6 @@ export default class PricesTfSocketManager {
         void this.api
             .setupToken()
             .then(() => {
-                this.ws.reconnect();
                 this.retryAttempts = -1;
             })
             .catch(err => {
