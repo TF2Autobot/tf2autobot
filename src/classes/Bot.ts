@@ -535,6 +535,12 @@ export default class Bot {
                         );
                         this.addListener(
                             this.listingManager,
+                            'deleteArchivedListingSuccessful',
+                            this.handler.onDeleteArchivedListingSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
                             'createListingsError',
                             this.handler.onCreateListingsError.bind(this),
                             true
@@ -549,6 +555,12 @@ export default class Bot {
                             this.listingManager,
                             'deleteListingsError',
                             this.handler.onDeleteListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteArchivedListingError',
+                            this.handler.onDeleteArchivedListingError.bind(this),
                             true
                         );
 
@@ -613,11 +625,6 @@ export default class Bot {
                         );
                     },
                     (callback: (err?) => void): void => {
-                        if (this.options.enableSocket === false) {
-                            log.warn('Disabling socket...');
-                            this.priceSource.shutdown();
-                        }
-
                         log.info('Setting up pricelist...');
 
                         const pricelist = Array.isArray(data.pricelist)

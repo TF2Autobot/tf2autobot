@@ -79,16 +79,26 @@ export default class PricesTfPricer implements IPricer {
         }
     }
 
-    shutdown(): void {
-        this.socketManager.shutDown();
+    shutdown(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.shutDown();
+        }
     }
 
-    connect(): void {
-        this.socketManager.connect();
+    get isPricerConnecting(): boolean {
+        return this.socketManager.isConnecting;
     }
 
-    init(): void {
-        return this.socketManager.init();
+    connect(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.connect();
+        }
+    }
+
+    init(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.init();
+        }
     }
 
     parsePricesTfMessageEvent(raw: string): PricesTfItemMessageEvent {

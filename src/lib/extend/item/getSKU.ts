@@ -30,6 +30,12 @@ export = function (
         return { sku: 'unknown', isPainted: false };
     }
 
+    if (!self.market_hash_name) {
+        throw new Error(
+            `Item ${self.id} does not have the "market_hash_name" key, unable to correctly identify the item`
+        );
+    }
+
     let item = Object.assign(
         {
             defindex: getDefindex(self),
@@ -189,6 +195,10 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
         return null;
     }
 
+    if (!Array.isArray(item.descriptions)) {
+        return null;
+    }
+
     let hasCaseCollection = false;
     let skin: string | null = null;
 
@@ -239,9 +249,9 @@ function getElevatedQuality(
     const isUnusualHat =
         item.getItemTag('Type') === 'Cosmetic' &&
         quality === 5 &&
-        item.type.includes('Strange') &&
-        item.type.includes('Points Scored');
-    const isOtherItemsNotStrangeQuality = item.type.startsWith('Strange') && quality !== 11;
+        item.type?.includes('Strange') &&
+        item.type?.includes('Points Scored');
+    const isOtherItemsNotStrangeQuality = item.type?.startsWith('Strange') && quality !== 11;
 
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
@@ -257,6 +267,10 @@ function getOutput(
     item: EconItem,
     schema: SchemaManager.Schema
 ): { target: number | null; output: number | null; outputQuality: number | null } {
+    if (!Array.isArray(item.descriptions)) {
+        return null;
+    }
+
     let index = -1;
 
     const descriptionsCount = item.descriptions.length;
@@ -409,6 +423,10 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
 function getCrateSeries(item: EconItem): number | null {
     const defindex = getDefindex(item);
 
+    if (defindex === null) {
+        throw new Error('Could not get defindex of item "' + item.market_hash_name + '"');
+    }
+
     let series: number | null = null;
 
     const crates: { [type: string]: { [name: string]: number } } = {
@@ -505,6 +523,10 @@ function getPainted(
         return null;
     }
 
+    if (!Array.isArray(item.descriptions)) {
+        return null;
+    }
+
     const descriptions = item.descriptions;
     const descriptionCount = descriptions.length;
 
@@ -521,9 +543,9 @@ function getPainted(
     }
 
     if (
-        !item.type.includes('Tool') &&
+        !item.type?.includes('Tool') &&
         paintsInOptions.includes('legacy paint') &&
-        item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
+        item.icon_url?.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
     ) {
         isPainted = true;
         return 5801378;
