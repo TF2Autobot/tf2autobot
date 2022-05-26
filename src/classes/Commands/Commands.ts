@@ -154,15 +154,6 @@ export default class Commands {
             endsWith: ['cart.', 'checkout.', '✅']
         };
 
-        if (this.bot.isHalted && !isAdmin) {
-            const custom = this.bot.options.customMessage.halted;
-            this.bot.sendMessage(
-                steamID,
-                custom ? custom : 'The bot is not operational right now. Please come back later.'
-            );
-            return;
-        }
-
         if (command === 'help') {
             void this.help.helpCommand(steamID);
         } else if (command === 'how2trade') {

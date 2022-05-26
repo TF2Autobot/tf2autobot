@@ -453,6 +453,14 @@ export default class MyHandler extends Handler {
             }
         }
 
+        if (this.bot.isHalted && !this.bot.isAdmin(steamID)) {
+            const custom = this.bot.options.customMessage.halted;
+            return this.bot.sendMessage(
+                steamID,
+                custom ? custom : '❌ The bot is not operational right now. Please come back later.'
+            );
+        }
+
         if (this.isUpdating) {
             return this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
         }
@@ -964,18 +972,25 @@ export default class MyHandler extends Handler {
             return;
         }
 
+        const manualReviewEnabled = opt.manualReview.enable;
+
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: WrongAboutOffer[] = [];
 
-        offer.log('info', 'checking halted...');
-
         if (this.bot.isHalted) {
-            offer.log('info', 'bot is halted right now, declining...');
-            return {
-                action: 'decline',
-                reason: 'HALTED',
-                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-            };
+            wrongAboutOffer.push({
+                reason: '⬜_HALTED'
+            });
+            if (manualReviewEnabled) {
+                offer.log('info', 'bot is halted, review enabled -> marking as halted ang going to skip');
+            } else {
+                offer.log('info', 'bot is halted, review disabled -> declining');
+                return {
+                    action: 'decline',
+                    reason: 'HALTED',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
+            }
         }
 
         let checkBannedFailed = false;
@@ -1078,19 +1093,23 @@ export default class MyHandler extends Handler {
                     };
                 }
 
-                offer.log(
-                    'trade',
-                    `is a gift offer, accepting. Summary:\n${JSON.stringify(
-                        summarize(offer, this.bot, 'summary-accepting', false),
-                        null,
-                        4
-                    )}`
-                );
-                return {
-                    action: 'accept',
-                    reason: 'GIFT',
-                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                };
+                if (this.bot.isHalted) {
+                    offer.log('info', 'is an acceptable gift offer, but skipping due to halt mode being on');
+                } else {
+                    offer.log(
+                        'trade',
+                        `is a gift offer, accepting. Summary:\n${JSON.stringify(
+                            summarize(offer, this.bot, 'summary-accepting', false),
+                            null,
+                            4
+                        )}`
+                    );
+                    return {
+                        action: 'accept',
+                        reason: 'GIFT',
+                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                    };
+                }
             } else {
                 if (opt.bypass.giftWithoutMessage.allow) {
                     if (checkBannedFailed) {
@@ -1105,16 +1124,22 @@ export default class MyHandler extends Handler {
                         };
                     }
 
-                    offer.log(
-                        'trade',
-                        'is a gift offer without any offer message, but allowed to be accepted, accepting...'
-                    );
-
-                    return {
-                        action: 'accept',
-                        reason: 'GIFT',
-                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                    };
+                    if (this.bot.isHalted) {
+                        offer.log(
+                            'info',
+                            'is an acceptable gift offer without message, but skipping due to halt mode being on'
+                        );
+                    } else {
+                        offer.log(
+                            'trade',
+                            'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                        );
+                        return {
+                            action: 'accept',
+                            reason: 'GIFT',
+                            meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                        };
+                    }
                 } else {
                     offer.log('info', 'is a gift offer without any offer message, declining...');
                     return {
@@ -1714,8 +1739,6 @@ export default class MyHandler extends Handler {
             }
         }
 
-        const manualReviewEnabled = opt.manualReview.enable;
-
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = filterReasons(reasons.filter(reason => reasons.includes(reason)));
@@ -1892,6 +1915,15 @@ export default class MyHandler extends Handler {
                 reasons: wrongAboutOffer,
                 highValue: isContainsHighValue ? highValueMeta : undefined
             };
+
+            // don't use business logic if the bot is not operational
+            if (this.bot.isHalted) {
+                return {
+                    action: 'skip',
+                    reason: 'REVIEW',
+                    meta: meta
+                };
+            }
 
             if (
                 (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked || isAcceptDisabledItems) &&
