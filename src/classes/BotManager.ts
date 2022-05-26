@@ -70,7 +70,7 @@ export default class BotManager {
                     },
                     (callback): void => {
                         log.info('Starting bot...');
-                        this.pricer.init();
+                        this.pricer.init(options.enableSocket);
                         this.bot = new Bot(this, options, this.pricer);
 
                         void this.bot.start().asCallback(callback);
@@ -94,10 +94,7 @@ export default class BotManager {
                         return this.stop(null, false, false);
                     }
 
-                    if (this.bot?.options.enableSocket) {
-                        log.info('Connecting to socket server...');
-                        this.pricer.connect();
-                    }
+                    this.pricer.connect(this.bot?.options.enableSocket);
 
                     this.schemaManager = this.bot.schemaManager;
 
@@ -212,7 +209,7 @@ export default class BotManager {
         }
 
         // Disconnect from socket server to stop price updates
-        this.pricer.shutdown();
+        this.pricer.shutdown(this.bot?.options.enableSocket);
     }
 
     private exit(err: Error | null): void {
