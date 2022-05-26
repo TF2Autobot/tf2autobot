@@ -120,7 +120,7 @@ function isCraftable(item: EconItem): boolean {
 function getKillstreak(item: EconItem): number {
     const killstreaks = ['Professional ', 'Specialized ', ''];
 
-    const index = killstreaks.findIndex(killstreak => item.market_hash_name.includes(killstreak + 'Killstreak '));
+    const index = killstreaks.findIndex(killstreak => item.market_hash_name?.includes(killstreak + 'Killstreak '));
 
     return index === -1 ? 0 : 3 - index;
 }
