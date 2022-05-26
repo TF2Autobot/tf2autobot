@@ -27,13 +27,13 @@ export default class PricesTfSocketManager {
 
     private ws: ReconnectingWebSocket;
 
-    private socketDisconnected() {
+    private socketDisconnected(): () => void {
         return () => {
             log.debug('Disconnected from socket server');
         };
     }
 
-    private socketConnect() {
+    private socketConnect(): () => void {
         return () => {
             log.debug('Connected to socket server');
         };
@@ -87,6 +87,7 @@ export default class PricesTfSocketManager {
 
     shutDown(): void {
         if (this.ws) {
+            // Why no removeAllEventListener ws? :(
             this.ws.close();
             this.ws = undefined;
         }

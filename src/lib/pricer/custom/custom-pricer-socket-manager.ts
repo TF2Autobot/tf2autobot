@@ -6,8 +6,8 @@ export default class CustomPricerSocketManager {
 
     constructor(public url: string, public key?: string) {}
 
-    private socketDisconnected() {
-        return (reason: string) => {
+    private socketDisconnected(): (reason: string) => void {
+        return reason => {
             log.debug('Disconnected from socket server', { reason: reason });
 
             if (reason === 'io server disconnect') {
@@ -16,21 +16,21 @@ export default class CustomPricerSocketManager {
         };
     }
 
-    private socketUnauthorized() {
-        return (err: Error) => {
+    private socketUnauthorized(): (err: Error) => void {
+        return err => {
             log.warn('Failed to authenticate with socket server', {
                 error: err
             });
         };
     }
 
-    private socketAuthenticated() {
+    private socketAuthenticated(): () => void {
         return () => {
             log.debug('Authenticated with socket server');
         };
     }
 
-    private socketConnect() {
+    private socketConnect(): () => void {
         return () => {
             log.debug('Connected to socket server');
             this.socket.emit('authentication', this.key);
