@@ -66,6 +66,9 @@ export default class PricesTfSocketManager {
         void this.api
             .setupToken()
             .then(() => {
+                if (!this.isConnecting) {
+                    this.ws.reconnect();
+                }
                 this.retryAttempts = -1;
             })
             .catch(err => {
@@ -79,6 +82,10 @@ export default class PricesTfSocketManager {
         log.debug(`Retry reconnect attempt ${this.retryAttempts + 1}`);
         clearTimeout(this.retrySetupTokenTimeout);
         this.retrySetupTokenTimeout = setTimeout(() => this.setupToken(), exponentialBackoff(this.retryAttempts));
+    }
+
+    get isConnecting(): boolean {
+        return this.ws.readyState === this.ws.CONNECTING;
     }
 
     connect(): void {

@@ -1,8 +1,8 @@
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import log from '../../../lib/logger';
 
 export default class CustomPricerSocketManager {
-    public socket: SocketIOClient.Socket;
+    public socket: Socket;
 
     constructor(public url: string, public key?: string) {}
 
@@ -11,7 +11,9 @@ export default class CustomPricerSocketManager {
             log.debug('Disconnected from socket server', { reason: reason });
 
             if (reason === 'io server disconnect') {
-                this.socket.connect();
+                if (!this.isConnecting) {
+                    this.socket.connect();
+                }
             }
         };
     }
@@ -63,6 +65,10 @@ export default class CustomPricerSocketManager {
         this.socket.on('connect_error', err => {
             log.warn(`Couldn't connect to socket server`, err);
         });
+    }
+
+    get isConnecting(): boolean {
+        return this.socket.active;
     }
 
     connect(): void {

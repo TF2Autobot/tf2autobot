@@ -83,6 +83,10 @@ export default class PricesTfPricer implements IPricer {
         this.socketManager.shutDown();
     }
 
+    get isPricerConnecting(): boolean {
+        return this.socketManager.isConnecting;
+    }
+
     connect(): void {
         this.socketManager.connect();
     }
