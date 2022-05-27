@@ -84,6 +84,11 @@ export default class Listings {
             listings = this.bot.listingManager.findListings(sku);
         }
         listings.forEach(listing => {
+            // Skip the listing if it belongs to an asset AND we are checking a SKU
+            if (!isAssetId && this.bot.pricelist.getPrice(listing.id.slice('440_'.length), true, generics)) {
+                return;
+            }
+
             if (listing.intent === 1 && hasSellListing) {
                 if (showLogs) {
                     log.debug('Already have a sell listing, remove the listing.');
@@ -174,7 +179,9 @@ export default class Listings {
             if (isAssetId && null !== inventory.findByAssetid(priceKey)) {
                 assetids = [priceKey];
             } else {
-                assetids = inventory.findBySKU(priceKey, true);
+                assetids = inventory
+                    .findBySKU(priceKey, true)
+                    .filter(assetId => this.bot.pricelist.getPrice(assetId, true) === null);
             }
 
             const canAffordToBuy = isFilterCantAfford
