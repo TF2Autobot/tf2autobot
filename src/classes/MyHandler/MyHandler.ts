@@ -1093,23 +1093,20 @@ export default class MyHandler extends Handler {
                     };
                 }
 
-                if (this.bot.isHalted) {
-                    offer.log('info', 'is an acceptable gift offer, but skipping due to halt mode being on');
-                } else {
-                    offer.log(
-                        'trade',
-                        `is a gift offer, accepting. Summary:\n${JSON.stringify(
-                            summarize(offer, this.bot, 'summary-accepting', false),
-                            null,
-                            4
-                        )}`
-                    );
-                    return {
-                        action: 'accept',
-                        reason: 'GIFT',
-                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                    };
-                }
+                offer.log(
+                    'trade',
+                    `is a gift offer, accepting. Summary:\n${JSON.stringify(
+                        summarize(offer, this.bot, 'summary-accepting', false),
+                        null,
+                        4
+                    )}`
+                );
+
+                return {
+                    action: 'accept',
+                    reason: 'GIFT',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
             } else {
                 if (opt.bypass.giftWithoutMessage.allow) {
                     if (checkBannedFailed) {
@@ -1124,22 +1121,16 @@ export default class MyHandler extends Handler {
                         };
                     }
 
-                    if (this.bot.isHalted) {
-                        offer.log(
-                            'info',
-                            'is an acceptable gift offer without message, but skipping due to halt mode being on'
-                        );
-                    } else {
-                        offer.log(
-                            'trade',
-                            'is a gift offer without any offer message, but allowed to be accepted, accepting...'
-                        );
-                        return {
-                            action: 'accept',
-                            reason: 'GIFT',
-                            meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                        };
-                    }
+                    offer.log(
+                        'trade',
+                        'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                    );
+
+                    return {
+                        action: 'accept',
+                        reason: 'GIFT',
+                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                    };
                 } else {
                     offer.log('info', 'is a gift offer without any offer message, declining...');
                     return {
