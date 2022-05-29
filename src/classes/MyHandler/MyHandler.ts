@@ -454,7 +454,7 @@ export default class MyHandler extends Handler {
         }
 
         if (this.bot.isHalted && !this.bot.isAdmin(steamID)) {
-            const custom = this.bot.options.customMessage.halted;
+            const custom = this.opt.customMessage.halted;
             return this.bot.sendMessage(
                 steamID,
                 custom ? custom : '❌ The bot is not operational right now. Please come back later.'
