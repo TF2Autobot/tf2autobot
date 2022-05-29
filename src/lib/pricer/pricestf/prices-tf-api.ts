@@ -52,6 +52,10 @@ export default class PricesTfApi {
         headers?: Record<string, unknown>
     ): Promise<B> {
         try {
+            if (this.token === '') {
+                await this.setupToken();
+            }
+
             return await PricesTfApi.apiRequest(
                 httpMethod,
                 path,
@@ -63,7 +67,7 @@ export default class PricesTfApi {
                 }
             );
         } catch (e) {
-            if (e && 401 === e['statusCode']) {
+            if (e && 401 === e['statusCode'] ? e['statusCode'] : e['status']) {
                 await this.setupToken();
                 return this.authedApiRequest(httpMethod, path, params, {}, headers);
             }
