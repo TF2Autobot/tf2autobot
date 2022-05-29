@@ -1,5 +1,5 @@
 import SKU from '@tf2autobot/tf2-sku';
-import request from 'request-retry-dayjs';
+import axios from 'axios';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
 import TradeOfferManager, {
     TradeOffer,
@@ -2483,22 +2483,28 @@ export default class MyHandler extends Handler {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
-            void request(
-                {
-                    url: 'https://api.backpack.tf/api/users/info/v1',
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
-                        Cookie: 'user-id=' + this.bot.userID
-                    },
-                    qs: {
-                        key: this.opt.bptfAPIKey,
-                        steamids: steamID64
-                    },
-                    gzip: true,
-                    json: true
+            void axios({
+                url: 'https://api.backpack.tf/api/users/info/v1',
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                    Cookie: 'user-id=' + this.bot.userID
                 },
-                (err, reponse, body) => {
+                params: {
+                    key: this.opt.bptfAPIKey,
+                    steamids: steamID64
+                }
+            })
+                .then(response => {
+                    const body = response.data as BPTFGetUserInfo;
+
+                    const user = body.users[steamID64];
+                    this.botName = user.name;
+                    this.botAvatarURL = user.avatar;
+                    this.isPremium = user.premium ? user.premium === 1 : false;
+                    return resolve();
+                })
+                .catch(err => {
                     if (err) {
                         log.error('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
                         clearTimeout(this.retryRequest);
@@ -2508,16 +2514,7 @@ export default class MyHandler extends Handler {
                         }, 5 * 60 * 1000);
                         return reject();
                     }
-
-                    const thisBody = body as BPTFGetUserInfo;
-
-                    const user = thisBody.users[steamID64];
-                    this.botName = user.name;
-                    this.botAvatarURL = user.avatar;
-                    this.isPremium = user.premium ? user.premium === 1 : false;
-                    return resolve();
-                }
-            ).end();
+                });
         });
     }
 

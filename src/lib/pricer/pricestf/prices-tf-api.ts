@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, Method } from 'axios';
 import { PricerOptions } from '../../../classes/IPricer';
 
 export interface PricesTfRequestCheckResponse {
@@ -84,7 +84,7 @@ export default class PricesTfApi {
         }
 
         const options: AxiosRequestConfig = {
-            method: httpMethod,
+            method: httpMethod as Method,
             url: path,
             baseURL: customURL ? customURL : this.URL,
             headers: {
