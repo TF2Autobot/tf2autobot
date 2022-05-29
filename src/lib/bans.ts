@@ -49,7 +49,7 @@ async function isBannedOverall(steamID: SteamID | string, checkMptf: boolean): P
             }
         })
             .then(response => {
-                const bans = JSON.parse(response.data) as RepTF;
+                const bans = response.data as RepTF;
 
                 const isBptfBanned = bans.bptfBans ? bans.bptfBans.banned === 'bad' : false;
                 const isSteamRepBanned = bans.srBans ? bans.srBans.banned === 'bad' : false;
