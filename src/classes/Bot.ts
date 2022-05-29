@@ -234,19 +234,33 @@ export default class Bot {
         return this.halted;
     }
 
-    halt(): void {
+    async halt(): Promise<void> {
         this.halted = true;
 
         // If we want to show another game here, probably needed new functions like Bot.useMainGame() and Bot.useHaltGame()
         // (and refactor to use everywhere these functions instead of gamesPlayed)
+        log.debug('Setting status in Steam to "Snooze"');
         this.client.setPersona(EPersonaState.Snooze);
 
-        // TODO: remove listings here
+        log.debug('Removing all listings due to halt mode turned on');
+        await this.listings.removeAll().asCallback(err => {
+            if (err) {
+                log.warn('Failed to remove all listings on enabling halt mode: ', err);
+            }
+        });
     }
 
-    unhalt(): void {
+    async unhalt(): Promise<void> {
         this.halted = false;
-        // TODO: place listings here
+
+        log.debug('Recreating all listings due to halt mode turned off');
+        await this.listings.redoListings().asCallback(err => {
+            if (err) {
+                log.warn('Failed to recreate all listings on disabling halt mode: ', err);
+            }
+        });
+
+        log.debug('Setting status in Steam to "Online"');
         this.client.setPersona(EPersonaState.Online);
     }
 

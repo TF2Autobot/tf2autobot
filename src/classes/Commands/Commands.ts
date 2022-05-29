@@ -239,9 +239,9 @@ export default class Commands {
         } else if (command === 'stop' && isAdmin) {
             this.manager.stopCommand(steamID);
         } else if (command === 'halt' && isAdmin) {
-            this.manager.haltCommand(steamID);
+            await this.manager.haltCommand(steamID);
         } else if (command === 'unhalt' && isAdmin) {
-            this.manager.unhaltCommand(steamID);
+            await this.manager.unhaltCommand(steamID);
         } else if (command === 'haltstatus' && isAdmin) {
             this.manager.haltStatusCommand(steamID);
         } else if (command === 'restart' && isAdmin) {
