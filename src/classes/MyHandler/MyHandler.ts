@@ -2653,6 +2653,10 @@ export default class MyHandler extends Handler {
         log.debug('Successfully delete listings:', response);
     }
 
+    onDeleteArchivedListingSuccessful(response: boolean): void {
+        log.debug('Successfully delete an archived listing:', response);
+    }
+
     onCreateListingsError(err: Error): void {
         log.error('Error on create listings:', err);
     }
@@ -2663,6 +2667,10 @@ export default class MyHandler extends Handler {
 
     onDeleteListingsError(err: Error): void {
         log.error('Error on delete listings:', err);
+    }
+
+    onDeleteArchivedListingError(err: Error): void {
+        log.debug('Error on delete archived listings:', err);
     }
 }
 

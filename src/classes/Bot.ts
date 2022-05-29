@@ -322,44 +322,33 @@ export default class Bot {
 
                 await sleepasync().Promise.sleep(1000);
 
+                const messages: string[] = [];
+
                 if (process.platform === 'win32') {
-                    this.messageAdmins(
-                        'version',
-                        `\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n`,
-                        []
-                    );
-                    this.messageAdmins(
-                        'version',
-                        `/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js`,
-                        []
-                    );
+                    messages.concat([
+                        '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
+                        '/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js'
+                    ]);
                 } else if (
                     process.platform === 'linux' ||
                     process.platform === 'darwin' ||
                     process.platform === 'openbsd' ||
                     process.platform === 'freebsd'
                 ) {
-                    this.messageAdmins(
-                        'version',
-                        `\n💻 To update run the following command inside your tf2autobot directory:\n`,
-                        []
-                    );
-                    this.messageAdmins(
-                        'version',
-                        `/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json`,
-                        []
-                    );
+                    messages.concat([
+                        '\n💻 To update run the following command inside your tf2autobot directory:\n',
+                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
+                    ]);
                 } else {
-                    this.messageAdmins(
-                        'version',
-                        `❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n`,
-                        []
-                    );
-                    this.messageAdmins(
-                        'version',
-                        `/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json`,
-                        []
-                    );
+                    messages.concat([
+                        '❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n',
+                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
+                    ]);
+                }
+
+                for (const message of messages) {
+                    await sleepasync().Promise.sleep(1000);
+                    this.messageAdmins('version', message, []);
                 }
             }
 
@@ -572,6 +561,12 @@ export default class Bot {
                         );
                         this.addListener(
                             this.listingManager,
+                            'deleteArchivedListingSuccessful',
+                            this.handler.onDeleteArchivedListingSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
                             'createListingsError',
                             this.handler.onCreateListingsError.bind(this),
                             true
@@ -586,6 +581,12 @@ export default class Bot {
                             this.listingManager,
                             'deleteListingsError',
                             this.handler.onDeleteListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteArchivedListingError',
+                            this.handler.onDeleteArchivedListingError.bind(this),
                             true
                         );
 
@@ -650,11 +651,6 @@ export default class Bot {
                         );
                     },
                     (callback: (err?) => void): void => {
-                        if (this.options.enableSocket === false) {
-                            log.warn('Disabling socket...');
-                            this.priceSource.shutdown();
-                        }
-
                         log.info('Setting up pricelist...');
 
                         const pricelist = Array.isArray(data.pricelist)

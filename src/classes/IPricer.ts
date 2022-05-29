@@ -23,11 +23,11 @@ export default interface IPricer {
 
     get isPricerConnecting(): boolean;
 
-    connect(): void;
+    connect(enabled: boolean): void;
 
-    shutdown(): void;
+    shutdown(enabled: boolean): void;
 
-    init(): void;
+    init(enabled: boolean): void;
 
     bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void;
 }

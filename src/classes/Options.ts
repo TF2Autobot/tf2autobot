@@ -2011,6 +2011,7 @@ export default interface Options extends JsonOptions {
 
     debug?: boolean;
     debugFile?: boolean;
+    enableSaveLogFile?: boolean;
 
     folderName?: string;
     filePrefix?: string;
@@ -2264,6 +2265,7 @@ export function loadOptions(options?: Options): Options {
 
         debug: getOption('debug', true, jsonParseBoolean, incomingOptions),
         debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions),
+        enableSaveLogFile: getOption('enableSaveLogFile', true, jsonParseBoolean, incomingOptions),
 
         enableHttpApi: getOption('enableHttpApi', false, jsonParseBoolean, incomingOptions),
         httpApiPort: getOption('httpApiPort', 3001, jsonParseNumber, incomingOptions)
