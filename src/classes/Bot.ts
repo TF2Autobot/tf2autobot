@@ -1,5 +1,6 @@
 import SteamID from 'steamid';
-import SteamUser, { EResult } from 'steam-user';
+import SteamUser, { EResult } from 'steam-user'; // { EResult, EPersonaState } gives me crash
+import { EPersonaState } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
@@ -235,12 +236,18 @@ export default class Bot {
 
     halt(): void {
         this.halted = true;
+
+        // If we want to show another game here, probably needed new functions like Bot.useMainGame() and Bot.useHaltGame()
+        // (and refactor to use everywhere these functions instead of gamesPlayed)
+        this.client.setPersona(EPersonaState.Snooze);
+
         // TODO: remove listings here
     }
 
     unhalt(): void {
         this.halted = false;
         // TODO: place listings here
+        this.client.setPersona(EPersonaState.Online);
     }
 
     private addListener(
