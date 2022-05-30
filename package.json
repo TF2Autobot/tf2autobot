@@ -41,7 +41,7 @@
         "body-parser": "^1.20.0",
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
-        "cheerio": "^1.0.0-rc.10",
+        "cheerio": "^1.0.0-rc.11",
         "dayjs": "^1.11.2",
         "death": "^1.1.0",
         "dot-prop": "^6.0.1",
@@ -73,7 +73,7 @@
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.16.7",
-        "@types/async": "^3.2.12",
+        "@types/async": "^3.2.13",
         "@types/bluebird-global": "^3.5.13",
         "@types/cheerio": "^0.22.31",
         "@types/death": "^1.1.2",
