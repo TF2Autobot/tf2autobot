@@ -10,7 +10,7 @@ import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
-import request from 'request-retry-dayjs';
+import axios from 'axios';
 
 import sleepasync from 'sleep-async';
 
@@ -321,21 +321,19 @@ export default class Bot {
 
     private get getLatestVersion(): Promise<{ version: string }> {
         return new Promise((resolve, reject) => {
-            void request(
-                {
-                    method: 'GET',
-                    url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
-                    json: true
-                },
-                (err, response, body) => {
+            void axios({
+                method: 'GET',
+                url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json'
+            })
+                .then(response => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                    return resolve({ version: response.data.version });
+                })
+                .catch(err => {
                     if (err) {
                         return reject(err);
                     }
-
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-                    return resolve({ version: body.version });
-                }
-            ).end();
+                });
         });
     }
 
