@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import SKU from '@tf2autobot/tf2-sku';
 import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
-import request from 'request-retry-dayjs';
+import axios from 'axios';
 import { UnknownDictionary } from '../../types/common';
 import Bot from '../Bot';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
@@ -544,35 +544,32 @@ export default abstract class Cart {
 
     private async getTotalBackpackSlots(steamID64: string): Promise<number> {
         return new Promise(resolve => {
-            void request(
-                {
-                    url: 'https://api.backpack.tf/api/users/info/v1',
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
-                        Cookie: 'user-id=' + this.bot.userID
-                    },
-                    qs: {
-                        key: process.env.BPTF_API_KEY,
-                        steamids: steamID64
-                    },
-                    gzip: true,
-                    json: true
+            void axios({
+                url: 'https://api.backpack.tf/api/users/info/v1',
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                    Cookie: 'user-id=' + this.bot.userID
                 },
-                (err, reponse, body) => {
-                    if (err) {
-                        log.error('Failed requesting user info from backpack.tf: ', err);
-                        return resolve(0);
-                    }
-
-                    const thisBody = body as BPTFGetUserInfo;
+                params: {
+                    key: process.env.BPTF_API_KEY,
+                    steamids: steamID64
+                }
+            })
+                .then(response => {
+                    const thisBody = response.data as BPTFGetUserInfo;
 
                     const user = thisBody.users[steamID64];
                     const totalBackpackSlots = user.inventory ? user.inventory['440'].slots.total : 0;
 
                     return resolve(totalBackpackSlots);
-                }
-            ).end();
+                })
+                .catch(err => {
+                    if (err) {
+                        log.error('Failed requesting user info from backpack.tf: ', err);
+                        return resolve(0);
+                    }
+                });
         });
     }
 }
