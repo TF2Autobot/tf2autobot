@@ -2248,18 +2248,20 @@ function replaceOldProperties(options: Options): boolean {
         //@ts-ignore
         const mptfCheckValue = options.bypass.bannedPeople?.mptfCheck;
 
-        if (typeof mptfCheckValue === 'boolean') {
-            if (options.miscSettings.reputationCheck !== undefined) {
-                options.miscSettings.reputationCheck.checkMptfBanned = mptfCheckValue;
-            } else {
-                options.miscSettings['reputationCheck'] = {
-                    checkMptfBanned: mptfCheckValue,
-                    reptfAsPrimarySource: true
-                };
-            }
-
-            isChanged = true;
+        if (options.miscSettings.reputationCheck !== undefined) {
+            options.miscSettings.reputationCheck.checkMptfBanned =
+                typeof mptfCheckValue === 'boolean' ? mptfCheckValue : true;
+        } else {
+            options.miscSettings['reputationCheck'] = {
+                checkMptfBanned: mptfCheckValue,
+                reptfAsPrimarySource: true
+            };
         }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.bypass.bannedPeople;
+        isChanged = true;
     }
     /*eslint-enable */
 
