@@ -457,7 +457,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'checkUses',
                 'game',
                 'alwaysRemoveItemAttributes',
-                'deleteUntradableJunk'
+                'deleteUntradableJunk',
+                'reputationCheck'
             ],
             additionalProperties: false
         },
