@@ -2369,6 +2369,20 @@ export default class MyHandler extends Handler {
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
+        const accept = () => {
+            log.info(`Accepting friend request from ${steamID64}...`);
+            this.bot.client.addFriend(steamID, err => {
+                if (err) {
+                    log.warn(`Failed to accept friend request from ${steamID64}: `, err);
+                    return;
+                }
+                log.debug('Friend request has been accepted');
+            });
+        };
+
+        if (this.bot.isAdmin(steamID)) {
+            return accept();
+        }
 
         void this.bot
             .checkBanned(steamID)
@@ -2386,14 +2400,7 @@ export default class MyHandler extends Handler {
                     return;
                 }
 
-                log.info(`Accepting friend request from ${steamID64}...`);
-                this.bot.client.addFriend(steamID, err => {
-                    if (err) {
-                        log.warn(`Failed to accept friend request from ${steamID64}: `, err);
-                        return;
-                    }
-                    log.debug('Friend request has been accepted');
-                });
+                return accept();
             })
             .catch(err => {
                 log.error('Failed to check banned on respondToFriendRequest: ', err);
