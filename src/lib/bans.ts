@@ -200,6 +200,10 @@ function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBa
             return resolve(false);
         }
 
+        if (mptfApiKey === '') {
+            return reject(new Error('Marketplace.tf API key was not set.'));
+        }
+
         void axios({
             url: 'https://api.backpack.tf/api/users/info/v1',
             headers: {
