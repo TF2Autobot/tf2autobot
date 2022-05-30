@@ -46,7 +46,7 @@ export async function isBanned(
                 : 'clean';
         }
 
-        log[toReturn.isBanned ? 'warn' : 'debug']('Bans result:', toReturn.contents);
+        log[toReturn.isBanned ? 'warn' : 'debug'](`Bans result for ${steamID64}:`, toReturn.contents);
 
         return toReturn;
     };
