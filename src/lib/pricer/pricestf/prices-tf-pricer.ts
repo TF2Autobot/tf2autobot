@@ -33,6 +33,7 @@ export default class PricesTfPricer implements IPricer {
                 '/json/pricelist-array',
                 {},
                 {},
+                {},
                 'https://autobot.tf'
             );
 

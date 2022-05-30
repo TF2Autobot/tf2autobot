@@ -53,6 +53,10 @@ export const DEFAULTS: JsonOptions = {
         },
         deleteUntradableJunk: {
             enable: false
+        },
+        reputationCheck: {
+            checkMptfBanned: true,
+            reptfAsPrimarySource: true
         }
     },
 
@@ -120,10 +124,6 @@ export const DEFAULTS: JsonOptions = {
         },
         giftWithoutMessage: {
             allow: false
-        },
-        bannedPeople: {
-            allow: false,
-            checkMptfBanned: true
         }
     },
 
@@ -395,6 +395,10 @@ export const DEFAULTS: JsonOptions = {
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
             ignoreFailed: false
+        },
+        // ⬜_HALTED
+        halted: {
+            ignoreHalted: false
         }
     },
 
@@ -438,6 +442,10 @@ export const DEFAULTS: JsonOptions = {
         },
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
+            note: ''
+        },
+        // ⬜_HALTED
+        halted: {
             note: ''
         },
         additionalNotes: ''
@@ -521,6 +529,7 @@ export const DEFAULTS: JsonOptions = {
         iDontKnowWhatYouMean: '',
         success: '',
         successEscrow: '',
+        halted: '',
         decline: {
             general: '',
             hasNonTF2Items: '',
@@ -534,6 +543,7 @@ export const DEFAULTS: JsonOptions = {
             notTradingKeys: '',
             notSellingKeys: '',
             notBuyingKeys: '',
+            halted: '',
             banned: '',
             escrow: '',
             manual: '',
@@ -1123,6 +1133,12 @@ interface MiscSettings {
     game?: Game;
     alwaysRemoveItemAttributes?: AlwaysRemoveItemAttributes;
     deleteUntradableJunk?: OnlyEnable;
+    reputationCheck?: ReputationCheck;
+}
+
+interface ReputationCheck {
+    checkMptfBanned?: boolean;
+    reptfAsPrimarySource?: boolean;
 }
 
 interface AlwaysRemoveItemAttributes {
@@ -1193,15 +1209,10 @@ interface Bypass {
     escrow?: OnlyAllow;
     overpay?: OnlyAllow;
     giftWithoutMessage?: OnlyAllow;
-    bannedPeople?: BannedPeople;
 }
 
 interface OnlyAllow {
     allow?: boolean;
-}
-
-interface BannedPeople extends OnlyAllow {
-    checkMptfBanned: boolean;
 }
 
 // ------------ TradeSummary ------------
@@ -1421,6 +1432,7 @@ interface OfferReceived {
     failedToCheckDuped: FailedToCheckDuped;
     escrowCheckFailed?: EscrowBannedCheckFailed;
     bannedCheckFailed?: EscrowBannedCheckFailed;
+    halted?: Halted;
 }
 
 interface DeclineReply extends OnlyEnable {
@@ -1460,6 +1472,10 @@ interface EscrowBannedCheckFailed {
     ignoreFailed?: boolean;
 }
 
+interface Halted {
+    ignoreHalted: boolean;
+}
+
 // ------------ Manual Review ------------
 
 interface ManualReview extends OnlyEnable {
@@ -1476,6 +1492,7 @@ interface ManualReview extends OnlyEnable {
     dupedCheckFailed?: OnlyNote;
     escrowCheckFailed?: OnlyNote;
     bannedCheckFailed?: OnlyNote;
+    halted: OnlyNote;
     additionalNotes?: string;
 }
 
@@ -1569,6 +1586,7 @@ interface CustomMessage {
     iDontKnowWhatYouMean?: string;
     success?: string;
     successEscrow?: string;
+    halted?: string;
     decline?: DeclineNote;
     accepted?: AcceptedNote;
     tradedAway?: string;
@@ -1590,6 +1608,7 @@ interface DeclineNote {
     notTradingKeys?: string;
     notSellingKeys?: string;
     notBuyingKeys?: string;
+    halted?: string;
     banned?: string;
     escrow?: string;
     manual?: string;
@@ -1984,9 +2003,10 @@ export default interface Options extends JsonOptions {
     steamIdentitySecret?: string;
 
     bptfAccessToken?: string;
-    bptfAPIKey?: string;
-
+    bptfApiKey?: string;
     useragentHeaderCustom?: string;
+
+    mptfApiKey?: string;
 
     admins?: string[];
     keep?: string[];
@@ -2219,6 +2239,32 @@ function replaceOldProperties(options: Options): boolean {
         isChanged = true;
     }
 
+    // v4.12.1 -> v4.13.0
+    /*eslint-disable */
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.bypass?.bannedPeople !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        const mptfCheckValue = options.bypass.bannedPeople?.mptfCheck;
+
+        if (options.miscSettings.reputationCheck !== undefined) {
+            options.miscSettings.reputationCheck.checkMptfBanned =
+                typeof mptfCheckValue === 'boolean' ? mptfCheckValue : true;
+        } else {
+            options.miscSettings['reputationCheck'] = {
+                checkMptfBanned: mptfCheckValue,
+                reptfAsPrimarySource: true
+            };
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.bypass.bannedPeople;
+        isChanged = true;
+    }
+    /*eslint-enable */
+
     return isChanged;
 }
 
@@ -2238,9 +2284,10 @@ export function loadOptions(options?: Options): Options {
         steamIdentitySecret: getOption('steamIdentitySecret', '', String, incomingOptions),
 
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
-        bptfAPIKey: getOption('bptfAPIKey', '', String, incomingOptions),
-
+        bptfApiKey: getOption('bptfApiKey', '', String, incomingOptions),
         useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
+
+        mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseArray, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),

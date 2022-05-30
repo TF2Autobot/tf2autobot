@@ -120,9 +120,11 @@ export default function sendOfferReview(
                     description:
                         `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReasons: ${reasons}` +
                         (reasons.includes('⬜_BANNED_CHECK_FAILED')
-                            ? '\n\n`Backpack.tf or steamrep.com down, please manually check if this person is banned before accepting the offer.`'
+                            ? '\n\n`Failed to get reputation status, please manually check if this person is banned before accepting the offer.`'
                             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                             ? '\n\n`Steam down, please manually check if this person have escrow.`'
+                            : reasons.includes('⬜_HALTED')
+                            ? '\n\n`Offer received during halt mode`'
                             : '') +
                         summary +
                         (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +

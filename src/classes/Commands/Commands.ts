@@ -238,6 +238,12 @@ export default class Commands {
             void this.manager.clearFriendsCommand(steamID);
         } else if (command === 'stop' && isAdmin) {
             this.manager.stopCommand(steamID);
+        } else if (command === 'halt' && isAdmin) {
+            await this.manager.haltCommand(steamID);
+        } else if (command === 'unhalt' && isAdmin) {
+            await this.manager.unhaltCommand(steamID);
+        } else if (command === 'haltstatus' && isAdmin) {
+            this.manager.haltStatusCommand(steamID);
         } else if (command === 'restart' && isAdmin) {
             this.manager.restartCommand(steamID);
         } else if (command === 'refreshautokeys' && isAdmin) {

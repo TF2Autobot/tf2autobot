@@ -1,5 +1,6 @@
 import SteamID from 'steamid';
-import SteamUser, { EResult } from 'steam-user';
+import SteamUser, { EResult } from 'steam-user'; // { EResult, EPersonaState } gives me crash
+import { EPersonaState } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
@@ -10,7 +11,7 @@ import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
-import request from 'request-retry-dayjs';
+import axios from 'axios';
 
 import sleepasync from 'sleep-async';
 
@@ -113,6 +114,8 @@ export default class Bot {
 
     public userID: string;
 
+    private halted = false;
+
     constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
@@ -177,12 +180,15 @@ export default class Bot {
     }
 
     checkBanned(steamID: SteamID | string): Promise<IsBanned> {
-        if (this.options.bypass.bannedPeople.allow) {
-            return Promise.resolve({ isBanned: false });
-        }
-
         return Promise.resolve(
-            isBanned(steamID, this.options.bptfAPIKey, this.userID, this.options.bypass.bannedPeople.checkMptfBanned)
+            isBanned(
+                steamID,
+                this.options.bptfApiKey,
+                this.options.mptfApiKey,
+                this.userID,
+                this.options.miscSettings.reputationCheck.checkMptfBanned,
+                this.options.miscSettings.reputationCheck.reptfAsPrimarySource
+            )
         );
     }
 
@@ -225,6 +231,40 @@ export default class Bot {
 
     get isReady(): boolean {
         return this.ready;
+    }
+
+    get isHalted(): boolean {
+        return this.halted;
+    }
+
+    async halt(): Promise<void> {
+        this.halted = true;
+
+        // If we want to show another game here, probably needed new functions like Bot.useMainGame() and Bot.useHaltGame()
+        // (and refactor to use everywhere these functions instead of gamesPlayed)
+        log.debug('Setting status in Steam to "Snooze"');
+        this.client.setPersona(EPersonaState.Snooze);
+
+        log.debug('Removing all listings due to halt mode turned on');
+        await this.listings.removeAll().asCallback(err => {
+            if (err) {
+                log.warn('Failed to remove all listings on enabling halt mode: ', err);
+            }
+        });
+    }
+
+    async unhalt(): Promise<void> {
+        this.halted = false;
+
+        log.debug('Recreating all listings due to halt mode turned off');
+        await this.listings.redoListings().asCallback(err => {
+            if (err) {
+                log.warn('Failed to recreate all listings on disabling halt mode: ', err);
+            }
+        });
+
+        log.debug('Setting status in Steam to "Online"');
+        this.client.setPersona(EPersonaState.Online);
     }
 
     private addListener(
@@ -321,21 +361,19 @@ export default class Bot {
 
     private get getLatestVersion(): Promise<{ version: string }> {
         return new Promise((resolve, reject) => {
-            void request(
-                {
-                    method: 'GET',
-                    url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
-                    json: true
-                },
-                (err, response, body) => {
+            void axios({
+                method: 'GET',
+                url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json'
+            })
+                .then(response => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                    return resolve({ version: response.data.version });
+                })
+                .catch(err => {
                     if (err) {
                         return reject(err);
                     }
-
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-                    return resolve({ version: body.version });
-                }
-            ).end();
+                });
         });
     }
 
@@ -452,7 +490,7 @@ export default class Bot {
                         });
                     },
                     (callback): void => {
-                        if (this.options.bptfAPIKey && this.options.bptfAccessToken) {
+                        if (this.options.bptfApiKey && this.options.bptfAccessToken) {
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         }
@@ -762,7 +800,7 @@ export default class Bot {
             return Promise.all([this.getOrCreateBptfAPIKey, this.getBptfAccessToken]).then(([apiKey, accessToken]) => {
                 log.verbose('Got backpack.tf API key and access token!');
 
-                this.options.bptfAPIKey = apiKey;
+                this.options.bptfApiKey = apiKey;
                 this.options.bptfAccessToken = accessToken;
                 this.handler.onBptfAuth({ apiKey, accessToken });
 

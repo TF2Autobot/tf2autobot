@@ -23,6 +23,8 @@
 
                 "USERAGENT_HEADER_CUSTOM": "",
 
+                "MPTF_API_KEY": "",
+
                 "ADMINS": ["<your steamid 64>"],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
                 "ITEM_STATS_WHITELIST": [],
