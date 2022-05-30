@@ -58,7 +58,7 @@
         "reconnecting-websocket": "^4.4.0",
         "retry": "^0.13.1",
         "sleep-async": "^1.0.5",
-        "socket.io-client": "^4.5.0",
+        "socket.io-client": "^4.5.1",
         "steam-totp": "^2.1.2",
         "steam-user": "^4.24.3",
         "steamid": "^2.0.0",
