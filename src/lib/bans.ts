@@ -230,11 +230,20 @@ function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBa
             }
         })
             .then(response => {
-                const results = (response.data as MptfGetUserBan).results;
+                const results = (response.data as MptfGetUserBan)?.results;
 
-                const isMptfBanned = results[0].banned;
-                const banReason = results[0].ban?.type ?? '';
-                return resolve({ isBanned: isMptfBanned, content: banReason });
+                if (!Array.isArray(results)) {
+                    return reject(new Error('Marketplace.tf returned invalid data'));
+                }
+
+                const resultSize = results.length;
+                for (let i = 0; i < resultSize; i++) {
+                    if (steamID64 === results[i].steamid) {
+                        return resolve({ isBanned: results[i].banned ?? false, content: results[i].ban?.type ?? '' });
+                    }
+                }
+
+                return resolve({ isBanned: false });
             })
             .catch(err => {
                 if (err) {
