@@ -205,7 +205,8 @@ function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBa
         }
 
         void axios({
-            url: 'https://api.backpack.tf/api/users/info/v1',
+            method: 'POST',
+            url: 'https://marketplace.tf/api/Bans/GetUserBan/v2',
             headers: {
                 'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
             },
