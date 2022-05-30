@@ -10,6 +10,11 @@ export interface IsBanned {
     contents?: { [website: string]: string };
 }
 
+interface SiteResult {
+    isBanned: boolean;
+    content?: string;
+}
+
 let _isBptfSteamRepBanned: boolean = null;
 
 export async function isBanned(
@@ -22,20 +27,26 @@ export async function isBanned(
 ): Promise<IsBanned> {
     const steamID64 = steamID.toString();
 
-    const finalize = (bptf: boolean, mptf: boolean, steamrep: boolean): IsBanned => {
+    const finalize = (bptf: SiteResult, mptf: SiteResult, steamrep: SiteResult): IsBanned => {
         _isBptfSteamRepBanned = null;
 
         const toReturn = {
-            isBanned: bptf || mptf || steamrep,
+            isBanned: bptf.isBanned || mptf.isBanned || steamrep.isBanned,
             contents: {
-                'Backpack.tf': bptf ? 'banned' : 'clean',
-                'Steamrep.com:': steamrep ? 'banned' : 'clean'
+                'Backpack.tf': bptf.isBanned ? `banned${bptf.content !== '' ? ` - ${bptf.content}` : ''}` : 'clean',
+                'Steamrep.com:': steamrep.isBanned
+                    ? `banned${steamrep.content !== '' ? ` - ${steamrep.content}` : ''}`
+                    : 'clean'
             }
         };
 
         if (checkMptfBanned) {
-            toReturn.contents['Marketplace.tf'] = mptf ? 'banned' : 'clean';
+            toReturn.contents['Marketplace.tf'] = mptf.isBanned
+                ? `banned${mptf.content !== '' ? ` - ${mptf.content}` : ''}`
+                : 'clean';
         }
+
+        log[toReturn.isBanned ? 'warn' : 'debug']('Bans result:', toReturn.contents);
 
         return toReturn;
     };
@@ -128,7 +139,7 @@ async function getFromReptf(
     });
 }
 
-export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<boolean> {
+export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<SiteResult> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
@@ -145,13 +156,12 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
         })
             .then(response => {
                 const user = (response.data as BPTFGetUserInfo).users[steamID64];
-                const isBptfBanned = user.bans && user.bans.all !== undefined;
+                const isBptfBanned = user.bans?.all !== undefined;
+                const banReason = user.bans?.all?.reason ?? '';
 
                 _isBptfSteamRepBanned = user.bans ? user.bans.steamrep_scammer === 1 : false;
 
-                log[isBptfBanned ? 'warn' : 'debug']('Backpack.tf: ' + (isBptfBanned ? 'banned' : 'clean'));
-
-                return resolve(isBptfBanned);
+                return resolve({ isBanned: isBptfBanned, content: banReason });
             })
             .catch(err => {
                 if (err) {
@@ -162,28 +172,28 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
     });
 }
 
-function isSteamRepMarked(steamID: SteamID | string): Promise<boolean> {
+function isSteamRepMarked(steamID: SteamID | string): Promise<SiteResult> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
         void axios({
-            url: 'http://steamrep.com/api/beta4/reputation/' + steamID64,
+            url: 'https://steamrep.com/api/beta4/reputation/' + steamID64,
             params: {
                 json: 1
             }
         })
             .then(response => {
                 const isSteamRepBanned =
-                    (response.data as SteamRep).steamrep.reputation.summary.toLowerCase().indexOf('scammer') !== -1;
-                log[isSteamRepBanned ? 'warn' : 'debug']('SteamRep: ' + (isSteamRepBanned ? 'banned' : 'clean'));
+                    (response.data as SteamRep).steamrep.reputation?.summary.toLowerCase().indexOf('scammer') !== -1;
+                const fullRepInfo = (response.data as SteamRep).steamrep.reputation?.full ?? '';
 
-                return resolve(isSteamRepBanned);
+                return resolve({ isBanned: isSteamRepBanned, content: fullRepInfo });
             })
             .catch(err => {
                 if (err) {
                     log.warn('Failed to get data from SteamRep: ', err);
                     if (_isBptfSteamRepBanned !== null) {
-                        return resolve(_isBptfSteamRepBanned);
+                        return resolve({ isBanned: _isBptfSteamRepBanned });
                     } else {
                         return reject(err);
                     }
@@ -192,12 +202,12 @@ function isSteamRepMarked(steamID: SteamID | string): Promise<boolean> {
     });
 }
 
-function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBanned: boolean): Promise<boolean> {
+function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBanned: boolean): Promise<SiteResult> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
         if (!checkMptfBanned) {
-            return resolve(false);
+            return resolve({ isBanned: false });
         }
 
         if (mptfApiKey === '') {
@@ -219,7 +229,8 @@ function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBa
                 const results = (response.data as MptfGetUserBan).results;
 
                 const isMptfBanned = results[0].banned;
-                return resolve(isMptfBanned);
+                const banReason = results[0].ban?.type ?? '';
+                return resolve({ isBanned: isMptfBanned, content: banReason });
             })
             .catch(err => {
                 if (err) {
@@ -254,10 +265,15 @@ interface SteamRep {
 }
 
 interface Details {
+    flags: Flags;
     steamID32?: string;
     steamID64?: string;
     steamrepurl?: string;
     reputation?: Reputation;
+}
+
+interface Flags {
+    status: string;
 }
 
 interface Reputation {

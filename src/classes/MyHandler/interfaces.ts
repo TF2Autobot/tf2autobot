@@ -28,6 +28,7 @@ interface Integrations {
 interface Bans {
     steamrep_scammer?: number;
     all?: AllBans;
+    'all features': AllFeatures;
 }
 
 interface Votings {
@@ -51,6 +52,11 @@ interface Suggestions {
 interface AllBans {
     end?: number;
     reason?: string;
+}
+
+interface AllFeatures {
+    end: number;
+    reason: string;
 }
 
 interface InventoryAppID {
