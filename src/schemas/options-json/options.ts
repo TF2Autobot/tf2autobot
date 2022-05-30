@@ -1347,6 +1347,9 @@ export const optionsSchema: jsonschema.Schema = {
                 bannedCheckFailed: {
                     $ref: '#/definitions/only-note'
                 },
+                halted: {
+                    $ref: '#/definitions/only-note'
+                },
                 additionalNotes: {
                     type: 'string'
                 }
@@ -1366,6 +1369,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'dupedCheckFailed',
                 'escrowCheckFailed',
                 'bannedCheckFailed',
+                'halted',
                 'additionalNotes'
             ],
             additionalProperties: false
