@@ -2374,22 +2374,7 @@ export default class MyHandler extends Handler {
             .checkBanned(steamID)
             .then(banned => {
                 if (banned.isBanned) {
-                    let checkResult = '';
-                    if (banned.contents) {
-                        checkResult = 'Check results:\n';
-                        Object.keys(banned.contents).forEach((website, index) => {
-                            if (banned.contents[website] !== 'clean') {
-                                if (index > 0) {
-                                    checkResult += '\n';
-                                }
-                                checkResult += `(${index + 1}) ${website}: ${banned.contents[website]}`;
-                            }
-                        });
-                    }
-
-                    log.info(
-                        `Declining friend request and blocking ${steamID64}${checkResult ? ', ' + checkResult : '...'}`
-                    );
+                    log.info(`Declining friend request and blocking ${steamID64}...`);
 
                     this.bot.client.removeFriend(steamID);
                     this.bot.client.blockUser(steamID, err => {
