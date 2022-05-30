@@ -453,6 +453,14 @@ export default class MyHandler extends Handler {
             }
         }
 
+        if (this.bot.isHalted && !this.bot.isAdmin(steamID)) {
+            const custom = this.opt.customMessage.halted;
+            return this.bot.sendMessage(
+                steamID,
+                custom ? custom : '❌ The bot is not operational right now. Please come back later.'
+            );
+        }
+
         if (this.isUpdating) {
             return this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
         }
@@ -964,8 +972,31 @@ export default class MyHandler extends Handler {
             return;
         }
 
+        const manualReviewEnabled = opt.manualReview.enable;
+        const isIgnoreHalted = opt.offerReceived.halted.ignoreHalted;
+
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: WrongAboutOffer[] = [];
+
+        if (this.bot.isHalted) {
+            if (manualReviewEnabled && !isIgnoreHalted) {
+                wrongAboutOffer.push({
+                    reason: '⬜_HALTED'
+                });
+                offer.log('info', 'bot is halted, review enabled & not ignore -> marking as halted ang going to skip');
+            } else if (isIgnoreHalted) {
+                // do nothing
+                offer.log('info', 'bot is halted, review disabled & set to ignore -> Do nothing');
+                return;
+            } else {
+                offer.log('info', 'bot is halted, review disabled -> declining');
+                return {
+                    action: 'decline',
+                    reason: 'HALTED',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
+            }
+        }
 
         let checkBannedFailed = false;
 
@@ -1075,6 +1106,7 @@ export default class MyHandler extends Handler {
                         4
                     )}`
                 );
+
                 return {
                     action: 'accept',
                     reason: 'GIFT',
@@ -1703,8 +1735,6 @@ export default class MyHandler extends Handler {
             }
         }
 
-        const manualReviewEnabled = opt.manualReview.enable;
-
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = filterReasons(reasons.filter(reason => reasons.includes(reason)));
@@ -1882,6 +1912,15 @@ export default class MyHandler extends Handler {
                 highValue: isContainsHighValue ? highValueMeta : undefined
             };
 
+            // don't use business logic if the bot is not operational
+            if (this.bot.isHalted) {
+                return {
+                    action: 'skip',
+                    reason: 'REVIEW',
+                    meta: meta
+                };
+            }
+
             if (
                 (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked || isAcceptDisabledItems) &&
                 exchange.our.value !== 0 &&
@@ -2002,11 +2041,11 @@ export default class MyHandler extends Handler {
             } else if (isIgnoreEscrowCheckFailed && isOnlyEscrowCheckFailed) {
                 // If only ⬜_ESCROW_CHECK_FAILED (and with 🟥_INVALID_VALUE)
                 // and always ignore enabled, will do nothing.
-                // Blank
+                return;
             } else if (isIgnoreBannedCheckFailed && isOnlyBannedCheckFailed) {
                 // If only ⬜_BANNED_CHECK_FAILED  (and with 🟥_INVALID_VALUE)
                 // and always ignore enabled, will do nothing.
-                // Blank
+                return;
             } else if (manualReviewEnabled) {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 

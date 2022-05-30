@@ -1,5 +1,6 @@
 import SteamID from 'steamid';
-import SteamUser, { EResult } from 'steam-user';
+import SteamUser, { EResult } from 'steam-user'; // { EResult, EPersonaState } gives me crash
+import { EPersonaState } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
@@ -113,6 +114,8 @@ export default class Bot {
 
     public userID: string;
 
+    private halted = false;
+
     constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
@@ -225,6 +228,40 @@ export default class Bot {
 
     get isReady(): boolean {
         return this.ready;
+    }
+
+    get isHalted(): boolean {
+        return this.halted;
+    }
+
+    async halt(): Promise<void> {
+        this.halted = true;
+
+        // If we want to show another game here, probably needed new functions like Bot.useMainGame() and Bot.useHaltGame()
+        // (and refactor to use everywhere these functions instead of gamesPlayed)
+        log.debug('Setting status in Steam to "Snooze"');
+        this.client.setPersona(EPersonaState.Snooze);
+
+        log.debug('Removing all listings due to halt mode turned on');
+        await this.listings.removeAll().asCallback(err => {
+            if (err) {
+                log.warn('Failed to remove all listings on enabling halt mode: ', err);
+            }
+        });
+    }
+
+    async unhalt(): Promise<void> {
+        this.halted = false;
+
+        log.debug('Recreating all listings due to halt mode turned off');
+        await this.listings.redoListings().asCallback(err => {
+            if (err) {
+                log.warn('Failed to recreate all listings on disabling halt mode: ', err);
+            }
+        });
+
+        log.debug('Setting status in Steam to "Online"');
+        this.client.setPersona(EPersonaState.Online);
     }
 
     private addListener(

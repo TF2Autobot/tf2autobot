@@ -395,6 +395,10 @@ export const DEFAULTS: JsonOptions = {
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
             ignoreFailed: false
+        },
+        // ⬜_HALTED
+        halted: {
+            ignoreHalted: false
         }
     },
 
@@ -438,6 +442,10 @@ export const DEFAULTS: JsonOptions = {
         },
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
+            note: ''
+        },
+        // ⬜_HALTED
+        halted: {
             note: ''
         },
         additionalNotes: ''
@@ -521,6 +529,7 @@ export const DEFAULTS: JsonOptions = {
         iDontKnowWhatYouMean: '',
         success: '',
         successEscrow: '',
+        halted: '',
         decline: {
             general: '',
             hasNonTF2Items: '',
@@ -534,6 +543,7 @@ export const DEFAULTS: JsonOptions = {
             notTradingKeys: '',
             notSellingKeys: '',
             notBuyingKeys: '',
+            halted: '',
             banned: '',
             escrow: '',
             manual: '',
@@ -1421,6 +1431,7 @@ interface OfferReceived {
     failedToCheckDuped: FailedToCheckDuped;
     escrowCheckFailed?: EscrowBannedCheckFailed;
     bannedCheckFailed?: EscrowBannedCheckFailed;
+    halted?: Halted;
 }
 
 interface DeclineReply extends OnlyEnable {
@@ -1460,6 +1471,10 @@ interface EscrowBannedCheckFailed {
     ignoreFailed?: boolean;
 }
 
+interface Halted {
+    ignoreHalted: boolean;
+}
+
 // ------------ Manual Review ------------
 
 interface ManualReview extends OnlyEnable {
@@ -1476,6 +1491,7 @@ interface ManualReview extends OnlyEnable {
     dupedCheckFailed?: OnlyNote;
     escrowCheckFailed?: OnlyNote;
     bannedCheckFailed?: OnlyNote;
+    halted: OnlyNote;
     additionalNotes?: string;
 }
 
@@ -1569,6 +1585,7 @@ interface CustomMessage {
     iDontKnowWhatYouMean?: string;
     success?: string;
     successEscrow?: string;
+    halted?: string;
     decline?: DeclineNote;
     accepted?: AcceptedNote;
     tradedAway?: string;
@@ -1590,6 +1607,7 @@ interface DeclineNote {
     notTradingKeys?: string;
     notSellingKeys?: string;
     notBuyingKeys?: string;
+    halted?: string;
     banned?: string;
     escrow?: string;
     manual?: string;
