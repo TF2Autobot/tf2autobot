@@ -158,8 +158,10 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
         })
             .then(response => {
                 const user = (response.data as BPTFGetUserInfo).users[steamID64];
-                const isBptfBanned = user.bans?.all !== undefined;
-                const banReason = user.bans?.all?.reason ?? '';
+                const isBptfBanned =
+                    user.bans && (user.bans.all !== undefined || user.bans['all features'] !== undefined);
+
+                const banReason = user.bans ? user.bans.all?.reason ?? user.bans['all features']?.reason ?? '' : '';
 
                 _isBptfSteamRepBanned = user.bans ? user.bans.steamrep_scammer === 1 : false;
 
