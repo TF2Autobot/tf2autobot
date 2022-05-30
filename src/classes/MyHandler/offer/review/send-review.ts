@@ -45,8 +45,8 @@ export default async function sendReview(
                 const custom = opt.manualReview.bannedCheckFailed.note;
                 reply = custom
                     ? custom
-                    : 'Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep' +
-                      ' status, please wait for my owner to manually accept/decline your offer.';
+                    : 'I have failed to obtain data about your reputation status' +
+                      ', please wait for my owner to manually accept/decline your offer.';
             } else if (reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
                 const custom = opt.manualReview.escrowCheckFailed.note;
                 reply = custom
@@ -171,7 +171,7 @@ export async function sendToAdmin(
         } from ${offer.partner.toString()} is pending review.` +
         `\nReasons: ${reasons}` +
         (reasons.includes('⬜_BANNED_CHECK_FAILED')
-            ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
+            ? '\n\nFailed to get reputation status, please manually check if this person is banned before accepting the offer.'
             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
             ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
             : reasons.includes('⬜_HALTED')
