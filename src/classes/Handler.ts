@@ -213,6 +213,14 @@ export default abstract class Handler {
     }
 
     /**
+     * Called on successful deleting listings
+     * @param response - any
+     */
+    onDeleteArchivedListingSuccessful(response: boolean): void {
+        // empty function
+    }
+
+    /**
      * Called on error when creating listings
      * @param err - Error message
      */
@@ -233,6 +241,14 @@ export default abstract class Handler {
      * @param err - Error message
      */
     onDeleteListingsError(err: Error): void {
+        // empty function
+    }
+
+    /**
+     * Called on error when deleting listings
+     * @param err - Error message
+     */
+    onDeleteArchivedListingError(err: Error): void {
         // empty function
     }
 }

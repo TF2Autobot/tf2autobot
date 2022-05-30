@@ -27,13 +27,13 @@ export default class PricesTfSocketManager {
 
     private ws: ReconnectingWebSocket;
 
-    private socketDisconnected() {
+    private socketDisconnected(): () => void {
         return () => {
             log.debug('Disconnected from socket server');
         };
     }
 
-    private socketConnect() {
+    private socketConnect(): () => void {
         return () => {
             log.debug('Connected to socket server');
         };
@@ -66,7 +66,9 @@ export default class PricesTfSocketManager {
         void this.api
             .setupToken()
             .then(() => {
-                this.ws.reconnect();
+                if (!this.isConnecting) {
+                    this.ws.reconnect();
+                }
                 this.retryAttempts = -1;
             })
             .catch(err => {
@@ -82,12 +84,17 @@ export default class PricesTfSocketManager {
         this.retrySetupTokenTimeout = setTimeout(() => this.setupToken(), exponentialBackoff(this.retryAttempts));
     }
 
+    get isConnecting(): boolean {
+        return this.ws.readyState === this.ws.CONNECTING;
+    }
+
     connect(): void {
         this.ws.reconnect();
     }
 
     shutDown(): void {
         if (this.ws) {
+            // Why no removeAllEventListener ws? :(
             this.ws.close();
             this.ws = undefined;
         }

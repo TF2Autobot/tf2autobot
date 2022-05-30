@@ -209,7 +209,15 @@ export default class Listings {
                 this.bot.listingManager.createListing(listing);
             }
 
-            if (!hasSellListing && amountCanSell > 0) {
+            const assetid = assetids[assetids.length - 1];
+
+            if (!hasSellListing && amountCanSell > 0 && assetid) {
+                // assetid can be undefined, if any of the following is set to true
+                // - options.normalize.festivized.amountIncludeNonFestivized
+                // - options.normalize.strangeAsSecondQuality.amountIncludeNonStrange
+                // - options.normalize.painted.amountIncludeNonPainted
+                // https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file#-items-normalization-settings-
+
                 if (showLogs) {
                     log.debug(`We have no sell order and we can sell items, create sell listing.`);
                 }
@@ -218,7 +226,7 @@ export default class Listings {
 
                 this.bot.listingManager.createListing({
                     time: matchNew.time || dayjs().unix(),
-                    id: assetids[assetids.length - 1],
+                    id: assetid,
                     intent: 1,
                     promoted: matchNew.promoted,
                     details: this.getDetails(
