@@ -73,7 +73,7 @@
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.16.7",
-        "@types/async": "^3.2.12",
+        "@types/async": "^3.2.13",
         "@types/bluebird-global": "^3.5.13",
         "@types/cheerio": "^0.22.31",
         "@types/death": "^1.1.2",
@@ -82,7 +82,7 @@
         "@types/jest": "^27.4.1",
         "@types/pluralize": "0.0.29",
         "@types/request": "^2.48.8",
-        "@types/retry": "^0.12.1",
+        "@types/retry": "^0.12.2",
         "@types/semver": "^7.3.9",
         "@types/valid-url": "^1.0.3",
         "@types/ws": "^8.5.3",
