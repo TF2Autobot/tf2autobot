@@ -973,16 +973,21 @@ export default class MyHandler extends Handler {
         }
 
         const manualReviewEnabled = opt.manualReview.enable;
+        const isIgnoreHalted = opt.offerReceived.halted.ignoreHalted;
 
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: WrongAboutOffer[] = [];
 
         if (this.bot.isHalted) {
-            wrongAboutOffer.push({
-                reason: '⬜_HALTED'
-            });
-            if (manualReviewEnabled) {
-                offer.log('info', 'bot is halted, review enabled -> marking as halted ang going to skip');
+            if (manualReviewEnabled && !isIgnoreHalted) {
+                wrongAboutOffer.push({
+                    reason: '⬜_HALTED'
+                });
+                offer.log('info', 'bot is halted, review enabled & not ignore -> marking as halted ang going to skip');
+            } else if (isIgnoreHalted) {
+                // do nothing
+                offer.log('info', 'bot is halted, review disabled & set to ignore -> Do nothing');
+                return;
             } else {
                 offer.log('info', 'bot is halted, review disabled -> declining');
                 return {
@@ -2036,11 +2041,11 @@ export default class MyHandler extends Handler {
             } else if (isIgnoreEscrowCheckFailed && isOnlyEscrowCheckFailed) {
                 // If only ⬜_ESCROW_CHECK_FAILED (and with 🟥_INVALID_VALUE)
                 // and always ignore enabled, will do nothing.
-                // Blank
+                return;
             } else if (isIgnoreBannedCheckFailed && isOnlyBannedCheckFailed) {
                 // If only ⬜_BANNED_CHECK_FAILED  (and with 🟥_INVALID_VALUE)
                 // and always ignore enabled, will do nothing.
-                // Blank
+                return;
             } else if (manualReviewEnabled) {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 

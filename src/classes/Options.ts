@@ -395,6 +395,10 @@ export const DEFAULTS: JsonOptions = {
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
             ignoreFailed: false
+        },
+        // ⬜_HALTED
+        halted: {
+            ignoreHalted: false
         }
     },
 
@@ -438,6 +442,10 @@ export const DEFAULTS: JsonOptions = {
         },
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
+            note: ''
+        },
+        // ⬜_HALTED
+        halted: {
             note: ''
         },
         additionalNotes: ''
@@ -1423,6 +1431,7 @@ interface OfferReceived {
     failedToCheckDuped: FailedToCheckDuped;
     escrowCheckFailed?: EscrowBannedCheckFailed;
     bannedCheckFailed?: EscrowBannedCheckFailed;
+    halted?: Halted;
 }
 
 interface DeclineReply extends OnlyEnable {
@@ -1462,6 +1471,10 @@ interface EscrowBannedCheckFailed {
     ignoreFailed?: boolean;
 }
 
+interface Halted {
+    ignoreHalted: boolean;
+}
+
 // ------------ Manual Review ------------
 
 interface ManualReview extends OnlyEnable {
@@ -1478,6 +1491,7 @@ interface ManualReview extends OnlyEnable {
     dupedCheckFailed?: OnlyNote;
     escrowCheckFailed?: OnlyNote;
     bannedCheckFailed?: OnlyNote;
+    halted: OnlyNote;
     additionalNotes?: string;
 }
 

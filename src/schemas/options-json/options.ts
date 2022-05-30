@@ -1275,6 +1275,16 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 bannedCheckFailed: {
                     $ref: '#/definitions/only-ignore-failed'
+                },
+                halted: {
+                    type: 'object',
+                    properties: {
+                        ignoreHalted: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['ignoreHalted'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -1287,7 +1297,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'understocked',
                 'duped',
                 'escrowCheckFailed',
-                'bannedCheckFailed'
+                'bannedCheckFailed',
+                'halted'
             ],
             additionalProperties: false
         },
