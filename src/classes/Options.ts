@@ -2243,7 +2243,7 @@ function replaceOldProperties(options: Options): boolean {
     /*eslint-disable */
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    if (options.bypass.bannedPeople !== undefined) {
+    if (options.bypass?.bannedPeople !== undefined) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         const mptfCheckValue = options.bypass.bannedPeople?.mptfCheck;
