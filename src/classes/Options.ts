@@ -1133,12 +1133,12 @@ interface MiscSettings {
     game?: Game;
     alwaysRemoveItemAttributes?: AlwaysRemoveItemAttributes;
     deleteUntradableJunk?: OnlyEnable;
-    reputationCheck: ReputationCheck;
+    reputationCheck?: ReputationCheck;
 }
 
 interface ReputationCheck {
-    checkMptfBanned: boolean;
-    reptfAsPrimarySource: boolean;
+    checkMptfBanned?: boolean;
+    reptfAsPrimarySource?: boolean;
 }
 
 interface AlwaysRemoveItemAttributes {
