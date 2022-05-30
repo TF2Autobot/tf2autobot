@@ -123,6 +123,8 @@ export default function sendOfferReview(
                             ? '\n\n`Failed to get reputation status, please manually check if this person is banned before accepting the offer.`'
                             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                             ? '\n\n`Steam down, please manually check if this person have escrow.`'
+                            : reasons.includes('⬜_HALTED')
+                            ? '\n\n`Offer received during halt mode`'
                             : '') +
                         summary +
                         (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
