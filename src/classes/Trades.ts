@@ -1454,7 +1454,7 @@ export default class Trades {
             // determine whether it's good time to restart or not
             try {
                 // test if backpack.tf is alive by performing bptf banned check request
-                await isBptfBanned(steamID, this.bot.options.bptfAPIKey, this.bot.userID);
+                await isBptfBanned(steamID, this.bot.options.bptfApiKey, this.bot.userID);
             } catch (err) {
                 // do not restart, try again after 3 minutes
                 clearTimeout(this.restartOnEscrowCheckFailed);

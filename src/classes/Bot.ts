@@ -180,12 +180,15 @@ export default class Bot {
     }
 
     checkBanned(steamID: SteamID | string): Promise<IsBanned> {
-        if (this.options.bypass.bannedPeople.allow) {
-            return Promise.resolve({ isBanned: false });
-        }
-
         return Promise.resolve(
-            isBanned(steamID, this.options.bptfAPIKey, this.userID, this.options.bypass.bannedPeople.checkMptfBanned)
+            isBanned(
+                steamID,
+                this.options.bptfApiKey,
+                this.options.mptfApiKey,
+                this.userID,
+                this.options.miscSettings.reputationCheck.checkMptfBanned,
+                this.options.miscSettings.reputationCheck.reptfAsPrimarySource
+            )
         );
     }
 
@@ -487,7 +490,7 @@ export default class Bot {
                         });
                     },
                     (callback): void => {
-                        if (this.options.bptfAPIKey && this.options.bptfAccessToken) {
+                        if (this.options.bptfApiKey && this.options.bptfAccessToken) {
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         }
@@ -797,7 +800,7 @@ export default class Bot {
             return Promise.all([this.getOrCreateBptfAPIKey, this.getBptfAccessToken]).then(([apiKey, accessToken]) => {
                 log.verbose('Got backpack.tf API key and access token!');
 
-                this.options.bptfAPIKey = apiKey;
+                this.options.bptfApiKey = apiKey;
                 this.options.bptfAccessToken = accessToken;
                 this.handler.onBptfAuth({ apiKey, accessToken });
 

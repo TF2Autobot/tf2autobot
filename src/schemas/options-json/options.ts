@@ -430,6 +430,19 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 deleteUntradableJunk: {
                     $ref: '#/definitions/only-enable'
+                },
+                reputationCheck: {
+                    type: 'object',
+                    properties: {
+                        checkMptfBanned: {
+                            type: 'boolean'
+                        },
+                        reptfAsPrimarySource: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['checkMptfBanned', 'reptfAsPrimarySource'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -444,7 +457,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'checkUses',
                 'game',
                 'alwaysRemoveItemAttributes',
-                'deleteUntradableJunk'
+                'deleteUntradableJunk',
+                'reputationCheck'
             ],
             additionalProperties: false
         },
@@ -623,22 +637,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 giftWithoutMessage: {
                     $ref: '#/definitions/only-allow'
-                },
-                bannedPeople: {
-                    type: 'object',
-                    properties: {
-                        allow: {
-                            type: 'boolean'
-                        },
-                        checkMptfBanned: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['allow', 'checkMptfBanned'],
-                    additionalProperties: false
                 }
             },
-            required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople'],
+            required: ['escrow', 'overpay', 'giftWithoutMessage'],
             additionalProperties: false
         },
         tradeSummary: {

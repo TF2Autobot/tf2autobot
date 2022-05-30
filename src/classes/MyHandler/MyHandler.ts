@@ -2369,27 +2369,26 @@ export default class MyHandler extends Handler {
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
+        const accept = () => {
+            log.info(`Accepting friend request from ${steamID64}...`);
+            this.bot.client.addFriend(steamID, err => {
+                if (err) {
+                    log.warn(`Failed to accept friend request from ${steamID64}: `, err);
+                    return;
+                }
+                log.debug('Friend request has been accepted');
+            });
+        };
+
+        if (this.bot.isAdmin(steamID)) {
+            return accept();
+        }
 
         void this.bot
             .checkBanned(steamID)
             .then(banned => {
                 if (banned.isBanned) {
-                    let checkResult = '';
-                    if (banned.contents) {
-                        checkResult = 'Check results:\n';
-                        Object.keys(banned.contents).forEach((website, index) => {
-                            if (banned.contents[website] !== 'clean') {
-                                if (index > 0) {
-                                    checkResult += '\n';
-                                }
-                                checkResult += `(${index + 1}) ${website}: ${banned.contents[website]}`;
-                            }
-                        });
-                    }
-
-                    log.info(
-                        `Declining friend request and blocking ${steamID64}${checkResult ? ', ' + checkResult : '...'}`
-                    );
+                    log.info(`Declining friend request and blocking ${steamID64}...`);
 
                     this.bot.client.removeFriend(steamID);
                     this.bot.client.blockUser(steamID, err => {
@@ -2401,14 +2400,7 @@ export default class MyHandler extends Handler {
                     return;
                 }
 
-                log.info(`Accepting friend request from ${steamID64}...`);
-                this.bot.client.addFriend(steamID, err => {
-                    if (err) {
-                        log.warn(`Failed to accept friend request from ${steamID64}: `, err);
-                        return;
-                    }
-                    log.debug('Friend request has been accepted');
-                });
+                return accept();
             })
             .catch(err => {
                 log.error('Failed to check banned on respondToFriendRequest: ', err);
@@ -2530,7 +2522,7 @@ export default class MyHandler extends Handler {
                     Cookie: 'user-id=' + this.bot.userID
                 },
                 params: {
-                    key: this.opt.bptfAPIKey,
+                    key: this.opt.bptfApiKey,
                     steamids: steamID64
                 }
             })
