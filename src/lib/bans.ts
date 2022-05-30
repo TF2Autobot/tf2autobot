@@ -102,12 +102,14 @@ async function getFromReptf(
                 const isMptfBanned = bans.mpBans ? bans.mpBans.banned === 'bad' : false;
 
                 const bansResult = {
-                    'Backpack.tf': isBptfBanned ? `banned - ${bans.bptfBans.message}` : 'clean',
-                    'Steamrep.com': isSteamRepBanned ? `banned - ${bans.srBans.message}` : 'clean'
+                    'Backpack.tf': isBptfBanned ? `banned - ${removeHTMLTags(bans.bptfBans.message)}` : 'clean',
+                    'Steamrep.com': isSteamRepBanned ? `banned - ${removeHTMLTags(bans.srBans.message)}` : 'clean'
                 };
 
                 if (checkMptf) {
-                    bansResult['Marketplace.tf'] = isMptfBanned ? `banned - ${bans.mpBans.message}` : 'clean';
+                    bansResult['Marketplace.tf'] = isMptfBanned
+                        ? `banned - ${removeHTMLTags(bans.mpBans.message)}`
+                        : 'clean';
                 }
 
                 log[isBptfBanned || isSteamRepBanned || (checkMptf && isMptfBanned) ? 'warn' : 'debug'](
@@ -239,6 +241,16 @@ function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBa
                 }
             });
     });
+}
+
+// https://www.geeksforgeeks.org/how-to-strip-out-html-tags-from-a-string-using-javascript/
+function removeHTMLTags(str: string): string {
+    if (str === null || str === '') {
+        return '';
+    }
+
+    str = str.toString();
+    return str.replace(/(<([^>]+)>)/gi, '');
 }
 
 interface MptfGetUserBan {
