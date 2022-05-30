@@ -430,6 +430,19 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 deleteUntradableJunk: {
                     $ref: '#/definitions/only-enable'
+                },
+                reputationCheck: {
+                    type: 'object',
+                    properties: {
+                        checkMptfBanned: {
+                            type: 'boolean'
+                        },
+                        reptfAsPrimarySource: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['checkMptfBanned', 'reptfAsPrimarySource'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -444,7 +457,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'checkUses',
                 'game',
                 'alwaysRemoveItemAttributes',
-                'deleteUntradableJunk'
+                'deleteUntradableJunk',
+                'reputationCheck'
             ],
             additionalProperties: false
         },
@@ -623,22 +637,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 giftWithoutMessage: {
                     $ref: '#/definitions/only-allow'
-                },
-                bannedPeople: {
-                    type: 'object',
-                    properties: {
-                        allow: {
-                            type: 'boolean'
-                        },
-                        checkMptfBanned: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['allow', 'checkMptfBanned'],
-                    additionalProperties: false
                 }
             },
-            required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople'],
+            required: ['escrow', 'overpay', 'giftWithoutMessage'],
             additionalProperties: false
         },
         tradeSummary: {
@@ -1275,6 +1276,16 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 bannedCheckFailed: {
                     $ref: '#/definitions/only-ignore-failed'
+                },
+                halted: {
+                    type: 'object',
+                    properties: {
+                        ignoreHalted: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['ignoreHalted'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -1287,7 +1298,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'understocked',
                 'duped',
                 'escrowCheckFailed',
-                'bannedCheckFailed'
+                'bannedCheckFailed',
+                'halted'
             ],
             additionalProperties: false
         },
@@ -1336,6 +1348,9 @@ export const optionsSchema: jsonschema.Schema = {
                 bannedCheckFailed: {
                     $ref: '#/definitions/only-note'
                 },
+                halted: {
+                    $ref: '#/definitions/only-note'
+                },
                 additionalNotes: {
                     type: 'string'
                 }
@@ -1355,6 +1370,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'dupedCheckFailed',
                 'escrowCheckFailed',
                 'bannedCheckFailed',
+                'halted',
                 'additionalNotes'
             ],
             additionalProperties: false
@@ -1615,6 +1631,9 @@ export const optionsSchema: jsonschema.Schema = {
                 successEscrow: {
                     type: 'string'
                 },
+                halted: {
+                    type: 'string'
+                },
                 decline: {
                     type: 'object',
                     properties: {
@@ -1652,6 +1671,9 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         },
                         notBuyingKeys: {
+                            type: 'string'
+                        },
+                        halted: {
                             type: 'string'
                         },
                         banned: {

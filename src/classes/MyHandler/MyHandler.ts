@@ -453,6 +453,14 @@ export default class MyHandler extends Handler {
             }
         }
 
+        if (this.bot.isHalted && !this.bot.isAdmin(steamID)) {
+            const custom = this.opt.customMessage.halted;
+            return this.bot.sendMessage(
+                steamID,
+                custom ? custom : '❌ The bot is not operational right now. Please come back later.'
+            );
+        }
+
         if (this.isUpdating) {
             return this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
         }
@@ -972,8 +980,31 @@ export default class MyHandler extends Handler {
             return;
         }
 
+        const manualReviewEnabled = opt.manualReview.enable;
+        const isIgnoreHalted = opt.offerReceived.halted.ignoreHalted;
+
         // A list of things that is wrong about the offer and other information
         const wrongAboutOffer: WrongAboutOffer[] = [];
+
+        if (this.bot.isHalted) {
+            if (manualReviewEnabled && !isIgnoreHalted) {
+                wrongAboutOffer.push({
+                    reason: '⬜_HALTED'
+                });
+                offer.log('info', 'bot is halted, review enabled & not ignore -> marking as halted ang going to skip');
+            } else if (isIgnoreHalted) {
+                // do nothing
+                offer.log('info', 'bot is halted, review disabled & set to ignore -> Do nothing');
+                return;
+            } else {
+                offer.log('info', 'bot is halted, review disabled -> declining');
+                return {
+                    action: 'decline',
+                    reason: 'HALTED',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
+            }
+        }
 
         let checkBannedFailed = false;
 
@@ -1083,6 +1114,7 @@ export default class MyHandler extends Handler {
                         4
                     )}`
                 );
+
                 return {
                     action: 'accept',
                     reason: 'GIFT',
@@ -1744,8 +1776,6 @@ export default class MyHandler extends Handler {
             }
         }
 
-        const manualReviewEnabled = opt.manualReview.enable;
-
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
             const uniqueReasons = filterReasons(reasons.filter(reason => reasons.includes(reason)));
@@ -1923,6 +1953,15 @@ export default class MyHandler extends Handler {
                 highValue: isContainsHighValue ? highValueMeta : undefined
             };
 
+            // don't use business logic if the bot is not operational
+            if (this.bot.isHalted) {
+                return {
+                    action: 'skip',
+                    reason: 'REVIEW',
+                    meta: meta
+                };
+            }
+
             if (
                 (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked || isAcceptDisabledItems) &&
                 exchange.our.value !== 0 &&
@@ -2043,11 +2082,11 @@ export default class MyHandler extends Handler {
             } else if (isIgnoreEscrowCheckFailed && isOnlyEscrowCheckFailed) {
                 // If only ⬜_ESCROW_CHECK_FAILED (and with 🟥_INVALID_VALUE)
                 // and always ignore enabled, will do nothing.
-                // Blank
+                return;
             } else if (isIgnoreBannedCheckFailed && isOnlyBannedCheckFailed) {
                 // If only ⬜_BANNED_CHECK_FAILED  (and with 🟥_INVALID_VALUE)
                 // and always ignore enabled, will do nothing.
-                // Blank
+                return;
             } else if (manualReviewEnabled) {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 
@@ -2371,27 +2410,26 @@ export default class MyHandler extends Handler {
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
+        const accept = () => {
+            log.info(`Accepting friend request from ${steamID64}...`);
+            this.bot.client.addFriend(steamID, err => {
+                if (err) {
+                    log.warn(`Failed to accept friend request from ${steamID64}: `, err);
+                    return;
+                }
+                log.debug('Friend request has been accepted');
+            });
+        };
+
+        if (this.bot.isAdmin(steamID)) {
+            return accept();
+        }
 
         void this.bot
             .checkBanned(steamID)
             .then(banned => {
                 if (banned.isBanned) {
-                    let checkResult = '';
-                    if (banned.contents) {
-                        checkResult = 'Check results:\n';
-                        Object.keys(banned.contents).forEach((website, index) => {
-                            if (banned.contents[website] !== 'clean') {
-                                if (index > 0) {
-                                    checkResult += '\n';
-                                }
-                                checkResult += `(${index + 1}) ${website}: ${banned.contents[website]}`;
-                            }
-                        });
-                    }
-
-                    log.info(
-                        `Declining friend request and blocking ${steamID64}${checkResult ? ', ' + checkResult : '...'}`
-                    );
+                    log.info(`Declining friend request and blocking ${steamID64}...`);
 
                     this.bot.client.removeFriend(steamID);
                     this.bot.client.blockUser(steamID, err => {
@@ -2403,14 +2441,7 @@ export default class MyHandler extends Handler {
                     return;
                 }
 
-                log.info(`Accepting friend request from ${steamID64}...`);
-                this.bot.client.addFriend(steamID, err => {
-                    if (err) {
-                        log.warn(`Failed to accept friend request from ${steamID64}: `, err);
-                        return;
-                    }
-                    log.debug('Friend request has been accepted');
-                });
+                return accept();
             })
             .catch(err => {
                 log.error('Failed to check banned on respondToFriendRequest: ', err);
@@ -2532,7 +2563,7 @@ export default class MyHandler extends Handler {
                     Cookie: 'user-id=' + this.bot.userID
                 },
                 params: {
-                    key: this.opt.bptfAPIKey,
+                    key: this.opt.bptfApiKey,
                     steamids: steamID64
                 }
             })

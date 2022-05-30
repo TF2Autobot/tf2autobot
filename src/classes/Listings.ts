@@ -21,7 +21,7 @@ export default class Listings {
     private cancelCheckingListings = false;
 
     private get isCreateListing(): boolean {
-        return this.bot.options.miscSettings.createListings.enable;
+        return this.bot.options.miscSettings.createListings.enable && !this.bot.isHalted;
     }
 
     private templates: { buy: string; sell: string };
