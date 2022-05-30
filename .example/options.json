@@ -42,6 +42,10 @@
         },
         "deleteUntradableJunk": {
             "enable": false
+        },
+        "reputationCheck": {
+            "checkMptfBanned": true,
+            "reptfAsPrimarySource": true
         }
     },
     "sendAlert": {
@@ -106,10 +110,6 @@
         },
         "giftWithoutMessage": {
             "allow": false
-        },
-        "bannedPeople": {
-            "allow": false,
-            "checkMptfBanned": true
         }
     },
     "tradeSummary": {
@@ -364,6 +364,9 @@
         },
         "bannedCheckFailed": {
             "ignoreFailed": false
+        },
+        "halted": {
+            "ignoreHalted": false
         }
     },
     "manualReview": {
@@ -397,6 +400,9 @@
             "note": ""
         },
         "bannedCheckFailed": {
+            "note": ""
+        },
+        "halted": {
             "note": ""
         },
         "additionalNotes": ""
@@ -478,6 +484,7 @@
         "iDontKnowWhatYouMean": "",
         "success": "",
         "successEscrow": "",
+        "halted": "",
         "decline": {
             "general": "",
             "hasNonTF2Items": "",
@@ -491,6 +498,7 @@
             "notTradingKeys": "",
             "notSellingKeys": "",
             "notBuyingKeys": "",
+            "halted": "",
             "banned": "",
             "escrow": "",
             "manual": "",
