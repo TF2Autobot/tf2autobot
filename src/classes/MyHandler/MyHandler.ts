@@ -2530,7 +2530,7 @@ export default class MyHandler extends Handler {
                     Cookie: 'user-id=' + this.bot.userID
                 },
                 params: {
-                    key: this.opt.bptfAPIKey,
+                    key: this.opt.bptfApiKey,
                     steamids: steamID64
                 }
             })

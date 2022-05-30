@@ -53,6 +53,10 @@ export const DEFAULTS: JsonOptions = {
         },
         deleteUntradableJunk: {
             enable: false
+        },
+        reputationCheck: {
+            checkMptfBanned: true,
+            reptfAsPrimarySource: true
         }
     },
 
@@ -120,10 +124,6 @@ export const DEFAULTS: JsonOptions = {
         },
         giftWithoutMessage: {
             allow: false
-        },
-        bannedPeople: {
-            allow: false,
-            checkMptfBanned: true
         }
     },
 
@@ -1133,6 +1133,12 @@ interface MiscSettings {
     game?: Game;
     alwaysRemoveItemAttributes?: AlwaysRemoveItemAttributes;
     deleteUntradableJunk?: OnlyEnable;
+    reputationCheck: ReputationCheck;
+}
+
+interface ReputationCheck {
+    checkMptfBanned: boolean;
+    reptfAsPrimarySource: boolean;
 }
 
 interface AlwaysRemoveItemAttributes {
@@ -1203,15 +1209,10 @@ interface Bypass {
     escrow?: OnlyAllow;
     overpay?: OnlyAllow;
     giftWithoutMessage?: OnlyAllow;
-    bannedPeople?: BannedPeople;
 }
 
 interface OnlyAllow {
     allow?: boolean;
-}
-
-interface BannedPeople extends OnlyAllow {
-    checkMptfBanned: boolean;
 }
 
 // ------------ TradeSummary ------------
@@ -2002,9 +2003,10 @@ export default interface Options extends JsonOptions {
     steamIdentitySecret?: string;
 
     bptfAccessToken?: string;
-    bptfAPIKey?: string;
-
+    bptfApiKey?: string;
     useragentHeaderCustom?: string;
+
+    mptfApiKey?: string;
 
     admins?: string[];
     keep?: string[];
@@ -2237,6 +2239,30 @@ function replaceOldProperties(options: Options): boolean {
         isChanged = true;
     }
 
+    // v4.12.1 -> v4.13.0
+    /*eslint-disable */
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.bypass.bannedPeople !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        const mptfCheckValue = options.bypass.bannedPeople?.mptfCheck;
+
+        if (typeof mptfCheckValue === 'boolean') {
+            if (options.miscSettings.reputationCheck !== undefined) {
+                options.miscSettings.reputationCheck.checkMptfBanned = mptfCheckValue;
+            } else {
+                options.miscSettings['reputationCheck'] = {
+                    checkMptfBanned: mptfCheckValue,
+                    reptfAsPrimarySource: true
+                };
+            }
+
+            isChanged = true;
+        }
+    }
+    /*eslint-enable */
+
     return isChanged;
 }
 
@@ -2256,9 +2282,10 @@ export function loadOptions(options?: Options): Options {
         steamIdentitySecret: getOption('steamIdentitySecret', '', String, incomingOptions),
 
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
-        bptfAPIKey: getOption('bptfAPIKey', '', String, incomingOptions),
-
+        bptfApiKey: getOption('bptfApiKey', '', String, incomingOptions),
         useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
+
+        mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseArray, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
