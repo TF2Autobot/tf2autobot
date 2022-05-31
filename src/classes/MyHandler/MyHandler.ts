@@ -2452,8 +2452,8 @@ export default class MyHandler extends Handler {
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
                           .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                    : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
-                          (isAdmin ? 'help' : 'how2trade')
+                    : `Hi ${friend.player_name}! If you don't know how things work, please type ` +
+                          `"!${isAdmin ? 'help' : 'how2trade'}"`
             );
         });
     }
