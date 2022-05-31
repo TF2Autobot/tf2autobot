@@ -1,5 +1,6 @@
-import axios, { AxiosRequestConfig, Method } from 'axios';
+import axios, { AxiosRequestConfig, Method, AxiosError } from 'axios';
 import { PricerOptions } from '../../../classes/IPricer';
+import log from '../../logger';
 
 export interface PricesTfRequestCheckResponse {
     enqueued: boolean;
@@ -67,11 +68,13 @@ export default class PricesTfApi {
                 }
             );
         } catch (e) {
-            if (e && (e['statusCode'] ? e['statusCode'] : e['status']) === 401) {
+            const err = e as AxiosError;
+            if (err.response && err.response.status === 401) {
+                log.debug('Requesting new token from prices.tf due to 401');
                 await this.setupToken();
                 return this.authedApiRequest(httpMethod, path, params, {}, headers);
             }
-            throw e;
+            throw err;
         }
     }
 
