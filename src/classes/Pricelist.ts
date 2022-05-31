@@ -301,6 +301,12 @@ export default class Pricelist extends EventEmitter {
         const pricesCount = ArraySKU.length;
 
         for (let i = 0; i < pricesCount; i++) {
+            // Filter out assets
+            // Note to myself: I only realized this is needed because disabled items were entering in UserCart:constructOffer() and throwing errors
+            if (Pricelist.isAssetId(ArraySKU[i])) {
+                continue;
+            }
+
             const entry = this.prices[ArraySKU[i]];
 
             if (enabledOnly && entry.enabled === false) {

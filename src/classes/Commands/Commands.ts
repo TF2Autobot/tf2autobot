@@ -454,7 +454,11 @@ export default class Commands {
         );
 
         cart.setNotify = true;
-        cart[['b', 'buy'].includes(command) ? 'addOurItem' : 'addTheirItem'](info.match.sku, info.amount);
+        if (['b', 'buy'].includes(command)) {
+            cart.addOurItem(info.priceKey, info.amount);
+        } else {
+            cart.addTheirItem(info.match.sku, info.amount);
+        }
 
         this.addCartToQueue(cart, false, false);
     }
@@ -496,9 +500,9 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
 
-        const cartAmount = cart.getOurCount(info.match.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, false, true);
-        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.match.sku, false) - cartAmount;
+        const cartAmount = cart.getOurCount(info.priceKey);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.priceKey, false, true);
+        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.priceKey, false) - cartAmount;
 
         const name = info.match.name;
 
@@ -535,7 +539,7 @@ export default class Commands {
                     ' has been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
             );
 
-        cart.addOurItem(info.match.sku, amount);
+        cart.addOurItem(info.priceKey, amount);
         Cart.addCart(cart);
     }
 

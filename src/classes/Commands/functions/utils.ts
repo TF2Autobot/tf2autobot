@@ -6,7 +6,7 @@ import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { MinimumItem } from '../../../types/TeamFortress2';
 import Bot from '../../Bot';
-import { Entry } from '../../Pricelist';
+import Pricelist, { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
 import { testSKU } from '../../../lib/tools/export';
@@ -16,7 +16,7 @@ export function getItemAndAmount(
     message: string,
     bot: Bot,
     from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
-): { match: Entry; amount: number } | null {
+): { match: Entry; priceKey: string; amount: number } | null {
     let name = removeLinkProtocol(message);
     let amount = 1;
     if (/^[-]?\d+$/.test(name.split(' ')[0])) {
@@ -53,6 +53,7 @@ export function getItemAndAmount(
         return null;
     }
 
+    let priceKey: string;
     let match = testSKU(name) ? bot.pricelist.getPrice(name, true) : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
@@ -66,6 +67,14 @@ export function getItemAndAmount(
 
             return null;
         }
+
+        if (Pricelist.isIdSearch(name)) {
+            priceKey = name.slice('id='.length);
+            // maybe we shouldn't allow '!buy [amount] id='
+            amount = 1;
+        } else {
+            priceKey = match.sku;
+        }
     }
 
     if (match === null) {
@@ -77,12 +86,12 @@ export function getItemAndAmount(
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
         const genericEffect = genericNameAndMatch(name, bot.effects);
         const pricelist = bot.pricelist.getPrices;
-        for (const sku in pricelist) {
-            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+        for (const priceKey in pricelist) {
+            if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey) || Pricelist.isAssetId(priceKey)) {
                 continue;
             }
 
-            const pricedItem = pricelist[sku];
+            const pricedItem = pricelist[priceKey];
             if (pricedItem.name === null) {
                 // This looks impossible, but can occur I guess.
                 // https://github.com/TF2Autobot/tf2autobot/issues/882
@@ -160,6 +169,7 @@ export function getItemAndAmount(
 
             return {
                 amount: amount,
+                priceKey: closestMatch.sku,
                 match: closestMatch
             };
         } else {
@@ -202,6 +212,7 @@ export function getItemAndAmount(
 
     return {
         amount: amount,
+        priceKey: priceKey,
         match: match
     };
 }
