@@ -1198,6 +1198,7 @@ export default class MyHandler extends Handler {
 
         const ourItemsHVCount = Object.keys(getHighValue.our.items).length;
 
+        let isAssetidPriceEnabled = false;
         const isInPricelist =
             ourItemsHVCount > 0 // Only check if this not empty
                 ? Object.keys(getHighValue.our.items).some(sku => {
@@ -1205,6 +1206,7 @@ export default class MyHandler extends Handler {
                       const assetidPriceEnabled = items['our'][sku].some(
                           item => checkExist.getPrice(item.id, false) !== null
                       );
+                      if (assetidPriceEnabled) isAssetidPriceEnabled = true;
                       return checkExist.getPrice(sku, false) !== null || assetidPriceEnabled; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
@@ -1285,7 +1287,7 @@ export default class MyHandler extends Handler {
             const intentString = buying ? 'buy' : 'sell';
 
             // TODO: Go through all assetids and check if the item is being sold for a specific price prior to processing the whole sku
-            if ('our' === which) {
+            if (isAssetidPriceEnabled && 'our' === which) {
                 for (const sku in items['our']) {
                     if (!Object.prototype.hasOwnProperty.call(items['our'], sku)) {
                         continue;
