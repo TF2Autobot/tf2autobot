@@ -181,7 +181,7 @@ export default class Listings {
             } else {
                 assetids = inventory
                     .findBySKU(priceKey, true)
-                    .filter(assetId => this.bot.pricelist.getPrice(assetId, true) === null);
+                    .filter(assetId => this.bot.pricelist.hasPrice(assetId, false) === false);
             }
 
             const canAffordToBuy = isFilterCantAfford
