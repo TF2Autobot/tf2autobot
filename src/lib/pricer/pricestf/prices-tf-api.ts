@@ -67,7 +67,7 @@ export default class PricesTfApi {
                 }
             );
         } catch (e) {
-            if (e && 401 === e['statusCode'] ? e['statusCode'] : e['status']) {
+            if (e && (e['statusCode'] ? e['statusCode'] : e['status']) === 401) {
                 await this.setupToken();
                 return this.authedApiRequest(httpMethod, path, params, {}, headers);
             }

@@ -2432,7 +2432,7 @@ export default class MyHandler extends Handler {
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
                                   .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                            : `Hi! If you don't know how things work, please type "!` + (isAdmin ? 'help' : 'how2trade')
+                            : `Hi! If you don't know how things work, please type "!${isAdmin ? 'help' : 'how2trade'}"`
                     );
                 }
 
@@ -2664,7 +2664,7 @@ export default class MyHandler extends Handler {
     }
 
     onDeleteArchivedListingError(err: Error): void {
-        log.debug('Error on delete archived listings:', err);
+        log.error('Error on delete archived listings:', err);
     }
 }
 
