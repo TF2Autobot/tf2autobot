@@ -2246,7 +2246,7 @@ function replaceOldProperties(options: Options): boolean {
     if (options.bypass?.bannedPeople !== undefined) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        const mptfCheckValue = options.bypass.bannedPeople?.mptfCheck;
+        const mptfCheckValue = options.bypass.bannedPeople?.checkMptfBanned;
 
         if (options.miscSettings.reputationCheck !== undefined) {
             options.miscSettings.reputationCheck.checkMptfBanned =
