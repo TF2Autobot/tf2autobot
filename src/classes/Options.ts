@@ -55,8 +55,8 @@ export const DEFAULTS: JsonOptions = {
             enable: false
         },
         reputationCheck: {
-            checkMptfBanned: true,
-            reptfAsPrimarySource: true
+            checkMptfBanned: false,
+            reptfAsPrimarySource: false
         }
     },
 
