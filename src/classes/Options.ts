@@ -2253,7 +2253,7 @@ function replaceOldProperties(options: Options): boolean {
                 typeof mptfCheckValue === 'boolean' ? mptfCheckValue : true;
         } else {
             options.miscSettings['reputationCheck'] = {
-                checkMptfBanned: mptfCheckValue,
+                checkMptfBanned: process.env.MPTF_API_KEY !== undefined ? mptfCheckValue : false, // below v4.13.0 -> v4.13.1
                 reptfAsPrimarySource: true
             };
         }
