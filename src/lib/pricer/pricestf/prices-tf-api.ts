@@ -57,22 +57,16 @@ export default class PricesTfApi {
                 await this.setupToken();
             }
 
-            return await PricesTfApi.apiRequest(
-                httpMethod,
-                path,
-                params,
-                {},
-                {
-                    Authorization: 'Bearer ' + this.token,
-                    ...headers
-                }
-            );
+            return await PricesTfApi.apiRequest(httpMethod, path, params, data, {
+                Authorization: 'Bearer ' + this.token,
+                ...headers
+            });
         } catch (e) {
             const err = e as AxiosError;
             if (err.response && err.response.status === 401) {
                 log.debug('Requesting new token from prices.tf due to 401');
                 await this.setupToken();
-                return this.authedApiRequest(httpMethod, path, params, {}, headers);
+                return this.authedApiRequest(httpMethod, path, params, data, headers);
             }
             throw err;
         }
