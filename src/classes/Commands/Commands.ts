@@ -133,6 +133,7 @@ export default class Commands {
                 '✋ Hold on',
                 'Hold on',
                 'Sending',
+                'Checking', // for "Checking out..." phrase from gladiator
                 '👋 Welcome',
                 'Welcome',
                 'To',
