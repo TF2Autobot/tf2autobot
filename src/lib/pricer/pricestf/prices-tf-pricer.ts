@@ -31,9 +31,9 @@ export default class PricesTfPricer implements IPricer {
             const pricelist = await PricesTfApi.apiRequest(
                 'GET',
                 '/json/pricelist-array',
-                {},
-                {},
-                {},
+                undefined,
+                undefined,
+                undefined,
                 'https://autobot.tf'
             );
 
