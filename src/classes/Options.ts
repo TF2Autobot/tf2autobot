@@ -55,8 +55,8 @@ export const DEFAULTS: JsonOptions = {
             enable: false
         },
         reputationCheck: {
-            checkMptfBanned: true,
-            reptfAsPrimarySource: true
+            checkMptfBanned: false,
+            reptfAsPrimarySource: false
         }
     },
 
@@ -2246,14 +2246,14 @@ function replaceOldProperties(options: Options): boolean {
     if (options.bypass?.bannedPeople !== undefined) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        const mptfCheckValue = options.bypass.bannedPeople?.mptfCheck;
+        const mptfCheckValue = options.bypass.bannedPeople?.checkMptfBanned;
 
         if (options.miscSettings.reputationCheck !== undefined) {
             options.miscSettings.reputationCheck.checkMptfBanned =
                 typeof mptfCheckValue === 'boolean' ? mptfCheckValue : true;
         } else {
             options.miscSettings['reputationCheck'] = {
-                checkMptfBanned: mptfCheckValue,
+                checkMptfBanned: process.env.MPTF_API_KEY !== undefined ? mptfCheckValue : false, // below v4.13.0 -> v4.13.1
                 reptfAsPrimarySource: true
             };
         }
