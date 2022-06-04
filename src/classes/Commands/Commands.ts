@@ -1030,6 +1030,10 @@ export default class Commands {
             params.max = 1;
         }
 
+        if (params.ignorepainted === undefined) {
+            params.ignorepainted = false;
+        }
+
         try {
             const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey);
             const dict = this.bot.inventoryManager.getInventory.getItems;
@@ -1049,6 +1053,12 @@ export default class Commands {
                 }
 
                 if (pureAndWeapons.includes(sku)) {
+                    delete clonedDict[sku];
+                    continue;
+                }
+
+                // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+                if (params.ignorepainted && sku.match(/;[p][0-9]+/) !== null) {
                     delete clonedDict[sku];
                     continue;
                 }
