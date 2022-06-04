@@ -1050,9 +1050,10 @@ export default class Commands {
 
                 if (pureAndWeapons.includes(sku)) {
                     delete clonedDict[sku];
+                    continue;
                 }
 
-                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] + (clonedDict[sku] ?? []).length > params.max) {
+                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] + clonedDict[sku].length > params.max) {
                     // If this particular item already exist on mptf
                     // and amount on mptf + amount that bot has more than max, ignore
                     delete clonedDict[sku];
@@ -1073,9 +1074,7 @@ export default class Commands {
                     continue;
                 }
 
-                if (Array.isArray(clonedDict[sku])) {
-                    cart.addOurItem(sku, Math.min(clonedDict[sku].length, params.max));
-                }
+                cart.addOurItem(sku, Math.min(clonedDict[sku].length, params.max));
             }
 
             Cart.addCart(cart);
