@@ -204,7 +204,7 @@ export default class Commands {
             void this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
-        } else if ('withdrawmptf' && isAdmin) {
+        } else if (command === 'withdrawmptf' && isAdmin) {
             void this.withdrawMptfCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
             await this.pManager.addCommand(steamID, message);
