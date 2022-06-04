@@ -1047,7 +1047,7 @@ export default class Commands {
                     delete clonedDict[sku];
                 }
 
-                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] + clonedDict[sku].length > params.max) {
+                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] + (clonedDict[sku] ?? []).length > params.max) {
                     // If this particular item already exist on mptf
                     // and amount on mptf + amount that bot has more than max, ignore
                     delete clonedDict[sku];
@@ -1063,9 +1063,16 @@ export default class Commands {
                     this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
                 );
 
-            Object.keys(clonedDict).forEach(sku => {
-                cart.addOurItem(sku, Math.min(clonedDict[sku].length, params.max));
-            });
+            for (const sku in clonedDict) {
+                if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
+                    continue;
+                }
+
+                if (Array.isArray(clonedDict[sku])) {
+                    cart.addOurItem(sku, Math.min(clonedDict[sku].length, params.max));
+                }
+            }
+
             Cart.addCart(cart);
             this.addCartToQueue(cart, false, false);
         } catch (err) {
