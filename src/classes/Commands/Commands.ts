@@ -21,6 +21,7 @@ import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
 import { testSKU } from '../../lib/tools/export';
+import axios from 'axios';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -203,6 +204,8 @@ export default class Commands {
             void this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
+        } else if ('withdrawmptf' && isAdmin) {
+            void this.withdrawMptfCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
             await this.pManager.addCommand(steamID, message);
         } else if (command === 'addbulk' && isAdmin) {
@@ -1003,6 +1006,79 @@ export default class Commands {
         Cart.addCart(cart);
     }
 
+    private async withdrawMptfCommand(steamID: SteamID, message: string): Promise<void> {
+        const currentCart = Cart.getCart(steamID);
+        if (currentCart !== null && !(currentCart instanceof AdminCart)) {
+            return this.bot.sendMessage(
+                steamID,
+                '❌ You already have an active cart, please finalize it before making a new one. 🛒'
+            );
+        }
+
+        if (this.bot.options.mptfApiKey === '') {
+            return this.bot.sendMessage(steamID, '❌ Marketplace.tf API key was not set in the env file.');
+        }
+
+        const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
+        // limit
+
+        if (params.max === undefined) {
+            params.max = 1;
+        }
+
+        try {
+            const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey);
+            const dict = this.bot.inventoryManager.getInventory.getItems;
+            const clonedDict = Object.assign({}, dict);
+
+            const weaponsAsCurrency = this.bot.options.miscSettings.weaponsAsCurrency;
+
+            const pureAndWeapons = weaponsAsCurrency.enable
+                ? ['5021;6', '5000;6', '5001;6', '5002;6'].concat(
+                      weaponsAsCurrency.withUncraft ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons) : []
+                  )
+                : ['5021;6', '5000;6', '5001;6', '5002;6'];
+
+            for (const sku in clonedDict) {
+                if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
+                    continue;
+                }
+
+                if (pureAndWeapons.includes(sku)) {
+                    delete clonedDict[sku];
+                }
+
+                if (mptfItemsSkus[sku]) {
+                    // If this particular item already exist on mptf
+                    if (mptfItemsSkus[sku] + clonedDict[sku].length > params.max) {
+                        // If amount on mptf + amount that bot has more than max, ignore
+                        delete clonedDict[sku];
+                    }
+                }
+            }
+
+            const cart =
+                AdminCart.getCart(steamID) ||
+                new AdminCart(
+                    steamID,
+                    this.bot,
+                    this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                    this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+                );
+
+            Object.keys(clonedDict).forEach(sku => {
+                cart.addOurItem(sku, Math.min(clonedDict[sku].length, params.max));
+            });
+            Cart.addCart(cart);
+            this.addCartToQueue(cart, false, false);
+        } catch (err) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Error getting Marketplace.tf Dashboard Item: ${JSON.stringify(err)}`
+            );
+        }
+    }
+
     private donateBPTFCommand(steamID: SteamID, message: string): void {
         const currentCart = Cart.getCart(steamID);
 
@@ -1206,4 +1282,69 @@ export default class Commands {
 
         this.addCartToQueue(cart, false, true);
     }
+}
+
+function getMptfDashboardItems(mptfApiKey: string): Promise<GetMptfDashboardItemsReturn> {
+    return new Promise((resolve, reject) => {
+        void axios({
+            method: 'GET',
+            url: 'https://marketplace.tf/api/Seller/GetDashboardItems/v2',
+            params: {
+                key: mptfApiKey
+            }
+        })
+            .then(response => {
+                const body = response.data as GetMptfDashboardItems;
+
+                if (body.success === false) {
+                    return reject(body);
+                }
+
+                const items = body.items
+                    .map(item => {
+                        return {
+                            sku: item.sku
+                                .replace(/;ks-\d+/, '') // Sheen
+                                .replace(/;ke-\d+/, '') // Killstreaker
+                                .replace(/;[p][0-9]+/, ''), // Painted
+                            amount: item.num_for_sale
+                        };
+                    })
+                    .filter(item => testSKU(item.sku));
+
+                const itemsSize = items.length;
+                const toReturn = {};
+
+                for (let i = 0; i < itemsSize; i++) {
+                    toReturn[items[i].sku] = items[i].amount;
+                }
+
+                return resolve(toReturn);
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
+}
+
+interface GetMptfDashboardItemsReturn {
+    [sku: string]: number;
+}
+
+interface GetMptfDashboardItems {
+    success: boolean;
+    error?: string;
+    num_item_groups?: number;
+    total_items?: number;
+    items?: Item[];
+}
+
+interface Item {
+    sku: string;
+    full_sku: string;
+    name: string;
+    defindex: number | null;
+    quality: number | null;
+    num_for_sale: number;
+    price: number; // cent
 }

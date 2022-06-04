@@ -78,6 +78,7 @@ export default class HelpCommands {
                     [
                         '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
                         '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items',
+                        '!withdrawMptf [max=<number>] - [Exclusive Marketplace.tf Sellers] Withdraw items that does not exist on Marketplace.tf Dashboard items',
                         "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
                         '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable)',
                         "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
