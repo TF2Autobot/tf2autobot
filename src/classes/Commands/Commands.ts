@@ -1020,7 +1020,6 @@ export default class Commands {
         }
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
-        // limit
 
         if (params.max === undefined) {
             params.max = 1;

@@ -206,11 +206,7 @@ function isSteamRepMarked(steamID: SteamID | string): Promise<SiteResult> {
     });
 }
 
-export function isMptfBanned(
-    steamID: SteamID | string,
-    mptfApiKey: string,
-    checkMptfBanned: boolean
-): Promise<SiteResult> {
+function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBanned: boolean): Promise<SiteResult> {
     const steamID64 = steamID.toString();
 
     return new Promise((resolve, reject) => {
