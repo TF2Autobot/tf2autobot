@@ -1047,12 +1047,10 @@ export default class Commands {
                     delete clonedDict[sku];
                 }
 
-                if (mptfItemsSkus[sku]) {
+                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] + clonedDict[sku].length > params.max) {
                     // If this particular item already exist on mptf
-                    if (mptfItemsSkus[sku] + clonedDict[sku].length > params.max) {
-                        // If amount on mptf + amount that bot has more than max, ignore
-                        delete clonedDict[sku];
-                    }
+                    // and amount on mptf + amount that bot has more than max, ignore
+                    delete clonedDict[sku];
                 }
             }
 
