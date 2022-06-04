@@ -1288,6 +1288,9 @@ function getMptfDashboardItems(mptfApiKey: string): Promise<GetMptfDashboardItem
         void axios({
             method: 'GET',
             url: 'https://marketplace.tf/api/Seller/GetDashboardItems/v2',
+            headers: {
+                'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
+            },
             params: {
                 key: mptfApiKey
             }
