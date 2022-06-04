@@ -1076,10 +1076,8 @@ export default class Commands {
             Cart.addCart(cart);
             this.addCartToQueue(cart, false, false);
         } catch (err) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ Error getting Marketplace.tf Dashboard Item: ${JSON.stringify(err)}`
-            );
+            log.error('Error on !withdrawMptf:', err);
+            return this.bot.sendMessage(steamID, `❌ Error: ${(err as Error)?.message}`);
         }
     }
 
