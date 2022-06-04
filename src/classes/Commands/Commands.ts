@@ -735,11 +735,16 @@ export default class Commands {
 
                     if (err) {
                         log.warn('Error while trying to cancel an offer: ', err);
-                        this.bot.sendMessage(
+                        return this.bot.sendMessage(
                             steamID,
                             `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
                         );
                     }
+
+                    return this.bot.sendMessage(
+                        steamID,
+                        `✅ Offer sent (${offer.id}) has been successfully cancelled.`
+                    );
                 });
             });
         }
