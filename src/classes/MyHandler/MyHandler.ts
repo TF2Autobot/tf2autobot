@@ -32,7 +32,7 @@ import Bot from '../Bot';
 import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
-import Inventory from '../Inventory';
+import Inventory, { Dict } from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
 
@@ -828,6 +828,9 @@ export default class MyHandler extends Handler {
         let isNoiseMakerNotFullUses = false;
         const noiseMakerNotFullSKUs: string[] = [];
 
+        let isAssetidPriceEnabled = false;
+        const ourPricedAssets: Dict = {};
+
         let hasNonTF2Items = false;
 
         const states = [false, true];
@@ -867,6 +870,19 @@ export default class MyHandler extends Handler {
 
                 // Get High-value items
                 items[which][sku].forEach(item => {
+                    // Check if we have a priced asset in the trade
+                    if (
+                        which === 'our' &&
+                        ['5000;6', '5001;6', '5002;6', '5021;6'].indexOf(sku) === -1 &&
+                        this.bot.pricelist.hasPrice(item.id, false)
+                    ) {
+                        isAssetidPriceEnabled = true;
+                        if (!Object.prototype.hasOwnProperty.call(ourPricedAssets, sku)) {
+                            ourPricedAssets[sku] = [];
+                        }
+                        ourPricedAssets[sku].push(item);
+                    }
+
                     if (item.hv !== undefined) {
                         // If hv exist, get the high value and assign into items
                         getHighValue[which].items[sku] = item.hv;
@@ -1198,15 +1214,11 @@ export default class MyHandler extends Handler {
 
         const ourItemsHVCount = Object.keys(getHighValue.our.items).length;
 
-        let isAssetidPriceEnabled = false;
         const isInPricelist =
             ourItemsHVCount > 0 // Only check if this not empty
                 ? Object.keys(getHighValue.our.items).some(sku => {
                       // look at the high value items and for the given sku see if any have a price enabled for the 'high value sku'
-                      const assetidPriceEnabled = items['our'][sku].some(
-                          item => checkExist.getPrice(item.id, false) !== null
-                      );
-                      if (assetidPriceEnabled) isAssetidPriceEnabled = true;
+                      const assetidPriceEnabled = ourPricedAssets[sku] && ourPricedAssets[sku].length > 0;
                       return checkExist.getPrice(sku, false) !== null || assetidPriceEnabled; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
@@ -1289,7 +1301,10 @@ export default class MyHandler extends Handler {
             // TODO: Go through all assetids and check if the item is being sold for a specific price prior to processing the whole sku
             if (isAssetidPriceEnabled && 'our' === which) {
                 for (const sku in items['our']) {
-                    if (!Object.prototype.hasOwnProperty.call(items['our'], sku)) {
+                    if (
+                        !Object.prototype.hasOwnProperty.call(items['our'], sku) ||
+                        !Object.prototype.hasOwnProperty.call(ourPricedAssets, sku)
+                    ) {
                         continue;
                     }
                     items['our'][sku] = items['our'][sku].filter(item => {
@@ -1305,6 +1320,13 @@ export default class MyHandler extends Handler {
                                 buy: match.buy,
                                 sell: match.sell
                             };
+                            // Check if asset is disabled
+                            if (!match.enabled) {
+                                wrongAboutOffer.push({
+                                    reason: '🟧_DISABLED_ITEMS',
+                                    sku: sku
+                                });
+                            }
                         }
                         return !hasAssetPrice;
                     });
