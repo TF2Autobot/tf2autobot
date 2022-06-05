@@ -19,10 +19,14 @@ export function getItemAndAmount(
 ): { match: Entry; priceKey: string; amount: number } | null {
     let name = removeLinkProtocol(message);
     let amount = 1;
-    if (/^[-]?\d+$/.test(name.split(' ')[0])) {
+    const args = name.split(' ');
+    if (/^[-]?\d+$/.test(args[0]) && args.length > 2) {
         // Check if the first part of the name is a number, if so, then that is the amount the user wants to trade
-        amount = parseInt(name.split(' ')[0]);
+        amount = parseInt(args[0]);
         name = name.replace(amount.toString(), '').trim();
+    } else if (Pricelist.isAssetId(args[0]) && args.length === 1) {
+        // Check if the only parameter is an assetid
+        name = args[0];
     }
 
     if (1 > amount) {
@@ -68,9 +72,8 @@ export function getItemAndAmount(
             return null;
         }
 
-        if (Pricelist.isIdSearch(name)) {
-            priceKey = name.slice('id='.length);
-            // maybe we shouldn't allow '!buy [amount] id='
+        if (Pricelist.isAssetId(name)) {
+            priceKey = name;
             amount = 1;
         } else {
             priceKey = match.sku;

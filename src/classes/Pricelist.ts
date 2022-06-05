@@ -266,14 +266,6 @@ export default class Pricelist extends EventEmitter {
     }
 
     /**
-     * return true if the string matches id=1111111111
-     * @param search - potential match string
-     */
-    static isIdSearch(search: string): boolean {
-        return /^id=[0-9]+$/.test(search);
-    }
-
-    /**
      * return true if the string matches all numbers
      * @param search - potential match string
      */
@@ -283,8 +275,8 @@ export default class Pricelist extends EventEmitter {
 
     searchByName(search: string, enabledOnly = true): Entry | string[] | null {
         // if this happens to be an id search, just try to get the price
-        if (Pricelist.isIdSearch(search)) {
-            return this.getPrice(search.slice('id='.length, search.length), enabledOnly);
+        if (Pricelist.isAssetId(search)) {
+            return this.getPrice(search, enabledOnly);
         }
         const sku = this.schema.getSkuFromName(search);
 
