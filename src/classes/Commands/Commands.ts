@@ -1035,7 +1035,7 @@ export default class Commands {
         }
 
         try {
-            const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey);
+            const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey, params.ignorepainted);
             const dict = this.bot.inventoryManager.getInventory.getItems;
             const clonedDict = Object.assign({}, dict);
 
@@ -1300,7 +1300,40 @@ export default class Commands {
     }
 }
 
-function getMptfDashboardItems(mptfApiKey: string): Promise<GetMptfDashboardItemsReturn> {
+const paintCanDefindexes = [
+    5023, // Paint Can
+    5027, // Indubitably Green
+    5028, // Zepheniah's Greed
+    5029, // Noble Hatter's Violet
+    5030, // Color No. 216-190-216
+    5031, // A Deep Commitment to Purple
+    5032, // Mann Co. Orange
+    5033, // Muskelmannbraun
+    5034, // Peculiarly Drab Tincture
+    5035, // Radigan Conagher Brown
+    5036, // Ye Olde Rustic Colour
+    5037, // Australium Gold
+    5038, // Aged Moustache Grey
+    5039, // An Extraordinary Abundance of Tinge
+    5040, // A Distinctive Lack of Hue
+    5046, // Team Spirit
+    5051, // Pink as Hell
+    5052, // A Color Similar to Slate
+    5053, // Drably Olive
+    5054, // The Bitter Taste of Defeat and Lime
+    5055, // The Color of a Gentlemann's Business Pants
+    5056, // Dark Salmon Injustice
+    5060, // Operator's Overalls
+    5061, // Waterlogged Lab Coat
+    5062, // Balaclavas Are Forever
+    5063, // An Air of Debonair
+    5064, // The Value of Teamwork
+    5065, // Cream Spirit
+    5076, // A Mann's Mint
+    5077 // After Eight
+];
+
+function getMptfDashboardItems(mptfApiKey: string, ignorePainted = false): Promise<GetMptfDashboardItemsReturn> {
     return new Promise((resolve, reject) => {
         void axios({
             method: 'GET',
@@ -1321,11 +1354,16 @@ function getMptfDashboardItems(mptfApiKey: string): Promise<GetMptfDashboardItem
 
                 const items = body.items
                     .map(item => {
+                        let sku = item.sku
+                            .replace(/;ks-\d+/, '') // Sheen
+                            .replace(/;ke-\d+/, ''); // Killstreaker
+
+                        if (ignorePainted || paintCanDefindexes.includes(item.defindex)) {
+                            sku = sku.replace(/;[p][0-9]+/, ''); // Painted
+                        }
+
                         return {
-                            sku: item.sku
-                                .replace(/;ks-\d+/, '') // Sheen
-                                .replace(/;ke-\d+/, '') // Killstreaker
-                                .replace(/;[p][0-9]+/, ''), // Painted
+                            sku,
                             amount: item.num_for_sale
                         };
                     })
