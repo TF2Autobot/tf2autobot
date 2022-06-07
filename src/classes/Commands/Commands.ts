@@ -1063,9 +1063,8 @@ export default class Commands {
                     continue;
                 }
 
-                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] + clonedDict[sku].length > params.max) {
-                    // If this particular item already exist on mptf
-                    // and amount on mptf + amount that bot has more than max, ignore
+                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] >= params.max) {
+                    // If this particular item already exist on mptf and it's more than or equal to max, ignore
                     delete clonedDict[sku];
                 }
             }
@@ -1084,7 +1083,11 @@ export default class Commands {
                     continue;
                 }
 
-                cart.addOurItem(sku, Math.min(clonedDict[sku].length, params.max));
+                const amountInInventory = clonedDict[sku].length;
+                cart.addOurItem(
+                    sku,
+                    amountInInventory >= params.max ? params.max - (mptfItemsSkus[sku] ?? 0) : amountInInventory
+                );
             }
 
             Cart.addCart(cart);
