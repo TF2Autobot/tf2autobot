@@ -1043,7 +1043,9 @@ export default class Commands {
 
             const pureAndWeapons = weaponsAsCurrency.enable
                 ? ['5021;6', '5000;6', '5001;6', '5002;6'].concat(
-                      weaponsAsCurrency.withUncraft ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons) : []
+                      weaponsAsCurrency.withUncraft
+                          ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                          : this.bot.craftWeapons
                   )
                 : ['5021;6', '5000;6', '5001;6', '5002;6'];
 
