@@ -51,9 +51,9 @@ export function quickLinks(name: string, links: { steam: string; bptf: string; s
 export function sendWebhook(url: string, webhook: Webhook, event: string, i?: number): Promise<void> {
     return new Promise((resolve, reject) => {
         if (i > 0 && event === 'trade-summary') {
-            webhook.content.replace(/( )?<@!\d+>(,)?/g, ''); // remove mention
+            webhook.content = webhook.content.replace(/( )?<@!\d+>(,)?/g, ''); // remove mention
             webhook.embeds.forEach((embed, index) => {
-                webhook.embeds[index].description.replace(/ \(\d+ → \d+(\/\d+)?\)/g, '');
+                webhook.embeds[index].description = embed.description.replace(/ \(\d+ → \d+(\/\d+)?\)/g, '');
             });
         }
 

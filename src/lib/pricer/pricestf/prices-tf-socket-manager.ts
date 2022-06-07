@@ -85,7 +85,7 @@ export default class PricesTfSocketManager {
     }
 
     get isConnecting(): boolean {
-        return this.ws.readyState === this.ws.CONNECTING;
+        return this.ws.readyState === WS.CONNECTING;
     }
 
     connect(): void {
