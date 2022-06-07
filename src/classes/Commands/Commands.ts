@@ -1026,16 +1026,20 @@ export default class Commands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
-        if (params.max === undefined) {
-            params.max = 1;
+        const max = typeof params.max === 'number' ? params.max : 1;
+        if (!Number.isInteger(max)) {
+            return this.bot.sendMessage(steamID, `❌ max should only be an integer.`);
         }
 
-        if (params.ignorepainted === undefined) {
-            params.ignorepainted = false;
-        }
+        const ignorePainted =
+            typeof params.ignorepainted === 'boolean'
+                ? params.ignorepainted
+                : typeof params.ignorepainted === 'number'
+                ? !!params.ignorepainted
+                : false;
 
         try {
-            const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey, params.ignorepainted);
+            const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey, ignorePainted);
             const dict = this.bot.inventoryManager.getInventory.getItems;
             const clonedDict = Object.assign({}, dict);
 
@@ -1060,12 +1064,12 @@ export default class Commands {
                 }
 
                 // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-                if (params.ignorepainted && sku.match(/;[p][0-9]+/) !== null) {
+                if (ignorePainted && sku.match(/;[p][0-9]+/) !== null) {
                     delete clonedDict[sku];
                     continue;
                 }
 
-                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] >= params.max) {
+                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] >= max) {
                     // If this particular item already exist on mptf and it's more than or equal to max, ignore
                     delete clonedDict[sku];
                 }
@@ -1086,10 +1090,7 @@ export default class Commands {
                 }
 
                 const amountInInventory = clonedDict[sku].length;
-                cart.addOurItem(
-                    sku,
-                    amountInInventory >= params.max ? params.max - (mptfItemsSkus[sku] ?? 0) : amountInInventory
-                );
+                cart.addOurItem(sku, amountInInventory >= max ? max - (mptfItemsSkus[sku] ?? 0) : amountInInventory);
             }
 
             Cart.addCart(cart);
