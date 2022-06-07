@@ -17,7 +17,7 @@ export default class DiscordBot {
             intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
         });
         //this.client.login(process.env.TOKEN);
-        this.client.login(this.options.discordApiKey);
+        void this.client.login(this.options.discordApiToken);
         //this.commands = new Commands();
     }
 

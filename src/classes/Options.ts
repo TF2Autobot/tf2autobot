@@ -2014,7 +2014,7 @@ export default interface Options extends JsonOptions {
     groups?: string[];
     alerts?: string[];
 
-    discordApiKey?: string;
+    discordApiToken?: string;
     discordAdmin?: string;
     steamOfDiscordAdmin?: string;
 
@@ -2299,7 +2299,7 @@ export function loadOptions(options?: Options): Options {
         groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
-        discordApiKey: getOption('discordApiKey', '', String, incomingOptions),
+        discordApiToken: getOption('discordApiToken', '', String, incomingOptions),
         discordAdmin: getOption('discordAdmin', '', String, incomingOptions),
         steamOfDiscordAdmin: getOption('steamOfDiscordAdmin', '', String, incomingOptions),
 

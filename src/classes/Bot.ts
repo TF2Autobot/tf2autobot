@@ -493,15 +493,15 @@ export default class Bot {
                         });
                     },
                     (callback): void => {
-                        if (this.options.discordApiKey) {
+                        if (this.options.discordApiToken) {
                             log.debug(`Initializing Discord bot...`);
                             this.discordBot = new DiscordBot(this.options, this);
                             void this.discordBot.start();
-                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                            return callback(null);
                         } else {
                             log.debug('Discord api key is not set, ignoring.');
                         }
+                        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                        return callback(null);
                     },
                     (callback): void => {
                         if (this.options.bptfApiKey && this.options.bptfAccessToken) {
