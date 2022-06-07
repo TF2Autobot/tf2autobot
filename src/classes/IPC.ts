@@ -4,9 +4,9 @@ import { IPC } from 'node-ipc';
 import log from '../lib/logger';
 import Bot from './Bot';
 import fs from 'fs';
-import { generateKeyPairSync } from 'crypto';
 import path from 'path';
 import Options from './Options';
+import generateCert from '../lib/tools/generateCert';
 
 export default class ipcHandler extends IPC {
     ourServer: any;
@@ -19,7 +19,9 @@ export default class ipcHandler extends IPC {
 
     publicKey?: string;
 
-    serverKey?: string;
+    serverCert?: string;
+
+    caCert?: string;
 
     constructor(bot: Bot) {
         super();
@@ -29,7 +31,8 @@ export default class ipcHandler extends IPC {
         if (this.options.tls) {
             this.publicKey = path.join(__dirname, `../../files/${this.bot.options.steamAccountName}/client.pub`);
             this.privateKey = path.join(__dirname, `../../files/${this.bot.options.steamAccountName}/client.key`);
-            this.serverKey = path.join(__dirname, `../../files/${this.bot.options.steamAccountName}/server.pub`);
+            this.serverCert = path.join(__dirname, `../../files/${this.bot.options.steamAccountName}/server.pem`);
+            this.caCert = path.join(__dirname, `../../files/${this.bot.options.steamAccountName}/ca.pem`);
         }
     }
 
@@ -42,36 +45,25 @@ export default class ipcHandler extends IPC {
             this.config.networkHost = this.options.tlsHost;
             this.config.networkPort = this.options.tlsPort;
             if (!fs.existsSync(this.publicKey) || !fs.existsSync(this.privateKey)) {
-                //no keys found, generate them
-                const { publicKey, privateKey } = generateKeyPairSync('rsa', {
-                    modulusLength: 4096,
-                    publicKeyEncoding: {
-                        type: 'spki',
-                        format: 'pem'
-                    },
-                    privateKeyEncoding: {
-                        type: 'pkcs8',
-                        format: 'pem'
-                    }
-                });
-                fs.writeFileSync(this.publicKey, publicKey);
+                const { certificate, privateKey } = generateCert();
+                fs.writeFileSync(this.publicKey, certificate);
                 fs.writeFileSync(this.privateKey, privateKey);
             }
 
-            if (!fs.existsSync(this.serverKey)) {
+            if (!fs.existsSync(this.serverCert) || !fs.existsSync(this.caCert)) {
                 log.error('Servers public key not found');
                 throw new Error('Servers public key not found');
             }
             this.config.tls = {
                 private: this.privateKey,
                 public: this.publicKey,
-                rejectUnauthorized: true,
-                trustedConnections: this.serverKey
+                trustedConnections: this.serverCert,
+                ca: fs.readFileSync(this.caCert)
             } as Record<string, unknown>; //Ignore TS once again
         }
 
         // eslint-disable-next-line
-        this.connectTo('autobot_gui_dev', () => {
+        this.connectToNet('autobot_gui_dev', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
             this.ourServer = this.of.autobot_gui_dev;
             log.debug('connected IPC');
