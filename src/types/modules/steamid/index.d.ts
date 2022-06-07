@@ -1,4 +1,6 @@
 declare module 'steamid' {
+    import { Message } from 'discord.js';
+
     class SteamID {
         constructor(input: string);
 
@@ -15,6 +17,8 @@ declare module 'steamid' {
         getSteamID64(): string;
 
         toString(): string;
+
+        redirectAnswerTo: Message | undefined;
     }
 
     export = SteamID;

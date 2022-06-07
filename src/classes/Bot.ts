@@ -970,6 +970,16 @@ export default class Bot {
         const steamID64 = steamID.toString();
         const friend = this.friends.getFriend(steamID64);
 
+        if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
+            const origMessage = steamID.redirectAnswerTo;
+            if (origMessage.reply) {
+                void origMessage.reply(message);
+            } else {
+                log.error(`Failed to send message, broken redirect:`, origMessage);
+            }
+            return;
+        }
+
         if (!friend) {
             // If not friend, we send message with chatMessage
             this.client.chatMessage(steamID, message);

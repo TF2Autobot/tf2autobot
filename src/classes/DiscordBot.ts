@@ -44,11 +44,9 @@ export default class DiscordBot {
 
         // TODO: don't handle messages until bot is fully up
 
-        const ans = `I see your "${String(message.content)}"! Answered in Steam for now.`;
-        await message.reply(ans);
-
         const adminID = new SteamID(this.options.steamOfDiscordAdmin);
-        await this.bot.handler.onMessage(adminID, message.content); // TODO: redirect answer to Discord
+        adminID.redirectAnswerTo = message;
+        await this.bot.handler.onMessage(adminID, message.content);
     }
 
     private ClientReady() {
