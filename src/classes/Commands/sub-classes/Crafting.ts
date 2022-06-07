@@ -54,16 +54,18 @@ export default class CraftingCommands {
                 '❌ Wrong syntax. Correct syntax: !craftToken <tokenType> <subTokenType> <amount>' +
                     '\n - tokenType: "class" or "slot"' +
                     '\n - subTokenType: one of the 9 TF2 class characters if TokenType is class, or "primary"/"secondary"/"melee"/"pda2" if TokenType is slot' +
-                    '\n - amount: Must be an integer'
+                    '\n - amount: Must be an integer, or "max"'
             );
         }
 
         const tokenType = parts[0];
         const subTokenType = parts[1];
-        const amount = parseInt(parts[2]);
+        const amount: number | 'max' = parts[2] === 'max' ? 'max' : parseInt(parts[2]);
 
-        if (isNaN(amount)) {
-            return this.bot.sendMessage(steamID, '❌ Amount must be type integer!');
+        if (amount !== 'max') {
+            if (isNaN(amount)) {
+                return this.bot.sendMessage(steamID, '❌ Amount must be type integer!');
+            }
         }
 
         if (!['class', 'slot'].includes(tokenType)) {
@@ -117,7 +119,7 @@ export default class CraftingCommands {
         const capTokenType = capitalize(tokenType);
         const capSubTokenType = subTokenType === 'pda2' ? 'PDA2' : capitalize(subTokenType);
 
-        if (amount > amountCanCraft) {
+        if (amount !== 'max' && amount > amountCanCraft) {
             return this.bot.sendMessage(
                 steamID,
                 `❌ I can only craft  ${amountCanCraft} ${capTokenType} Token - ${capSubTokenType} at the moment, since I only ` +
@@ -130,7 +132,8 @@ export default class CraftingCommands {
 
         let crafted = 0;
         let callbackIndex = 0;
-        for (let i = 0; i < amount; i++) {
+        const amountToCraft = amount === 'max' ? amountCanCraft : amount;
+        for (let i = 0; i < amountToCraft; i++) {
             const assetidsToCraft = assetids.splice(0, 3);
             this.bot.tf2gc.craftToken(assetidsToCraft, tokenType as TokenType, subTokenType as SubTokenType, err => {
                 if (err) {
@@ -143,7 +146,7 @@ export default class CraftingCommands {
                 callbackIndex++;
                 crafted++;
 
-                if (amount - callbackIndex === 0) {
+                if (amountToCraft - callbackIndex === 0) {
                     this.isCrafting = false;
 
                     this.bot.client.gamesPlayed([]);
@@ -151,7 +154,7 @@ export default class CraftingCommands {
                         this.bot.options.miscSettings.game.playOnlyTF2 ? 440 : [this.bot.handler.customGameName, 440]
                     );
 
-                    if (crafted < amount) {
+                    if (crafted < amountToCraft) {
                         return this.bot.sendMessage(
                             steamID,
                             `✅ Successfully crafted ${crafted} ${capTokenType} Token - ${capSubTokenType} (there were some error while crafting).`
