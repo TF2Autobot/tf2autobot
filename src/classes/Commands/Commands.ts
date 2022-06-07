@@ -1038,6 +1038,13 @@ export default class Commands {
                 ? !!params.ignorepainted
                 : false;
 
+        const withGroup =
+            params.withgroup === '' || typeof params.withgroup !== 'string'
+                ? typeof params.withgroup === 'number'
+                    ? String(params.withgroup)
+                    : undefined
+                : params.withgroup;
+
         try {
             const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey, ignorePainted);
             const dict = this.bot.inventoryManager.getInventory.getItems;
@@ -1058,7 +1065,17 @@ export default class Commands {
                     continue;
                 }
 
-                if (pureAndWeapons.includes(sku)) {
+                let isWithinGroup = false;
+
+                if (withGroup) {
+                    if (withGroup !== this.bot.pricelist.getPrice(sku)?.group) {
+                        delete clonedDict[sku];
+                        continue;
+                    }
+                    isWithinGroup = true;
+                }
+
+                if (pureAndWeapons.includes(sku) && !isWithinGroup) {
                     delete clonedDict[sku];
                     continue;
                 }
@@ -1073,6 +1090,10 @@ export default class Commands {
                     // If this particular item already exist on mptf and it's more than or equal to max, ignore
                     delete clonedDict[sku];
                 }
+            }
+
+            if (Object.keys(clonedDict).length === 0) {
+                return this.bot.sendMessage(steamID, `❌ Nothing to withdraw.`);
             }
 
             const cart =
