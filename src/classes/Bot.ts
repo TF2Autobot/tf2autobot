@@ -15,6 +15,7 @@ import axios from 'axios';
 
 import sleepasync from 'sleep-async';
 
+import DiscordBot from './DiscordBot';
 import InventoryManager from './InventoryManager';
 import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
 import Friends from './Friends';
@@ -59,6 +60,8 @@ export default class Bot {
     readonly tf2gc: TF2GC;
 
     readonly handler: MyHandler;
+
+    discordBot: DiscordBot; // should be readonly?
 
     inventoryManager: InventoryManager; // should be readonly
 
@@ -488,6 +491,17 @@ export default class Bot {
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         });
+                    },
+                    (callback): void => {
+                        if (this.options.discordApiKey) {
+                            log.debug(`Initializing Discord bot...`);
+                            this.discordBot = new DiscordBot(this.options, this);
+                            void this.discordBot.start();
+                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                            return callback(null);
+                        } else {
+                            log.debug('Discord api key is not set, ignoring.');
+                        }
                     },
                     (callback): void => {
                         if (this.options.bptfApiKey && this.options.bptfAccessToken) {
