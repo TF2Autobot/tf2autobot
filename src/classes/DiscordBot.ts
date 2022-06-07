@@ -42,7 +42,10 @@ export default class DiscordBot {
             return; // obey only admin
         }
 
-        // TODO: don't handle messages until bot is fully up
+        if (!this.bot.isReady) {
+            void message.reply('The bot is still booting up, please wait');
+            return;
+        }
 
         const adminID = new SteamID(this.options.steamOfDiscordAdmin);
         adminID.redirectAnswerTo = message;
