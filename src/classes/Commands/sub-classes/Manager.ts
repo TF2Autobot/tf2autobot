@@ -165,7 +165,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = fixSKU(params.sku);
+            const targetedSKU = fixSKU(params.sku as string);
             const [uncraft, untrade] = [
                 targetedSKU.includes(';uncraftable'),
                 targetedSKU.includes(';untradable') || targetedSKU.includes(';untradeable')

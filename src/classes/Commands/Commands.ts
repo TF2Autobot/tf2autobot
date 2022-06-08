@@ -852,14 +852,14 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        params.sku = fixSKU(params.sku);
+        const sku = fixSKU(params.sku as string);
 
         const amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
             return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
         }
 
-        const itemName = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
 
         const steamid = steamID.getSteamID64();
 
@@ -912,7 +912,7 @@ export default class Commands {
             );
 
         if (amount > 0) {
-            const cartAmount = cart.getTheirCount(params.sku);
+            const cartAmount = cart.getTheirCount(sku);
 
             if (cartAmount > currentAmount || cartAmount + amount > currentAmount) {
                 return this.bot.sendMessage(
@@ -923,7 +923,7 @@ export default class Commands {
             }
         }
 
-        cart.addTheirItem(params.sku, amount);
+        cart.addTheirItem(sku, amount);
         Cart.addCart(cart);
 
         this.bot.sendMessage(
@@ -955,7 +955,7 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        params.sku = fixSKU(params.sku);
+        const sku = fixSKU(params.sku as string);
 
         let amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
@@ -970,10 +970,10 @@ export default class Commands {
                 this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
-        const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
+        const cartAmount = cart.getOurCount(sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
         const amountCanTrade = ourAmount - cartAmount;
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -1007,7 +1007,7 @@ export default class Commands {
             );
         }
 
-        cart.addOurItem(params.sku, amount);
+        cart.addOurItem(sku, amount);
         Cart.addCart(cart);
     }
 
@@ -1144,11 +1144,13 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(params.sku)) {
+        const sku = params.sku as string;
+
+        if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(sku)) {
             return this.bot.sendMessage(
                 steamID,
                 `❌ Invalid item ${this.bot.schema.getName(
-                    SKU.fromString(params.sku),
+                    SKU.fromString(sku),
                     false
                 )}. Items that can only be donated to Backpack.tf:\n• ` +
                     [
@@ -1173,11 +1175,11 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
 
-        const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
-        const amountCanTrade = ourAmount - cart.getOurCount(params.sku) - cartAmount;
+        const cartAmount = cart.getOurCount(sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -1213,7 +1215,7 @@ export default class Commands {
 
         this.isDonating = true;
 
-        cart.addOurItem(params.sku, amount);
+        cart.addOurItem(sku, amount);
         Cart.addCart(cart);
     }
 

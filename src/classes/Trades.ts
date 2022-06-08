@@ -223,7 +223,9 @@ export default class Trades {
     }> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffers(
-                includeInactive ? TradeOfferManager.EOfferFilter['All'] : TradeOfferManager.EOfferFilter['ActiveOnly'],
+                (includeInactive
+                    ? TradeOfferManager.EOfferFilter['All']
+                    : TradeOfferManager.EOfferFilter['ActiveOnly']) as number,
                 (err, sent, received) => {
                     if (err) {
                         return reject(err);
@@ -500,7 +502,7 @@ export default class Trades {
         }
     }
 
-    private finishProcessingOffer(offerId): void {
+    private finishProcessingOffer(offerId: string): void {
         this.dequeueOffer(offerId);
         this.processingOffer = false;
         this.processNextOffer();
@@ -963,6 +965,7 @@ export default class Trades {
 
                                     if (sku == '5021;6')
                                         keyDifference += dataDict[side][sku] * (side == 'our' ? 1 : -1);
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                     if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
 
                                     possibleKeyTrade = false; //Offer contains something other than pures

@@ -270,12 +270,13 @@ export default class Bot {
     private addListener(
         emitter: EventEmitter,
         event: string,
-        listener: (...args) => void,
+        listener: (...args: any[]) => void,
         checkCanEmit: boolean
     ): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     listener(...args);
                 }
             });
@@ -290,7 +291,7 @@ export default class Bot {
     ): void {
         emitter.on(event, (...args): void => {
             if (!checkCanEmit || this.canSendEvents()) {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/no-unsafe-argument
                 setImmediate(listener, ...args);
             }
         });
@@ -648,6 +649,7 @@ export default class Bot {
                                     );
                                 }
                             ],
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             callback
                         );
                     },
