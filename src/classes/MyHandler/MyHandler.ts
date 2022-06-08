@@ -718,14 +718,6 @@ export default class MyHandler extends Handler {
         );
     }
 
-    disableAutoRefreshListings(): void {
-        if (this.isPremium) {
-            return;
-        }
-
-        clearInterval(this.autoRefreshListingsInterval);
-    }
-
     sendStats(): void {
         clearInterval(this.sendStatsInterval);
 
