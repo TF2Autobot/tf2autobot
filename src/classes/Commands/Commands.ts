@@ -1111,12 +1111,8 @@ export default class Commands {
                 }
 
                 const amountInInventory = clonedDict[sku].length;
-                cart.addOurItem(
-                    sku,
-                    amountInInventory + (mptfItemsSkus[sku] ?? 0) >= max
-                        ? max - (mptfItemsSkus[sku] ?? 0)
-                        : amountInInventory
-                );
+                const amountInMptf = mptfItemsSkus[sku] ?? 0;
+                cart.addOurItem(sku, amountInInventory + amountInMptf >= max ? max - amountInMptf : amountInInventory);
             }
 
             Cart.addCart(cart);
