@@ -1,4 +1,4 @@
-import Bot from '../../Bot';
+import Bot from '../../Bot.js';
 
 export default function craftDuplicateWeapons(bot: Bot): Promise<void> {
     return new Promise(resolve => {

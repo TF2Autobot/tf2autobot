@@ -15,21 +15,21 @@ import axios from 'axios';
 
 import sleepasync from 'sleep-async';
 
-import InventoryManager from './InventoryManager';
-import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
-import Friends from './Friends';
-import Trades from './Trades';
-import Listings from './Listings';
-import TF2GC from './TF2GC';
-import Inventory from './Inventory';
-import BotManager from './BotManager';
-import MyHandler from './MyHandler/MyHandler';
-import Groups from './Groups';
+import InventoryManager from './InventoryManager.js';
+import Pricelist, { EntryData, PricesDataObject } from './Pricelist.js';
+import Friends from './Friends.js';
+import Trades from './Trades.js';
+import Listings from './Listings.js';
+import TF2GC from './TF2GC.js';
+import Inventory from './Inventory.js';
+import BotManager from './BotManager.js';
+import MyHandler from './MyHandler/MyHandler.js';
+import Groups from './Groups.js';
 
-import log from '../lib/logger';
-import { IsBanned, isBanned } from '../lib/bans';
-import Options from './Options';
-import IPricer from './IPricer';
+import log from '../lib/logger.js';
+import { IsBanned, isBanned } from '../lib/bans.js';
+import Options from './Options.js';
+import IPricer from '../types/IPricer.js';
 import { EventEmitter } from 'events';
 
 export default class Bot {
@@ -270,12 +270,13 @@ export default class Bot {
     private addListener(
         emitter: EventEmitter,
         event: string,
-        listener: (...args) => void,
+        listener: (...args: any[]) => void,
         checkCanEmit: boolean
     ): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     listener(...args);
                 }
             });
@@ -290,7 +291,7 @@ export default class Bot {
     ): void {
         emitter.on(event, (...args): void => {
             if (!checkCanEmit || this.canSendEvents()) {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/no-unsafe-argument
                 setImmediate(listener, ...args);
             }
         });
@@ -648,6 +649,7 @@ export default class Bot {
                                     );
                                 }
                             ],
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             callback
                         );
                     },

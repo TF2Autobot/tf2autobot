@@ -1,9 +1,9 @@
 import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
-import Bot from '../../Bot';
-import * as t from '../../../lib/tools/export';
-import sendTradeDeclined from '../../../lib/DiscordWebhook/sendTradeDeclined';
-import { KeyPrices } from '../../../classes/Pricelist';
+import Bot from '../../Bot.js';
+import * as t from '../../../lib/tools/export.js';
+import sendTradeDeclined from '../../../lib/DiscordWebhook/sendTradeDeclined.js';
+import { KeyPrices } from '../../../classes/Pricelist.js';
 
 export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTradingKeys: boolean): void {
     const opt = bot.options;

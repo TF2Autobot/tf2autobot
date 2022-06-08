@@ -1,12 +1,12 @@
 import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
-import processReview from './process-review';
+import processReview from './process-review.js';
 import sleepasync from 'sleep-async';
-import Bot from '../../../Bot';
-import log from '../../../../lib/logger';
-import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
-import * as t from '../../../../lib/tools/export';
-import { KeyPrices } from 'src/classes/Pricelist';
-import { Links } from '../../../../lib/tools/export';
+import Bot from '../../../Bot.js';
+import log from '../../../../lib/logger.js';
+import * as t from '../../../../lib/tools/export.js';
+import { KeyPrices } from 'src/classes/Pricelist.js';
+import { Links } from '../../../../lib/tools/export.js';
+import sendOfferReview from 'src/lib/DiscordWebhook/sendOfferReview.js';
 
 export default async function sendReview(
     offer: TradeOffer,

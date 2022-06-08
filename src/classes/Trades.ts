@@ -15,14 +15,14 @@ import SteamID from 'steamid';
 import Currencies from '@tf2autobot/tf2-currencies';
 
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
-import Bot from './Bot';
-import Inventory, { Dict } from './Inventory';
+import Bot from './Bot.js';
+import Inventory, { Dict } from './Inventory.js';
 
-import log from '../lib/logger';
-import { exponentialBackoff } from '../lib/helpers';
-import { sendAlert } from '../lib/DiscordWebhook/export';
-import { isBptfBanned } from '../lib/bans';
-import * as t from '../lib/tools/export';
+import log from '../lib/logger.js';
+import { exponentialBackoff } from '../lib/helpers.js';
+import { isBptfBanned } from '../lib/bans.js';
+import * as t from '../lib/tools/export.js';
+import sendAlert from 'src/lib/DiscordWebhook/sendAlert';
 
 type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
 type AddOrRemoveMyOrTheirItems = 'addMyItems' | 'removeMyItems' | 'addTheirItems' | 'removeTheirItems';
@@ -223,7 +223,9 @@ export default class Trades {
     }> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffers(
-                includeInactive ? TradeOfferManager.EOfferFilter['All'] : TradeOfferManager.EOfferFilter['ActiveOnly'],
+                (includeInactive
+                    ? TradeOfferManager.EOfferFilter['All']
+                    : TradeOfferManager.EOfferFilter['ActiveOnly']) as number,
                 (err, sent, received) => {
                     if (err) {
                         return reject(err);
@@ -500,7 +502,7 @@ export default class Trades {
         }
     }
 
-    private finishProcessingOffer(offerId): void {
+    private finishProcessingOffer(offerId: string): void {
         this.dequeueOffer(offerId);
         this.processingOffer = false;
         this.processNextOffer();
@@ -963,6 +965,7 @@ export default class Trades {
 
                                     if (sku == '5021;6')
                                         keyDifference += dataDict[side][sku] * (side == 'our' ? 1 : -1);
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                     if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
 
                                     possibleKeyTrade = false; //Offer contains something other than pures

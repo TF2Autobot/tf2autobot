@@ -1,4 +1,4 @@
-import Bot from '../../../../Bot';
+import Bot from '../../../../Bot.js';
 
 export default function invalidValue(
     bot: Bot,

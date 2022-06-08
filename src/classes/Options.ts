@@ -2,8 +2,8 @@ import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import jsonlint from '@tf2autobot/jsonlint';
 import * as path from 'path';
-import { deepMerge } from '../lib/tools/deep-merge';
-import validator from '../lib/validator';
+import { AnyObject, deepMerge } from '../lib/tools/deep-merge.js';
+import validator from '../lib/validator.js';
 import { Currency } from '../types/TeamFortress2';
 
 export const DEFAULTS: JsonOptions = {
@@ -2088,7 +2088,7 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
             }
 
             fileOptions = deepMerge({}, workingDefault, parsedRaw);
-            return deepMerge(fileOptions, incomingOptions);
+            return deepMerge(fileOptions as AnyObject, incomingOptions);
         } catch (e) {
             if (e instanceof SyntaxError) {
                 // lint the rawOptions to give better feedback since it is SyntaxError

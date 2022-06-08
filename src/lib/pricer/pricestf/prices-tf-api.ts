@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, Method, AxiosError } from 'axios';
-import { PricerOptions } from '../../../classes/IPricer';
-import log from '../../logger';
+import { PricerOptions } from '../../../types/IPricer';
+import log from '../../logger.js';
 
 export interface PricesTfRequestCheckResponse {
     enqueued: boolean;

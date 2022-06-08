@@ -1,5 +1,5 @@
-import Bot from '../../Bot';
-import { pure } from '../../../lib/tools/export';
+import Bot from '../../Bot.js';
+import { pure } from '../../../lib/tools/export.js';
 
 export default function keepMetalSupply(bot: Bot, minScraps: number, minRecs: number, threshold: number): void {
     if (!bot.options.crafting.metals.enable) {

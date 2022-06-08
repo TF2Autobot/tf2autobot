@@ -3,11 +3,11 @@ import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import SKU from '@tf2autobot/tf2-sku';
 import sleepasync from 'sleep-async';
-import { fixSKU } from '../functions/utils';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
-import { sendStats } from '../../../lib/DiscordWebhook/export';
+import { fixSKU } from '../functions/utils.js';
+import Bot from '../../Bot.js';
+import CommandParser from '../../CommandParser.js';
+import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export.js';
+import { sendStats } from '../../../lib/DiscordWebhook/export.js';
 
 // Bot status
 

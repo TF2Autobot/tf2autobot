@@ -1,5 +1,5 @@
 import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../Bot';
+import Bot from '../../../Bot.js';
 
 export default function invalid(offer: TradeOffer, bot: Bot): void {
     const custom = bot.options.customMessage.tradedAway;

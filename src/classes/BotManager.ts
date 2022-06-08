@@ -1,16 +1,16 @@
 import async from 'async';
 import SchemaManager from '@tf2autobot/tf2-schema';
 import pm2 from 'pm2';
-import Bot from './Bot';
-import log from '../lib/logger';
-import { waitForWriting } from '../lib/files';
-import Options from './Options';
+import Bot from './Bot.js';
+import log from '../lib/logger.js';
+import { waitForWriting } from '../lib/files.js';
+import Options from './Options.js';
 import { EPersonaState } from 'steam-user';
 import EconItem from '@tf2autobot/tradeoffer-manager/lib/classes/EconItem.js';
 import CEconItem from '@tf2autobot/steamcommunity/classes/CEconItem.js';
-import TradeOffer from '@tf2autobot/tradeoffer-manager/lib/classes/TradeOffer';
+import TradeOffer from '@tf2autobot/tradeoffer-manager/lib/classes/TradeOffer.js';
 import { camelCase } from 'change-case';
-import IPricer from './IPricer';
+import IPricer from '../types/IPricer.js';
 
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 

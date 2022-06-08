@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, Method } from 'axios';
-import { PricerOptions } from '../../../classes/IPricer';
+import { PricerOptions } from '../../../types/IPricer';
 
 export interface PricesCurrency {
     keys: number;
@@ -101,6 +101,7 @@ export default class CustomPricerApi {
         return new Promise((resolve, reject) => {
             void axios(options)
                 .then(response => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     resolve(response.data);
                 })
                 .catch(err => {

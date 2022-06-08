@@ -1,7 +1,7 @@
 import pluralize from 'pluralize';
 import SKU from '@tf2autobot/tf2-sku';
-import Cart from './Cart';
-import log from '../../lib/logger';
+import Cart from './Cart.js';
+import log from '../../lib/logger.js';
 
 export default class DonateCart extends Cart {
     protected preSendOffer(): Promise<void> {

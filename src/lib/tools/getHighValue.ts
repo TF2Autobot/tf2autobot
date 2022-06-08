@@ -1,9 +1,9 @@
 import SKU from '@tf2autobot/tf2-sku';
 import { Items } from '@tf2autobot/tradeoffer-manager';
-import { spellsData, killstreakersData, sheensData } from '../data';
-import Bot from '../../classes/Bot';
+import { spellsData, killstreakersData, sheensData } from '../data.js';
+import Bot from '../../classes/Bot.js';
 import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
-import { testSKU } from '../tools/export';
+import { testSKU } from './export.js';
 
 interface ItemsWithName {
     [name: string]: string;

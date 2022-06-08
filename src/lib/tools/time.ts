@@ -1,12 +1,12 @@
 import prettyMs from 'pretty-ms';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
+import utc from 'dayjs/plugin/utc.js';
 dayjs.extend(utc);
 
-import timeZone from 'dayjs/plugin/timezone';
+import timeZone from 'dayjs/plugin/timezone.js';
 dayjs.extend(timeZone);
 
-import relativeTime from 'dayjs/plugin/relativeTime';
+import relativeTime from 'dayjs/plugin/relativeTime.js';
 const dayJSConfig = {
     thresholds: [
         { l: 's', r: 1 },
@@ -25,7 +25,7 @@ const dayJSConfig = {
 };
 dayjs.extend(relativeTime, dayJSConfig);
 
-import updateLocale from 'dayjs/plugin/updateLocale';
+import updateLocale from 'dayjs/plugin/updateLocale.js';
 
 dayjs.extend(updateLocale);
 
@@ -48,7 +48,7 @@ dayjs.updateLocale('en', {
     }
 });
 
-import advancedFormat from 'dayjs/plugin/advancedFormat';
+import advancedFormat from 'dayjs/plugin/advancedFormat.js';
 
 dayjs.extend(advancedFormat);
 

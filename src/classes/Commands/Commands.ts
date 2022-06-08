@@ -4,23 +4,23 @@ import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import dayjs from 'dayjs';
 
-import * as c from './sub-classes/export';
-import { removeLinkProtocol, getItemFromParams, getItemAndAmount, fixSKU } from './functions/utils';
+import * as c from './sub-classes/export.js';
+import { removeLinkProtocol, getItemFromParams, getItemAndAmount, fixSKU } from './functions/utils.js';
 
-import Bot from '../Bot';
-import CommandParser from '../CommandParser';
-import Inventory, { getSkuAmountCanTrade } from '../Inventory';
-import Cart from '../Carts/Cart';
-import AdminCart from '../Carts/AdminCart';
-import UserCart from '../Carts/UserCart';
-import DonateCart from '../Carts/DonateCart';
-import PremiumCart from '../Carts/PremiumCart';
-import CartQueue from '../Carts/CartQueue';
-import IPricer from '../IPricer';
-import { fixItem } from '../../lib/items';
+import Bot from '../Bot.js';
+import CommandParser from '../CommandParser.js';
+import Inventory, { getSkuAmountCanTrade } from '../Inventory.js';
+import Cart from '../Carts/Cart.js';
+import AdminCart from '../Carts/AdminCart.js';
+import UserCart from '../Carts/UserCart.js';
+import DonateCart from '../Carts/DonateCart.js';
+import PremiumCart from '../Carts/PremiumCart.js';
+import CartQueue from '../Carts/CartQueue.js';
+import IPricer from '../../types/IPricer.js';
+import { fixItem } from '../../lib/items.js';
 import { UnknownDictionary } from '../../types/common';
-import log from '../../lib/logger';
-import { testSKU } from '../../lib/tools/export';
+import log from '../../lib/logger.js';
+import { testSKU } from '../../lib/tools/export.js';
 import axios from 'axios';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
@@ -852,14 +852,14 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        params.sku = fixSKU(params.sku);
+        const sku = fixSKU(params.sku as string);
 
         const amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
             return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
         }
 
-        const itemName = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
 
         const steamid = steamID.getSteamID64();
 
@@ -912,7 +912,7 @@ export default class Commands {
             );
 
         if (amount > 0) {
-            const cartAmount = cart.getTheirCount(params.sku);
+            const cartAmount = cart.getTheirCount(sku);
 
             if (cartAmount > currentAmount || cartAmount + amount > currentAmount) {
                 return this.bot.sendMessage(
@@ -923,7 +923,7 @@ export default class Commands {
             }
         }
 
-        cart.addTheirItem(params.sku, amount);
+        cart.addTheirItem(sku, amount);
         Cart.addCart(cart);
 
         this.bot.sendMessage(
@@ -955,7 +955,7 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        params.sku = fixSKU(params.sku);
+        const sku = fixSKU(params.sku as string);
 
         let amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
@@ -970,10 +970,10 @@ export default class Commands {
                 this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
-        const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
+        const cartAmount = cart.getOurCount(sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
         const amountCanTrade = ourAmount - cartAmount;
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -1007,7 +1007,7 @@ export default class Commands {
             );
         }
 
-        cart.addOurItem(params.sku, amount);
+        cart.addOurItem(sku, amount);
         Cart.addCart(cart);
     }
 
@@ -1144,11 +1144,13 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(params.sku)) {
+        const sku = params.sku as string;
+
+        if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(sku)) {
             return this.bot.sendMessage(
                 steamID,
                 `❌ Invalid item ${this.bot.schema.getName(
-                    SKU.fromString(params.sku),
+                    SKU.fromString(sku),
                     false
                 )}. Items that can only be donated to Backpack.tf:\n• ` +
                     [
@@ -1173,11 +1175,11 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
 
-        const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
-        const amountCanTrade = ourAmount - cart.getOurCount(params.sku) - cartAmount;
+        const cartAmount = cart.getOurCount(sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -1213,7 +1215,7 @@ export default class Commands {
 
         this.isDonating = true;
 
-        cart.addOurItem(params.sku, amount);
+        cart.addOurItem(sku, amount);
         Cart.addCart(cart);
     }
 

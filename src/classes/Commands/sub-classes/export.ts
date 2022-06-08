@@ -1,13 +1,13 @@
-import StatusCommands from './Status';
-import HelpCommands from './Help';
-import MessageCommand from './Message';
-import MiscCommands from './Misc';
-import PricelistManager from './PricelistManager';
-import ReviewCommands from './Review';
-import OptionsCommand from './Options';
-import ManagerCommands from './Manager';
-import RequestCommands from './Request';
-import CraftingCommands from './Crafting';
+import StatusCommands from './Status.js';
+import HelpCommands from './Help.js';
+import MessageCommand from './Message.js';
+import MiscCommands from './Misc.js';
+import PricelistManager from './PricelistManager.js';
+import ReviewCommands from './Review.js';
+import OptionsCommand from './Options.js';
+import ManagerCommands from './Manager.js';
+import RequestCommands from './Request.js';
+import CraftingCommands from './Crafting.js';
 
 export {
     StatusCommands,

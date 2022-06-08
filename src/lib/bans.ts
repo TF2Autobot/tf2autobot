@@ -1,7 +1,7 @@
 import axios from 'axios';
 import SteamID from 'steamid';
-import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
-import log from '../lib/logger';
+import { BPTFGetUserInfo } from '../types/etc';
+import log from '../lib/logger.js';
 
 let isReptfFailed = false;
 

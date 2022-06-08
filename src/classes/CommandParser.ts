@@ -1,6 +1,6 @@
 import dotProp from 'dot-prop';
 import { UnknownDictionaryKnownValues } from '../types/common';
-import { parseJSON } from '../lib/helpers';
+import { parseJSON } from '../lib/helpers.js';
 
 export default class CommandParser {
     static getCommand(message: string): string | null {

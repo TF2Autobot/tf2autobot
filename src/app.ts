@@ -1,14 +1,18 @@
 import 'module-alias/register';
-// eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
-const { version: BOT_VERSION } = require('../package.json');
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import packageJson from '../package.json';
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+const BOT_VERSION = packageJson.version;
 import { getPricer } from './lib/pricer/pricer';
-import { loadOptions } from './classes/Options';
+import { loadOptions } from './classes/Options.js';
 
 process.env.BOT_VERSION = BOT_VERSION as string;
 
 import fs from 'fs';
 import path from 'path';
-import genPaths from './resources/paths';
+import genPaths from './resources/paths.js';
 
 if (!fs.existsSync(path.join(__dirname, '../node_modules'))) {
     /* eslint-disable-next-line no-console */
@@ -32,7 +36,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const options = loadOptions();
 const paths = genPaths(options.steamAccountName);
 
-import log, { init } from './lib/logger';
+import log, { init } from './lib/logger.js';
 init(paths, options);
 
 if (process.env.pm_id === undefined && process.env.DOCKER === undefined) {
@@ -48,7 +52,7 @@ if (process.env.DOCKER !== undefined) {
     );
 }
 
-import BotManager from './classes/BotManager';
+import BotManager from './classes/BotManager.js';
 const botManager = new BotManager(
     getPricer({
         pricerUrl: options.customPricerUrl,
@@ -58,9 +62,9 @@ const botManager = new BotManager(
 
 import ON_DEATH from 'death';
 import * as inspect from 'util';
-import { Webhook } from './lib/DiscordWebhook/interfaces';
+import { Webhook } from './types/discordwebhook';
 import axios from 'axios';
-import { uptime } from './lib/tools/time';
+import { uptime } from './lib/tools/time.js';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = !['SIGINT', 'SIGTERM'].includes(signalOrErr as 'SIGINT' | 'SIGTERM' | 'SIGQUIT');
@@ -142,7 +146,7 @@ void botManager.start(options).asCallback(err => {
     }
 
     if (options.enableHttpApi) {
-        void import('./classes/HttpManager').then(({ default: HttpManager }) => {
+        void import('./classes/HttpManager.js').then(({ default: HttpManager }) => {
             const httpManager = new HttpManager(options);
 
             void httpManager.start().asCallback(err => {

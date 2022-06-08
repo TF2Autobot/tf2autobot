@@ -3,11 +3,12 @@ import SchemaManager from '@tf2autobot/tf2-schema';
 import Currencies from '@tf2autobot/tf2-currencies';
 import sleepasync from 'sleep-async';
 import { UnknownDictionary } from '../../types/common';
-import { Webhook, sendWebhook } from './export';
 
-import log from '../logger';
-import { Entry } from '../../classes/Pricelist';
-import Options from '../../classes/Options';
+import log from '../logger.js';
+import { Entry } from '../../classes/Pricelist.js';
+import Options from '../../classes/Options.js';
+import { sendWebhook } from './utils';
+import { Webhook } from 'src/types/discordwebhook';
 
 const australiumImageURL: { [defindex: number]: string } = {
     // Australium Ambassador

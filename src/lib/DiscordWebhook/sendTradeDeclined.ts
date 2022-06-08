@@ -1,10 +1,10 @@
 import { Action, TradeOffer } from '@tf2autobot/tradeoffer-manager';
-import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
-import Bot from '../../classes/Bot';
-import * as t from '../tools/export';
-import log from '../logger';
-import { Webhook } from './export';
-import { sendToAdmin } from '../../classes/MyHandler/offer/processDeclined';
+import { getPartnerDetails, quickLinks, sendWebhook } from './utils.js';
+import Bot from '../../classes/Bot.js';
+import * as t from '../tools/export.js';
+import log from '../logger.js';
+import { sendToAdmin } from '../../classes/MyHandler/offer/processDeclined.js';
+import { Webhook } from 'src/types/discordwebhook.js';
 
 export default async function sendTradeDeclined(
     offer: TradeOffer,

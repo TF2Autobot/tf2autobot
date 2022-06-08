@@ -4,12 +4,14 @@ import Currencies from '@tf2autobot/tf2-currencies';
 import SKU from '@tf2autobot/tf2-sku';
 import SchemaManager from '@tf2autobot/tf2-schema';
 import { Currency } from '../types/TeamFortress2';
-import Options from './Options';
-import Bot from './Bot';
-import log from '../lib/logger';
-import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
-import IPricer, { GetItemPriceResponse, Item } from './IPricer';
+import Options from './Options.js';
+import Bot from './Bot.js';
+import log from '../lib/logger.js';
+import validator from '../lib/validator.js';
+import IPricer, { GetItemPriceResponse, Item } from '../types/IPricer.js';
+import sendFailedPriceUpdate from 'src/lib/DiscordWebhook/pricelistUpdateFailed';
+import sendAlert from 'src/lib/DiscordWebhook/sendAlert';
+import sendWebHookPriceUpdateV1 from 'src/lib/DiscordWebhook/pricelistUpdate';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -238,6 +240,7 @@ export default class Pricelist extends EventEmitter {
 
     init(): void {
         if (this.options.enableSocket) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
         }
     }

@@ -19,35 +19,35 @@ import async from 'async';
 import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
-import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
-import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted';
-import processDeclined from './offer/processDeclined';
-import { sendReview } from './offer/review/export-review';
-import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
+import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify.js';
+import { processAccepted, updateListings, PriceCheckQueue } from './offer/accepted/exportAccepted.js';
+import processDeclined from './offer/processDeclined.js';
+import { sendReview } from './offer/review/export-review.js';
+import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils.js';
 
-import { BPTFGetUserInfo } from './interfaces';
+import { BPTFGetUserInfo } from '../../types/etc.js';
 
-import Handler from '../Handler';
-import Bot from '../Bot';
-import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
-import Commands from '../Commands/Commands';
-import CartQueue from '../Carts/CartQueue';
-import Inventory from '../Inventory';
-import TF2Inventory from '../TF2Inventory';
-import Autokeys from '../Autokeys/Autokeys';
+import Handler from '../Handler.js';
+import Bot from '../Bot.js';
+import { Entry, PricesDataObject, PricesObject } from '../Pricelist.js';
+import Commands from '../Commands/Commands.js';
+import CartQueue from '../Carts/CartQueue.js';
+import Inventory from '../Inventory.js';
+import TF2Inventory from '../TF2Inventory.js';
+import Autokeys from '../Autokeys/Autokeys.js';
 
-import { Paths } from '../../resources/paths';
-import log from '../../lib/logger';
-import * as files from '../../lib/files';
-import { exponentialBackoff } from '../../lib/helpers';
+import { Paths } from '../../resources/paths.js';
+import log from '../../lib/logger.js';
+import * as files from '../../lib/files.js';
+import { exponentialBackoff } from '../../lib/helpers.js';
 
-import { noiseMakers } from '../../lib/data';
-import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
-import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
+import { noiseMakers } from '../../lib/data.js';
+import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export.js';
+import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export.js';
 
-import genPaths from '../../resources/paths';
-import IPricer, { RequestCheckFn } from '../IPricer';
-import Options, { OfferType } from '../Options';
+import genPaths from '../../resources/paths.js';
+import IPricer, { RequestCheckFn } from '../../types/IPricer.js';
+import Options, { OfferType } from '../Options.js';
 import { Listing } from '@tf2autobot/bptf-listings';
 
 const filterReasons = (reasons: string[]) => {
@@ -1691,7 +1691,7 @@ export default class MyHandler extends Handler {
                     log.debug('Dupe checking ' + assetid + '...');
                     void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug('Dupe check for ' + assetid + ' done');
-                        callback(err, result);
+                        callback(err as Error, result);
                     });
                 };
             });

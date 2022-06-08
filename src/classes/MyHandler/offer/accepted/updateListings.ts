@@ -4,14 +4,14 @@ import Currencies from '@tf2autobot/tf2-currencies';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 
-import PriceCheckQueue from './requestPriceCheck';
-import Bot from '../../../Bot';
-import { EntryData } from '../../../Pricelist';
-import { Attributes } from '../../../TF2GC';
-import log from '../../../../lib/logger';
-import { sendAlert } from '../../../../lib/DiscordWebhook/export';
-import { PaintedNames } from '../../../Options';
-import { testSKU } from '../../../../lib/tools/export';
+import PriceCheckQueue from './requestPriceCheck.js';
+import Bot from '../../../Bot.js';
+import { EntryData } from '../../../Pricelist.js';
+import { Attributes } from '../../../TF2GC.js';
+import log from '../../../../lib/logger.js';
+import { PaintedNames } from '../../../Options.js';
+import { testSKU } from '../../../../lib/tools/export.js';
+import sendAlert from 'src/lib/DiscordWebhook/sendAlert.js';
 
 let itemsFromPreviousTrades: string[] = [];
 

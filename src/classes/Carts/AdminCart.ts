@@ -1,8 +1,8 @@
 import pluralize from 'pluralize';
 import SKU from '@tf2autobot/tf2-sku';
-import Cart from './Cart';
-import Inventory from '../Inventory';
-import log from '../../lib/logger';
+import Cart from './Cart.js';
+import Inventory from '../Inventory.js';
+import log from '../../lib/logger.js';
 
 export default class AdminCart extends Cart {
     protected preSendOffer(): Promise<void> {

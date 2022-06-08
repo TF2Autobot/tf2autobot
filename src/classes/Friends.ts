@@ -1,7 +1,7 @@
 import { EFriendRelationship } from 'steam-user';
 import SteamID from 'steamid';
 import axios from 'axios';
-import Bot from './Bot';
+import Bot from './Bot.js';
 
 export default class Friends {
     maxFriends: number | undefined;

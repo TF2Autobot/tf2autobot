@@ -5,11 +5,11 @@ import SchemaManager from '@tf2autobot/tf2-schema';
 import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { MinimumItem } from '../../../types/TeamFortress2';
-import Bot from '../../Bot';
-import { Entry } from '../../Pricelist';
-import { genericNameAndMatch } from '../../Inventory';
-import { fixItem } from '../../../lib/items';
-import { testSKU } from '../../../lib/tools/export';
+import Bot from '../../Bot.js';
+import { Entry } from '../../Pricelist.js';
+import { genericNameAndMatch } from '../../Inventory.js';
+import { fixItem } from '../../../lib/items.js';
+import { testSKU } from '../../../lib/tools/export.js';
 
 export function getItemAndAmount(
     steamID: SteamID,
@@ -218,7 +218,7 @@ export function getItemFromParams(
     if (params.item !== undefined) {
         foundSomething = true;
 
-        const sku = bot.schema.getSkuFromName(params.item);
+        const sku = bot.schema.getSkuFromName(params.item as string);
 
         if (sku.includes('null') || sku.includes('undefined')) {
             bot.sendMessage(

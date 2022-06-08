@@ -1,4 +1,21 @@
-import Bot from '../../Bot';
+import Bot from '../../Bot.js';
+
+export interface CraftWeaponsBySlot {
+    [slot: string]: string[];
+}
+
+export type ClassesForCraftableWeapons =
+    | 'scout'
+    | 'soldier'
+    | 'pyro'
+    | 'demoman'
+    | 'heavy'
+    | 'engineer'
+    | 'medic'
+    | 'sniper'
+    | 'spy';
+
+export type SlotsForCraftableWeapons = 'primary' | 'secondary' | 'melee' | 'pda2';
 
 export default function craftClassWeapons(bot: Bot): Promise<void> {
     if (!bot.options.crafting.weapons.enable) {
@@ -8,7 +25,7 @@ export default function craftClassWeapons(bot: Bot): Promise<void> {
 
     void Promise.all(
         ['scout', 'soldier', 'pyro', 'demoman', 'heavy', 'engineer', 'medic', 'sniper', 'spy'].map(classChar =>
-            craftEachClassWeapons(bot, bot.craftWeaponsByClass[classChar], currencies)
+            craftEachClassWeapons(bot, bot.craftWeaponsByClass[classChar as ClassesForCraftableWeapons], currencies)
         )
     );
 }

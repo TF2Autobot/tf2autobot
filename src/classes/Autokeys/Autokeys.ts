@@ -1,10 +1,10 @@
 import Currencies from '@tf2autobot/tf2-currencies';
-import { genUserPure, genScrapAdjustment } from './userSettings';
-import Bot from '../Bot';
-import { EntryData, KeyPrices, PricelistChangedSource } from '../Pricelist';
-import log from '../../lib/logger';
-import { currPure } from '../../lib/tools/pure';
-import sendAlert from '../../lib/DiscordWebhook/sendAlert';
+import { genUserPure, genScrapAdjustment } from './userSettings.js';
+import Bot from '../Bot.js';
+import { EntryData, KeyPrices, PricelistChangedSource } from '../Pricelist.js';
+import log from '../../lib/logger.js';
+import { currPure } from '../../lib/tools/pure.js';
+import sendAlert from '../../lib/DiscordWebhook/sendAlert.js';
 
 export interface OverallStatus {
     isBuyingKeys: boolean;

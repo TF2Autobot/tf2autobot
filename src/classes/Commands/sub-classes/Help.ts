@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import sleepasync from 'sleep-async';
-import Bot from '../../Bot';
+import Bot from '../../Bot.js';
 
 export default class HelpCommands {
     constructor(private readonly bot: Bot) {

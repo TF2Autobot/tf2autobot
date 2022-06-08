@@ -3,14 +3,14 @@ import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
 import Currencies from '@tf2autobot/tf2-currencies';
-import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import log from '../../../lib/logger';
-import { fixItem } from '../../../lib/items';
-import { testSKU } from '../../../lib/tools/export';
+import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils.js';
+import Bot from '../../Bot.js';
+import CommandParser from '../../CommandParser.js';
+import log from '../../../lib/logger.js';
+import { fixItem } from '../../../lib/items.js';
+import { testSKU } from '../../../lib/tools/export.js';
 import { UnknownDictionary } from '../../../types/common';
-import IPricer, { RequestCheckFn, RequestCheckResponse } from '../../IPricer';
+import IPricer, { RequestCheckFn, RequestCheckResponse } from '../../../types/IPricer.js';
 
 export default class RequestCommands {
     constructor(private readonly bot: Bot, private priceSource: IPricer) {
@@ -23,25 +23,26 @@ export default class RequestCommands {
 
     pricecheckCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
-        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+        let sku = params.sku as string;
+        if (sku !== undefined && !testSKU(sku)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
-        if (params.sku === undefined) {
+        if (sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
             if (item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            sku = SKU.fromObject(item);
         } else {
-            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
+            sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
         }
 
-        params.sku = fixSKU(params.sku);
+        sku = fixSKU(sku);
 
         void this.priceSource
-            .requestCheck(params.sku)
+            .requestCheck(sku)
             .then((body: RequestCheckResponse) => {
                 if (!body) {
                     this.bot.sendMessage(steamID, '❌ Error while requesting price check (returned null/undefined)');
@@ -50,7 +51,7 @@ export default class RequestCommands {
                     if (body.name) {
                         name = body.name;
                     } else {
-                        name = this.bot.schema.getName(SKU.fromString(params.sku));
+                        name = this.bot.schema.getName(SKU.fromString(sku));
                     }
                     this.bot.sendMessage(steamID, `✅ Requested pricecheck for ${name}, the item will be checked.`);
                 }
@@ -98,39 +99,38 @@ export default class RequestCommands {
 
     async checkCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
-        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+        let sku = params.sku as string;
+        if (sku !== undefined && !testSKU(sku)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
-        if (params.sku === undefined) {
+        if (sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
             if (item === null) {
                 return;
             }
 
-            params.sku = SKU.fromObject(item);
+            sku = SKU.fromObject(item);
         } else {
-            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku), this.bot.schema));
+            sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
         }
 
-        params.sku = fixSKU(params.sku);
+        sku = fixSKU(sku);
 
-        const name = this.bot.schema.getName(SKU.fromString(params.sku));
+        const name = this.bot.schema.getName(SKU.fromString(sku));
         try {
-            const price = await this.priceSource.getPrice(params.sku);
+            const price = await this.priceSource.getPrice(sku);
             const currBuy = new Currencies(price.buy);
             const currSell = new Currencies(price.sell);
 
             this.bot.sendMessage(
                 steamID,
-                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\nhttps://autobot.tf/items/${
-                    params.sku as string
-                }`
+                `🔎 ${name}:\n• Buy  : ${currBuy.toString()}\n• Sell : ${currSell.toString()}\nhttps://autobot.tf/items/${sku}`
             );
         } catch (err) {
             return this.bot.sendMessage(
                 steamID,
-                `Error getting price for ${name === null ? (params.sku as string) : name}: ${
+                `Error getting price for ${name === null ? sku : name}: ${
                     (err as ErrorRequest).body && (err as ErrorRequest).body.message
                         ? (err as ErrorRequest).body.message
                         : (err as ErrorRequest).message

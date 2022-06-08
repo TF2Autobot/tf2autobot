@@ -1,7 +1,7 @@
 import { ItemsValue, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import Currencies from '@tf2autobot/tf2-currencies';
 import { Currency } from '../../types/TeamFortress2';
-import { KeyPrices } from '../../classes/Pricelist';
+import { KeyPrices } from '../../classes/Pricelist.js';
 
 export default function valueDiff(
     offer: TradeOffer,

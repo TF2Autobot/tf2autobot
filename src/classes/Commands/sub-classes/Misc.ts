@@ -2,11 +2,11 @@ import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
-import { removeLinkProtocol } from '../functions/utils';
-import CommandParser from '../../CommandParser';
-import Bot from '../../Bot';
-import { Discord, Stock } from '../../Options';
-import { pure, timeNow, uptime, testSKU } from '../../../lib/tools/export';
+import { removeLinkProtocol } from '../functions/utils.js';
+import CommandParser from '../../CommandParser.js';
+import Bot from '../../Bot.js';
+import { Discord, Stock } from '../../Options.js';
+import { pure, timeNow, uptime, testSKU } from '../../../lib/tools/export.js';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';

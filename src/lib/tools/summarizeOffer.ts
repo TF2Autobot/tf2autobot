@@ -1,6 +1,6 @@
-import { KeyPrices } from '../../classes/Pricelist';
+import { KeyPrices } from '../../classes/Pricelist.js';
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../classes/Bot';
+import Bot from '../../classes/Bot.js';
 
 const pureEmoji = new Map<string, string>();
 pureEmoji

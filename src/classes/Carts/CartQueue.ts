@@ -2,12 +2,12 @@ import SteamID from 'steamid';
 import * as inspect from 'util';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
-import Cart from './Cart';
-import Bot from '../Bot';
-import log from '../../lib/logger';
-import { sendAlert } from '../../lib/DiscordWebhook/export';
-import { uptime } from '../../lib/tools/export';
-import { isBptfBanned } from '../../lib/bans';
+import Cart from './Cart.js';
+import Bot from '../Bot.js';
+import log from '../../lib/logger.js';
+import { sendAlert } from '../../lib/DiscordWebhook/export.js';
+import { uptime } from '../../lib/tools/export.js';
+import { isBptfBanned } from '../../lib/bans.js';
 
 export default class CartQueue {
     private carts: Cart[] = [];

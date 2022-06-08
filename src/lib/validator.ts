@@ -3,7 +3,7 @@ const Validator = jsonschema.Validator;
 
 const v = new Validator();
 
-import * as pl from '../schemas/pricelist-json/export';
+import * as pl from '../schemas/pricelist-json/export.js';
 
 v.addSchema(pl.currenciesSchema);
 v.addSchema(pl.pricelistSchema);
@@ -11,14 +11,14 @@ v.addSchema(pl.addSchema);
 v.addSchema(pl.listingSchema);
 v.addSchema(pl.pricesDataObject);
 
-import { stringArrayURLSchema } from '../schemas/options-json/array-string-url';
+import { stringArrayURLSchema } from '../schemas/options-json/array-string-url.js';
 v.addSchema(stringArrayURLSchema);
 
-import { optionsSchema } from '../schemas/options-json/options';
+import { optionsSchema } from '../schemas/options-json/options.js';
 v.addSchema(optionsSchema);
 
-import { EntryData } from '../classes/Pricelist';
-import Options from '../classes/Options';
+import { EntryData } from '../classes/Pricelist.js';
+import Options from '../classes/Options.js';
 
 export = function (data: EntryData | Options, schema: string): string[] | null {
     const putSchema =

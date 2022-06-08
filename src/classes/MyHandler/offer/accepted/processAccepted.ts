@@ -1,11 +1,11 @@
 import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
 import sleepasync from 'sleep-async';
-import Bot from '../../../Bot';
-import { KeyPrices } from '../../../Pricelist';
-import log from '../../../../lib/logger';
-import * as t from '../../../../lib/tools/export';
-import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
+import Bot from '../../../Bot.js';
+import { KeyPrices } from '../../../Pricelist.js';
+import log from '../../../../lib/logger.js';
+import * as t from '../../../../lib/tools/export.js';
+import sendTradeSummary from 'src/lib/DiscordWebhook/sendTradeSummary.js';
 
 export default function processAccepted(
     offer: i.TradeOffer,

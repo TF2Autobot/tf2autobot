@@ -1,6 +1,6 @@
 import Currencies from '@tf2autobot/tf2-currencies';
 import pluralize from 'pluralize';
-import Bot from '../../classes/Bot';
+import Bot from '../../classes/Bot.js';
 
 export function stock(bot: Bot): string[] {
     const pureStock: string[] = [];

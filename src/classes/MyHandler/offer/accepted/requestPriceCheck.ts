@@ -1,7 +1,7 @@
 import sleepasync from 'sleep-async';
-import { RequestCheckFn, RequestCheckResponse } from '../../../IPricer';
-import Bot from '../../../Bot';
-import log from '../../../../lib/logger';
+import { RequestCheckFn, RequestCheckResponse } from '../../../../types/IPricer.js';
+import Bot from '../../../Bot.js';
+import log from '../../../../lib/logger.js';
 import SKU from '@tf2autobot/tf2-sku';
 
 export default class PriceCheckQueue {

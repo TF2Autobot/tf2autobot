@@ -1,5 +1,5 @@
 import TradeOfferManager, { TradeOffer } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../Bot';
+import Bot from '../../../Bot.js';
 
 export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot): void {
     let reply: string;

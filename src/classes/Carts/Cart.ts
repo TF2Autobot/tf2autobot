@@ -5,10 +5,10 @@ import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from '@tf2autobot/tr
 import pluralize from 'pluralize';
 import axios from 'axios';
 import { UnknownDictionary } from '../../types/common';
-import Bot from '../Bot';
-import { BPTFGetUserInfo } from '../MyHandler/interfaces';
-import log from '../../lib/logger';
-import { sendAlert } from '../../lib/DiscordWebhook/export';
+import Bot from '../Bot.js';
+import { BPTFGetUserInfo } from '../../types/etc';
+import log from '../../lib/logger.js';
+import { sendAlert } from '../../lib/DiscordWebhook/export.js';
 
 /**
  * An abstract class used for sending offers

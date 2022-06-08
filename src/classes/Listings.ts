@@ -3,13 +3,13 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import Currencies from '@tf2autobot/tf2-currencies';
 import sleepasync from 'sleep-async';
-import Bot from './Bot';
-import { Entry, PricesObject } from './Pricelist';
-import log from '../lib/logger';
-import { exponentialBackoff } from '../lib/helpers';
-import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-import { DictItem } from './Inventory';
-import { PaintedNames } from './Options';
+import Bot from './Bot.js';
+import { Entry, PricesObject } from './Pricelist.js';
+import log from '../lib/logger.js';
+import { exponentialBackoff } from '../lib/helpers.js';
+import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data.js';
+import { DictItem } from './Inventory.js';
+import { PaintedNames } from './Options.js';
 import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 
 export default class Listings {
@@ -462,6 +462,7 @@ export default class Listings {
                                     toJoin.push(
                                         `${name.replace(
                                             name,
+                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                             optR.strangeParts[name] ? optR.strangeParts[name] : name
                                         )}`
                                     );
@@ -471,6 +472,7 @@ export default class Listings {
                                         toJoin.push(
                                             `${name.replace(
                                                 name,
+                                                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                                 attachment === 's'
                                                     ? optR.spells[name]
                                                     : attachment === 'ke'

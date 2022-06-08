@@ -1,14 +1,14 @@
 import Currencies from '@tf2autobot/tf2-currencies';
-import PricesTfSocketManager from './prices-tf-socket-manager';
+import PricesTfSocketManager from './prices-tf-socket-manager.js';
 import IPricer, {
     GetItemPriceResponse,
     GetPricelistResponse,
     Item,
     PricerOptions,
     RequestCheckResponse
-} from '../../../classes/IPricer';
-import PricesTfApi, { PricesTfItem, PricesTfItemMessageEvent } from './prices-tf-api';
-import log from '../../logger';
+} from '../../../types/IPricer';
+import PricesTfApi, { PricesTfItem, PricesTfItemMessageEvent } from './prices-tf-api.js';
+import log from '../../logger.js';
 
 export default class PricesTfPricer implements IPricer {
     private socketManager: PricesTfSocketManager;
@@ -139,6 +139,7 @@ export default class PricesTfPricer implements IPricer {
     bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void {
         this.socketManager.on('message', (message: MessageEvent) => {
             try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 const data = this.parsePricesTfMessageEvent(message.data);
 
                 if (data.type === 'AUTH_REQUIRED') {

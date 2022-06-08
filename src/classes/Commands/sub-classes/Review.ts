@@ -5,9 +5,9 @@ import Currencies from '@tf2autobot/tf2-currencies';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from '@tf2autobot/tf2-sku';
 import SchemaManager from '@tf2autobot/tf2-schema';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import { generateLinks, testSKU } from '../../../lib/tools/export';
+import Bot from '../../Bot.js';
+import CommandParser from '../../CommandParser.js';
+import { generateLinks, testSKU } from '../../../lib/tools/export.js';
 
 // Manual review commands
 

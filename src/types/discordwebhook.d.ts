@@ -1,29 +1,29 @@
-interface Author {
+export interface Author {
     name: string;
     url?: string;
     icon_url?: string;
 }
 
-interface Fields {
+export interface Fields {
     name: string;
     value: string;
     inline?: boolean;
 }
 
-interface Footer {
+export interface Footer {
     text: string;
     icon_url?: string;
 }
 
-interface Thumbnail {
+export interface Thumbnail {
     url: string;
 }
 
-interface Image {
+export interface Image {
     url: string;
 }
 
-interface Embeds {
+export interface Embeds {
     color?: string;
     author?: Author;
     title?: string;

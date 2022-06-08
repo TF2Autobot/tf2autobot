@@ -1,7 +1,7 @@
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import { Meta, Overstocked } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../../Bot';
+import Bot from '../../../../Bot.js';
 
 export default function overstocked(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;

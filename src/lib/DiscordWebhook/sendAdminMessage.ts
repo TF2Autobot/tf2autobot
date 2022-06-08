@@ -1,7 +1,7 @@
-import { quickLinks, sendWebhook } from './utils';
-import { Webhook } from './interfaces';
-import log from '../logger';
-import Bot from '../../classes/Bot';
+import { quickLinks, sendWebhook } from './utils.js';
+import { Webhook } from '../../types/discordwebhook';
+import log from '../logger.js';
+import Bot from '../../classes/Bot.js';
 
 export default function sendAdminMessage(
     steamID: string,

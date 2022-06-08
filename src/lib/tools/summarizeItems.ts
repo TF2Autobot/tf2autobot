@@ -1,8 +1,8 @@
 import { TradeOffer, Prices } from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
 import Currencies from '@tf2autobot/tf2-currencies';
-import Bot from '../../classes/Bot';
-import { replace, testSKU } from '../tools/export';
+import Bot from '../../classes/Bot.js';
+import { replace, testSKU } from './export.js';
 
 interface Items {
     invalid: string[];

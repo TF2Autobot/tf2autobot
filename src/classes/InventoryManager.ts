@@ -1,6 +1,6 @@
 import Currencies from '@tf2autobot/tf2-currencies';
-import Inventory from './Inventory';
-import Pricelist from './Pricelist';
+import Inventory from './Inventory.js';
+import Pricelist from './Pricelist.js';
 
 export default class InventoryManager {
     constructor(private readonly pricelist: Pricelist, private inventory: Inventory = null) {

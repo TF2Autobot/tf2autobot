@@ -2,7 +2,7 @@ import fs from 'fs';
 import writeFileAtomic from 'write-file-atomic';
 import path from 'path';
 
-import { exponentialBackoff } from './helpers';
+import { exponentialBackoff } from './helpers.js';
 
 let filesBeingSaved = 0;
 
@@ -65,6 +65,7 @@ export function writeFile(p: string, data: unknown, json: boolean): Promise<void
 
         function writeToFile(): void {
             filesBeingSaved++;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             writeFileAtomic(p, write, { encoding: 'utf8' }, err => {
                 filesBeingSaved--;
 

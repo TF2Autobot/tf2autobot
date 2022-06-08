@@ -1,9 +1,9 @@
-import invalidItems from './invalidItems';
-import disabledItems from './disabledItems';
-import overstocked from './overstocked';
-import understocked from './understocked';
-import duped from './duped';
-import dupedCheckFailed from './dupedCheckFailed';
-import invalidValue from './invalidValue';
+import invalidItems from './invalidItems.js';
+import disabledItems from './disabledItems.js';
+import overstocked from './overstocked.js';
+import understocked from './understocked.js';
+import duped from './duped.js';
+import dupedCheckFailed from './dupedCheckFailed.js';
+import invalidValue from './invalidValue.js';
 
 export { invalidItems, disabledItems, overstocked, understocked, duped, dupedCheckFailed, invalidValue };

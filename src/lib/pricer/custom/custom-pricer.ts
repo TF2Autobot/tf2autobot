@@ -1,13 +1,16 @@
 import Currencies from '@tf2autobot/tf2-currencies';
-import CustomPricerSocketManager from './custom-pricer-socket-manager';
+import CustomPricerSocketManager from './custom-pricer-socket-manager.js';
 import IPricer, {
     GetItemPriceResponse,
     GetPricelistResponse,
     Item,
     PricerOptions,
     RequestCheckResponse
-} from '../../../classes/IPricer';
-import CustomPricerApi, { CustomPricesGetItemPriceResponse, CustomPricesItemMessageEvent } from './custom-pricer-api';
+} from '../../../types/IPricer';
+import CustomPricerApi, {
+    CustomPricesGetItemPriceResponse,
+    CustomPricesItemMessageEvent
+} from './custom-pricer-api.js';
 
 export default class CustomPricer implements IPricer {
     private socketManager: CustomPricerSocketManager;

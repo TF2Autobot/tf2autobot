@@ -1,8 +1,8 @@
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import { Meta, InvalidItems } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../../Bot';
-import { testSKU } from '../../../../../lib/tools/export';
+import Bot from '../../../../Bot.js';
+import { testSKU } from '../../../../../lib/tools/export.js';
 
 export default function invalidItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
     const opt = bot.options.discordWebhook.offerReview;

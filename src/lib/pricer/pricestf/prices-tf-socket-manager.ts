@@ -1,9 +1,9 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
-import log from '../../../lib/logger';
+import log from '../../../lib/logger.js';
 import WS from 'ws';
-import * as Events from 'reconnecting-websocket/events';
-import PricesTfApi from './prices-tf-api';
-import { exponentialBackoff } from '../../helpers';
+import * as Events from 'reconnecting-websocket/events.js';
+import PricesTfApi from './prices-tf-api.js';
+import { exponentialBackoff } from '../../helpers.js';
 
 export default class PricesTfSocketManager {
     private readonly socketClass;
@@ -15,7 +15,7 @@ export default class PricesTfSocketManager {
     constructor(private api: PricesTfApi) {
         // https://stackoverflow.com/questions/28784375/nested-es6-classes
         this.socketClass = class WebSocket extends WS {
-            constructor(url, protocols) {
+            constructor(url: string, protocols: string | string[]) {
                 super(url, protocols, {
                     headers: {
                         Authorization: 'Bearer ' + api.token

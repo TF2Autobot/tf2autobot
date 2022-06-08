@@ -2,8 +2,8 @@
 
 import SteamID from 'steamid';
 import TradeOfferManager, { PollData, Meta } from '@tf2autobot/tradeoffer-manager';
-import Bot from './Bot';
-import { Entry, PricesDataObject, PricesObject } from './Pricelist';
+import Bot from './Bot.js';
+import { Entry, PricesDataObject, PricesObject } from './Pricelist.js';
 
 export default abstract class Handler {
     protected constructor(readonly bot: Bot) {

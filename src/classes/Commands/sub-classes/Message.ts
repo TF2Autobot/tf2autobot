@@ -1,9 +1,9 @@
 import SteamID from 'steamid';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import log from '../../../lib/logger';
-import { generateLinks, timeNow } from '../../../lib/tools/export';
-import { sendPartnerMessage, sendAdminMessage } from '../../../lib/DiscordWebhook/export';
+import Bot from '../../Bot.js';
+import CommandParser from '../../CommandParser.js';
+import log from '../../../lib/logger.js';
+import { generateLinks, timeNow } from '../../../lib/tools/export.js';
+import { sendPartnerMessage, sendAdminMessage } from '../../../lib/DiscordWebhook/export.js';
 
 export default class MessageCommand {
     constructor(private readonly bot: Bot) {

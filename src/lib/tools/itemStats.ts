@@ -1,4 +1,4 @@
-import Bot from '../../classes/Bot';
+import Bot from '../../classes/Bot.js';
 import { OfferData } from '@tf2autobot/tradeoffer-manager';
 
 // trigger update file name

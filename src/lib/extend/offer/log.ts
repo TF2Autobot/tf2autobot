@@ -1,6 +1,6 @@
 import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 
-import log from '../../logger';
+import log from '../../logger.js';
 
 export = function (level: string, message: string): void {
     const self = this as TradeOffer;

@@ -1,4 +1,4 @@
-import Bot from '../../classes/Bot';
+import Bot from '../../classes/Bot.js';
 import dayjs from 'dayjs';
 import { Currency } from '../../types/TeamFortress2';
 import Currencies from '@tf2autobot/tf2-currencies';

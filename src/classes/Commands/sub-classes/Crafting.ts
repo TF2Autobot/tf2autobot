@@ -1,15 +1,14 @@
 import SteamID from 'steamid';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import { TokenType, SubTokenType } from '../../TF2GC';
+import Bot from '../../Bot.js';
+import CommandParser from '../../CommandParser.js';
+import { TokenType, SubTokenType } from '../../TF2GC.js';
 
-import log from '../../../lib/logger';
-
-interface CraftWeaponsBySlot {
-    [slot: string]: string[];
-}
-
-type SlotsForCraftableWeapons = 'primary' | 'secondary' | 'melee' | 'pda2';
+import log from '../../../lib/logger.js';
+import {
+    ClassesForCraftableWeapons,
+    CraftWeaponsBySlot,
+    SlotsForCraftableWeapons
+} from 'src/classes/MyHandler/utils/craftClassWeapons.js';
 
 const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -96,7 +95,7 @@ export default class CraftingCommands {
 
         const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
             tokenType === 'class'
-                ? this.bot.craftWeaponsByClass[subTokenType]
+                ? this.bot.craftWeaponsByClass[subTokenType as ClassesForCraftableWeapons]
                 : this.craftWeaponsBySlot[subTokenType as SlotsForCraftableWeapons],
             false
         );
@@ -183,7 +182,7 @@ export default class CraftingCommands {
             }
 
             const craftableItems = this.bot.inventoryManager.getInventory.getCurrencies(
-                craftWeaponsByClass[charClass],
+                craftWeaponsByClass[charClass as ClassesForCraftableWeapons],
                 false
             );
 

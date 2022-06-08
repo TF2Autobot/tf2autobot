@@ -7,11 +7,11 @@ import validUrl from 'valid-url';
 import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
 import { EFriendRelationship } from 'steam-user';
-import { fixSKU } from '../functions/utils';
-import Bot from '../../Bot';
-import CommandParser from '../../CommandParser';
-import log from '../../../lib/logger';
-import { pure, testSKU } from '../../../lib/tools/export';
+import { fixSKU } from '../functions/utils.js';
+import Bot from '../../Bot.js';
+import CommandParser from '../../CommandParser.js';
+import log from '../../../lib/logger.js';
+import { pure, testSKU } from '../../../lib/tools/export.js';
 
 // Bot manager commands
 
@@ -165,7 +165,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = fixSKU(params.sku);
+            const targetedSKU = fixSKU(params.sku as string);
             const [uncraft, untrade] = [
                 targetedSKU.includes(';uncraftable'),
                 targetedSKU.includes(';untradable') || targetedSKU.includes(';untradeable')

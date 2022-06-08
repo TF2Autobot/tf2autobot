@@ -5,8 +5,8 @@
 
 import bodyParser from 'body-parser';
 import express from 'express';
-import log from '../lib/logger';
-import Options from './Options';
+import log from '../lib/logger.js';
+import Options from './Options.js';
 
 export default class HttpManager {
     /**

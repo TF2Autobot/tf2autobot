@@ -3,12 +3,12 @@ import SKU from '@tf2autobot/tf2-sku';
 import Currencies from '@tf2autobot/tf2-currencies';
 import async from 'async';
 import { ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
-import Cart from './Cart';
-import Inventory, { getSkuAmountCanTrade, DictItem } from '../Inventory';
-import TF2Inventory from '../TF2Inventory';
-import log from '../../lib/logger';
-import { noiseMakers } from '../../lib/data';
-import { pure } from '../../lib/tools/export';
+import Cart from './Cart.js';
+import Inventory, { getSkuAmountCanTrade, DictItem } from '../Inventory.js';
+import TF2Inventory from '../TF2Inventory.js';
+import log from '../../lib/logger.js';
+import { noiseMakers } from '../../lib/data.js';
+import { pure } from '../../lib/tools/export.js';
 
 type WhichHighValue = 'our' | 'their';
 
@@ -74,7 +74,7 @@ export default class UserCart extends Cart {
                     log.debug(`Dupe checking ${assetid}...`);
                     void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug(`Dupe check for ${assetid} done`);
-                        callback(err, result);
+                        callback(err as Error, result);
                     });
                 };
             });
