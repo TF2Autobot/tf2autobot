@@ -299,7 +299,7 @@ export default class MyHandler extends Handler {
 
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
         this.refreshTimeout = setTimeout(() => {
-            this.enableAutoRefreshListings();
+            this.startAutoRefreshListings();
         }, 5 * 60 * 1000);
 
         // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
@@ -536,7 +536,7 @@ export default class MyHandler extends Handler {
         log.warn('Please add your backpack.tf API key and access token to your environment variables!', details);
     }
 
-    enableAutoRefreshListings(): void {
+    private startAutoRefreshListings(): void {
         // Automatically check for missing listings every 30 minutes
         let pricelistLength = 0;
 
@@ -555,7 +555,7 @@ export default class MyHandler extends Handler {
                     );
 
                     setTimeout(() => {
-                        this.enableAutoRefreshListings();
+                        this.startAutoRefreshListings();
                     }, this.executedDelayTime);
 
                     // reset to default
@@ -572,7 +572,7 @@ export default class MyHandler extends Handler {
                     if (err) {
                         log.warn('Error getting listings on auto-refresh listings operation:', err);
                         setTimeout(() => {
-                            this.enableAutoRefreshListings();
+                            this.startAutoRefreshListings();
                         }, 30 * 60 * 1000);
                         clearInterval(this.autoRefreshListingsInterval);
                         return;
