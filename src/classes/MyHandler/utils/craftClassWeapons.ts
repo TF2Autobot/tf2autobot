@@ -17,6 +17,23 @@ export type ClassesForCraftableWeapons =
 
 export type SlotsForCraftableWeapons = 'primary' | 'secondary' | 'melee' | 'pda2';
 
+export interface CraftWeaponsBySlot {
+    [slot: string]: string[];
+}
+
+export type ClassesForCraftableWeapons =
+    | 'scout'
+    | 'soldier'
+    | 'pyro'
+    | 'demoman'
+    | 'heavy'
+    | 'engineer'
+    | 'medic'
+    | 'sniper'
+    | 'spy';
+
+export type SlotsForCraftableWeapons = 'primary' | 'secondary' | 'melee' | 'pda2';
+
 export default function craftClassWeapons(bot: Bot): Promise<void> {
     if (!bot.options.crafting.weapons.enable) {
         return;

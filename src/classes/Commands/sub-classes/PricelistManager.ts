@@ -14,8 +14,8 @@ import CommandParser from '../../CommandParser.js';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist.js';
 import validator from '../../../lib/validator.js';
 import { testSKU } from '../../../lib/tools/export.js';
-import IPricer from '../../../types/IPricer.js';
-import { Currency } from 'src/types/TeamFortress2.js';
+import IPricer from '../../../types/IPricer';
+import { Currency } from '../../../types/TeamFortress2';
 
 // Pricelist manager
 
