@@ -57,6 +57,9 @@ export const DEFAULTS: JsonOptions = {
         reputationCheck: {
             checkMptfBanned: false,
             reptfAsPrimarySource: false
+        },
+        pricecheckAfterTrade: {
+            enable: true
         }
     },
 
@@ -1134,6 +1137,7 @@ interface MiscSettings {
     alwaysRemoveItemAttributes?: AlwaysRemoveItemAttributes;
     deleteUntradableJunk?: OnlyEnable;
     reputationCheck?: ReputationCheck;
+    pricecheckAfterTrade?: OnlyEnable;
 }
 
 interface ReputationCheck {
