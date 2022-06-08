@@ -55,7 +55,9 @@ export default class Commands {
 
     private crafting: c.CraftingCommands;
 
-    adminInventory: UnknownDictionary<Inventory> = {};
+    private adminInventory: UnknownDictionary<Inventory> = {};
+
+    private adminInventoryReset: NodeJS.Timeout;
 
     constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
         this.help = new c.HelpCommands(bot);
@@ -661,7 +663,8 @@ export default class Commands {
         cart.isDonating = false;
         this.addCartToQueue(cart, false, false);
 
-        this.adminInventory = {};
+        clearTimeout(this.adminInventoryReset);
+        delete this.adminInventory[steamID.getSteamID64()];
     }
 
     // Trade actions
@@ -703,7 +706,8 @@ export default class Commands {
                 custom.isRemovedFromQueue ? custom.isRemovedFromQueue : '✅ You have been removed from the queue.'
             );
 
-            this.adminInventory = {};
+            clearTimeout(this.adminInventoryReset);
+            delete this.adminInventory[steamID.getSteamID64()];
         } else {
             // User is not in the queue, check if they have an active offer
 
@@ -881,6 +885,11 @@ export default class Commands {
                 log.debug('fetching admin inventory');
                 await adminInventory.fetch();
                 this.adminInventory[steamid] = adminInventory;
+
+                clearTimeout(this.adminInventoryReset);
+                this.adminInventoryReset = setTimeout(() => {
+                    delete this.adminInventory[steamid];
+                }, 5 * 60 * 1000);
             } catch (err) {
                 log.error('Error fetching inventory: ', err);
                 return this.bot.sendMessage(
@@ -894,11 +903,15 @@ export default class Commands {
         const dict = adminInventory.getItems;
 
         if (dict[params.sku as string] === undefined) {
+            clearTimeout(this.adminInventoryReset);
+            delete this.adminInventory[steamid];
             return this.bot.sendMessage(steamID, `❌ You don't have any ${itemName}.`);
         }
 
         const currentAmount = dict[params.sku as string].length;
         if (currentAmount < amount) {
+            clearTimeout(this.adminInventoryReset);
+            delete this.adminInventory[steamid];
             return this.bot.sendMessage(steamID, `❌ You only have ${pluralize(itemName, currentAmount, true)}.`);
         }
 
