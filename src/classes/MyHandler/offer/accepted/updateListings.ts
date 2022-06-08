@@ -38,6 +38,7 @@ export default function updateListings(
 
     craftWeapons = weapons;
 
+    const isPricecheckRequestEnabled = opt.miscSettings.pricecheckAfterTrade.enable;
     const alwaysRemoveCustomTexture = opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable;
     const skus: string[] = [];
 
@@ -212,7 +213,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(paintedSKU, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(paintedSKU, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg =
@@ -229,7 +230,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(paintedSKU, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(paintedSKU, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoAddPaintedFromAdmin) {
@@ -290,7 +291,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to add ${name} (${sku}) to sell automatically: ${(err as Error).message}`;
@@ -305,7 +306,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoaddInvalidItems) {
@@ -325,11 +326,11 @@ export default function updateListings(
                 .addPrice(entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     log.warn(`❌ Failed to add ${name} (${sku}) to sell automatically: ${(err as Error).message}`);
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 });
             //
         } else if (receivedHighValueNotInPricelist) {
@@ -354,7 +355,7 @@ export default function updateListings(
                 }
             }
 
-            addToQueu(sku, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
         } else if (receivedUnusualNotInPricelist) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a Unusual (bought with Generic Unusual), and not
             // from ADMINS, and opt.pricelist.autoAddInvalidUnusual is false, then notify admin.
@@ -370,7 +371,7 @@ export default function updateListings(
                 }
             }
 
-            addToQueu(sku, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
         } else if (isAutoDisableHighValueItems) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
             const oldGroup = inPrice.group;
@@ -423,11 +424,11 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     log.warn(`❌ Failed to disable high value ${sku}: `, err);
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoRemoveIntentSell) {
@@ -437,7 +438,7 @@ export default function updateListings(
                 .removePrice(sku, true)
                 .then(() => {
                     log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to automatically remove ${name} (${sku}) from pricelist: ${
@@ -453,7 +454,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 });
         } else if (isUpdatePartialPricedItem) {
             // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
@@ -499,7 +500,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to automatically update prices for ${name} (${sku}): ${
@@ -515,10 +516,10 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
                 });
         } else {
-            addToQueu(sku, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled) addToQueu(sku, isNotPure, existInPricelist);
         }
 
         if (
