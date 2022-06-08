@@ -101,6 +101,7 @@ export default class CustomPricerApi {
         return new Promise((resolve, reject) => {
             void axios(options)
                 .then(response => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     resolve(response.data);
                 })
                 .catch(err => {

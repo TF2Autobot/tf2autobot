@@ -139,6 +139,7 @@ export default class PricesTfPricer implements IPricer {
     bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void {
         this.socketManager.on('message', (message: MessageEvent) => {
             try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 const data = this.parsePricesTfMessageEvent(message.data);
 
                 if (data.type === 'AUTH_REQUIRED') {

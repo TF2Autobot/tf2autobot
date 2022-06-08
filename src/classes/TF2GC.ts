@@ -189,7 +189,7 @@ export default class TF2GC {
 
         void this.connectToGC().asCallback(err => {
             if (err) {
-                return this.finishedProcessingJob(err);
+                return this.finishedProcessingJob(err as Error);
             }
 
             let func;
@@ -579,10 +579,12 @@ export default class TF2GC {
         const failCallback = args.length === 4 ? args[3] : args[2];
 
         function onEvent(...args: any[]): void {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const response = iterator(...args);
 
             if (response.success) {
                 removeListeners();
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 successCallback(...args);
             } else if (response.clearTimeout === true) {
                 clearTimeout(timeout);
