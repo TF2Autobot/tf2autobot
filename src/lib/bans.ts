@@ -23,7 +23,8 @@ export async function isBanned(
     mptfApiKey: string,
     userID: string,
     checkMptfBanned: boolean,
-    reptfAsPrimarySource: boolean
+    reptfAsPrimarySource: boolean,
+    showLog = true
 ): Promise<IsBanned> {
     const steamID64 = steamID.toString();
 
@@ -50,20 +51,20 @@ export async function isBanned(
             ? `banned${untrusted.content !== '' ? ` - ${untrusted.content}` : ''}`
             : 'clean';
 
-        log[toReturn.isBanned ? 'warn' : 'debug'](`Bans result for ${steamID64}:`, toReturn.contents);
+        if (showLog) log[toReturn.isBanned ? 'warn' : 'debug'](`Bans result for ${steamID64}:`, toReturn.contents);
 
         return toReturn;
     };
 
     if (reptfAsPrimarySource) {
-        const isBanned = await getFromReptf(steamID64, checkMptfBanned, reptfAsPrimarySource);
+        const isBanned = await getFromReptf(steamID64, checkMptfBanned, reptfAsPrimarySource, showLog);
 
         if (isReptfFailed) {
             const [bptf, mptf, steamrep, untrusted] = await Promise.all([
-                isBptfBanned(steamID64, bptfApiKey, userID),
-                isMptfBanned(steamID64, mptfApiKey, checkMptfBanned),
-                isSteamRepMarked(steamID64),
-                isListedUntrusted(steamID64)
+                isBptfBanned(steamID64, bptfApiKey, userID, showLog),
+                isMptfBanned(steamID64, mptfApiKey, checkMptfBanned, showLog),
+                isSteamRepMarked(steamID64, showLog),
+                isListedUntrusted(steamID64, showLog)
             ]);
             isReptfFailed = false;
 
@@ -74,20 +75,25 @@ export async function isBanned(
     } else {
         try {
             const [bptf, mptf, steamrep, untrusted] = await Promise.all([
-                isBptfBanned(steamID64, bptfApiKey, userID),
-                isMptfBanned(steamID64, mptfApiKey, checkMptfBanned),
-                isSteamRepMarked(steamID64),
-                isListedUntrusted(steamID64)
+                isBptfBanned(steamID64, bptfApiKey, userID, showLog),
+                isMptfBanned(steamID64, mptfApiKey, checkMptfBanned, showLog),
+                isSteamRepMarked(steamID64, showLog),
+                isListedUntrusted(steamID64, showLog)
             ]);
 
             return finalize(bptf, mptf, steamrep, untrusted);
         } catch (err) {
-            return await getFromReptf(steamID64, checkMptfBanned, reptfAsPrimarySource);
+            return await getFromReptf(steamID64, checkMptfBanned, reptfAsPrimarySource, showLog);
         }
     }
 }
 
-async function getFromReptf(steamID: string, checkMptf: boolean, reptfAsPrimarySource: boolean): Promise<IsBanned> {
+async function getFromReptf(
+    steamID: string,
+    checkMptf: boolean,
+    reptfAsPrimarySource: boolean,
+    showLog: boolean
+): Promise<IsBanned> {
     return new Promise((resolve, reject) => {
         void axios({
             method: 'POST',
@@ -119,11 +125,13 @@ async function getFromReptf(steamID: string, checkMptf: boolean, reptfAsPrimaryS
                         const isListedUntrusted = isListed.isBanned;
                         bansResult['TF2Autobot'] = isListedUntrusted ? `banned - ${isListed.content}` : 'clean';
 
-                        log[
-                            isBptfBanned || isSteamRepBanned || (checkMptf && isMptfBanned) || isListedUntrusted
-                                ? 'warn'
-                                : 'debug'
-                        ]('Bans result:', bansResult);
+                        if (showLog) {
+                            log[
+                                isBptfBanned || isSteamRepBanned || (checkMptf && isMptfBanned) || isListedUntrusted
+                                    ? 'warn'
+                                    : 'debug'
+                            ]('Bans result:', bansResult);
+                        }
 
                         return resolve({
                             isBanned:
@@ -135,19 +143,21 @@ async function getFromReptf(steamID: string, checkMptf: boolean, reptfAsPrimaryS
                         });
                     })
                     .catch(err => {
-                        log.warn('Failed to obtain data from Github: ', err);
+                        if (showLog) log.warn('Failed to obtain data from Github: ', err);
                         return reject(err);
                     });
             })
             .catch(err => {
                 if (err) {
-                    log.warn('Failed to obtain data from Rep.tf: ', err);
+                    if (showLog) log.warn('Failed to obtain data from Rep.tf: ', err);
                     if (reptfAsPrimarySource) {
-                        log.debug(
-                            `Getting data from Backpack.tf${
-                                !checkMptf ? ' and ' : ', Marketplace.tf and '
-                            } Steamrep.com...`
-                        );
+                        if (showLog) {
+                            log.debug(
+                                `Getting data from Backpack.tf${
+                                    !checkMptf ? ' and ' : ', Marketplace.tf and '
+                                } Steamrep.com...`
+                            );
+                        }
                         isReptfFailed = true;
                         return resolve({ isBanned: false });
                     }
@@ -158,7 +168,7 @@ async function getFromReptf(steamID: string, checkMptf: boolean, reptfAsPrimaryS
     });
 }
 
-export function isBptfBanned(steamID: string, bptfApiKey: string, userID: string): Promise<SiteResult> {
+export function isBptfBanned(steamID: string, bptfApiKey: string, userID: string, showLog = true): Promise<SiteResult> {
     return new Promise((resolve, reject) => {
         void axios({
             url: 'https://api.backpack.tf/api/users/info/v1',
@@ -184,14 +194,14 @@ export function isBptfBanned(steamID: string, bptfApiKey: string, userID: string
             })
             .catch(err => {
                 if (err) {
-                    log.warn('Failed to get data from backpack.tf: ', err);
+                    if (showLog) log.warn('Failed to get data from backpack.tf: ', err);
                     return reject(err);
                 }
             });
     });
 }
 
-function isSteamRepMarked(steamID: string): Promise<SiteResult> {
+function isSteamRepMarked(steamID: string, showLog = true): Promise<SiteResult> {
     return new Promise((resolve, reject) => {
         void axios({
             url: 'https://steamrep.com/api/beta4/reputation/' + steamID,
@@ -208,7 +218,7 @@ function isSteamRepMarked(steamID: string): Promise<SiteResult> {
             })
             .catch(err => {
                 if (err) {
-                    log.warn('Failed to get data from SteamRep: ', err);
+                    if (showLog) log.warn('Failed to get data from SteamRep: ', err);
                     if (_isBptfSteamRepBanned !== null) {
                         return resolve({ isBanned: _isBptfSteamRepBanned });
                     } else {
@@ -219,7 +229,12 @@ function isSteamRepMarked(steamID: string): Promise<SiteResult> {
     });
 }
 
-function isMptfBanned(steamID: string, mptfApiKey: string, checkMptfBanned: boolean): Promise<SiteResult> {
+function isMptfBanned(
+    steamID: string,
+    mptfApiKey: string,
+    checkMptfBanned: boolean,
+    showLog = true
+): Promise<SiteResult> {
     return new Promise((resolve, reject) => {
         if (!checkMptfBanned) {
             return resolve({ isBanned: false });
@@ -258,14 +273,14 @@ function isMptfBanned(steamID: string, mptfApiKey: string, checkMptfBanned: bool
             })
             .catch(err => {
                 if (err) {
-                    log.warn('Failed to get data from Marketplace.tf: ', err);
+                    if (showLog) log.warn('Failed to get data from Marketplace.tf: ', err);
                     return reject(err);
                 }
             });
     });
 }
 
-function isListedUntrusted(steamID: string): Promise<SiteResult> {
+function isListedUntrusted(steamID: string, showLog = true): Promise<SiteResult> {
     return new Promise((resolve, reject) => {
         void axios({
             method: 'GET',
@@ -282,7 +297,7 @@ function isListedUntrusted(steamID: string): Promise<SiteResult> {
             })
             .catch(err => {
                 if (err) {
-                    log.warn('Failed to get data from Github: ', err);
+                    if (showLog) log.warn('Failed to get data from Github: ', err);
                     return reject(err);
                 }
             });

@@ -134,7 +134,7 @@ export default class Bot {
 
     public sendStatsInterval: NodeJS.Timeout;
 
-    private periodicCheckAdmin: NodeJS.Timeout;
+    public periodicCheckAdmin: NodeJS.Timeout;
 
     constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
@@ -215,7 +215,7 @@ export default class Bot {
     private async checkAdminBanned(): Promise<boolean> {
         let banned = false;
         const check = async (steamid: string) => {
-            const result = await isBanned(steamid, this.options.bptfApiKey, '', null, false, false);
+            const result = await isBanned(steamid, this.options.bptfApiKey, '', null, false, false, false);
             banned = banned ? true : result.isBanned;
         };
 

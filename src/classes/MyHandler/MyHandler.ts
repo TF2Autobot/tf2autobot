@@ -371,6 +371,10 @@ export default class MyHandler extends Handler {
             clearTimeout(this.retryRequest);
         }
 
+        if (this.bot.periodicCheckAdmin) {
+            clearInterval(this.bot.periodicCheckAdmin);
+        }
+
         return new Promise(resolve => {
             if (this.opt.autokeys.enable) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
