@@ -796,20 +796,22 @@ export default class Bot {
                         void this.setCookies(cookies).asCallback(callback);
                     },
                     (callback): void => {
-                        void this.checkAdminBanned().asCallback((err, banned) => {
-                            if (err) {
-                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                                return callback(err);
-                            }
+                        void this.checkAdminBanned()
+                            .then(banned => {
+                                if (banned) {
+                                    /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                    return callback(new Error('Not allowed'));
+                                }
 
-                            if (banned) {
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                                return callback(new Error('Not allowed'));
-                            }
-
-                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                            return callback(null);
-                        });
+                                return callback(null);
+                            })
+                            .catch(err => {
+                                if (err) {
+                                    /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                    return callback(err);
+                                }
+                            });
 
                         this.periodicCheck();
                     },
