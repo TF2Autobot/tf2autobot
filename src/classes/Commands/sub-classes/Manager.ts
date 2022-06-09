@@ -165,7 +165,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = fixSKU(params.sku);
+            const targetedSKU = fixSKU(params.sku as string);
             const [uncraft, untrade] = [
                 targetedSKU.includes(';uncraftable'),
                 targetedSKU.includes(';untradable') || targetedSKU.includes(';untradeable')
@@ -634,14 +634,14 @@ export default class ManagerCommands {
                         'Refreshing listings for ' + pluralize('item', pricelistCount, true) + '...'
                     );
 
-                    this.bot.handler.isRecentlyExecuteRefreshlistCommand = true;
-                    this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
+                    this.bot.isRecentlyExecuteRefreshlistCommand = true;
+                    this.bot.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
                     this.pricelistCount = pricelistCount;
                     this.executedRefreshList = true;
                     this.executeRefreshListTimeout = setTimeout(() => {
                         this.lastExecutedRefreshListTime = null;
                         this.executedRefreshList = false;
-                        this.bot.handler.isRecentlyExecuteRefreshlistCommand = false;
+                        this.bot.isRecentlyExecuteRefreshlistCommand = false;
                         clearTimeout(this.executeRefreshListTimeout);
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 

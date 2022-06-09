@@ -43,19 +43,19 @@ export default class CartQueue {
         });
 
         clearTimeout(this.queuePositionCheck);
-        this.queueCheck(cart.partner);
+        this.queueCheck(cart.partner.getSteamID64());
 
         return position;
     }
 
-    private queueCheck(steamID: SteamID | string): void {
+    private queueCheck(steamID: string): void {
         log.debug(`Checking queue position in 3 minutes...`);
         this.queuePositionCheck = setTimeout(() => {
             void this.queueCheckRestartBot(steamID);
         }, 3 * 60 * 1000);
     }
 
-    private async queueCheckRestartBot(steamID: SteamID | string): Promise<void> {
+    private async queueCheckRestartBot(steamID: string): Promise<void> {
         const position = this.carts.length;
         log.debug(`Current queue position: ${position}`);
 

@@ -240,7 +240,7 @@ export function getItemFromParams(
     if (params.item !== undefined) {
         foundSomething = true;
 
-        const sku = bot.schema.getSkuFromName(params.item);
+        const sku = bot.schema.getSkuFromName(params.item as string);
 
         if (sku.includes('null') || sku.includes('undefined')) {
             bot.sendMessage(

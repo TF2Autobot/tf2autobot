@@ -443,6 +443,9 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['checkMptfBanned', 'reptfAsPrimarySource'],
                     additionalProperties: false
+                },
+                pricecheckAfterTrade: {
+                    $ref: '#/definitions/only-enable'
                 }
             },
             required: [
@@ -458,7 +461,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'game',
                 'alwaysRemoveItemAttributes',
                 'deleteUntradableJunk',
-                'reputationCheck'
+                'reputationCheck',
+                'pricecheckAfterTrade'
             ],
             additionalProperties: false
         },

@@ -510,6 +510,7 @@ export default class Listings {
                                     toJoin.push(
                                         `${name.replace(
                                             name,
+                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                             optR.strangeParts[name] ? optR.strangeParts[name] : name
                                         )}`
                                     );
@@ -519,6 +520,7 @@ export default class Listings {
                                         toJoin.push(
                                             `${name.replace(
                                                 name,
+                                                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                                 attachment === 's'
                                                     ? optR.spells[name]
                                                     : attachment === 'ke'
