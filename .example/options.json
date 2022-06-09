@@ -46,6 +46,9 @@
         "reputationCheck": {
             "checkMptfBanned": false,
             "reptfAsPrimarySource": false
+        },
+        "pricecheckAfterTrade": {
+            "enable": true
         }
     },
     "sendAlert": {
