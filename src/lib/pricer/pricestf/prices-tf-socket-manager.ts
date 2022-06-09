@@ -15,7 +15,7 @@ export default class PricesTfSocketManager {
     constructor(private api: PricesTfApi) {
         // https://stackoverflow.com/questions/28784375/nested-es6-classes
         this.socketClass = class WebSocket extends WS {
-            constructor(url, protocols) {
+            constructor(url: string, protocols: string | string[]) {
                 super(url, protocols, {
                     headers: {
                         Authorization: 'Bearer ' + api.token
@@ -85,7 +85,7 @@ export default class PricesTfSocketManager {
     }
 
     get isConnecting(): boolean {
-        return this.ws.readyState === this.ws.CONNECTING;
+        return this.ws.readyState === WS.CONNECTING;
     }
 
     connect(): void {

@@ -4,15 +4,15 @@ import { EPersonaState } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
-import ListingManager from '@tf2autobot/bptf-listings';
+import ListingManager, { Listing } from '@tf2autobot/bptf-listings';
 import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 import BptfLogin from '@tf2autobot/bptf-login';
 import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
-import axios from 'axios';
-
+import axios, { AxiosError } from 'axios';
+import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
 
 import InventoryManager from './InventoryManager';
@@ -28,6 +28,8 @@ import Groups from './Groups';
 
 import log from '../lib/logger';
 import { IsBanned, isBanned } from '../lib/bans';
+import { sendStats } from '../lib/DiscordWebhook/export';
+
 import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
@@ -116,6 +118,24 @@ export default class Bot {
 
     private halted = false;
 
+    public autoRefreshListingsInterval: NodeJS.Timeout;
+
+    private alreadyExecutedRefreshlist = false;
+
+    set isRecentlyExecuteRefreshlistCommand(setExecuted: boolean) {
+        this.alreadyExecutedRefreshlist = setExecuted;
+    }
+
+    private executedDelayTime = 30 * 60 * 1000;
+
+    set setRefreshlistExecutedDelay(delay: number) {
+        this.executedDelayTime = delay;
+    }
+
+    public sendStatsInterval: NodeJS.Timeout;
+
+    public periodicCheckAdmin: NodeJS.Timeout;
+
     constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
@@ -190,6 +210,46 @@ export default class Bot {
                 this.options.miscSettings.reputationCheck.reptfAsPrimarySource
             )
         );
+    }
+
+    private async checkAdminBanned(): Promise<boolean> {
+        let banned = false;
+        const check = async (steamid: string) => {
+            const result = await isBanned(steamid, this.options.bptfApiKey, '', null, false, false, false);
+            banned = banned ? true : result.isBanned;
+        };
+
+        const steamids = this.options.admins;
+        steamids.push(this.client.steamID.getSteamID64());
+        for (const steamid of steamids) {
+            // same as Array.some, but I want to use await
+            try {
+                await check(steamid);
+            } catch (err) {
+                const error = err as AxiosError;
+                if (error?.response?.status === 429) {
+                    await new Promise(resolve => setTimeout(resolve, 10000));
+                    await check(steamid);
+                }
+                throw err;
+            }
+        }
+
+        return banned;
+    }
+
+    private periodicCheck(): void {
+        this.periodicCheckAdmin = setInterval(() => {
+            void this.checkAdminBanned()
+                .then(banned => {
+                    if (banned) {
+                        return this.botManager.stop(new Error('Not allowed'));
+                    }
+                })
+                .catch(() => {
+                    // ignore error
+                });
+        }, 30 * 60 * 1000);
     }
 
     get alertTypes(): string[] {
@@ -270,12 +330,13 @@ export default class Bot {
     private addListener(
         emitter: EventEmitter,
         event: string,
-        listener: (...args) => void,
+        listener: (...args: any[]) => void,
         checkCanEmit: boolean
     ): void {
         emitter.on(event, (...args: any[]) => {
             setImmediate(() => {
                 if (!checkCanEmit || this.canSendEvents()) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     listener(...args);
                 }
             });
@@ -290,7 +351,7 @@ export default class Bot {
     ): void {
         emitter.on(event, (...args): void => {
             if (!checkCanEmit || this.canSendEvents()) {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/no-unsafe-argument
                 setImmediate(listener, ...args);
             }
         });
@@ -359,6 +420,10 @@ export default class Bot {
         });
     }
 
+    private get sendStatsEnabled(): boolean {
+        return this.options.statistics.sendStats.enable;
+    }
+
     private get getLatestVersion(): Promise<{ version: string }> {
         return new Promise((resolve, reject) => {
             void axios({
@@ -375,6 +440,224 @@ export default class Bot {
                     }
                 });
         });
+    }
+
+    startAutoRefreshListings(): void {
+        // Automatically check for missing listings every 30 minutes
+        let pricelistLength = 0;
+
+        this.autoRefreshListingsInterval = setInterval(
+            () => {
+                const createListingsEnabled = this.options.miscSettings.createListings.enable;
+
+                if (this.alreadyExecutedRefreshlist || !createListingsEnabled) {
+                    log.debug(
+                        `❌ ${
+                            this.alreadyExecutedRefreshlist
+                                ? 'Just recently executed refreshlist command'
+                                : 'miscSettings.createListings.enable is set to false'
+                        }, will not run automatic check for missing listings.`
+                    );
+
+                    setTimeout(() => {
+                        this.startAutoRefreshListings();
+                    }, this.executedDelayTime);
+
+                    // reset to default
+                    this.setRefreshlistExecutedDelay = 30 * 60 * 1000;
+                    clearInterval(this.autoRefreshListingsInterval);
+                    return;
+                }
+
+                pricelistLength = 0;
+                log.debug('Running automatic check for missing/mismatch listings...');
+
+                const listings: { [sku: string]: Listing[] } = {};
+                this.listingManager.getListings(false, async err => {
+                    if (err) {
+                        log.warn('Error getting listings on auto-refresh listings operation:', err);
+                        setTimeout(() => {
+                            this.startAutoRefreshListings();
+                        }, 30 * 60 * 1000);
+                        clearInterval(this.autoRefreshListingsInterval);
+                        return;
+                    }
+
+                    const inventoryManager = this.inventoryManager;
+                    const inventory = inventoryManager.getInventory;
+                    const isFilterCantAfford = this.options.pricelist.filterCantAfford.enable;
+
+                    this.listingManager.listings.forEach(listing => {
+                        let listingSKU = listing.getSKU();
+                        if (listing.intent === 1) {
+                            if (this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                            }
+
+                            if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                                listingSKU = listingSKU.replace(';festive', '');
+                            }
+
+                            if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
+                                listingSKU = listingSKU.replace(';strange', '');
+                            }
+                        } else {
+                            if (/;[p][0-9]+/.test(listingSKU)) {
+                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                            }
+                        }
+
+                        const match = this.pricelist.getPrice(listingSKU);
+
+                        if (isFilterCantAfford && listing.intent === 0 && match !== null) {
+                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
+                            if (!canAffordToBuy) {
+                                // Listing for buying exist but we can't afford to buy, remove.
+                                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                                listing.remove();
+                            }
+                        }
+
+                        if (listing.intent === 1 && match !== null && !match.enabled) {
+                            // Listings for selling exist, but the item is currently disabled, remove it.
+                            log.debug(`Intent sell, removed because not selling: ${match.sku}`);
+                            listing.remove();
+                        }
+
+                        listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
+                    });
+
+                    const pricelist = Object.assign({}, this.pricelist.getPrices);
+                    const keyPrice = this.pricelist.getKeyPrice.metal;
+
+                    for (const sku in pricelist) {
+                        if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                            continue;
+                        }
+
+                        const entry = pricelist[sku];
+                        const _listings = listings[sku];
+
+                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                        const amountAvailable = inventory.getAmount(sku, false, true);
+
+                        if (_listings) {
+                            _listings.forEach(listing => {
+                                if (
+                                    _listings.length === 1 &&
+                                    listing.intent === 0 && // We only check if the only listing exist is buy order
+                                    entry.max > 1 &&
+                                    amountAvailable > 0 &&
+                                    amountAvailable > entry.min
+                                ) {
+                                    // here we only check if the bot already have that item
+                                    log.debug(`Missing sell order listings: ${sku}`);
+                                } else if (
+                                    listing.intent === 0 &&
+                                    listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
+                                ) {
+                                    // if intent is buy, we check if the buying price is not same
+                                    log.debug(`Buying price for ${sku} not updated`);
+                                } else if (
+                                    listing.intent === 1 &&
+                                    listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
+                                ) {
+                                    // if intent is sell, we check if the selling price is not same
+                                    log.debug(`Selling price for ${sku} not updated`);
+                                } else {
+                                    delete pricelist[sku];
+                                }
+                            });
+
+                            continue;
+                        }
+
+                        // listing not exist
+
+                        if (!entry.enabled) {
+                            delete pricelist[sku];
+                            log.debug(`${sku} disabled, skipping...`);
+                            continue;
+                        }
+
+                        if (
+                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
+                            amountAvailable > 0
+                        ) {
+                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
+                            // return this entry
+                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
+                        } else {
+                            delete pricelist[sku];
+                        }
+                    }
+
+                    const skusToCheck = Object.keys(pricelist);
+                    const pricelistCount = skusToCheck.length;
+
+                    if (pricelistCount > 0) {
+                        log.debug(
+                            'Checking listings for ' +
+                                pluralize('item', pricelistCount, true) +
+                                ` [${skusToCheck.join(', ')}]...`
+                        );
+
+                        await this.listings.recursiveCheckPricelist(
+                            skusToCheck,
+                            pricelist,
+                            true,
+                            pricelistCount > 4000 ? 400 : 200,
+                            true
+                        );
+
+                        log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
+                    } else {
+                        log.debug('❌ Nothing to refresh.');
+                    }
+
+                    pricelistLength = pricelistCount;
+                });
+            },
+            // set check every 60 minutes if pricelist to check was more than 4000 items
+            (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
+        );
+    }
+
+    sendStats(): void {
+        clearInterval(this.sendStatsInterval);
+
+        if (this.sendStatsEnabled) {
+            this.sendStatsInterval = setInterval(() => {
+                let times: string[];
+
+                if (this.options.statistics.sendStats.time.length === 0) {
+                    times = ['T05:59', 'T11:59', 'T17:59', 'T23:59'];
+                } else {
+                    times = this.options.statistics.sendStats.time;
+                }
+
+                const now = dayjs()
+                    .tz(this.options.timezone ? this.options.timezone : 'UTC')
+                    .format();
+
+                if (times.some(time => now.includes(time))) {
+                    if (
+                        this.options.discordWebhook.sendStats.enable &&
+                        this.options.discordWebhook.sendStats.url !== ''
+                    ) {
+                        void sendStats(this);
+                    } else {
+                        this.getAdmins.forEach(admin => {
+                            this.handler.commands.useStatsCommand(admin);
+                        });
+                    }
+                }
+            }, 60 * 1000);
+        }
+    }
+
+    disableSendStats(): void {
+        clearInterval(this.sendStatsInterval);
     }
 
     initializeSchema(): Promise<void> {
@@ -513,6 +796,26 @@ export default class Bot {
                         void this.setCookies(cookies).asCallback(callback);
                     },
                     (callback): void => {
+                        void this.checkAdminBanned()
+                            .then(banned => {
+                                if (banned) {
+                                    /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                    return callback(new Error('Not allowed'));
+                                }
+
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                return callback(null);
+                            })
+                            .catch(err => {
+                                if (err) {
+                                    /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                    return callback(err);
+                                }
+                            });
+
+                        this.periodicCheck();
+                    },
+                    (callback): void => {
                         this.schemaManager = new SchemaManager({
                             apiKey: this.manager.apiKey,
                             updateTime: 24 * 60 * 60 * 1000
@@ -526,13 +829,11 @@ export default class Bot {
                         this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
                         this.pricelist.init();
                         this.inventoryManager = new InventoryManager(this.pricelist);
-
-                        const userID = this.bptf._getUserID();
-                        this.userID = userID;
+                        this.userID = this.bptf._getUserID();
 
                         this.listingManager = new ListingManager({
                             token: this.options.bptfAccessToken,
-                            userID,
+                            userID: this.userID,
                             userAgent:
                                 'TF2Autobot' +
                                 (this.options.useragentHeaderCustom !== ''
@@ -648,6 +949,7 @@ export default class Bot {
                                     );
                                 }
                             ],
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             callback
                         );
                     },
@@ -738,13 +1040,12 @@ export default class Bot {
     }
 
     setCookies(cookies: string[]): Promise<void> {
-        this.bptf.setCookies(cookies);
         this.community.setCookies(cookies);
 
-        if (this.listingManager) {
-            const userID = this.bptf._getUserID();
-            this.userID = userID;
-            this.listingManager.setUserID(userID);
+        if (this.isReady) {
+            this.bptf.setCookies(cookies);
+            this.userID = this.bptf._getUserID();
+            this.listingManager.setUserID(this.userID);
         }
 
         return new Promise((resolve, reject) => {

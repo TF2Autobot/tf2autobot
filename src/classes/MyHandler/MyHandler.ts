@@ -16,7 +16,6 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from '@tf2autobot/tf2-currencies';
 import async from 'async';
-import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
@@ -42,13 +41,12 @@ import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
 
 import { noiseMakers } from '../../lib/data';
-import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
+import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
-import IPricer, { RequestCheckFn } from '../IPricer';
+import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
-import { Listing } from '@tf2autobot/bptf-listings';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -63,8 +61,6 @@ export default class MyHandler extends Handler {
     readonly cartQueue: CartQueue;
 
     private groupsStore: string[];
-
-    private requestCheck: RequestCheckFn;
 
     private get opt(): Options {
         return this.bot.options;
@@ -130,10 +126,6 @@ export default class MyHandler extends Handler {
         return this.opt.offerReceived.duped.minKeys;
     }
 
-    private get isPriceUpdateWebhook(): boolean {
-        return this.opt.discordWebhook.priceUpdate.enable && this.opt.discordWebhook.priceUpdate.url !== '';
-    }
-
     get isWeaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
         return {
             enable: this.opt.miscSettings.weaponsAsCurrency.enable,
@@ -146,10 +138,6 @@ export default class MyHandler extends Handler {
     }
 
     private hasInvalidValueException = false;
-
-    private get sendStatsEnabled(): boolean {
-        return this.opt.statistics.sendStats.enable;
-    }
 
     private isTradingKeys = false;
 
@@ -198,23 +186,7 @@ export default class MyHandler extends Handler {
 
     private refreshTimeout: NodeJS.Timeout;
 
-    private sendStatsInterval: NodeJS.Timeout;
-
     private classWeaponsTimeout: NodeJS.Timeout;
-
-    private autoRefreshListingsInterval: NodeJS.Timeout;
-
-    private alreadyExecutedRefreshlist = false;
-
-    set isRecentlyExecuteRefreshlistCommand(setExecuted: boolean) {
-        this.alreadyExecutedRefreshlist = setExecuted;
-    }
-
-    private executedDelayTime = 30 * 60 * 1000;
-
-    set setRefreshlistExecutedDelay(delay: number) {
-        this.executedDelayTime = delay;
-    }
 
     constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
@@ -295,11 +267,11 @@ export default class MyHandler extends Handler {
         this.checkGroupInvites();
 
         // Initialize send stats
-        this.sendStats();
+        this.bot.sendStats();
 
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
         this.refreshTimeout = setTimeout(() => {
-            this.enableAutoRefreshListings();
+            this.bot.startAutoRefreshListings();
         }, 5 * 60 * 1000);
 
         // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
@@ -383,12 +355,12 @@ export default class MyHandler extends Handler {
             clearInterval(this.refreshTimeout);
         }
 
-        if (this.sendStatsInterval) {
-            clearInterval(this.sendStatsInterval);
+        if (this.bot.sendStatsInterval) {
+            clearInterval(this.bot.sendStatsInterval);
         }
 
-        if (this.autoRefreshListingsInterval) {
-            clearInterval(this.autoRefreshListingsInterval);
+        if (this.bot.autoRefreshListingsInterval) {
+            clearInterval(this.bot.autoRefreshListingsInterval);
         }
 
         if (this.classWeaponsTimeout) {
@@ -397,6 +369,10 @@ export default class MyHandler extends Handler {
 
         if (this.retryRequest) {
             clearTimeout(this.retryRequest);
+        }
+
+        if (this.bot.periodicCheckAdmin) {
+            clearInterval(this.bot.periodicCheckAdmin);
         }
 
         return new Promise(resolve => {
@@ -534,231 +510,6 @@ export default class MyHandler extends Handler {
     onBptfAuth(auth: { apiKey: string; accessToken: string }): void {
         const details = Object.assign({ private: true }, auth);
         log.warn('Please add your backpack.tf API key and access token to your environment variables!', details);
-    }
-
-    enableAutoRefreshListings(): void {
-        // Automatically check for missing listings every 30 minutes
-        let pricelistLength = 0;
-
-        this.autoRefreshListingsInterval = setInterval(
-            () => {
-                const opt = this.opt;
-                const createListingsEnabled = opt.miscSettings.createListings.enable;
-
-                if (this.alreadyExecutedRefreshlist || !createListingsEnabled) {
-                    log.debug(
-                        `❌ ${
-                            this.alreadyExecutedRefreshlist
-                                ? 'Just recently executed refreshlist command'
-                                : 'miscSettings.createListings.enable is set to false'
-                        }, will not run automatic check for missing listings.`
-                    );
-
-                    setTimeout(() => {
-                        this.enableAutoRefreshListings();
-                    }, this.executedDelayTime);
-
-                    // reset to default
-                    this.setRefreshlistExecutedDelay = 30 * 60 * 1000;
-                    clearInterval(this.autoRefreshListingsInterval);
-                    return;
-                }
-
-                pricelistLength = 0;
-                log.debug('Running automatic check for missing/mismatch listings...');
-
-                const listings: { [sku: string]: Listing[] } = {};
-                this.bot.listingManager.getListings(false, async err => {
-                    if (err) {
-                        log.warn('Error getting listings on auto-refresh listings operation:', err);
-                        setTimeout(() => {
-                            this.enableAutoRefreshListings();
-                        }, 30 * 60 * 1000);
-                        clearInterval(this.autoRefreshListingsInterval);
-                        return;
-                    }
-
-                    const inventoryManager = this.bot.inventoryManager;
-                    const inventory = inventoryManager.getInventory;
-                    const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
-
-                    this.bot.listingManager.listings.forEach(listing => {
-                        let listingSKU = listing.getSKU();
-                        if (listing.intent === 1) {
-                            if (opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-
-                            if (opt.normalize.festivized.our && listingSKU.includes(';festive')) {
-                                listingSKU = listingSKU.replace(';festive', '');
-                            }
-
-                            if (opt.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                                listingSKU = listingSKU.replace(';strange', '');
-                            }
-                        } else {
-                            if (/;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-                        }
-
-                        const match = this.bot.pricelist.getPrice(listingSKU);
-
-                        if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
-                            if (!canAffordToBuy) {
-                                // Listing for buying exist but we can't afford to buy, remove.
-                                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
-                                listing.remove();
-                            }
-                        }
-
-                        if (listing.intent === 1 && match !== null && !match.enabled) {
-                            // Listings for selling exist, but the item is currently disabled, remove it.
-                            log.debug(`Intent sell, removed because not selling: ${match.sku}`);
-                            listing.remove();
-                        }
-
-                        listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
-                    });
-
-                    const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
-                    const keyPrice = this.bot.pricelist.getKeyPrice.metal;
-
-                    for (const sku in pricelist) {
-                        if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
-                            continue;
-                        }
-
-                        const entry = pricelist[sku];
-                        const _listings = listings[sku];
-
-                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
-                        const amountAvailable = inventory.getAmount(sku, false, true);
-
-                        if (_listings) {
-                            _listings.forEach(listing => {
-                                if (
-                                    _listings.length === 1 &&
-                                    listing.intent === 0 && // We only check if the only listing exist is buy order
-                                    entry.max > 1 &&
-                                    amountAvailable > 0 &&
-                                    amountAvailable > entry.min
-                                ) {
-                                    // here we only check if the bot already have that item
-                                    log.debug(`Missing sell order listings: ${sku}`);
-                                } else if (
-                                    listing.intent === 0 &&
-                                    listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
-                                ) {
-                                    // if intent is buy, we check if the buying price is not same
-                                    log.debug(`Buying price for ${sku} not updated`);
-                                } else if (
-                                    listing.intent === 1 &&
-                                    listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
-                                ) {
-                                    // if intent is sell, we check if the selling price is not same
-                                    log.debug(`Selling price for ${sku} not updated`);
-                                } else {
-                                    delete pricelist[sku];
-                                }
-                            });
-
-                            continue;
-                        }
-
-                        // listing not exist
-
-                        if (!entry.enabled) {
-                            delete pricelist[sku];
-                            log.debug(`${sku} disabled, skipping...`);
-                            continue;
-                        }
-
-                        if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
-                            amountAvailable > 0
-                        ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
-                            // return this entry
-                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
-                        } else {
-                            delete pricelist[sku];
-                        }
-                    }
-
-                    const skusToCheck = Object.keys(pricelist);
-                    const pricelistCount = skusToCheck.length;
-
-                    if (pricelistCount > 0) {
-                        log.debug(
-                            'Checking listings for ' +
-                                pluralize('item', pricelistCount, true) +
-                                ` [${skusToCheck.join(', ')}]...`
-                        );
-
-                        await this.bot.listings.recursiveCheckPricelist(
-                            skusToCheck,
-                            pricelist,
-                            true,
-                            pricelistCount > 4000 ? 400 : 200,
-                            true
-                        );
-
-                        log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
-                    } else {
-                        log.debug('❌ Nothing to refresh.');
-                    }
-
-                    pricelistLength = pricelistCount;
-                });
-            },
-            // set check every 60 minutes if pricelist to check was more than 4000 items
-            (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
-        );
-    }
-
-    disableAutoRefreshListings(): void {
-        if (this.isPremium) {
-            return;
-        }
-
-        clearInterval(this.autoRefreshListingsInterval);
-    }
-
-    sendStats(): void {
-        clearInterval(this.sendStatsInterval);
-
-        if (this.sendStatsEnabled) {
-            this.sendStatsInterval = setInterval(() => {
-                const opt = this.bot.options;
-                let times: string[];
-
-                if (opt.statistics.sendStats.time.length === 0) {
-                    times = ['T05:59', 'T11:59', 'T17:59', 'T23:59'];
-                } else {
-                    times = opt.statistics.sendStats.time;
-                }
-
-                const now = dayjs()
-                    .tz(opt.timezone ? opt.timezone : 'UTC')
-                    .format();
-
-                if (times.some(time => now.includes(time))) {
-                    if (opt.discordWebhook.sendStats.enable && opt.discordWebhook.sendStats.url !== '') {
-                        void sendStats(this.bot);
-                    } else {
-                        this.bot.getAdmins.forEach(admin => {
-                            this.commands.useStatsCommand(admin);
-                        });
-                    }
-                }
-            }, 60 * 1000);
-        }
-    }
-
-    disableSendStats(): void {
-        clearInterval(this.sendStatsInterval);
     }
 
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
@@ -1691,7 +1442,7 @@ export default class MyHandler extends Handler {
                     log.debug('Dupe checking ' + assetid + '...');
                     void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug('Dupe check for ' + assetid + ' done');
-                        callback(err, result);
+                        callback(err as Error, result);
                     });
                 };
             });

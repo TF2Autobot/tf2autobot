@@ -74,7 +74,7 @@ export default class UserCart extends Cart {
                     log.debug(`Dupe checking ${assetid}...`);
                     void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug(`Dupe check for ${assetid} done`);
-                        callback(err, result);
+                        callback(err as Error, result);
                     });
                 };
             });

@@ -21,6 +21,7 @@ import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
 import { testSKU } from '../../lib/tools/export';
+import axios from 'axios';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -54,7 +55,9 @@ export default class Commands {
 
     private crafting: c.CraftingCommands;
 
-    adminInventory: UnknownDictionary<Inventory> = {};
+    private adminInventory: UnknownDictionary<Inventory> = {};
+
+    private adminInventoryReset: NodeJS.Timeout;
 
     constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
         this.help = new c.HelpCommands(bot);
@@ -203,6 +206,8 @@ export default class Commands {
             void this.depositCommand(steamID, message);
         } else if (['withdraw', 'w'].includes(command) && isAdmin) {
             this.withdrawCommand(steamID, message);
+        } else if (command === 'withdrawmptf' && isAdmin) {
+            void this.withdrawMptfCommand(steamID, message);
         } else if (command === 'add' && isAdmin) {
             await this.pManager.addCommand(steamID, message);
         } else if (command === 'addbulk' && isAdmin) {
@@ -658,7 +663,8 @@ export default class Commands {
         cart.isDonating = false;
         this.addCartToQueue(cart, false, false);
 
-        this.adminInventory = {};
+        clearTimeout(this.adminInventoryReset);
+        delete this.adminInventory[steamID.getSteamID64()];
     }
 
     // Trade actions
@@ -700,7 +706,8 @@ export default class Commands {
                 custom.isRemovedFromQueue ? custom.isRemovedFromQueue : '✅ You have been removed from the queue.'
             );
 
-            this.adminInventory = {};
+            clearTimeout(this.adminInventoryReset);
+            delete this.adminInventory[steamID.getSteamID64()];
         } else {
             // User is not in the queue, check if they have an active offer
 
@@ -732,11 +739,16 @@ export default class Commands {
 
                     if (err) {
                         log.warn('Error while trying to cancel an offer: ', err);
-                        this.bot.sendMessage(
+                        return this.bot.sendMessage(
                             steamID,
                             `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
                         );
                     }
+
+                    return this.bot.sendMessage(
+                        steamID,
+                        `✅ Offer sent (${offer.id}) has been successfully cancelled.`
+                    );
                 });
             });
         }
@@ -844,14 +856,14 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        params.sku = fixSKU(params.sku);
+        const sku = fixSKU(params.sku as string);
 
         const amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
             return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
         }
 
-        const itemName = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
 
         const steamid = steamID.getSteamID64();
 
@@ -873,6 +885,11 @@ export default class Commands {
                 log.debug('fetching admin inventory');
                 await adminInventory.fetch();
                 this.adminInventory[steamid] = adminInventory;
+
+                clearTimeout(this.adminInventoryReset);
+                this.adminInventoryReset = setTimeout(() => {
+                    delete this.adminInventory[steamid];
+                }, 5 * 60 * 1000);
             } catch (err) {
                 log.error('Error fetching inventory: ', err);
                 return this.bot.sendMessage(
@@ -886,11 +903,15 @@ export default class Commands {
         const dict = adminInventory.getItems;
 
         if (dict[params.sku as string] === undefined) {
+            clearTimeout(this.adminInventoryReset);
+            delete this.adminInventory[steamid];
             return this.bot.sendMessage(steamID, `❌ You don't have any ${itemName}.`);
         }
 
         const currentAmount = dict[params.sku as string].length;
         if (currentAmount < amount) {
+            clearTimeout(this.adminInventoryReset);
+            delete this.adminInventory[steamid];
             return this.bot.sendMessage(steamID, `❌ You only have ${pluralize(itemName, currentAmount, true)}.`);
         }
 
@@ -904,7 +925,7 @@ export default class Commands {
             );
 
         if (amount > 0) {
-            const cartAmount = cart.getTheirCount(params.sku);
+            const cartAmount = cart.getTheirCount(sku);
 
             if (cartAmount > currentAmount || cartAmount + amount > currentAmount) {
                 return this.bot.sendMessage(
@@ -915,7 +936,7 @@ export default class Commands {
             }
         }
 
-        cart.addTheirItem(params.sku, amount);
+        cart.addTheirItem(sku, amount);
         Cart.addCart(cart);
 
         this.bot.sendMessage(
@@ -947,7 +968,7 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        params.sku = fixSKU(params.sku);
+        const sku = fixSKU(params.sku as string);
 
         let amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
@@ -962,10 +983,10 @@ export default class Commands {
                 this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
-        const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
+        const cartAmount = cart.getOurCount(sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
         const amountCanTrade = ourAmount - cartAmount;
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -999,8 +1020,120 @@ export default class Commands {
             );
         }
 
-        cart.addOurItem(params.sku, amount);
+        cart.addOurItem(sku, amount);
         Cart.addCart(cart);
+    }
+
+    private async withdrawMptfCommand(steamID: SteamID, message: string): Promise<void> {
+        const currentCart = Cart.getCart(steamID);
+        if (currentCart !== null && !(currentCart instanceof AdminCart)) {
+            return this.bot.sendMessage(
+                steamID,
+                '❌ You already have an active cart, please finalize it before making a new one. 🛒'
+            );
+        }
+
+        if (this.bot.options.mptfApiKey === '') {
+            return this.bot.sendMessage(steamID, '❌ Marketplace.tf API key was not set in the env file.');
+        }
+
+        const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
+
+        const max = typeof params.max === 'number' ? params.max : 1;
+        if (!Number.isInteger(max)) {
+            return this.bot.sendMessage(steamID, `❌ max should only be an integer.`);
+        }
+
+        const ignorePainted =
+            typeof params.ignorepainted === 'boolean'
+                ? params.ignorepainted
+                : typeof params.ignorepainted === 'number'
+                ? !!params.ignorepainted
+                : false;
+
+        const withGroup =
+            params.withgroup === '' || typeof params.withgroup !== 'string'
+                ? typeof params.withgroup === 'number'
+                    ? String(params.withgroup)
+                    : undefined
+                : params.withgroup;
+
+        try {
+            const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey, ignorePainted);
+            const dict = this.bot.inventoryManager.getInventory.getItems;
+            const clonedDict = Object.assign({}, dict);
+
+            const weaponsAsCurrency = this.bot.options.miscSettings.weaponsAsCurrency;
+
+            const pureAndWeapons = weaponsAsCurrency.enable
+                ? ['5021;6', '5000;6', '5001;6', '5002;6'].concat(
+                      weaponsAsCurrency.withUncraft
+                          ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                          : this.bot.craftWeapons
+                  )
+                : ['5021;6', '5000;6', '5001;6', '5002;6'];
+
+            for (const sku in clonedDict) {
+                if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
+                    continue;
+                }
+
+                let isWithinGroup = false;
+
+                if (withGroup) {
+                    if (withGroup !== this.bot.pricelist.getPrice(sku)?.group) {
+                        delete clonedDict[sku];
+                        continue;
+                    }
+                    isWithinGroup = true;
+                }
+
+                if (pureAndWeapons.includes(sku) && !isWithinGroup) {
+                    delete clonedDict[sku];
+                    continue;
+                }
+
+                // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+                if (ignorePainted && sku.match(/;[p][0-9]+/) !== null) {
+                    delete clonedDict[sku];
+                    continue;
+                }
+
+                if (mptfItemsSkus[sku] && mptfItemsSkus[sku] >= max) {
+                    // If this particular item already exist on mptf and it's more than or equal to max, ignore
+                    delete clonedDict[sku];
+                }
+            }
+
+            if (Object.keys(clonedDict).length === 0) {
+                return this.bot.sendMessage(steamID, `❌ Nothing to withdraw.`);
+            }
+
+            const cart =
+                AdminCart.getCart(steamID) ||
+                new AdminCart(
+                    steamID,
+                    this.bot,
+                    this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                    this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+                );
+
+            for (const sku in clonedDict) {
+                if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
+                    continue;
+                }
+
+                const amountInInventory = clonedDict[sku].length;
+                const amountInMptf = mptfItemsSkus[sku] ?? 0;
+                cart.addOurItem(sku, amountInInventory + amountInMptf >= max ? max - amountInMptf : amountInInventory);
+            }
+
+            Cart.addCart(cart);
+            this.addCartToQueue(cart, false, false);
+        } catch (err) {
+            log.error('Error on !withdrawMptf:', err);
+            return this.bot.sendMessage(steamID, `❌ Error: ${(err as Error)?.message}`);
+        }
     }
 
     private donateBPTFCommand(steamID: SteamID, message: string): void {
@@ -1025,11 +1158,13 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(params.sku)) {
+        const sku = params.sku as string;
+
+        if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(sku)) {
             return this.bot.sendMessage(
                 steamID,
                 `❌ Invalid item ${this.bot.schema.getName(
-                    SKU.fromString(params.sku),
+                    SKU.fromString(sku),
                     false
                 )}. Items that can only be donated to Backpack.tf:\n• ` +
                     [
@@ -1054,11 +1189,11 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
 
-        const cartAmount = cart.getOurCount(params.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(params.sku, false, true);
-        const amountCanTrade = ourAmount - cart.getOurCount(params.sku) - cartAmount;
+        const cartAmount = cart.getOurCount(sku);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(params.sku), false);
+        const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -1094,7 +1229,7 @@ export default class Commands {
 
         this.isDonating = true;
 
-        cart.addOurItem(params.sku, amount);
+        cart.addOurItem(sku, amount);
         Cart.addCart(cart);
     }
 
@@ -1206,4 +1341,110 @@ export default class Commands {
 
         this.addCartToQueue(cart, false, true);
     }
+}
+
+const paintCanDefindexes = [
+    5023, // Paint Can
+    5027, // Indubitably Green
+    5028, // Zepheniah's Greed
+    5029, // Noble Hatter's Violet
+    5030, // Color No. 216-190-216
+    5031, // A Deep Commitment to Purple
+    5032, // Mann Co. Orange
+    5033, // Muskelmannbraun
+    5034, // Peculiarly Drab Tincture
+    5035, // Radigan Conagher Brown
+    5036, // Ye Olde Rustic Colour
+    5037, // Australium Gold
+    5038, // Aged Moustache Grey
+    5039, // An Extraordinary Abundance of Tinge
+    5040, // A Distinctive Lack of Hue
+    5046, // Team Spirit
+    5051, // Pink as Hell
+    5052, // A Color Similar to Slate
+    5053, // Drably Olive
+    5054, // The Bitter Taste of Defeat and Lime
+    5055, // The Color of a Gentlemann's Business Pants
+    5056, // Dark Salmon Injustice
+    5060, // Operator's Overalls
+    5061, // Waterlogged Lab Coat
+    5062, // Balaclavas Are Forever
+    5063, // An Air of Debonair
+    5064, // The Value of Teamwork
+    5065, // Cream Spirit
+    5076, // A Mann's Mint
+    5077 // After Eight
+];
+
+function getMptfDashboardItems(mptfApiKey: string, ignorePainted = false): Promise<GetMptfDashboardItemsReturn> {
+    return new Promise((resolve, reject) => {
+        void axios({
+            method: 'GET',
+            url: 'https://marketplace.tf/api/Seller/GetDashboardItems/v2',
+            headers: {
+                'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
+            },
+            params: {
+                key: mptfApiKey
+            }
+        })
+            .then(response => {
+                const body = response.data as GetMptfDashboardItems;
+
+                if (body.success === false) {
+                    return reject(body);
+                }
+
+                const items = body.items
+                    .map(item => {
+                        let sku = item.sku
+                            .replace(/;ks-\d+/, '') // Sheen
+                            .replace(/;ke-\d+/, ''); // Killstreaker
+
+                        if (ignorePainted || paintCanDefindexes.includes(item.defindex)) {
+                            sku = sku.replace(/;[p][0-9]+/, ''); // Painted
+                        }
+
+                        return {
+                            sku,
+                            amount: item.num_for_sale
+                        };
+                    })
+                    .filter(item => testSKU(item.sku));
+
+                const itemsSize = items.length;
+                const toReturn = {};
+
+                for (let i = 0; i < itemsSize; i++) {
+                    toReturn[items[i].sku] = items[i].amount;
+                }
+
+                return resolve(toReturn);
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
+}
+
+interface GetMptfDashboardItemsReturn {
+    [sku: string]: number;
+}
+
+interface GetMptfDashboardItems {
+    success: boolean;
+    error?: string;
+    num_item_groups?: number;
+    total_items?: number;
+    items?: Item[];
+}
+
+interface Item {
+    sku: string;
+    full_sku: string;
+    name: string;
+    defindex: number | null;
+    quality: number | null;
+    num_for_sale: number;
+    price: number; // cent
 }

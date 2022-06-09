@@ -347,9 +347,9 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
         const gameItem = schema.raw.items_game.items[defindex];
 
         if (gameItem.attributes !== undefined && gameItem.attributes['tool target item'] !== undefined) {
-            return parseInt(gameItem.attributes['tool target item'].value, 10);
+            return parseInt(gameItem.attributes['tool target item'].value as string, 10);
         } else if (gameItem.static_attrs !== undefined && gameItem.static_attrs['tool target item'] !== undefined) {
-            return parseInt(gameItem.static_attrs['tool target item'], 10);
+            return parseInt(gameItem.static_attrs['tool target item'] as string, 10);
         }
 
         // Get schema item using market_hash_name
