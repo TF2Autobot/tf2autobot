@@ -527,13 +527,11 @@ export default class Bot {
                         this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
                         this.pricelist.init();
                         this.inventoryManager = new InventoryManager(this.pricelist);
-
-                        const userID = this.bptf._getUserID();
-                        this.userID = userID;
+                        this.userID = this.bptf._getUserID();
 
                         this.listingManager = new ListingManager({
                             token: this.options.bptfAccessToken,
-                            userID,
+                            userID: this.userID,
                             userAgent:
                                 'TF2Autobot' +
                                 (this.options.useragentHeaderCustom !== ''
@@ -740,13 +738,12 @@ export default class Bot {
     }
 
     setCookies(cookies: string[]): Promise<void> {
-        this.bptf.setCookies(cookies);
         this.community.setCookies(cookies);
 
-        if (this.listingManager) {
-            const userID = this.bptf._getUserID();
-            this.userID = userID;
-            this.listingManager.setUserID(userID);
+        if (this.isReady) {
+            this.bptf.setCookies(cookies);
+            this.userID = this.bptf._getUserID();
+            this.listingManager.setUserID(this.userID);
         }
 
         return new Promise((resolve, reject) => {
