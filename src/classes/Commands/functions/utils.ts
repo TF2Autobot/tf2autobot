@@ -226,7 +226,7 @@ export function getItemFromParams(
     bot: Bot
 ): MinimumItem | null {
     if (params.assetid) {
-        const item = bot.inventoryManager.getInventory.findByAssetid(params.assetid);
+        const item = bot.inventoryManager.getInventory.findByAssetid(params.assetid as string);
         if (null !== item) {
             return SKU.fromString(item);
         } else {
