@@ -219,7 +219,9 @@ export default class Bot {
             banned = banned ? true : result.isBanned;
         };
 
-        for (const steamid of this.options.admins) {
+        const steamids = this.options.admins;
+        steamids.push(this.client.steamID.getSteamID64());
+        for (const steamid of steamids) {
             // same as Array.some, but I want to use await
             try {
                 await check(steamid);
