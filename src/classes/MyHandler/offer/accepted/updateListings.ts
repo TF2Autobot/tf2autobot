@@ -89,8 +89,7 @@ export default function updateListings(
               hv[sku]?.p && // painted must be defined
               hv[sku]?.s === undefined && // make sure spelled is undefined
               inPrice !== null && // base items must already in pricelist
-              bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null && // painted items must not in pricelist
-              inventory.getAmount(`${sku};${Object.keys(hv[sku].p)[0]}`, false, true) > 0;
+              bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null; // painted items must not in pricelist
 
         const isAutoAddPaintedFromAdmin = !isAdmin
             ? false
