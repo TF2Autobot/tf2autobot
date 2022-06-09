@@ -80,71 +80,61 @@ export default function updateListings(
         // If the item is not an unusual sku, we "allow" still (no-op)
         const addInvalidUnusual = item.quality === 5 ? opt.pricelist.autoAddInvalidUnusual.enable : true;
 
+        const common1 =
+            normalizePainted.our === false && // must meet this setting
+            normalizePainted.their === true && // must meet this setting
+            hv && // this must be defined
+            hv[sku]?.p && // painted must be defined
+            hv[sku]?.s === undefined; // make sure spelled is undefined
+
         const isAutoaddPainted = /;[p][0-9]+/.test(sku)
             ? false // sku must NOT include any painted partial sku
             : opt.pricelist.autoAddPaintedItems.enable && // autoAddPaintedItems must enabled
-              normalizePainted.our === false && // must meet this setting
-              normalizePainted.their === true && // must meet this setting
-              hv && // this must be defined
-              hv[sku]?.p && // painted must be defined
-              hv[sku]?.s === undefined && // make sure spelled is undefined
+              common1 &&
               inPrice !== null && // base items must already in pricelist
               bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null; // painted items must not in pricelist
 
         const isAutoAddPaintedFromAdmin = !isAdmin
             ? false
-            : normalizePainted.our === false && // must meet this setting
-              normalizePainted.their === true && // must meet this setting
-              /;[p][0-9]+/.test(sku) && // sku must include any painted partial sku
-              hv && // this must be defined
-              hv[sku]?.p && // painted must be defined
-              hv[sku]?.s === undefined && // make sure spelled is undefined
+            : /;[p][0-9]+/.test(sku) && // sku must include any painted partial sku
+              common1 &&
               inPrice === null && // painted items must not in pricelist
               inPrice2 !== null && // base items must already in pricelist
               amount > 0;
 
-        const isAutoaddInvalidItems =
-            !existInPricelist &&
-            isNotPureOrWeapons &&
-            sku !== '5021;6' && // not Mann Co. Supply Crate Key
-            isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
-            addInvalidUnusual &&
-            !isDisabledHV &&
-            !isAdmin &&
-            opt.pricelist.autoAddInvalidItems.enable;
-
-        const receivedHighValueNotInPricelist =
+        const common2 =
             !existInPricelist &&
             isNotPureOrWeapons &&
             isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
-            isDisabledHV && // This is the only difference
             !isAdmin;
+
+        const isAutoaddInvalidItems =
+            opt.pricelist.autoAddInvalidItems.enable &&
+            common2 &&
+            sku !== '5021;6' && // not Mann Co. Supply Crate Key
+            addInvalidUnusual &&
+            !isDisabledHV;
+
+        const receivedHighValueNotInPricelist = common2 && isDisabledHV;
 
         const receivedUnusualNotInPricelist =
-            !existInPricelist &&
-            isNotPureOrWeapons &&
-            isNotSkinsOrWarPaint &&
-            item.quality === 5 &&
-            opt.pricelist.autoAddInvalidUnusual.enable === false &&
-            !isAdmin;
+            opt.pricelist.autoAddInvalidUnusual.enable === false && common2 && item.quality === 5;
 
         const isAutoDisableHighValueItems =
-            existInPricelist && isDisabledHV && isNotPureOrWeapons && opt.highValue.enableHold;
+            opt.highValue.enableHold && existInPricelist && isDisabledHV && isNotPureOrWeapons;
+
+        const common3 =
+            amount < 1 && // current stock
+            isNotPureOrWeapons;
 
         const isAutoRemoveIntentSell =
             opt.pricelist.autoRemoveIntentSell.enable &&
             existInPricelist &&
             inPrice.intent === 1 &&
             (opt.autokeys.enable ? sku !== '5021;6' : true) && // not Mann Co. Supply Crate Key if Autokeys enabled
-            amount < 1 && // current stock
-            isNotPureOrWeapons;
+            common3;
 
-        const isUpdatePartialPricedItem =
-            inPrice !== null &&
-            inPrice.autoprice &&
-            inPrice.isPartialPriced &&
-            amount < 1 && // current stock
-            isNotPureOrWeapons;
+        const isUpdatePartialPricedItem = inPrice !== null && inPrice.autoprice && inPrice.isPartialPriced && common3;
 
         //
 
