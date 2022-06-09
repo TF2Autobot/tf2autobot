@@ -5,20 +5,15 @@ import log from '../lib/logger';
 import Options from './Options';
 import Bot from './Bot';
 import SteamID from 'steamid';
-//import Commands from './Commands';
 
 export default class DiscordBot {
     readonly client: Client;
 
-    //readonly commands: Commands;
-
     constructor(private options: Options, private bot: Bot) {
         this.client = new Client({
-            intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
+            intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES]
         });
-        //this.client.login(process.env.TOKEN);
         void this.client.login(this.options.discordApiToken);
-        //this.commands = new Commands();
     }
 
     public start(): void {
@@ -27,7 +22,6 @@ export default class DiscordBot {
     }
 
     public stop(): void {
-        //this.commands.stop();
         log.info('Logging out from Discord...');
         this.client.destroy();
     }
@@ -37,7 +31,9 @@ export default class DiscordBot {
             return; // don't talk to myself
         }
 
-        log.info(`Got new message ${String(message.content)} from ${String(message.author.id)}`);
+        log.info(
+            `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
+        );
         if (message.author.id !== this.options.discordAdmin) {
             return; // obey only admin
         }
@@ -54,5 +50,8 @@ export default class DiscordBot {
 
     private ClientReady() {
         log.info(`Logged in as ` + String(this.client.user.tag));
+
+        // DM chats are not giving messageCreate until first usage. This line fetches the required DM chat.
+        void this.client.users.createDM(this.options.discordAdmin);
     }
 }
