@@ -68,9 +68,11 @@ export async function isBanned(
         return isBanned;
     } else {
         try {
-            const bptf = await isBptfBanned(steamID64, bptfApiKey, userID);
-            const mptf = await isMptfBanned(steamID64, mptfApiKey, checkMptfBanned);
-            const steamrep = await isSteamRepMarked(steamID64);
+            const [bptf, mptf, steamrep] = await Promise.all([
+                isBptfBanned(steamID64, bptfApiKey, userID),
+                isMptfBanned(steamID64, mptfApiKey, checkMptfBanned),
+                isSteamRepMarked(steamID64)
+            ]);
 
             return finalize(bptf, mptf, steamrep);
         } catch (err) {
@@ -79,17 +81,11 @@ export async function isBanned(
     }
 }
 
-async function getFromReptf(
-    steamID: SteamID | string,
-    checkMptf: boolean,
-    reptfAsPrimarySource: boolean
-): Promise<IsBanned> {
-    const steamID64 = steamID.toString();
-
+async function getFromReptf(steamID: string, checkMptf: boolean, reptfAsPrimarySource: boolean): Promise<IsBanned> {
     return new Promise((resolve, reject) => {
         void axios({
             method: 'POST',
-            url: 'https://rep.tf/api/bans?str=' + steamID64,
+            url: 'https://rep.tf/api/bans?str=' + steamID,
             headers: {
                 'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
             }
@@ -141,9 +137,7 @@ async function getFromReptf(
     });
 }
 
-export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, userID: string): Promise<SiteResult> {
-    const steamID64 = steamID.toString();
-
+export function isBptfBanned(steamID: string, bptfApiKey: string, userID: string): Promise<SiteResult> {
     return new Promise((resolve, reject) => {
         void axios({
             url: 'https://api.backpack.tf/api/users/info/v1',
@@ -153,11 +147,11 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
             },
             params: {
                 key: bptfApiKey,
-                steamids: steamID64
+                steamids: steamID
             }
         })
             .then(response => {
-                const user = (response.data as BPTFGetUserInfo).users[steamID64];
+                const user = (response.data as BPTFGetUserInfo).users[steamID];
                 const isBptfBanned =
                     user.bans && (user.bans.all !== undefined || user.bans['all features'] !== undefined);
 
@@ -176,12 +170,10 @@ export function isBptfBanned(steamID: SteamID | string, bptfApiKey: string, user
     });
 }
 
-function isSteamRepMarked(steamID: SteamID | string): Promise<SiteResult> {
-    const steamID64 = steamID.toString();
-
+function isSteamRepMarked(steamID: string): Promise<SiteResult> {
     return new Promise((resolve, reject) => {
         void axios({
-            url: 'https://steamrep.com/api/beta4/reputation/' + steamID64,
+            url: 'https://steamrep.com/api/beta4/reputation/' + steamID,
             params: {
                 json: 1
             }
@@ -206,9 +198,7 @@ function isSteamRepMarked(steamID: SteamID | string): Promise<SiteResult> {
     });
 }
 
-function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBanned: boolean): Promise<SiteResult> {
-    const steamID64 = steamID.toString();
-
+function isMptfBanned(steamID: string, mptfApiKey: string, checkMptfBanned: boolean): Promise<SiteResult> {
     return new Promise((resolve, reject) => {
         if (!checkMptfBanned) {
             return resolve({ isBanned: false });
@@ -226,7 +216,7 @@ function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBa
             },
             params: {
                 key: mptfApiKey,
-                steamid: steamID64
+                steamid: steamID
             }
         })
             .then(response => {
@@ -238,7 +228,7 @@ function isMptfBanned(steamID: SteamID | string, mptfApiKey: string, checkMptfBa
 
                 const resultSize = results.length;
                 for (let i = 0; i < resultSize; i++) {
-                    if (steamID64 === results[i].steamid) {
+                    if (steamID === results[i].steamid) {
                         return resolve({ isBanned: results[i].banned ?? false, content: results[i].ban?.type ?? '' });
                     }
                 }

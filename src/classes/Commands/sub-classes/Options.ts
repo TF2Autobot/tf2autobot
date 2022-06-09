@@ -869,13 +869,13 @@ export default class OptionsCommands {
                 }
 
                 if (knownParams.statistics?.sendStats?.enable === true) {
-                    this.bot.handler.sendStats();
+                    this.bot.sendStats();
                 } else if (knownParams.statistics?.sendStats?.enable === false) {
-                    this.bot.handler.disableSendStats();
+                    this.bot.disableSendStats();
                 }
 
                 if (knownParams.statistics?.sendStats?.time !== undefined) {
-                    this.bot.handler.sendStats();
+                    this.bot.sendStats();
                 }
 
                 if (knownParams.highValue !== undefined) {
