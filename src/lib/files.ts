@@ -65,6 +65,7 @@ export function writeFile(p: string, data: unknown, json: boolean): Promise<void
 
         function writeToFile(): void {
             filesBeingSaved++;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             writeFileAtomic(p, write, { encoding: 'utf8' }, err => {
                 filesBeingSaved--;
 

@@ -7,7 +7,7 @@ interface O {
     (item: any): boolean;
 }
 
-interface AnyObject {
+export interface AnyObject {
     [key: string]: any;
 }
 
@@ -47,10 +47,12 @@ export const deepMerge: DeepMerge = (target: AnyObject, ...sources: AnyObject[])
                             if (!result[key] || !isObject(result[key])) {
                                 result[key] = {};
                             }
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             deepMerge(result[key], elm[key]);
                         } else {
                             if (Array.isArray(result[key]) && Array.isArray(elm[key])) {
                                 // concatenate the two arrays and remove any duplicate primitive values
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                 result[key] = Array.from(new Set(result[key].concat(elm[key])));
                             } else {
                                 result[key] = elm[key];

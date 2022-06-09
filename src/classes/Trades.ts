@@ -223,7 +223,9 @@ export default class Trades {
     }> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffers(
-                includeInactive ? TradeOfferManager.EOfferFilter['All'] : TradeOfferManager.EOfferFilter['ActiveOnly'],
+                (includeInactive
+                    ? TradeOfferManager.EOfferFilter['All']
+                    : TradeOfferManager.EOfferFilter['ActiveOnly']) as number,
                 (err, sent, received) => {
                     if (err) {
                         return reject(err);
@@ -500,7 +502,7 @@ export default class Trades {
         }
     }
 
-    private finishProcessingOffer(offerId): void {
+    private finishProcessingOffer(offerId: string): void {
         this.dequeueOffer(offerId);
         this.processingOffer = false;
         this.processNextOffer();
@@ -963,6 +965,7 @@ export default class Trades {
 
                                     if (sku == '5021;6')
                                         keyDifference += dataDict[side][sku] * (side == 'our' ? 1 : -1);
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                     if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
 
                                     possibleKeyTrade = false; //Offer contains something other than pures
@@ -1408,7 +1411,7 @@ export default class Trades {
                             clearTimeout(this.restartOnEscrowCheckFailed);
                             this.restartOnEscrowCheckFailed = setTimeout(() => {
                                 // call function to automatically restart the bot after 2 seconds
-                                void this.triggerRestartBot(offer.partner);
+                                void this.triggerRestartBot(offer.partner.getSteamID64());
                             }, 2 * 1000);
 
                             log.error('Escrow check failed: ', err);
@@ -1435,13 +1438,13 @@ export default class Trades {
         });
     }
 
-    private retryToRestart(steamID: SteamID | string): void {
+    private retryToRestart(steamID: string): void {
         this.restartOnEscrowCheckFailed = setTimeout(() => {
             void this.triggerRestartBot(steamID);
         }, 3 * 60 * 1000);
     }
 
-    private async triggerRestartBot(steamID: SteamID | string): Promise<void> {
+    private async triggerRestartBot(steamID: string): Promise<void> {
         log.debug(`Escrow check problem occured, current failed count: ${this.escrowCheckFailedCount}`);
 
         if (this.escrowCheckFailedCount >= 2) {

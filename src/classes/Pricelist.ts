@@ -238,6 +238,7 @@ export default class Pricelist extends EventEmitter {
 
     init(): void {
         if (this.options.enableSocket) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
         }
     }
