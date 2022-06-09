@@ -1411,7 +1411,7 @@ export default class Trades {
                             clearTimeout(this.restartOnEscrowCheckFailed);
                             this.restartOnEscrowCheckFailed = setTimeout(() => {
                                 // call function to automatically restart the bot after 2 seconds
-                                void this.triggerRestartBot(offer.partner);
+                                void this.triggerRestartBot(offer.partner.getSteamID64());
                             }, 2 * 1000);
 
                             log.error('Escrow check failed: ', err);
@@ -1438,13 +1438,13 @@ export default class Trades {
         });
     }
 
-    private retryToRestart(steamID: SteamID | string): void {
+    private retryToRestart(steamID: string): void {
         this.restartOnEscrowCheckFailed = setTimeout(() => {
             void this.triggerRestartBot(steamID);
         }, 3 * 60 * 1000);
     }
 
-    private async triggerRestartBot(steamID: SteamID | string): Promise<void> {
+    private async triggerRestartBot(steamID: string): Promise<void> {
         log.debug(`Escrow check problem occured, current failed count: ${this.escrowCheckFailedCount}`);
 
         if (this.escrowCheckFailedCount >= 2) {
