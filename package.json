@@ -17,7 +17,7 @@
         "type": "git",
         "url": "git+https://github.com/TF2Autobot/tf2autobot.git"
     },
-    "author": "IdiNium/Nicklas Marc Pedersen",
+    "author": "TF2Autobot/IdiNium",
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
