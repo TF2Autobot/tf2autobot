@@ -11,7 +11,7 @@ import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
 
@@ -134,6 +134,8 @@ export default class Bot {
 
     public sendStatsInterval: NodeJS.Timeout;
 
+    private periodicCheckAdmin: NodeJS.Timeout;
+
     constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
@@ -208,6 +210,44 @@ export default class Bot {
                 this.options.miscSettings.reputationCheck.reptfAsPrimarySource
             )
         );
+    }
+
+    private async checkAdminBanned(): Promise<boolean> {
+        let banned = false;
+        const check = async (steamid: string) => {
+            const result = await isBanned(steamid, this.options.bptfApiKey, '', null, false, false);
+            banned = banned ? true : result.isBanned;
+        };
+
+        for (const steamid of this.options.admins) {
+            // same as Array.some, but I want to use await
+            try {
+                await check(steamid);
+            } catch (err) {
+                const error = err as AxiosError;
+                if (error?.response?.status === 429) {
+                    await new Promise(resolve => setTimeout(resolve, 10000));
+                    await check(steamid);
+                }
+                throw err;
+            }
+        }
+
+        return banned;
+    }
+
+    private periodicCheck(): void {
+        this.periodicCheckAdmin = setInterval(() => {
+            void this.checkAdminBanned()
+                .then(banned => {
+                    if (banned) {
+                        return this.botManager.stop(new Error('Not allowed'));
+                    }
+                })
+                .catch(() => {
+                    // ignore error
+                });
+        }, 30 * 60 * 1000);
     }
 
     get alertTypes(): string[] {
@@ -752,6 +792,24 @@ export default class Bot {
                     (callback): void => {
                         log.info('Getting Steam API key...');
                         void this.setCookies(cookies).asCallback(callback);
+                    },
+                    (callback): void => {
+                        void this.checkAdminBanned().asCallback((err, banned) => {
+                            if (err) {
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                return callback(err);
+                            }
+
+                            if (banned) {
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                return callback(new Error('Not allowed'));
+                            }
+
+                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                            return callback(null);
+                        });
+
+                        this.periodicCheck();
                     },
                     (callback): void => {
                         this.schemaManager = new SchemaManager({

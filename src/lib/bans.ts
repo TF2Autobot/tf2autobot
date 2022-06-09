@@ -27,11 +27,11 @@ export async function isBanned(
 ): Promise<IsBanned> {
     const steamID64 = steamID.toString();
 
-    const finalize = (bptf: SiteResult, mptf: SiteResult, steamrep: SiteResult): IsBanned => {
+    const finalize = (bptf: SiteResult, mptf: SiteResult, steamrep: SiteResult, untrusted: SiteResult): IsBanned => {
         _isBptfSteamRepBanned = null;
 
         const toReturn = {
-            isBanned: bptf.isBanned || mptf.isBanned || steamrep.isBanned,
+            isBanned: bptf.isBanned || mptf.isBanned || steamrep.isBanned || untrusted.isBanned,
             contents: {
                 'Backpack.tf': bptf.isBanned ? `banned${bptf.content !== '' ? ` - ${bptf.content}` : ''}` : 'clean',
                 'Steamrep.com:': steamrep.isBanned
@@ -46,6 +46,10 @@ export async function isBanned(
                 : 'clean';
         }
 
+        toReturn.contents['TF2Autobot'] = untrusted.isBanned
+            ? `banned${untrusted.content !== '' ? ` - ${untrusted.content}` : ''}`
+            : 'clean';
+
         log[toReturn.isBanned ? 'warn' : 'debug'](`Bans result for ${steamID64}:`, toReturn.contents);
 
         return toReturn;
@@ -55,26 +59,28 @@ export async function isBanned(
         const isBanned = await getFromReptf(steamID64, checkMptfBanned, reptfAsPrimarySource);
 
         if (isReptfFailed) {
-            const [bptf, mptf, steamrep] = await Promise.all([
+            const [bptf, mptf, steamrep, untrusted] = await Promise.all([
                 isBptfBanned(steamID64, bptfApiKey, userID),
                 isMptfBanned(steamID64, mptfApiKey, checkMptfBanned),
-                isSteamRepMarked(steamID64)
+                isSteamRepMarked(steamID64),
+                isListedUntrusted(steamID64)
             ]);
             isReptfFailed = false;
 
-            return finalize(bptf, mptf, steamrep);
+            return finalize(bptf, mptf, steamrep, untrusted);
         }
 
         return isBanned;
     } else {
         try {
-            const [bptf, mptf, steamrep] = await Promise.all([
+            const [bptf, mptf, steamrep, untrusted] = await Promise.all([
                 isBptfBanned(steamID64, bptfApiKey, userID),
                 isMptfBanned(steamID64, mptfApiKey, checkMptfBanned),
-                isSteamRepMarked(steamID64)
+                isSteamRepMarked(steamID64),
+                isListedUntrusted(steamID64)
             ]);
 
-            return finalize(bptf, mptf, steamrep);
+            return finalize(bptf, mptf, steamrep, untrusted);
         } catch (err) {
             return await getFromReptf(steamID64, checkMptfBanned, reptfAsPrimarySource);
         }
@@ -108,15 +114,30 @@ async function getFromReptf(steamID: string, checkMptf: boolean, reptfAsPrimaryS
                         : 'clean';
                 }
 
-                log[isBptfBanned || isSteamRepBanned || (checkMptf && isMptfBanned) ? 'warn' : 'debug'](
-                    'Bans result:',
-                    bansResult
-                );
+                void isListedUntrusted(steamID)
+                    .then(isListed => {
+                        const isListedUntrusted = isListed.isBanned;
+                        bansResult['TF2Autobot'] = isListedUntrusted ? `banned - ${isListed.content}` : 'clean';
 
-                return resolve({
-                    isBanned: isBptfBanned || isSteamRepBanned || (checkMptf ? isMptfBanned : false),
-                    contents: bansResult
-                });
+                        log[
+                            isBptfBanned || isSteamRepBanned || (checkMptf && isMptfBanned) || isListedUntrusted
+                                ? 'warn'
+                                : 'debug'
+                        ]('Bans result:', bansResult);
+
+                        return resolve({
+                            isBanned:
+                                isBptfBanned ||
+                                isSteamRepBanned ||
+                                (checkMptf ? isMptfBanned : false) ||
+                                isListedUntrusted,
+                            contents: bansResult
+                        });
+                    })
+                    .catch(err => {
+                        log.warn('Failed to obtain data from Github: ', err);
+                        return reject(err);
+                    });
             })
             .catch(err => {
                 if (err) {
@@ -244,6 +265,30 @@ function isMptfBanned(steamID: string, mptfApiKey: string, checkMptfBanned: bool
     });
 }
 
+function isListedUntrusted(steamID: string): Promise<SiteResult> {
+    return new Promise((resolve, reject) => {
+        void axios({
+            method: 'GET',
+            url: 'https://raw.githubusercontent.com/TF2Autobot/untrusted-steam-ids/master/untrusted.min.json'
+        })
+            .then(response => {
+                const results = (response.data as UntrustedJson).steamids[steamID];
+
+                if (results === undefined) {
+                    return resolve({ isBanned: false });
+                }
+
+                return resolve({ isBanned: true, content: `Reason: ${results.reason} - Source: ${results.source}` });
+            })
+            .catch(err => {
+                if (err) {
+                    log.warn('Failed to get data from Github: ', err);
+                    return reject(err);
+                }
+            });
+    });
+}
+
 // https://www.geeksforgeeks.org/how-to-strip-out-html-tags-from-a-string-using-javascript/
 function removeHTMLTags(str: string): string {
     if (str === null || str === '') {
@@ -315,4 +360,19 @@ interface BansInfo {
     banned: 'good' | 'bad';
     message: string;
     icons: string;
+}
+
+interface UntrustedJson {
+    last_update: number;
+    steamids: UntrustedJsonSteamids;
+}
+
+interface UntrustedJsonSteamids {
+    [steamID: string]: UntrustedJsonSteamidsContent;
+}
+
+interface UntrustedJsonSteamidsContent {
+    reason: string;
+    source: string;
+    time: number;
 }
