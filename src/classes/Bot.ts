@@ -16,6 +16,8 @@ import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
 
 import DiscordBot from './DiscordBot';
+import { Message as DiscordMessage } from 'discord.js';
+
 import InventoryManager from './InventoryManager';
 import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
 import Friends from './Friends';
@@ -1273,9 +1275,8 @@ export default class Bot {
 
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
-            if (origMessage.channel && origMessage.channel.send) {
-                void origMessage.channel.send(message);
-                log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`);
+            if (origMessage instanceof DiscordMessage) {
+                void this.discordBot.sendAnswer(origMessage, message);
             } else {
                 log.error(`Failed to send message, broken redirect:`, origMessage);
             }

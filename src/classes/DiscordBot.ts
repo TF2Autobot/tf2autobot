@@ -48,6 +48,26 @@ export default class DiscordBot {
         await this.bot.handler.onMessage(adminID, message.content);
     }
 
+    private static reformat(message: string): string {
+        if (message.startsWith('/code')) {
+            return '```\n' + message.slice(6) + '\n```';
+        } else if (message.startsWith('/pre')) {
+            return '>>> ' + message.slice(5);
+        } else {
+            return message;
+        }
+    }
+
+    public async sendAnswer(origMessage: Message, message: string, do_reply = false): Promise<void> {
+        const formattedMessage = DiscordBot.reformat(message);
+        if (do_reply) {
+            await origMessage.reply(formattedMessage);
+        } else {
+            await origMessage.channel.send(formattedMessage);
+        }
+        log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${formattedMessage}`);
+    }
+
     private ClientReady() {
         log.info(`Logged in as ` + String(this.client.user.tag));
 
