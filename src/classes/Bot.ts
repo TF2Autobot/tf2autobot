@@ -1273,8 +1273,8 @@ export default class Bot {
 
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
-            if (origMessage.reply) {
-                void origMessage.reply(message);
+            if (origMessage.channel && origMessage.channel.send) {
+                void origMessage.channel.send(message);
                 log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`);
             } else {
                 log.error(`Failed to send message, broken redirect:`, origMessage);

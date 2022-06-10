@@ -39,7 +39,7 @@ export default class DiscordBot {
         }
 
         if (!this.bot.isReady) {
-            void message.reply('The bot is still booting up, please wait');
+            void message.channel.send('🛑 The bot is still booting up, please wait');
             return;
         }
 
