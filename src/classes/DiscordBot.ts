@@ -13,12 +13,14 @@ export default class DiscordBot {
         this.client = new Client({
             intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES]
         });
-        void this.client.login(this.options.discordApiToken);
     }
 
     public start(): void {
-        this.client.on('ready', this.ClientReady.bind(this));
-        this.client.on('messageCreate', async message => this.handleMessage(message));
+        this.client.login(this.options.discordApiToken).catch(err => {
+            log.error('Failed to login to Discord:', err);
+        });
+        this.client.on('ready', this.onClientReady.bind(this));
+        this.client.on('messageCreate', async message => this.onMessage(message));
     }
 
     public stop(): void {
@@ -26,7 +28,7 @@ export default class DiscordBot {
         this.client.destroy();
     }
 
-    public async handleMessage(message: Message): Promise<void> {
+    public async onMessage(message: Message): Promise<void> {
         if (message.author === this.client.user) {
             return; // don't talk to myself
         }
@@ -39,7 +41,7 @@ export default class DiscordBot {
         }
 
         if (!this.bot.isReady) {
-            void message.channel.send('🛑 The bot is still booting up, please wait');
+            this.sendAnswer(message, '🛑 The bot is still booting up, please wait');
             return;
         }
 
@@ -58,20 +60,22 @@ export default class DiscordBot {
         }
     }
 
-    public async sendAnswer(origMessage: Message, message: string, do_reply = false): Promise<void> {
+    public sendAnswer(origMessage: Message, message: string): void {
         const formattedMessage = DiscordBot.reformat(message);
-        if (do_reply) {
-            await origMessage.reply(formattedMessage);
-        } else {
-            await origMessage.channel.send(formattedMessage);
-        }
-        log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${formattedMessage}`);
+        origMessage.channel
+            .send(formattedMessage)
+            .then(() =>
+                log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${formattedMessage}`)
+            )
+            .catch(err => log.error('Failed to send message to Discord:', err));
     }
 
-    private ClientReady() {
+    private onClientReady() {
         log.info(`Logged in as ` + String(this.client.user.tag));
 
         // DM chats are not giving messageCreate until first usage. This line fetches the required DM chat.
-        void this.client.users.createDM(this.options.discordAdmin);
+        this.client.users.createDM(this.options.discordAdmin).catch(err => {
+            log.error('Failed to fetch DM channel with admin:', err);
+        });
     }
 }

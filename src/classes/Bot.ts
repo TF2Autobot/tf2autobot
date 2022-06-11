@@ -1276,7 +1276,7 @@ export default class Bot {
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
             if (origMessage instanceof DiscordMessage) {
-                void this.discordBot.sendAnswer(origMessage, message);
+                this.discordBot.sendAnswer(origMessage, message);
             } else {
                 log.error(`Failed to send message, broken redirect:`, origMessage);
             }
