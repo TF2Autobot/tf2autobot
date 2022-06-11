@@ -781,7 +781,10 @@ export default class Bot {
                         if (this.options.discordApiToken) {
                             log.debug(`Initializing Discord bot...`);
                             this.discordBot = new DiscordBot(this.options, this);
-                            void this.discordBot.start();
+                            this.discordBot.start().catch(err => {
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                return callback(err);
+                            });
                         } else {
                             log.debug('Discord api key is not set, ignoring.');
                         }

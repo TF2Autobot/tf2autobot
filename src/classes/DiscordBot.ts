@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
 
-import { Client, Intents, Message } from 'discord.js';
+import { Client, Intents, Message, DiscordAPIError } from 'discord.js';
 import log from '../lib/logger';
 import Options from './Options';
 import Bot from './Bot';
@@ -13,14 +13,38 @@ export default class DiscordBot {
         this.client = new Client({
             intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES]
         });
-    }
 
-    public start(): void {
-        this.client.login(this.options.discordApiToken).catch(err => {
-            log.error('Failed to login to Discord:', err);
-        });
+        // 'ready' binding should be executed BEFORE the login() is complete
         this.client.on('ready', this.onClientReady.bind(this));
         this.client.on('messageCreate', async message => this.onMessage(message));
+    }
+
+    public async start(): Promise<void> {
+        if (!this.bot.isAdmin(this.admin)) {
+            const problem = 'SteamID of Discord admin is not in ADMINS, aborting...';
+            log.error(problem);
+            throw Error(problem);
+        }
+
+        try {
+            await this.client.login(this.options.discordApiToken);
+        } catch (err) {
+            const error = err as DiscordAPIError;
+
+            if (error.code.toString() === 'TOKEN_INVALID') {
+                log.error('Failed to login to Discord: bot token is invalid.');
+                throw error; // only "incorrect token" error should crash the bot, so "throw" is only here
+            } else {
+                log.error('Failed to login to Discord, please use Steam chat for now. Error summary:', error);
+                const adminID = this.admin;
+                this.bot.sendMessage(
+                    adminID,
+                    'Failed to log in to Discord. You can still use commands in here.\n' +
+                        `If https://discordstat.us doesn't indicate any problems right now, you can try to restart.\n` +
+                        `If restarting didn't fix the problem - please ask for help on TF2Autobot Discord server: https://discord.gg/4k5tmMkXjB`
+                );
+            }
+        }
     }
 
     public stop(): void {
@@ -45,7 +69,7 @@ export default class DiscordBot {
             return;
         }
 
-        const adminID = new SteamID(this.options.steamOfDiscordAdmin);
+        const adminID = this.admin;
         adminID.redirectAnswerTo = message;
         await this.bot.handler.onMessage(adminID, message.content);
     }
@@ -77,5 +101,9 @@ export default class DiscordBot {
         this.client.users.createDM(this.options.discordAdmin).catch(err => {
             log.error('Failed to fetch DM channel with admin:', err);
         });
+    }
+
+    private get admin(): SteamID {
+        return new SteamID(this.options.steamOfDiscordAdmin);
     }
 }
