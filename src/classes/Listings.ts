@@ -263,7 +263,7 @@ export default class Listings {
 
                 log.debug('Checking listings for ' + pluralize('item', skus.length, true) + '...');
 
-                void this.recursiveCheckPricelist(skus, pricelist).asCallback(() => {
+                void this.recursiveCheckPricelist(skus, pricelist).finally(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -337,7 +337,7 @@ export default class Listings {
                 return;
             }
 
-            void this.removeAllListings().asCallback(next);
+            void this.removeAllListings().finally(next);
         });
     }
 

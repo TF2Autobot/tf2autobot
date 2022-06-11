@@ -1,4 +1,3 @@
-import async from 'async';
 import SchemaManager from '@tf2autobot/tf2-schema';
 import pm2 from 'pm2';
 import Bot from './Bot';
@@ -54,53 +53,48 @@ export default class BotManager {
         return this.bot !== null && this.bot.isReady;
     }
 
-    start(options: Options): Promise<void> {
-        return new Promise((resolve, reject) => {
-            REQUIRED_OPTS.forEach(optName => {
-                if (!process.env[optName] && !options[camelCase(optName)]) {
-                    return reject(new Error(`Missing required environment variable "${optName}"`));
-                }
-            });
+    async start(options: Options): Promise<void> {
+        REQUIRED_OPTS.forEach(optName => {
+            if (!process.env[optName] && !options[camelCase(optName)]) {
+                throw new Error(`Missing required environment variable "${optName}"`);
+            }
+        });
 
-            async.eachSeries(
-                [
-                    (callback): void => {
-                        log.debug('Connecting to PM2...');
-                        void this.connectToPM2().asCallback(callback);
-                    },
-                    (callback): void => {
-                        log.info('Starting bot...');
-                        this.pricer.init(options.enableSocket);
-                        this.bot = new Bot(this, options, this.pricer);
+        let promise = Promise.resolve();
 
-                        void this.bot.start().asCallback(callback);
-                    }
-                ],
-                (item, callback) => {
-                    if (this.isStopping) {
-                        // Shutdown is requested, stop the bot
-                        return this.stop(null, false, false);
-                    }
+        const checkIfStopping = () => {
+            if (this.isStopping) {
+                this.stop(null, false, false);
+                throw new Error('Bot stopping');
+            }
+        };
 
-                    item(callback);
-                },
-                err => {
-                    if (err) {
-                        return reject(err);
-                    }
+        const promisesChain = [
+            async () => {
+                log.debug('Connecting to PM2...');
+                await this.connectToPM2();
+            },
+            async () => {
+                log.info('Starting bot...');
+                this.pricer.init(options.enableSocket);
+                this.bot = new Bot(this, options, this.pricer);
 
-                    if (this.isStopping) {
-                        // Shutdown is requested, stop the bot
-                        return this.stop(null, false, false);
-                    }
+                await this.bot.start();
+            }
+        ];
 
-                    this.pricer.connect(this.bot?.options.enableSocket);
+        for (const promiseToChain of promisesChain) {
+            promise = promise.then(promiseToChain).then(checkIfStopping);
+        }
 
-                    this.schemaManager = this.bot.schemaManager;
+        await promise.then(() => {
+            if (this.isStopping) {
+                this.stop(null, false, false);
+            }
 
-                    return resolve();
-                }
-            );
+            this.pricer.connect(this.bot?.options.enableSocket);
+
+            this.schemaManager = this.bot.schemaManager;
         });
     }
 

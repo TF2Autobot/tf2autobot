@@ -187,34 +187,34 @@ export default class TF2GC {
 
         // Ensuring TF2 GC connection...
 
-        void this.connectToGC().asCallback(err => {
-            if (err) {
-                return this.finishedProcessingJob(err as Error);
-            }
+        void this.connectToGC()
+            .then(() => {
+                let func;
 
-            let func;
+                if (job.type === 'combineWeapon') {
+                    func = this.handleCraftJobWeapon.bind(this, job);
+                } else if (job.type === 'combineClassWeapon') {
+                    func = this.handleCraftJobClassWeapon.bind(this, job);
+                } else if (['smelt', 'combine'].includes(job.type)) {
+                    func = this.handleCraftJob.bind(this, job);
+                } else if (['use', 'delete', 'removeAttributes'].includes(job.type)) {
+                    func = this.handleUseOrDeleteOrRemoveAttributesJob.bind(this, job);
+                } else if (job.type === 'sort') {
+                    func = this.handleSortJob.bind(this, job);
+                } else if (job.type === 'craftToken') {
+                    func = this.handleCraftTokenJob.bind(this, job);
+                }
 
-            if (job.type === 'combineWeapon') {
-                func = this.handleCraftJobWeapon.bind(this, job);
-            } else if (job.type === 'combineClassWeapon') {
-                func = this.handleCraftJobClassWeapon.bind(this, job);
-            } else if (['smelt', 'combine'].includes(job.type)) {
-                func = this.handleCraftJob.bind(this, job);
-            } else if (['use', 'delete', 'removeAttributes'].includes(job.type)) {
-                func = this.handleUseOrDeleteOrRemoveAttributesJob.bind(this, job);
-            } else if (job.type === 'sort') {
-                func = this.handleSortJob.bind(this, job);
-            } else if (job.type === 'craftToken') {
-                func = this.handleCraftTokenJob.bind(this, job);
-            }
-
-            if (func) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                func();
-            } else {
-                this.finishedProcessingJob(new Error('Unknown job type'));
-            }
-        });
+                if (func) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    func();
+                } else {
+                    this.finishedProcessingJob(new Error('Unknown job type'));
+                }
+            })
+            .catch((err: Error) => {
+                this.finishedProcessingJob(err);
+            });
     }
 
     private handleCraftJob(job: Job): void {

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import writeFileAtomic from 'write-file-atomic';
 import path from 'path';
+import timersPromises from 'timers/promises';
 
 import { exponentialBackoff } from './helpers';
 
@@ -108,7 +109,7 @@ export function waitForWriting(checks = 0): Promise<void> {
     }
 
     return new Promise(resolve => {
-        void Promise.delay(exponentialBackoff(checks, 100)).then(() => {
+        void timersPromises.setTimeout(exponentialBackoff(checks, 100)).then(() => {
             resolve(waitForWriting(checks + 1));
         });
     });

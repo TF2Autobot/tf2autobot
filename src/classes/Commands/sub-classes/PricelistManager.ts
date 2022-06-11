@@ -1586,7 +1586,7 @@ export default class PricelistManagerCommands {
 
             if (params.withgroup || params.withoutgroup) {
                 try {
-                    await this.bot.pricelist.setNewPricelist(newPricelist);
+                    this.bot.pricelist.setNewPricelist(newPricelist);
                     this.bot.sendMessage(steamID, `✅ Removed ${removeCount} items from pricelist.`);
                     return await this.bot.listings.redoListings();
                 } catch (err) {
@@ -1597,7 +1597,7 @@ export default class PricelistManagerCommands {
                 }
             } else {
                 try {
-                    await this.bot.pricelist.removeAll();
+                    this.bot.pricelist.removeAll();
                     return this.bot.sendMessage(steamID, '✅ Cleared pricelist!');
                 } catch (err) {
                     return this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);

@@ -24,8 +24,6 @@ if (process.env.BOT_VERSION !== pjson.version) {
     process.exit(1);
 }
 
-import 'bluebird-global';
-
 import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -136,20 +134,12 @@ process.on('message', message => {
     }
 });
 
-void botManager.start(options).asCallback(err => {
-    if (err) {
-        throw err;
-    }
+void (async () => {
+    await botManager.start(options);
 
     if (options.enableHttpApi) {
-        void import('./classes/HttpManager').then(({ default: HttpManager }) => {
-            const httpManager = new HttpManager(options);
-
-            void httpManager.start().asCallback(err => {
-                if (err) {
-                    throw err;
-                }
-            });
-        });
+        const { default: HttpManager } = await import('./classes/HttpManager');
+        const httpManager = new HttpManager(options);
+        await httpManager.start();
     }
-});
+})();
