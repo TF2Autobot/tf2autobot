@@ -1198,7 +1198,7 @@ export default class MyHandler extends Handler {
                         let itemSuggestedValue = 'No price';
 
                         if (!isNonTF2Items) {
-                            // await sleepasync().Promise.sleep(1 * 1000);
+                            // await timersPromises.setTimeout(1 * 1000);
                             const price = await this.bot.pricelist.getItemPrices(sku);
                             const item = SKU.fromString(sku);
 

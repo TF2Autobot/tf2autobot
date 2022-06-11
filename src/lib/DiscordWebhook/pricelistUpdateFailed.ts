@@ -2,7 +2,7 @@ import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../logger';
 import { GetItemPriceResponse } from '../../classes/IPricer';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { UnknownDictionary } from '../../types/common';
 import Options from '../../classes/Options';
 
@@ -79,7 +79,7 @@ class PriceUpdateFailedQueue {
         this.isProcessing = true;
 
         if (this.size() >= 5) {
-            await sleepasync().Promise.sleep(500);
+            await timersPromises.setTimeout(500);
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')

@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import SKU from '@tf2autobot/tf2-sku';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
@@ -351,13 +351,13 @@ export default class StatusCommands {
 
         if (isSendSeparately) {
             this.bot.sendMessage(steamID, reply);
-            await sleepasync().Promise.sleep(1000);
+            await timersPromises.setTimeout(1000);
             this.bot.sendMessage(steamID, boughtMessage);
-            await sleepasync().Promise.sleep(3000);
+            await timersPromises.setTimeout(3000);
             this.bot.sendMessage(steamID, soldMessage);
 
             if (adminOnlyMessage) {
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(steamID, adminOnlyMessage);
             }
         } else this.bot.sendMessage(steamID, reply);
@@ -379,7 +379,7 @@ export default class StatusCommands {
                         `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
                             `Release note: https://github.com/TF2Autobot/tf2autobot/releases`
                     );
-                    await sleepasync().Promise.sleep(1000);
+                    await timersPromises.setTimeout(1000);
 
                     if (process.platform === 'win32') {
                         this.bot.sendMessage(

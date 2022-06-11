@@ -4,7 +4,7 @@ import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import { Listing } from '@tf2autobot/bptf-listings';
 import validUrl from 'valid-url';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import dayjs from 'dayjs';
 import { EFriendRelationship } from 'steam-user';
 import { fixSKU } from '../functions/utils';
@@ -390,7 +390,7 @@ export default class ManagerCommands {
             this.bot.client.removeFriend(steamid);
 
             // Prevent Steam from detecting the bot as spamming
-            await sleepasync().Promise.sleep(5000);
+            await timersPromises.setTimeout(5000);
         }
 
         this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
