@@ -166,12 +166,17 @@ export default class Bot {
 
         this.handler = new MyHandler(this, this.priceSource);
 
-        this.admins = this.options.admins.map(steamID => new SteamID(steamID));
+        this.admins = [];
 
-        this.admins.forEach(steamID => {
-            if (!steamID.isValid()) {
+        this.options.admins.forEach(adminData => {
+            const admin = new SteamID(adminData.steam);
+            admin.discordID = adminData.discord;
+
+            if (!admin.isValid()) {
                 throw new Error('Invalid admin steamID');
             }
+
+            this.admins.push(admin);
         });
 
         this.itemStatsWhitelist =
@@ -224,7 +229,7 @@ export default class Bot {
             banned = banned ? true : result.isBanned;
         };
 
-        const steamids = this.options.admins;
+        const steamids = this.admins.map(steamID => steamID.getSteamID64());
         steamids.push(this.client.steamID.getSteamID64());
         for (const steamid of steamids) {
             // same as Array.some, but I want to use await
@@ -779,14 +784,14 @@ export default class Bot {
                     },
                     (callback): void => {
                         if (this.options.discordApiToken) {
-                            log.debug(`Initializing Discord bot...`);
+                            log.info(`Initializing Discord bot...`);
                             this.discordBot = new DiscordBot(this.options, this);
                             this.discordBot.start().catch(err => {
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(err);
                             });
                         } else {
-                            log.debug('Discord api key is not set, ignoring.');
+                            log.info('Discord api key is not set, ignoring.');
                         }
                         /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                         return callback(null);

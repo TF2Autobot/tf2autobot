@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
 
-import { Client, Intents, Message, DiscordAPIError } from 'discord.js';
+import { Client, Intents, Message, DiscordAPIError, Snowflake } from 'discord.js';
 import log from '../lib/logger';
 import Options from './Options';
 import Bot from './Bot';
@@ -20,11 +20,7 @@ export default class DiscordBot {
     }
 
     public async start(): Promise<void> {
-        if (!this.bot.isAdmin(this.admin)) {
-            const problem = 'SteamID of Discord admin is not in ADMINS, aborting...';
-            log.error(problem);
-            throw Error(problem);
-        }
+        // TODO: check for discord IDs not being repeated in ADMINS
 
         try {
             await this.client.login(this.options.discordApiToken);
@@ -36,13 +32,14 @@ export default class DiscordBot {
                 throw error; // only "incorrect token" error should crash the bot, so "throw" is only here
             } else {
                 log.error('Failed to login to Discord, please use Steam chat for now. Error summary:', error);
-                const adminID = this.admin;
-                this.bot.sendMessage(
-                    adminID,
-                    'Failed to log in to Discord. You can still use commands in here.\n' +
-                        `If https://discordstat.us doesn't indicate any problems right now, you can try to restart.\n` +
-                        `If restarting didn't fix the problem - please ask for help on TF2Autobot Discord server: https://discord.gg/4k5tmMkXjB`
-                );
+                this.admins.forEach(admin => {
+                    this.bot.sendMessage(
+                        admin,
+                        'Failed to log in to Discord. You can still use commands in here.\n' +
+                            `If https://discordstat.us doesn't indicate any problems right now, you can try to restart.\n` +
+                            `If restarting didn't fix the problem - please ask for help on TF2Autobot Discord server: https://discord.gg/4k5tmMkXjB`
+                    );
+                });
             }
         }
     }
@@ -60,8 +57,8 @@ export default class DiscordBot {
         log.info(
             `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
         );
-        if (message.author.id !== this.options.discordAdmin) {
-            return; // obey only admin
+        if (!this.isDiscordAdmin(message.author.id)) {
+            return; // obey only admins
         }
 
         if (!this.bot.isReady) {
@@ -69,7 +66,7 @@ export default class DiscordBot {
             return;
         }
 
-        const adminID = this.admin;
+        const adminID = this.getAdminBy(message.author.id);
         adminID.redirectAnswerTo = message;
         await this.bot.handler.onMessage(adminID, message.content);
     }
@@ -95,15 +92,35 @@ export default class DiscordBot {
     }
 
     private onClientReady() {
-        log.info(`Logged in as ` + String(this.client.user.tag));
+        log.info(`Logged in to Discord as ` + String(this.client.user.tag));
 
-        // DM chats are not giving messageCreate until first usage. This line fetches the required DM chat.
-        this.client.users.createDM(this.options.discordAdmin).catch(err => {
-            log.error('Failed to fetch DM channel with admin:', err);
+        // DM chats are not giving messageCreate until first usage. This thing fetches required DM chats.
+        this.admins.forEach(admin => {
+            this.client.users.createDM(admin.discordID).catch(err => {
+                log.error('Failed to fetch DM channel with admin:', err);
+            });
         });
     }
 
-    private get admin(): SteamID {
-        return new SteamID(this.options.steamOfDiscordAdmin);
+    isDiscordAdmin(discordID: Snowflake): boolean {
+        return this.bot.getAdmins.some(admin => admin.discordID === discordID);
+    }
+
+    get admins(): SteamID[] {
+        return this.bot.getAdmins.filter(admin => admin.discordID);
+    }
+
+    private getAdminBy(discordID: Snowflake): SteamID {
+        // Intended to use with all checks made before. Throwing errors just to be sure.
+
+        if (!this.isDiscordAdmin) {
+            throw Error(`Admin with discordID ${discordID} was not found`);
+        }
+
+        const result = this.admins.filter(admin => admin.discordID == discordID);
+        if (result.length > 1) {
+            throw Error(`ADMINS contains more than one entry with discordID ${discordID}`);
+        }
+        return result[0];
     }
 }
