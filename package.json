@@ -96,7 +96,7 @@
         "nodemon": "^2.0.16",
         "prettier": "^2.6.2",
         "socket.io-mock": "^1.3.2",
-        "ts-jest": "^28.0.4",
+        "ts-jest": "^28.0.5",
         "typescript": "^4.7.3"
     },
     "private": true,
