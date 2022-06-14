@@ -288,34 +288,36 @@ export default class Trades {
 
         offer.data('handleTimestamp', start);
 
-        void Promise.resolve(this.bot.handler.onNewTradeOffer(offer)).asCallback((err, response) => {
-            if (err) {
-                log.warn('Error occurred while handler was processing offer: ', err);
-                throw err;
-            }
+        void Promise.resolve(this.bot.handler.onNewTradeOffer(offer))
+            .then(response => {
+                if (offer.data('dict') === undefined) {
+                    throw new Error('dict not saved on offer');
+                }
 
-            if (offer.data('dict') === undefined) {
-                throw new Error('dict not saved on offer');
-            }
+                offer.data('handledByUs', true);
+                const timeTaken = dayjs().valueOf() - start;
 
-            offer.data('handledByUs', true);
-            const timeTaken = dayjs().valueOf() - start;
+                offer.data('processOfferTime', timeTaken);
+                log.debug(`Processing offer #${offer.id} took ${timeTaken} ms`);
 
-            offer.data('processOfferTime', timeTaken);
-            log.debug(`Processing offer #${offer.id} took ${timeTaken} ms`);
+                offer.log('debug', 'handler is done with offer', {
+                    response: response
+                });
 
-            offer.log('debug', 'handler is done with offer', {
-                response: response
+                if (!response) {
+                    return this.finishProcessingOffer(offer.id);
+                }
+
+                this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(() => {
+                    this.finishProcessingOffer(offer.id);
+                });
+            })
+            .catch((err: Error) => {
+                log.error('Error occurred while handler was processing offer: ', err);
+                // No throw here, because handlerProcessOffer will not handle catch.
+                this.processingOffer = false;
+                this.processNextOffer();
             });
-
-            if (!response) {
-                return this.finishProcessingOffer(offer.id);
-            }
-
-            this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(() => {
-                this.finishProcessingOffer(offer.id);
-            });
-        });
     }
 
     applyActionToOffer(
