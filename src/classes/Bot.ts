@@ -5,7 +5,7 @@ import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager, { Listing } from '@tf2autobot/bptf-listings';
-import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import SchemaManager, { Effect, StrangeParts } from '@tf2autobot/tf2-schema';
 import BptfLogin from '@tf2autobot/bptf-login';
 import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
@@ -69,8 +69,6 @@ export default class Bot {
     schemaManager: SchemaManager; // should be readonly
 
     public effects: Effect[];
-
-    public paints: Paints;
 
     public strangeParts: StrangeParts;
 
@@ -904,15 +902,13 @@ export default class Bot {
                         this.setProperties();
 
                         // only call this here, and in Commands/Options
-                        Inventory.setOptions(this.paints, this.strangeParts, this.options.highValue);
+                        Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
 
                         this.inventoryManager.setInventory = new Inventory(
                             this.client.steamID,
                             this.manager,
                             this.schema,
                             this.options,
-                            this.effects,
-                            this.paints,
                             this.strangeParts,
                             'our'
                         );
@@ -1016,7 +1012,6 @@ export default class Bot {
 
     setProperties(): void {
         this.effects = this.schema.getUnusualEffects();
-        this.paints = this.schema.getPaints();
         this.strangeParts = this.schema.getStrangeParts();
         this.craftWeapons = this.schema.getCraftableWeaponsForTrading();
         this.uncraftWeapons = this.schema.getUncraftableWeaponsForTrading();

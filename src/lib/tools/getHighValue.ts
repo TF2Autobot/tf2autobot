@@ -56,7 +56,7 @@ export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName
                         }
 
                         toJoin.push(
-                            `${getAttachmentName(attachment, pSKU, bot.paints, bot.strangeParts)}${
+                            `${getAttachmentName(attachment, pSKU, bot.schema.paints, bot.strangeParts)}${
                                 attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
                             }${items[sku][attachment as Attachment][pSKU] === true ? ' 🌟' : ''}`
                         );

@@ -272,8 +272,8 @@ export default class MiscCommands {
             steamID,
             '/code ' +
                 JSON.stringify(
-                    Object.keys(this.bot.paints).reduce((obj, name) => {
-                        obj[name] = `p${this.bot.paints[name]}`;
+                    Object.keys(this.bot.schema.paints).reduce((obj, name) => {
+                        obj[name] = `p${this.bot.schema.paints[name]}`;
                         return obj;
                     }, {}),
                     null,

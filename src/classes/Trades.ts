@@ -714,8 +714,6 @@ export default class Trades {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                this.bot.effects,
-                this.bot.paints,
                 this.bot.strangeParts,
                 'their'
             );
@@ -740,8 +738,6 @@ export default class Trades {
                     this.bot.manager,
                     this.bot.schema,
                     opt,
-                    this.bot.effects,
-                    this.bot.paints,
                     this.bot.strangeParts,
                     'our'
                 ).getItems;
@@ -752,8 +748,6 @@ export default class Trades {
                     this.bot.manager,
                     this.bot.schema,
                     opt,
-                    this.bot.effects,
-                    this.bot.paints,
                     this.bot.strangeParts,
                     'their'
                 ).getItems;

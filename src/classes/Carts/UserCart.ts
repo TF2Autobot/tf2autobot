@@ -455,8 +455,6 @@ export default class UserCart extends Cart {
             this.bot.manager,
             this.bot.schema,
             opt,
-            this.bot.effects,
-            this.bot.paints,
             this.bot.strangeParts,
             'their'
         );

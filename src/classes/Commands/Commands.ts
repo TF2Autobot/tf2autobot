@@ -869,16 +869,7 @@ export default class Commands {
 
         const adminInventory =
             this.adminInventory[steamid] ||
-            new Inventory(
-                steamID,
-                this.bot.manager,
-                this.bot.schema,
-                this.bot.options,
-                this.bot.effects,
-                this.bot.paints,
-                this.bot.strangeParts,
-                'their'
-            );
+            new Inventory(steamID, this.bot.manager, this.bot.schema, this.bot.options, this.bot.strangeParts, 'their');
 
         if (this.adminInventory[steamid] === undefined) {
             try {
