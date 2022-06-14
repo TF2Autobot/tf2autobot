@@ -268,7 +268,18 @@ export default class MiscCommands {
     }
 
     paintsCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, '/code ' + JSON.stringify(this.bot.paints, null, 4));
+        this.bot.sendMessage(
+            steamID,
+            '/code ' +
+                JSON.stringify(
+                    Object.keys(this.bot.paints).reduce((obj, name) => {
+                        obj[name] = `p${this.bot.paints[name]}`;
+                        return obj;
+                    }, {}),
+                    null,
+                    4
+                )
+        );
     }
 
     private getWeaponsStock(showOnlyExist: boolean, weapons: string[]): string[] {

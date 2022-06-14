@@ -954,12 +954,7 @@ export default class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             const highValueOurNames: string[] = [];
-            const itemsName = getHighValueItems(
-                getHighValue.our.items,
-                this.bot,
-                this.bot.paints,
-                this.bot.strangeParts
-            );
+            const itemsName = getHighValueItems(getHighValue.our.items, this.bot);
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {

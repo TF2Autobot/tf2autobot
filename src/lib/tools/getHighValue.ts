@@ -9,7 +9,7 @@ interface ItemsWithName {
     [name: string]: string;
 }
 
-export default function getHighValueItems(items: Items, bot: Bot, paints: Paints, parts: StrangeParts): ItemsWithName {
+export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName {
     const itemsWithName: ItemsWithName = {};
 
     const cT = bot.options.tradeSummary.customText;
@@ -56,7 +56,7 @@ export default function getHighValueItems(items: Items, bot: Bot, paints: Paints
                         }
 
                         toJoin.push(
-                            `${getAttachmentName(attachment, pSKU, paints, parts)}${
+                            `${getAttachmentName(attachment, pSKU, bot.paints, bot.strangeParts)}${
                                 attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
                             }${items[sku][attachment as Attachment][pSKU] === true ? ' 🌟' : ''}`
                         );
@@ -81,7 +81,7 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
     else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+    else if (attachment === 'p') return getKeyByValue(paints, parseInt(pSKU.replace('p', '')));
 }
 
 function getKeyByValue(object: { [key: string]: any }, value: any): string {

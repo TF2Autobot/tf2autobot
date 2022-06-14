@@ -58,8 +58,6 @@ export default class Inventory {
         this.paints = paints;
         this.strangeParts = strangeParts;
         this.which = which;
-
-        Inventory.setOptions(paints, strangeParts, options.highValue);
     }
 
     static fromItems(
@@ -548,7 +546,7 @@ export default class Inventory {
                 //
             } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
                 const extractedName = content.value.replace('Paint Color: ', '').trim();
-                p[paints[extractedName]] =
+                p[`p${String(paints[extractedName])}`] =
                     (this.paintedExceptionNotEmpty
                         ? !this.paintedExceptionSkus.some(exSku => sku.includes(exSku))
                         : true) && this.paintedOptions.includes(extractedName.toLowerCase());

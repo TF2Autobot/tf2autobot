@@ -622,7 +622,7 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
     else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+    else if (attachment === 'p') return getKeyByValue(paints, parseInt(pSKU.replace('p', '')));
 }
 
 function boldDetails(str: string, style: number): string {
