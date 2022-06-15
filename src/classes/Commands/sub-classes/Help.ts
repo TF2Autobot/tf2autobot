@@ -83,7 +83,7 @@ export default class HelpCommands {
                         '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable).',
                         "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
                         '!message <steamid> <your message> - Send a message to a specific user 💬',
-                        '!block <steamid> [reason] - Block a specific user, reason will be save for future reference.',
+                        '!block <steamid> [reason] - Block a specific user, reason will be saved for future reference.',
                         '!unblock <steamid> - Unblock a specific user.',
                         '!blockedList - Get a list of blocked SteamIDs (with reason if any).',
                         '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
