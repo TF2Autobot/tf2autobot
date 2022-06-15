@@ -34,6 +34,8 @@ export default class ManagerCommands {
 
     private executeRefreshSchemaTimeout: NodeJS.Timeout;
 
+    private isClearingFriends = false;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -336,6 +338,10 @@ export default class ManagerCommands {
     }
 
     clearFriendsCommand(steamID: SteamID): void {
+        if (this.isClearingFriends) {
+            return this.bot.sendMessage(steamID, `❌ Clearfriends is still in progess.`);
+        }
+
         const friendsToKeep = this.bot.handler.friendsToKeep;
 
         this.bot.community.getFriendsList((err, friendlist) => {
@@ -372,6 +378,7 @@ export default class ManagerCommands {
                     } to complete.`
             );
 
+            this.isClearingFriends = true;
             void this.removeFriends(steamID, total, friendsToRemove, blockedFriends);
         });
     }
@@ -405,6 +412,7 @@ export default class ManagerCommands {
             await sleepasync().Promise.sleep(5000);
         }
 
+        this.isClearingFriends = false;
         this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
     }
 
