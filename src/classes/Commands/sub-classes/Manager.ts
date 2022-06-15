@@ -36,6 +36,8 @@ export default class ManagerCommands {
 
     private isClearingFriends = false;
 
+    private isSendingBlockedList = false;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -277,6 +279,30 @@ export default class ManagerCommands {
     }
 
     blockedListCommand(steamID: SteamID): void {
+        if (this.isSendingBlockedList) {
+            return;
+        }
+
+        const sendBlockedList = async (blockedFriends: string[]) => {
+            const toSend = blockedFriends.map(
+                id => `${id}${this.bot.blockedList[id] ? ` - ${this.bot.blockedList[id]}` : ''}`
+            );
+            const toSendCount = toSend.length;
+
+            const limit = 25;
+            const loops = Math.ceil(toSendCount / limit);
+
+            for (let i = 0; i < loops; i++) {
+                const last = loops - i === 1;
+
+                this.bot.sendMessage(steamID, toSend.slice(i * limit, last ? toSendCount : (i + 1) * limit).join('\n'));
+
+                await sleepasync().Promise.sleep(3000);
+            }
+
+            this.isSendingBlockedList = false;
+        };
+
         this.bot.community.getFriendsList((err, friendlist) => {
             if (err) {
                 return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
@@ -297,43 +323,55 @@ export default class ManagerCommands {
                 return this.bot.sendMessage(steamID, `❌ I don't have any blocked friends.`);
             }
 
-            this.bot.sendMessage(
-                steamID,
-                // use rep.tf for shorter link - prevent Steam rate limit :(
-                `Blocked friends:\n- ${blockedFriends.map(id => `https://rep.tf/${id}`).join('\n- ')}`
-            );
+            this.bot.sendMessage(steamID, `Blocked friends:`);
+            this.isSendingBlockedList = true;
+            void sendBlockedList(blockedFriends);
         });
     }
 
     blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock): void {
-        const steamid = CommandParser.removeCommand(message);
+        const steamidAndReason = CommandParser.removeCommand(message);
+        const parts = steamidAndReason.split(' ');
+
+        const steamid = parts[0];
+        let reason = parts[1];
 
         if (!steamid || steamid === `!${command}`) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ You forgot to add their SteamID64. Example: "!${command} 76561198798404909"`
+                `❌ You forgot to add their SteamID64. Example: "!${command} 76561198798404909${
+                    command === 'block' ? ' Trying to exploit' : ''
+                }"`
             );
         }
 
-        const targetSteamID64 = new SteamID(steamid);
-        if (!targetSteamID64.isValid()) {
-            return this.bot.sendMessage(steamID, `❌ SteamID is not valid. Example: "!${command} 76561198798404909"`);
+        const targetSteamID = new SteamID(steamid);
+        const targetSteamID64 = targetSteamID.getSteamID64();
+        if (!targetSteamID.isValid()) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ SteamID is not valid. Example: "!${command} 76561198798404909${
+                    command === 'block' ? ' Trying to exploit' : ''
+                }"`
+            );
         }
 
-        this.bot.client[command === 'block' ? 'blockUser' : 'unblockUser'](targetSteamID64, err => {
+        this.bot.client[command === 'block' ? 'blockUser' : 'unblockUser'](targetSteamID, err => {
             if (err) {
-                log.warn(`Failed to ${command} user ${targetSteamID64.getSteamID64()}: `, err);
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ Failed to ${command} user ${targetSteamID64.getSteamID64()}: ${err.message}`
-                );
+                log.warn(`Failed to ${command} user ${targetSteamID64}: `, err);
+                return this.bot.sendMessage(steamID, `❌ Failed to ${command} user ${targetSteamID64}: ${err.message}`);
             }
             this.bot.sendMessage(
                 steamID,
-                `✅ Successfully ${
-                    command === 'block' ? 'blocked' : 'unblocked'
-                } user ${targetSteamID64.getSteamID64()}`
+                `✅ Successfully ${command === 'block' ? 'blocked' : 'unblocked'} user ${targetSteamID64}`
             );
+
+            if (command === 'block' && reason) {
+                reason = steamidAndReason.substring(targetSteamID64.length).trim();
+                this.bot.handler.saveBlockedUser(targetSteamID64, reason);
+            } else if (command === 'unblock') {
+                this.bot.handler.removeBlockedUser(targetSteamID64);
+            }
         });
     }
 
@@ -341,6 +379,36 @@ export default class ManagerCommands {
         if (this.isClearingFriends) {
             return this.bot.sendMessage(steamID, `❌ Clearfriends is still in progess.`);
         }
+
+        const removeFriends = async (total: number, friendsToRemove: string[], blockedFriends: string[]) => {
+            for (const steamid of friendsToRemove) {
+                if (!blockedFriends.includes(steamid)) {
+                    const getFriend = this.bot.friends.getFriend(steamid);
+
+                    this.bot.sendMessage(
+                        steamid,
+                        this.bot.options.customMessage.clearFriends
+                            ? this.bot.options.customMessage.clearFriends.replace(
+                                  /%name%/g,
+                                  getFriend ? getFriend.player_name : steamid
+                              )
+                            : `/quote Hey ${
+                                  getFriend ? getFriend.player_name : steamid
+                              }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
+                    );
+                } else {
+                    log.info(`Blocked user ${steamid} has been successfully unfriended!`);
+                }
+
+                this.bot.client.removeFriend(steamid);
+
+                // Prevent Steam from detecting the bot as spamming
+                await sleepasync().Promise.sleep(5000);
+            }
+
+            this.isClearingFriends = false;
+            this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
+        };
 
         const friendsToKeep = this.bot.handler.friendsToKeep;
 
@@ -379,43 +447,8 @@ export default class ManagerCommands {
             );
 
             this.isClearingFriends = true;
-            void this.removeFriends(steamID, total, friendsToRemove, blockedFriends);
+            void removeFriends(total, friendsToRemove, blockedFriends);
         });
-    }
-
-    async removeFriends(
-        steamID: SteamID,
-        total: number,
-        friendsToRemove: string[],
-        blockedFriends: string[]
-    ): Promise<void> {
-        for (const steamid of friendsToRemove) {
-            if (!blockedFriends.includes(steamid)) {
-                const getFriend = this.bot.friends.getFriend(steamid);
-
-                this.bot.sendMessage(
-                    steamid,
-                    this.bot.options.customMessage.clearFriends
-                        ? this.bot.options.customMessage.clearFriends.replace(
-                              /%name%/g,
-                              getFriend ? getFriend.player_name : steamid
-                          )
-                        : `/quote Hey ${
-                              getFriend ? getFriend.player_name : steamid
-                          }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
-                );
-            } else {
-                log.info(`Blocked user ${steamid} has been successfully unfriended!`);
-            }
-
-            this.bot.client.removeFriend(steamid);
-
-            // Prevent Steam from detecting the bot as spamming
-            await sleepasync().Promise.sleep(5000);
-        }
-
-        this.isClearingFriends = false;
-        this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
     }
 
     stopCommand(steamID: SteamID): void {
