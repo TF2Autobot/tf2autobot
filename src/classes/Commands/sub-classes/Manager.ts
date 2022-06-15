@@ -285,7 +285,7 @@ export default class ManagerCommands {
 
         const sendBlockedList = async (blockedFriends: string[]) => {
             const toSend = blockedFriends.map(
-                id => `${id}${this.bot.blockedList[id] ? ` - ${this.bot.blockedList[id]}` : ''}`
+                (id, index) => `${index + 1}. ${id}${this.bot.blockedList[id] ? ` - ${this.bot.blockedList[id]}` : ''}`
             );
             const toSendCount = toSend.length;
 
