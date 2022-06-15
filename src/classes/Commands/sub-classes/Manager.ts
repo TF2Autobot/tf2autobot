@@ -404,6 +404,8 @@ export default class ManagerCommands {
                               getFriend ? getFriend.player_name : steamid
                           }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
                 );
+            } else {
+                log.info(`Blocked user ${steamid} has been successfully unfriended!`);
             }
 
             this.bot.client.removeFriend(steamid);
