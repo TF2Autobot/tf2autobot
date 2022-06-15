@@ -34,6 +34,8 @@ export default class ManagerCommands {
 
     private executeRefreshSchemaTimeout: NodeJS.Timeout;
 
+    private isClearingFriends = false;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -335,57 +337,76 @@ export default class ManagerCommands {
         });
     }
 
-    async clearFriendsCommand(steamID: SteamID): Promise<void> {
+    clearFriendsCommand(steamID: SteamID): void {
+        if (this.isClearingFriends) {
+            return this.bot.sendMessage(steamID, `❌ Clearfriends is still in progess.`);
+        }
+
         const friendsToKeep = this.bot.handler.friendsToKeep;
 
-        let friendsToRemove: string[];
-        try {
-            friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
-        } catch (err) {
-            log.warn('Error while trying to remove friends:', err);
+        this.bot.community.getFriendsList((err, friendlist) => {
+            if (err) {
+                return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
+            }
 
-            const errStringify = JSON.stringify(err);
-            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
-            return this.bot.sendMessage(steamID, `❌ Error while trying to remove friends: ${errMessage}`);
-        }
+            const friendsToRemove = Object.keys(friendlist).filter(steamid => !friendsToKeep.includes(steamid));
+            if (friendsToRemove.length === 0) {
+                return this.bot.sendMessage(steamID, `❌ I don't have any friends to remove.`);
+            }
 
-        const total = friendsToRemove.length;
+            const blockedFriends = friendsToRemove.filter(friendID =>
+                [EFriendRelationship.Blocked, EFriendRelationship.Ignored, EFriendRelationship.IgnoredFriend].includes(
+                    friendlist[friendID]
+                )
+            );
 
-        if (total <= 0) {
-            return this.bot.sendMessage(steamID, `❌ No friends to remove.`);
-        }
-
-        const totalTime = total * 5 * 1000;
-        const aSecond = 1000;
-        const aMin = 60 * 1000;
-        const anHour = 60 * 60 * 1000;
-
-        this.bot.sendMessage(
-            steamID,
-            `⌛ Removing ${total} friends...` +
-                `\n5 seconds between each person, so it will be about ${
-                    totalTime < aMin
-                        ? `${Math.round(totalTime / aSecond)} seconds`
-                        : totalTime < anHour
-                        ? `${Math.round(totalTime / aMin)} minutes`
-                        : `${Math.round(totalTime / anHour)} hours`
-                } to complete.`
-        );
-
-        for (const steamid of friendsToRemove) {
-            const getFriend = this.bot.friends.getFriend(steamid);
+            const total = friendsToRemove.length;
+            const totalTime = total * 5 * 1000;
+            const aSecond = 1000;
+            const aMin = 60 * 1000;
+            const anHour = 60 * 60 * 1000;
 
             this.bot.sendMessage(
-                steamid,
-                this.bot.options.customMessage.clearFriends
-                    ? this.bot.options.customMessage.clearFriends.replace(
-                          /%name%/g,
-                          getFriend ? getFriend.player_name : steamid
-                      )
-                    : `/quote Hey ${
-                          getFriend ? getFriend.player_name : steamid
-                      }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
+                steamID,
+                `⌛ Removing ${total} friends...` +
+                    `\n5 seconds between each person, so it will be about ${
+                        totalTime < aMin
+                            ? `${Math.round(totalTime / aSecond)} seconds`
+                            : totalTime < anHour
+                            ? `${Math.round(totalTime / aMin)} minutes`
+                            : `${Math.round(totalTime / anHour)} hours`
+                    } to complete.`
             );
+
+            this.isClearingFriends = true;
+            void this.removeFriends(steamID, total, friendsToRemove, blockedFriends);
+        });
+    }
+
+    async removeFriends(
+        steamID: SteamID,
+        total: number,
+        friendsToRemove: string[],
+        blockedFriends: string[]
+    ): Promise<void> {
+        for (const steamid of friendsToRemove) {
+            if (!blockedFriends.includes(steamid)) {
+                const getFriend = this.bot.friends.getFriend(steamid);
+
+                this.bot.sendMessage(
+                    steamid,
+                    this.bot.options.customMessage.clearFriends
+                        ? this.bot.options.customMessage.clearFriends.replace(
+                              /%name%/g,
+                              getFriend ? getFriend.player_name : steamid
+                          )
+                        : `/quote Hey ${
+                              getFriend ? getFriend.player_name : steamid
+                          }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
+                );
+            } else {
+                log.info(`Blocked user ${steamid} has been successfully unfriended!`);
+            }
 
             this.bot.client.removeFriend(steamid);
 
@@ -393,6 +414,7 @@ export default class ManagerCommands {
             await sleepasync().Promise.sleep(5000);
         }
 
+        this.isClearingFriends = false;
         this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
     }
 

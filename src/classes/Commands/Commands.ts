@@ -241,7 +241,7 @@ export default class Commands {
         } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
             void this.manager.blockedListCommand(steamID);
         } else if (command === 'clearfriends' && isAdmin) {
-            void this.manager.clearFriendsCommand(steamID);
+            this.manager.clearFriendsCommand(steamID);
         } else if (command === 'stop' && isAdmin) {
             this.manager.stopCommand(steamID);
         } else if (command === 'halt' && isAdmin) {
