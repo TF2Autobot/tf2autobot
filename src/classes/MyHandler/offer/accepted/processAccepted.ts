@@ -200,7 +200,7 @@ export default function processAccepted(
 
         const keyPrices = bot.pricelist.getKeyPrices;
 
-        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
+        const value = t.valueDiff(offer, keyPrices, isTradingKeys);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         void sendToAdmin(
