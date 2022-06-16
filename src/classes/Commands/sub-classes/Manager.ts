@@ -7,7 +7,7 @@ import validUrl from 'valid-url';
 import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
 import { EFriendRelationship } from 'steam-user';
-import { fixSKU } from '../functions/utils';
+import { fixSKU, removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
@@ -284,9 +284,20 @@ export default class ManagerCommands {
         }
 
         const sendBlockedList = async (blockedFriends: string[]) => {
-            const toSend = blockedFriends.map(
-                (id, index) => `${index + 1}. ${id}${this.bot.blockedList[id] ? ` - ${this.bot.blockedList[id]}` : ''}`
-            );
+            const toSend = blockedFriends.map((id, index) => {
+                let reason = '';
+                if (this.bot.blockedList[id]) {
+                    reason = this.bot.blockedList[id];
+                    const urls = reason.match(/((http|https):\/\/)?(\w+\.)?\w+\.\w+((\/\w+)+)?/g); //any link
+
+                    if (urls) {
+                        urls.forEach(url => {
+                            reason = reason.replace(url, `<${url}>`); // prevent embed links
+                        });
+                    }
+                }
+                return `${index + 1}. ${id}${reason ? ` - ${reason}` : ''}`;
+            });
             const toSendCount = toSend.length;
 
             const limit = 25;
@@ -367,7 +378,7 @@ export default class ManagerCommands {
             );
 
             if (command === 'block' && reason) {
-                reason = steamidAndReason.substring(targetSteamID64.length).trim();
+                reason = removeLinkProtocol(steamidAndReason.substring(targetSteamID64.length).trim());
                 this.bot.handler.saveBlockedUser(targetSteamID64, reason);
             } else if (command === 'unblock') {
                 this.bot.handler.removeBlockedUser(targetSteamID64);
