@@ -44,7 +44,7 @@ export default async function sendTradeSummary(
           };
 
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);
+    const value = t.valueDiff(offer, keyPrices, isTradingKeys);
     const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, keyPrices, false, isOfferSent);
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus

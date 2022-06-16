@@ -278,7 +278,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             highValue: declined.highValue.concat(declined.highNotSellingItems)
         };
         const keyPrices = bot.pricelist.getKeyPrices;
-        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
+        const value = t.valueDiff(offer, keyPrices, isTradingKeys);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         sendToAdmin(bot, offer, value, itemList, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
