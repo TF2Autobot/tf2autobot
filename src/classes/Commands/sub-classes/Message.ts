@@ -69,7 +69,7 @@ export default class MessageCommand {
 
             const recipientDetails = this.bot.friends.getFriend(recipientSteamID);
             const adminDetails = this.bot.friends.getFriend(steamID);
-            const reply = steamIdAndMessage.substr(steamIDString.length);
+            const reply = steamIdAndMessage.substring(steamIDString.length).trim();
             const isShowOwner = optComm.showOwnerName;
 
             // Send message to recipient
@@ -129,7 +129,7 @@ export default class MessageCommand {
                 );
             }
 
-            const msg = message.substr(message.toLowerCase().indexOf('message') + 8);
+            const msg = message.substring(8).trim(); // "message"
             if (!msg) {
                 return this.bot.sendMessage(
                     steamID,

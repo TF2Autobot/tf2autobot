@@ -33,6 +33,7 @@ import { sendStats } from '../lib/DiscordWebhook/export';
 import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
+import { Blocked } from './MyHandler/interfaces';
 
 export default class Bot {
     // Modules and classes
@@ -107,6 +108,8 @@ export default class Bot {
     private loginAttempts: Dayjs[] = [];
 
     private admins: SteamID[] = [];
+
+    public blockedList: Blocked = {};
 
     private itemStatsWhitelist: SteamID[] = [];
 
@@ -678,6 +681,7 @@ export default class Bot {
             pricelist?: PricesDataObject;
             loginKey?: string;
             pollData?: TradeOfferManager.PollData;
+            blockedList?: Blocked;
         };
         let cookies: string[];
 
@@ -721,6 +725,11 @@ export default class Bot {
                             if (data.loginAttempts) {
                                 log.debug('Setting login attempts');
                                 this.setLoginAttempts = data.loginAttempts;
+                            }
+
+                            if (data.blockedList) {
+                                log.debug('Loading blocked list data');
+                                this.blockedList = data.blockedList;
                             }
 
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */

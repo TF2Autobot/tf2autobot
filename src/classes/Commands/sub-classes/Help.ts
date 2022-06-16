@@ -76,16 +76,16 @@ export default class HelpCommands {
                 steamID,
                 '.\n✨=== Bot manager ===✨\n- ' +
                     [
-                        '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
-                        '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items',
-                        '!withdrawMptf [max=<number>] - [Exclusive Marketplace.tf Sellers] Withdraw items that does not exist on Marketplace.tf Dashboard items',
-                        "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
-                        '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable)',
+                        '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items.',
+                        '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items.',
+                        '!withdrawMptf [max=<number>] - [Exclusive Marketplace.tf Sellers] Withdraw items that does not exist on Marketplace.tf Dashboard items.',
+                        "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit.",
+                        '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable).',
                         "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
                         '!message <steamid> <your message> - Send a message to a specific user 💬',
-                        '!block <steamid> - Block a specific user',
-                        '!unblock <steamid> - Unblock a specific user',
-                        '!blockedList - Get a list of blocked users',
+                        '!block <steamid> [reason] - Block a specific user, reason will be saved for future reference.',
+                        '!unblock <steamid> - Unblock a specific user.',
+                        '!blockedList - Get a list of blocked SteamIDs (with reason if any).',
                         '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
                         '!stop - Stop the bot 🔴',
                         '!restart - Restart the bot 🔄',
@@ -94,11 +94,11 @@ export default class HelpCommands {
                         '!haltstatus - Get the info whether the bot is paused or not ⏯',
                         "!refreshautokeys - Refresh the bot's autokeys settings.",
                         '!refreshlist - Refresh sell listings 🔄',
-                        "!name <new_name> - Change the bot's name",
-                        "!avatar <image_URL> - Change the bot's avatar",
+                        "!name <new_name> - Change the bot's name.",
+                        "!avatar <image_URL> - Change the bot's avatar.",
                         '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
                         '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑',
-                        '!refreshSchema - Force refresh TF2 Schema when new update arrived (do not spam this)'
+                        '!refreshSchema - Force refresh TF2 Schema when new update arrived (do not spam this).'
                     ].join('\n- ')
             );
 
