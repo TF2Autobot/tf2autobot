@@ -16,16 +16,14 @@ export default function valueDiff(offer: TradeOffer, keyPrices: KeyPrices, isTra
         const ourValue = value.our.toValue(keyPrices.sell.metal);
         const theirValue = value.their.toValue(isTradingKeys ? keyPrices.buy.metal : keyPrices.sell.metal);
         const diff = theirValue - ourValue;
+        const absoluteValue = Math.abs(diff);
 
         return {
             ourValue,
             theirValue,
             diff,
-            diffRef: Currencies.toRefined(Math.abs(diff)),
-            diffKey: Currencies.toCurrencies(
-                Math.abs(diff),
-                Math.abs(diff) >= Currencies.toScrap(keyPrices.sell.metal) ? keyPrices.sell.metal : undefined
-            ).toString()
+            diffRef: Currencies.toRefined(absoluteValue),
+            diffKey: Currencies.toCurrencies(absoluteValue, keyPrices.sell.metal).toString()
         };
     }
 }
