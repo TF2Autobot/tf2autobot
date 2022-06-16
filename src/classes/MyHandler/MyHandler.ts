@@ -2153,6 +2153,13 @@ export default class MyHandler extends Handler {
                         } else log.info(`✅ Successfully blocked user ${steamID64}`);
                     });
 
+                    this.saveBlockedUser(
+                        steamID64,
+                        `[onFriendRequest] Banned on ${Object.keys(banned.contents)
+                            .filter(website => banned.contents[website] !== 'clean')
+                            .join(', ')}`
+                    );
+
                     return;
                 }
 
