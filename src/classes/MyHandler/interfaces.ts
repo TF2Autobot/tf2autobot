@@ -77,3 +77,7 @@ interface BPTFTrust {
     positive?: number;
     negative?: number;
 }
+
+export interface Blocked {
+    [steamid: string]: string;
+}

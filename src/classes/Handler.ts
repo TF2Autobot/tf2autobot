@@ -4,6 +4,15 @@ import SteamID from 'steamid';
 import TradeOfferManager, { PollData, Meta } from '@tf2autobot/tradeoffer-manager';
 import Bot from './Bot';
 import { Entry, PricesDataObject, PricesObject } from './Pricelist';
+import { Blocked } from './MyHandler/interfaces';
+
+export interface OnRun {
+    loginAttempts?: number[];
+    pricelist?: PricesDataObject;
+    loginKey?: string;
+    pollData?: PollData;
+    blockedList?: Blocked;
+}
 
 export default abstract class Handler {
     protected constructor(readonly bot: Bot) {
@@ -17,12 +26,7 @@ export default abstract class Handler {
     /**
      * Called when the bot is first started
      */
-    abstract onRun(): Promise<{
-        loginAttempts?: number[];
-        pricelist?: PricesDataObject;
-        loginKey?: string;
-        pollData?: PollData;
-    }>;
+    abstract onRun(): Promise<OnRun>;
 
     /**
      * Called when the bot has started

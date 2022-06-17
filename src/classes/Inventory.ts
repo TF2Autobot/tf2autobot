@@ -45,8 +45,6 @@ export default class Inventory {
         private readonly manager: TradeOfferManager,
         private readonly schema: SchemaManager.Schema,
         private readonly options: Options,
-        private readonly effects: Effect[],
-        private readonly paints: Paints,
         private readonly strangeParts: StrangeParts,
         private readonly which: 'our' | 'their' | 'admin'
     ) {
@@ -54,12 +52,8 @@ export default class Inventory {
         this.manager = manager;
         this.schema = schema;
         this.options = options;
-        this.effects = effects;
-        this.paints = paints;
         this.strangeParts = strangeParts;
         this.which = which;
-
-        Inventory.setOptions(paints, strangeParts, options.highValue);
     }
 
     static fromItems(
@@ -68,12 +62,10 @@ export default class Inventory {
         manager: TradeOfferManager,
         schema: SchemaManager.Schema,
         options: Options,
-        effects: Effect[],
-        paints: Paints,
         strangeParts: StrangeParts,
         which: 'our' | 'their' | 'admin'
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options, effects, paints, strangeParts, which);
+        const inventory = new Inventory(steamID, manager, schema, options, strangeParts, which);
         inventory.setItems = items;
         return inventory;
     }
@@ -149,7 +141,6 @@ export default class Inventory {
             items.filter(item => item.tradable),
             this.schema,
             this.options,
-            this.paints,
             this.strangeParts,
             this.which
         );
@@ -157,7 +148,6 @@ export default class Inventory {
             items.filter(item => !item.tradable),
             this.schema,
             this.options,
-            this.paints,
             this.strangeParts,
             this.which
         );
@@ -238,9 +228,9 @@ export default class Inventory {
                     normPainted.amountIncludeNonPainted &&
                     !normPainted.our
                 ) {
-                    const paintPartialSKU = Object.values(this.paints);
+                    const paintPartialSKU = Object.values(this.schema.paints);
                     for (const pSKU of paintPartialSKU) {
-                        accAmount += this.findBySKU(`${sku};${pSKU}`, tradableOnly).length;
+                        accAmount += this.findBySKU(`${sku};p${pSKU}`, tradableOnly).length;
                     }
                 }
 
@@ -390,7 +380,6 @@ export default class Inventory {
         items: EconItem[],
         schema: SchemaManager.Schema,
         opt: Options,
-        paints: Paints,
         strangeParts: StrangeParts,
         which: 'our' | 'their' | 'admin'
     ): Dict {
@@ -412,7 +401,7 @@ export default class Inventory {
                 isNormalizeFestivized,
                 isNormalizeStrangeAsSecondQuality,
                 isNormalizePainted,
-                paints,
+                schema.paints,
                 this.paintedOptions
             );
 
@@ -426,7 +415,7 @@ export default class Inventory {
                 sku = removePaintedPartialSku(sku);
             }
 
-            const attributes = this.highValue(sku, items[i], paints, strangeParts);
+            const attributes = this.highValue(sku, items[i], schema.paints, strangeParts);
             const attributesCount = Object.keys(attributes).length;
 
             const isUses =
@@ -548,7 +537,7 @@ export default class Inventory {
                 //
             } else if (content.value.startsWith('Paint Color: ') && content.color === '756b5e') {
                 const extractedName = content.value.replace('Paint Color: ', '').trim();
-                p[paints[extractedName]] =
+                p[`p${String(paints[extractedName])}`] =
                     (this.paintedExceptionNotEmpty
                         ? !this.paintedExceptionSkus.some(exSku => sku.includes(exSku))
                         : true) && this.paintedOptions.includes(extractedName.toLowerCase());
