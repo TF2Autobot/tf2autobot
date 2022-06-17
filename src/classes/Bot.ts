@@ -402,6 +402,10 @@ export default class Bot {
                     return { hasNewVersion, latestVersion, canUpdateRepo, updateMessage };
                 }
 
+                if (!this.isCloned()) {
+                    this.messageAdmins('version', `⚠️ The bot local repository is not cloned from Github.`, []);
+                }
+
                 const messages: string[] = [];
 
                 if (process.platform === 'win32') {

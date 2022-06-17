@@ -383,37 +383,35 @@ export default class StatusCommands {
                     await sleepasync().Promise.sleep(1000);
 
                     if (this.bot.isCloned() && process.env.pm_id !== undefined && canUpdateRepo) {
-                        this.bot.sendMessage(steamID, `✅ Update now with !updaterepo command now!`);
-                        return;
+                        return this.bot.sendMessage(steamID, `✅ Update now with !updaterepo command now!`);
+                    }
+
+                    const messages: string[] = [];
+
+                    if (!this.bot.isCloned()) {
+                        return this.bot.sendMessage(steamID, `⚠️ The bot local repository is not cloned from Github.`);
                     }
 
                     if (process.platform === 'win32') {
-                        this.bot.sendMessage(
-                            steamID,
-                            `\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n`
-                        );
-                        this.bot.sendMessage(
-                            steamID,
-                            `/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js`
-                        );
+                        messages.concat([
+                            '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
+                            '/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js'
+                        ]);
                     } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
-                        this.bot.sendMessage(
-                            steamID,
-                            `\n💻 To update run the following command inside your tf2autobot directory:\n`
-                        );
-                        this.bot.sendMessage(
-                            steamID,
-                            `/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json`
-                        );
+                        messages.concat([
+                            '\n💻 To update run the following command inside your tf2autobot directory:\n',
+                            '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
+                        ]);
                     } else {
-                        this.bot.sendMessage(
-                            steamID,
-                            `❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n`
-                        );
-                        this.bot.sendMessage(
-                            steamID,
-                            `/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json`
-                        );
+                        messages.concat([
+                            '❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n',
+                            '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
+                        ]);
+                    }
+
+                    for (const message of messages) {
+                        await sleepasync().Promise.sleep(1000);
+                        this.bot.sendMessage(steamID, message);
                     }
                 }
             })
