@@ -816,74 +816,11 @@ export default class Bot {
                 await this.initializeSchema();
             },
             () => {
-                log.info('Setting properties, inventory, etc...');
+                log.info('Setting pricelist and inventory...');
 
                 this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
                 this.pricelist.init();
                 this.inventoryManager = new InventoryManager(this.pricelist);
-                this.userID = this.bptf._getUserID();
-
-                this.listingManager = new ListingManager({
-                    token: this.options.bptfAccessToken,
-                    userID: this.userID,
-                    userAgent:
-                        'TF2Autobot' +
-                        (this.options.useragentHeaderCustom !== ''
-                            ? ` - ${this.options.useragentHeaderCustom}`
-                            : ' - Run your own bot for free'),
-                    schema: this.schema,
-                    steamid: this.client.steamID.getSteamID64()
-                });
-
-                this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
-                this.addListener(
-                    this.listingManager,
-                    'createListingsSuccessful',
-                    this.handler.onCreateListingsSuccessful.bind(this),
-                    true
-                );
-                this.addListener(
-                    this.listingManager,
-                    'updateListingsSuccessful',
-                    this.handler.onUpdateListingsSuccessful.bind(this),
-                    true
-                );
-                this.addListener(
-                    this.listingManager,
-                    'deleteListingsSuccessful',
-                    this.handler.onDeleteListingsSuccessful.bind(this),
-                    true
-                );
-                this.addListener(
-                    this.listingManager,
-                    'deleteArchivedListingSuccessful',
-                    this.handler.onDeleteArchivedListingSuccessful.bind(this),
-                    true
-                );
-                this.addListener(
-                    this.listingManager,
-                    'createListingsError',
-                    this.handler.onCreateListingsError.bind(this),
-                    true
-                );
-                this.addListener(
-                    this.listingManager,
-                    'updateListingsError',
-                    this.handler.onUpdateListingsError.bind(this),
-                    true
-                );
-                this.addListener(
-                    this.listingManager,
-                    'deleteListingsError',
-                    this.handler.onDeleteListingsError.bind(this),
-                    true
-                );
-                this.addListener(
-                    this.listingManager,
-                    'deleteArchivedListingError',
-                    this.handler.onDeleteArchivedListingError.bind(this),
-                    true
-                );
 
                 this.addListener(
                     this.pricelist,
@@ -915,6 +852,70 @@ export default class Bot {
                     },
                     async () => {
                         log.debug('Initializing bptf-listings...');
+
+                        this.userID = this.bptf._getUserID();
+
+                        this.listingManager = new ListingManager({
+                            token: this.options.bptfAccessToken,
+                            userID: this.userID,
+                            userAgent:
+                                'TF2Autobot' +
+                                (this.options.useragentHeaderCustom !== ''
+                                    ? ` - ${this.options.useragentHeaderCustom}`
+                                    : ' - Run your own bot for free'),
+                            schema: this.schema,
+                            steamid: this.client.steamID.getSteamID64()
+                        });
+
+                        this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
+                        this.addListener(
+                            this.listingManager,
+                            'createListingsSuccessful',
+                            this.handler.onCreateListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'updateListingsSuccessful',
+                            this.handler.onUpdateListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteListingsSuccessful',
+                            this.handler.onDeleteListingsSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteArchivedListingSuccessful',
+                            this.handler.onDeleteArchivedListingSuccessful.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'createListingsError',
+                            this.handler.onCreateListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'updateListingsError',
+                            this.handler.onUpdateListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteListingsError',
+                            this.handler.onDeleteListingsError.bind(this),
+                            true
+                        );
+                        this.addListener(
+                            this.listingManager,
+                            'deleteArchivedListingError',
+                            this.handler.onDeleteArchivedListingError.bind(this),
+                            true
+                        );
                         await promisify(this.listingManager.init.bind(this.listingManager))();
                     },
                     async () => {
