@@ -833,6 +833,9 @@ export default class Bot {
 
                 this.setProperties();
 
+                // only call this here, and in Commands/Options
+                Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
+
                 this.inventoryManager.setInventory = new Inventory(
                     this.client.steamID,
                     this.manager,
