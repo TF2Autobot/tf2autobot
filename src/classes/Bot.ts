@@ -15,6 +15,7 @@ import axios, { AxiosError } from 'axios';
 import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
 import fs from 'fs';
+import path from 'path';
 
 import InventoryManager from './InventoryManager';
 import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
@@ -1483,6 +1484,6 @@ export default class Bot {
     }
 
     isCloned(): boolean {
-        return fs.existsSync('../../.git');
+        return fs.existsSync(path.resolve(__dirname, '..', '..', '.git'));
     }
 }
