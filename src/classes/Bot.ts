@@ -14,6 +14,7 @@ import semver from 'semver';
 import axios, { AxiosError } from 'axios';
 import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
+import fs from 'fs';
 
 import InventoryManager from './InventoryManager';
 import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
@@ -369,9 +370,16 @@ export default class Bot {
         }, 10 * 60 * 1000);
     }
 
-    get checkForUpdates(): Promise<{ hasNewVersion: boolean; latestVersion: string }> {
+    get checkForUpdates(): Promise<{
+        hasNewVersion: boolean;
+        latestVersion: string;
+        canUpdateRepo: boolean;
+        updateMessage: string;
+    }> {
         return this.getLatestVersion.then(async content => {
             const latestVersion = content.version;
+            const canUpdateRepo = content.canUpdateRepo;
+            const updateMessage = content.updateMessage;
 
             const hasNewVersion = semver.lt(process.env.BOT_VERSION, latestVersion);
 
@@ -380,12 +388,18 @@ export default class Bot {
 
                 this.messageAdmins(
                     'version',
-                    `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                        `Release note: https://github.com/TF2Autobot/tf2autobot/releases`,
+                    `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
+                        `\n\n📰 Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
+                        (updateMessage ? `\n\n💬 Update message: ${updateMessage}` : ''),
                     []
                 );
 
                 await sleepasync().Promise.sleep(1000);
+
+                if (this.isCloned() && process.env.pm_id !== undefined && canUpdateRepo) {
+                    this.messageAdmins('version', `✅ Update now with !updaterepo command now!`, []);
+                    return { hasNewVersion, latestVersion, canUpdateRepo, updateMessage };
+                }
 
                 const messages: string[] = [];
 
@@ -394,12 +408,7 @@ export default class Bot {
                         '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
                         '/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js'
                     ]);
-                } else if (
-                    process.platform === 'linux' ||
-                    process.platform === 'darwin' ||
-                    process.platform === 'openbsd' ||
-                    process.platform === 'freebsd'
-                ) {
+                } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
                     messages.concat([
                         '\n💻 To update run the following command inside your tf2autobot directory:\n',
                         '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
@@ -417,7 +426,7 @@ export default class Bot {
                 }
             }
 
-            return { hasNewVersion, latestVersion };
+            return { hasNewVersion, latestVersion, canUpdateRepo, updateMessage };
         });
     }
 
@@ -425,15 +434,21 @@ export default class Bot {
         return this.options.statistics.sendStats.enable;
     }
 
-    private get getLatestVersion(): Promise<{ version: string }> {
+    private get getLatestVersion(): Promise<{ version: string; canUpdateRepo: boolean; updateMessage: string }> {
         return new Promise((resolve, reject) => {
             void axios({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json'
             })
                 .then(response => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-                    return resolve({ version: response.data.version });
+                    /*eslint-disable */
+                    const data = response.data;
+                    return resolve({
+                        version: data.version,
+                        canUpdateRepo: data.updaterepo,
+                        updateMessage: data.updateMessage
+                    });
+                    /*eslint-enable */
                 })
                 .catch(err => {
                     if (err) {
@@ -1465,5 +1480,9 @@ export default class Bot {
         this.loginAttempts.push(now);
 
         this.handler.onLoginAttempts(this.loginAttempts.map(attempt => attempt.unix()));
+    }
+
+    isCloned(): boolean {
+        return fs.existsSync('../../.git');
     }
 }

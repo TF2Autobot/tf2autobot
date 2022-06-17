@@ -370,16 +370,22 @@ export default class StatusCommands {
         );
 
         this.bot.checkForUpdates
-            .then(async ({ hasNewVersion, latestVersion }) => {
+            .then(async ({ hasNewVersion, latestVersion, canUpdateRepo, updateMessage }) => {
                 if (!hasNewVersion) {
                     this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(
                         steamID,
-                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.\n\n` +
-                            `Release note: https://github.com/TF2Autobot/tf2autobot/releases`
+                        `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
+                            `\n\n📰 Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
+                            (updateMessage ? `\n\n💬 Update message: ${updateMessage}` : '')
                     );
                     await sleepasync().Promise.sleep(1000);
+
+                    if (this.bot.isCloned() && process.env.pm_id !== undefined && canUpdateRepo) {
+                        this.bot.sendMessage(steamID, `✅ Update now with !updaterepo command now!`);
+                        return;
+                    }
 
                     if (process.platform === 'win32') {
                         this.bot.sendMessage(
@@ -390,12 +396,7 @@ export default class StatusCommands {
                             steamID,
                             `/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js`
                         );
-                    } else if (
-                        process.platform === 'linux' ||
-                        process.platform === 'darwin' ||
-                        process.platform === 'openbsd' ||
-                        process.platform === 'freebsd'
-                    ) {
+                    } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
                         this.bot.sendMessage(
                             steamID,
                             `\n💻 To update run the following command inside your tf2autobot directory:\n`

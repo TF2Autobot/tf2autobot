@@ -89,6 +89,7 @@ export default class HelpCommands {
                         '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
                         '!stop - Stop the bot 🔴',
                         '!restart - Restart the bot 🔄',
+                        '!updaterepo - Update your bot to the latest version (only if cloned and running with PM2)',
                         '!halt - Pause the trading ⏸ (disables listings, commands, most of trades). Admins are immune. Do not spam this.',
                         '!unhalt - Unpause the trading ▶ (enables listings, commands, trades). Do not spam this.',
                         '!haltstatus - Get the info whether the bot is paused or not ⏯',

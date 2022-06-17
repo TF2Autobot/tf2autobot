@@ -4,8 +4,11 @@ import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import { Listing } from '@tf2autobot/bptf-listings';
 import validUrl from 'valid-url';
+import path from 'path';
+import child from 'child_process';
 import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
+import { EPersonaState } from 'steam-user';
 import { EFriendRelationship } from 'steam-user';
 import { fixSKU, removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
@@ -862,5 +865,92 @@ export default class ManagerCommands {
                 this.bot.sendMessage(steamID, '✅ Refresh schema success!');
             });
         }
+    }
+
+    updaterepoCommand(steamID: SteamID): void {
+        if (!this.bot.isCloned()) {
+            return this.bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
+        }
+
+        if (process.env.pm_id === undefined) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ You're not running the bot with PM2!` +
+                    `\n\nNavigate to your bot folder and run ` +
+                    `[git reset HEAD --hard && git pull && npm install && npm run build] ` +
+                    `and then restart your bot.`
+            );
+        }
+
+        if (!['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ The current OS you're running the bot with is not yet supported. OS: ${process.platform}`
+            );
+        }
+
+        this.bot.checkForUpdates
+            .then(async ({ hasNewVersion, latestVersion }) => {
+                if (!hasNewVersion) {
+                    return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+                } else if (this.bot.lastNotifiedVersion === latestVersion) {
+                    this.bot.sendMessage(steamID, '⌛ Updating...');
+                    // Make the bot snooze on Steam, that way people will know it is not running
+                    this.bot.client.setPersona(EPersonaState.Snooze);
+
+                    // Set isUpdating status, so any command will not be processed
+                    this.bot.handler.isUpdatingStatus = true;
+
+                    // Stop polling offers
+                    this.bot.manager.pollInterval = -1;
+
+                    const cwd = path.resolve(__dirname, '..', '..', '..', '..');
+                    const exec = (command: string): Promise<void> => {
+                        return new Promise((resolve, reject) => {
+                            child.exec(command, { cwd }, err => {
+                                if (err) {
+                                    log.error(`Error on updaterepo (executing ${command}):`, err);
+                                    return reject(err);
+                                }
+
+                                resolve();
+                            });
+                        });
+                    };
+
+                    const abort = (): void => {
+                        // Bring back online
+                        this.bot.client.setPersona(EPersonaState.Online);
+                        this.bot.handler.isUpdatingStatus = false;
+                        this.bot.manager.pollInterval = 5 * 1000;
+                    };
+
+                    try {
+                        // git reset HEAD --hard
+                        await exec('git reset HEAD --hard');
+
+                        this.bot.sendMessage(steamID, '⌛ Pulling changes...');
+                        await exec('git pull --prune');
+
+                        this.bot.sendMessage(steamID, '⌛ Deleting node_modules and dist directories...');
+                        await exec(
+                            process.platform === 'win32' ? 'rmdir /s /q node_modules dist' : 'rm -rf node_modules dist'
+                        );
+
+                        this.bot.sendMessage(steamID, '⌛ Installing packages...');
+                        await exec('npm install');
+
+                        this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
+                        await exec('npm run build');
+
+                        this.bot.sendMessage(steamID, '⌛ Restarting...');
+                        await exec('pm2 restart ecosystem.json');
+                    } catch (err) {
+                        this.bot.sendMessage(steamID, `❌ Error while updating the bot: ${JSON.stringify(err)}`);
+                        return abort();
+                    }
+                }
+            })
+            .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));
     }
 }
