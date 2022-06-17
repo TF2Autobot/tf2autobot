@@ -20,6 +20,8 @@ export default class UserCart extends Cart {
      */
     private useKeys = true;
 
+    private partnerSteamID = this.partner.getSteamID64();
+
     protected async preSendOffer(): Promise<void> {
         const [banned, escrow] = await Promise.all([
             this.bot.checkBanned(this.partner),
@@ -31,8 +33,8 @@ export default class UserCart extends Cart {
         if (banned.isBanned) {
             this.bot.client.blockUser(this.partner, err => {
                 if (err) {
-                    log.error(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
-                } else log.info(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
+                    log.error(`❌ Failed to block user ${this.partnerSteamID}: `, err);
+                } else log.info(`✅ Successfully blocked user ${this.partnerSteamID}`);
             });
 
             let checkResult = '';
@@ -46,6 +48,13 @@ export default class UserCart extends Cart {
                         checkResult += `(${index + 1}) ${website}: ${banned.contents[website]}`;
                     }
                 });
+
+                this.bot.handler.saveBlockedUser(
+                    this.partnerSteamID,
+                    `[onSendingOffer] Banned on ${Object.keys(banned.contents)
+                        .filter(website => banned.contents[website] !== 'clean')
+                        .join(', ')}`
+                );
             }
 
             return Promise.reject(
@@ -455,8 +464,6 @@ export default class UserCart extends Cart {
             this.bot.manager,
             this.bot.schema,
             opt,
-            this.bot.effects,
-            this.bot.paints,
             this.bot.strangeParts,
             'their'
         );
@@ -464,7 +471,7 @@ export default class UserCart extends Cart {
         try {
             await theirInventory.fetch();
         } catch (err) {
-            log.error(`Failed to load inventories (${this.partner.getSteamID64()}): `, err);
+            log.error(`Failed to load inventories (${this.partnerSteamID}): `, err);
             return Promise.reject(
                 'Failed to load your inventory, Steam might be down. ' +
                     'Please try again later. If you have your profile/inventory set to private, please set it to public and try again.'

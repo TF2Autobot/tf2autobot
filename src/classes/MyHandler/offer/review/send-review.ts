@@ -98,7 +98,7 @@ export default async function sendReview(
     const highValueItems: string[] = [];
     if (meta?.highValue?.items) {
         if (Object.keys(meta.highValue.items.their).length > 0) {
-            const itemsName = t.getHighValueItems(meta.highValue.items.their, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(meta.highValue.items.their, bot);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -110,7 +110,7 @@ export default async function sendReview(
         }
 
         if (Object.keys(meta.highValue.items.our).length > 0) {
-            const itemsName = t.getHighValueItems(meta.highValue.items.our, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(meta.highValue.items.our, bot);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {

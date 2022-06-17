@@ -44,6 +44,7 @@
 
                 "DEBUG": true,
                 "DEBUG_FILE": true,
+                "DEBUG_SCHEMA": false,
                 "ENABLE_SAVE_LOG_FILE": true,
 
                 "ENABLE_HTTP_API": false,

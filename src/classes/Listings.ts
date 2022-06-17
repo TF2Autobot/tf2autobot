@@ -428,7 +428,7 @@ export default class Listings {
                 const cTEnd = optD.customText.ender;
 
                 const optR = opt.detailsExtra;
-                const getPaints = this.bot.paints;
+                const getPaints = this.bot.schema.paints;
                 const getStrangeParts = this.bot.strangeParts;
 
                 const hv = item.hv;
@@ -622,7 +622,7 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
     else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+    else if (attachment === 'p') return getKeyByValue(paints, parseInt(pSKU.replace('p', '')));
 }
 
 function boldDetails(str: string, style: number): string {
