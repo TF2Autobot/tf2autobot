@@ -820,7 +820,6 @@ export default class Bot {
 
                 this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
                 this.pricelist.init();
-                this.inventoryManager = new InventoryManager(this.pricelist);
 
                 this.addListener(
                     this.pricelist,
@@ -832,6 +831,10 @@ export default class Bot {
                 this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
 
                 this.setProperties();
+            },
+            async () => {
+                log.debug('Initializing inventory...');
+                this.inventoryManager = new InventoryManager(this.pricelist);
 
                 // only call this here, and in Commands/Options
                 Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
@@ -844,9 +847,6 @@ export default class Bot {
                     this.strangeParts,
                     'our'
                 );
-            },
-            async () => {
-                log.debug('Getting inventory...');
                 await this.inventoryManager.getInventory.fetch();
             },
             async () => {
