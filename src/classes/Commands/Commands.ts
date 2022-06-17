@@ -252,6 +252,8 @@ export default class Commands {
             this.manager.haltStatusCommand(steamID);
         } else if (command === 'restart' && isAdmin) {
             this.manager.restartCommand(steamID);
+        } else if (command === 'updaterepo' && isAdmin) {
+            this.manager.updaterepoCommand(steamID);
         } else if (command === 'refreshautokeys' && isAdmin) {
             this.manager.refreshAutokeysCommand(steamID);
         } else if (command === 'refreshlist' && isAdmin) {
