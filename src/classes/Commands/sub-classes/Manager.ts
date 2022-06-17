@@ -893,68 +893,70 @@ export default class ManagerCommands {
             .then(async ({ hasNewVersion, newVersionIsMajor }) => {
                 if (!hasNewVersion) {
                     return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
-                } else if (newVersionIsMajor) {
+                }
+
+                if (newVersionIsMajor) {
                     return this.bot.sendMessage(
                         steamID,
                         '⚠️ !updaterepo is not available. Please upgrade the bot manually.'
                     );
-                } else if (hasNewVersion) {
-                    this.bot.sendMessage(steamID, '⌛ Updating...');
-                    // Make the bot snooze on Steam, that way people will know it is not running
-                    this.bot.client.setPersona(EPersonaState.Snooze);
+                }
 
-                    // Set isUpdating status, so any command will not be processed
-                    this.bot.handler.isUpdatingStatus = true;
+                this.bot.sendMessage(steamID, '⌛ Updating...');
+                // Make the bot snooze on Steam, that way people will know it is not running
+                this.bot.client.setPersona(EPersonaState.Snooze);
 
-                    // Stop polling offers
-                    this.bot.manager.pollInterval = -1;
+                // Set isUpdating status, so any command will not be processed
+                this.bot.handler.isUpdatingStatus = true;
 
-                    const cwd = path.resolve(__dirname, '..', '..', '..', '..');
-                    const exec = (command: string): Promise<void> => {
-                        return new Promise((resolve, reject) => {
-                            child.exec(command, { cwd }, err => {
-                                if (err && !['npm run build', 'pm2 restart ecosystem.json'].includes(command)) {
-                                    // not sure why this error always appeared: https://prnt.sc/9eVBx95h9uT_
-                                    log.error(`Error on updaterepo (executing ${command}):`, err);
-                                    return reject(err);
-                                }
+                // Stop polling offers
+                this.bot.manager.pollInterval = -1;
 
-                                resolve();
-                            });
+                const cwd = path.resolve(__dirname, '..', '..', '..', '..');
+                const exec = (command: string): Promise<void> => {
+                    return new Promise((resolve, reject) => {
+                        child.exec(command, { cwd }, err => {
+                            if (err && !['npm run build', 'pm2 restart ecosystem.json'].includes(command)) {
+                                // not sure why this error always appeared: https://prnt.sc/9eVBx95h9uT_
+                                log.error(`Error on updaterepo (executing ${command}):`, err);
+                                return reject(err);
+                            }
+
+                            resolve();
                         });
-                    };
+                    });
+                };
 
-                    const abort = (): void => {
-                        // Bring back online
-                        this.bot.client.setPersona(EPersonaState.Online);
-                        this.bot.handler.isUpdatingStatus = false;
-                        this.bot.manager.pollInterval = 5 * 1000;
-                    };
+                const abort = (): void => {
+                    // Bring back online
+                    this.bot.client.setPersona(EPersonaState.Online);
+                    this.bot.handler.isUpdatingStatus = false;
+                    this.bot.manager.pollInterval = 5 * 1000;
+                };
 
-                    try {
-                        // git reset HEAD --hard
-                        await exec('git reset HEAD --hard');
+                try {
+                    // git reset HEAD --hard
+                    await exec('git reset HEAD --hard');
 
-                        this.bot.sendMessage(steamID, '⌛ Pulling changes...');
-                        await exec('git pull --prune');
+                    this.bot.sendMessage(steamID, '⌛ Pulling changes...');
+                    await exec('git pull --prune');
 
-                        this.bot.sendMessage(steamID, '⌛ Deleting node_modules and dist directories...');
-                        await exec(
-                            process.platform === 'win32' ? 'rmdir /s /q node_modules dist' : 'rm -rf node_modules dist'
-                        );
+                    this.bot.sendMessage(steamID, '⌛ Deleting node_modules and dist directories...');
+                    await exec(
+                        process.platform === 'win32' ? 'rmdir /s /q node_modules dist' : 'rm -rf node_modules dist'
+                    );
 
-                        this.bot.sendMessage(steamID, '⌛ Installing packages...');
-                        await exec('npm install');
+                    this.bot.sendMessage(steamID, '⌛ Installing packages...');
+                    await exec('npm install');
 
-                        this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
-                        await exec('npm run build');
+                    this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
+                    await exec('npm run build');
 
-                        this.bot.sendMessage(steamID, '⌛ Restarting...');
-                        await exec('pm2 restart ecosystem.json');
-                    } catch (err) {
-                        this.bot.sendMessage(steamID, `❌ Error while updating the bot: ${JSON.stringify(err)}`);
-                        return abort();
-                    }
+                    this.bot.sendMessage(steamID, '⌛ Restarting...');
+                    await exec('pm2 restart ecosystem.json');
+                } catch (err) {
+                    this.bot.sendMessage(steamID, `❌ Error while updating the bot: ${JSON.stringify(err)}`);
+                    return abort();
                 }
             })
             .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));
