@@ -149,6 +149,4 @@ void (async () => {
         const httpManager = new HttpManager(options);
         await httpManager.start();
     }
-})().catch((err: Error) => {
-    throw err;
-});
+})();
