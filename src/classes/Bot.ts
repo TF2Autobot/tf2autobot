@@ -831,7 +831,8 @@ export default class Bot {
                         (this.options.useragentHeaderCustom !== ''
                             ? ` - ${this.options.useragentHeaderCustom}`
                             : ' - Run your own bot for free'),
-                    schema: this.schema
+                    schema: this.schema,
+                    steamid: this.client.steamID.getSteamID64()
                 });
 
                 this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
@@ -914,9 +915,6 @@ export default class Bot {
                     },
                     async () => {
                         log.debug('Initializing bptf-listings...');
-                        this.listingManager.token = this.options.bptfAccessToken;
-                        this.listingManager.steamid = this.client.steamID;
-
                         await promisify(this.listingManager.init.bind(this.listingManager))();
                     },
                     async () => {
