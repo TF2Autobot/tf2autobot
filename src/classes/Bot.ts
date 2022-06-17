@@ -954,7 +954,7 @@ export default class Bot {
             promise = promise.then(promiseToChain).then(checkIfStopping);
         }
 
-        return await promise.then(() => {
+        await promise.then(() => {
             this.manager.pollInterval = 5 * 1000;
             this.setReady = true;
             this.handler.onReady();
