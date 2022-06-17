@@ -92,7 +92,8 @@ export default function updateListings(
             : opt.pricelist.autoAddPaintedItems.enable && // autoAddPaintedItems must enabled
               common1 &&
               inPrice !== null && // base items must already in pricelist
-              bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null; // painted items must not in pricelist
+              bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null && // painted items must not in pricelist
+              inventory.getAmount(`${sku};${Object.keys(hv[sku].p)[0]}`, false, true) > 0;
 
         const isAutoAddPaintedFromAdmin = !isAdmin
             ? false

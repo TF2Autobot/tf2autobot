@@ -66,6 +66,13 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     if (crashed) {
         const botReady = botManager.isBotReady;
 
+        const stackTrace = inspect.inspect(origin);
+
+        if (stackTrace.includes('Error: Not allowed')) {
+            log.error('Not Allowed');
+            return botManager.stop(null, true, true);
+        }
+
         const errorMessage = [
             'TF2Autobot' +
                 (!botReady
@@ -75,7 +82,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                 process.arch
             }}`,
             'Stack trace:',
-            inspect.inspect(origin),
+            stackTrace,
             `${uptime()}`
         ].join('\r\n');
 

@@ -118,8 +118,6 @@ export default class AdminCart extends Cart {
                 this.bot.manager,
                 this.bot.schema,
                 this.bot.options,
-                this.bot.effects,
-                this.bot.paints,
                 this.bot.strangeParts,
                 'admin'
             );

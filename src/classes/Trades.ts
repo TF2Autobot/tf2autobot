@@ -314,8 +314,10 @@ export default class Trades {
                 });
             })
             .catch((err: Error) => {
-                log.warn('Error occurred while handler was processing offer: ', err);
-                throw err;
+                log.error('Error occurred while handler was processing offer: ', err);
+                // No throw here, because handlerProcessOffer will not handle catch.
+                this.processingOffer = false;
+                this.processNextOffer();
             });
     }
 
@@ -411,7 +413,7 @@ export default class Trades {
 
             if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                 const keyPrices = this.bot.pricelist.getKeyPrices;
-                const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+                const value = t.valueDiff(offer, keyPrices, false);
 
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                     const summary = t.summarizeToChat(
@@ -616,12 +618,7 @@ export default class Trades {
 
                                 if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                                     const keyPrices = this.bot.pricelist.getKeyPrices;
-                                    const value = t.valueDiff(
-                                        offer,
-                                        keyPrices,
-                                        false,
-                                        opt.miscSettings.showOnlyMetal.enable
-                                    );
+                                    const value = t.valueDiff(offer, keyPrices, false);
 
                                     if (
                                         opt.discordWebhook.sendAlert.enable &&
@@ -718,8 +715,6 @@ export default class Trades {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                this.bot.effects,
-                this.bot.paints,
                 this.bot.strangeParts,
                 'their'
             );
@@ -736,8 +731,6 @@ export default class Trades {
                         this.bot.manager,
                         this.bot.schema,
                         opt,
-                        this.bot.effects,
-                        this.bot.paints,
                         this.bot.strangeParts,
                         'our'
                     ).getItems;
@@ -748,8 +741,6 @@ export default class Trades {
                         this.bot.manager,
                         this.bot.schema,
                         opt,
-                        this.bot.effects,
-                        this.bot.paints,
                         this.bot.strangeParts,
                         'their'
                     ).getItems;

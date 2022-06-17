@@ -227,7 +227,7 @@ export default class ReviewCommands {
             this.bot.sendMessage(steamID, `${isAccepting ? 'Accepting' : 'Declining'} offer...`);
 
             const partnerId = new SteamID(this.bot.manager.pollData.offerData[offerId].partner);
-            const reply = offerIdAndMessage.substr(offerId.length);
+            const reply = offerIdAndMessage.substring(offerId.length).trim();
             const adminDetails = this.bot.friends.getFriend(steamID);
 
             try {
@@ -316,7 +316,7 @@ export default class ReviewCommands {
             this.bot.sendMessage(steamID, `Force ${isForceAccepting ? 'accepting' : 'declining'} offer...`);
 
             const partnerId = new SteamID(this.bot.manager.pollData.offerData[offerId].partner);
-            const reply = offerIdAndMessage.substr(offerId.length);
+            const reply = offerIdAndMessage.substring(offerId.length).trim();
             const adminDetails = this.bot.friends.getFriend(steamID);
 
             try {
