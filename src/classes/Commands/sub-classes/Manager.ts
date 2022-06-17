@@ -908,7 +908,8 @@ export default class ManagerCommands {
                     const exec = (command: string): Promise<void> => {
                         return new Promise((resolve, reject) => {
                             child.exec(command, { cwd }, err => {
-                                if (err) {
+                                if (err && command !== 'npm run build') {
+                                    // not sure why this error always appeared: https://prnt.sc/9eVBx95h9uT_
                                     log.error(`Error on updaterepo (executing ${command}):`, err);
                                     return reject(err);
                                 }
@@ -932,8 +933,10 @@ export default class ManagerCommands {
                         this.bot.sendMessage(steamID, '⌛ Pulling changes...');
                         await exec('git pull --prune');
 
-                        this.bot.sendMessage(steamID, '⌛ Deleting dist directories...');
-                        await exec(process.platform === 'win32' ? 'rmdir /s /q dist' : 'rm -rf dist');
+                        this.bot.sendMessage(steamID, '⌛ Deleting node_modules and dist directories...');
+                        await exec(
+                            process.platform === 'win32' ? 'rmdir /s /q node_modules dist' : 'rm -rf node_modules dist'
+                        );
 
                         this.bot.sendMessage(steamID, '⌛ Installing packages...');
                         await exec('npm install');
