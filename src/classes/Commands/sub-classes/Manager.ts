@@ -932,10 +932,8 @@ export default class ManagerCommands {
                         this.bot.sendMessage(steamID, '⌛ Pulling changes...');
                         await exec('git pull --prune');
 
-                        this.bot.sendMessage(steamID, '⌛ Deleting node_modules and dist directories...');
-                        await exec(
-                            process.platform === 'win32' ? 'rmdir /s /q node_modules dist' : 'rm -rf node_modules dist'
-                        );
+                        this.bot.sendMessage(steamID, '⌛ Deleting dist directories...');
+                        await exec(process.platform === 'win32' ? 'rmdir /s /q dist' : 'rm -rf dist');
 
                         this.bot.sendMessage(steamID, '⌛ Installing packages...');
                         await exec('npm install');
