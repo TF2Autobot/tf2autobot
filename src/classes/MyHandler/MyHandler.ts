@@ -24,9 +24,9 @@ import processDeclined from './offer/processDeclined';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
-import { BPTFGetUserInfo } from './interfaces';
+import { Blocked, BPTFGetUserInfo } from './interfaces';
 
-import Handler from '../Handler';
+import Handler, { OnRun } from '../Handler';
 import Bot from '../Bot';
 import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
@@ -210,10 +210,19 @@ export default class MyHandler extends Handler {
             files.readFile(this.paths.files.loginKey, false),
             files.readFile(this.paths.files.pricelist, true),
             files.readFile(this.paths.files.loginAttempts, true),
-            files.readFile(this.paths.files.pollData, true)
-        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, PricesDataObject, number[], PollData]) => {
-            return { loginKey, pricelist, loginAttempts, pollData };
-        });
+            files.readFile(this.paths.files.pollData, true),
+            files.readFile(this.paths.files.blockedList, true)
+        ]).then(
+            ([loginKey, pricelist, loginAttempts, pollData, blockedList]: [
+                string,
+                PricesDataObject,
+                number[],
+                PollData,
+                Blocked
+            ]) => {
+                return { loginKey, pricelist, loginAttempts, pollData, blockedList };
+            }
+        );
     }
 
     onReady(): void {
@@ -523,6 +532,7 @@ export default class MyHandler extends Handler {
 
         const opt = this.opt;
         const isAdmin = this.bot.isAdmin(offer.partner);
+        const partnerSteamID = offer.partner.getSteamID64();
 
         const items = {
             our: Inventory.fromItems(
@@ -531,8 +541,6 @@ export default class MyHandler extends Handler {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                this.bot.effects,
-                this.bot.paints,
                 this.bot.strangeParts,
                 'our'
             ).getItems,
@@ -542,8 +550,6 @@ export default class MyHandler extends Handler {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                this.bot.effects,
-                this.bot.paints,
                 this.bot.strangeParts,
                 isAdmin ? 'admin' : 'their'
             ).getItems
@@ -719,14 +725,11 @@ export default class MyHandler extends Handler {
 
             if (opt.sendAlert.enable && opt.sendAlert.unableToProcessOffer) {
                 if (optDw.sendAlert.enable && optDw.sendAlert.url.main !== '') {
-                    sendAlert('failed-processing-offer', this.bot, null, null, null, [
-                        offer.partner.getSteamID64(),
-                        offer.id
-                    ]);
+                    sendAlert('failed-processing-offer', this.bot, null, null, null, [partnerSteamID, offer.id]);
                 } else {
                     this.bot.messageAdmins(
                         '',
-                        `Unable to process offer #${offer.id} with ${offer.partner.getSteamID64()}.` +
+                        `Unable to process offer #${offer.id} with ${partnerSteamID}.` +
                             ' The offer data received was broken because our side and their side are both empty.' +
                             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${offer.id}/` +
                             `\nSend "!faccept ${offer.id}" to force accept, or "!fdecline ${offer.id}" to decline.`,
@@ -790,15 +793,22 @@ export default class MyHandler extends Handler {
         offer.log('info', 'checking bans...');
 
         try {
-            const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
+            const isBanned = await this.bot.checkBanned(partnerSteamID);
 
             if (isBanned.isBanned) {
                 offer.log('info', 'partner is banned in one or more communities, declining...');
                 this.bot.client.blockUser(offer.partner, err => {
                     if (err) {
-                        log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    } else log.info(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
+                        log.warn(`❌ Failed to block user ${partnerSteamID}: `, err);
+                    } else log.info(`✅ Successfully blocked user ${partnerSteamID}`);
                 });
+
+                this.saveBlockedUser(
+                    partnerSteamID,
+                    `[onReceivedOffer] Banned on ${Object.keys(isBanned.contents)
+                        .filter(website => isBanned.contents[website] !== 'clean')
+                        .join(', ')}`
+                );
 
                 return {
                     action: 'decline',
@@ -972,12 +982,7 @@ export default class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             const highValueOurNames: string[] = [];
-            const itemsName = getHighValueItems(
-                getHighValue.our.items,
-                this.bot,
-                this.bot.paints,
-                this.bot.strangeParts
-            );
+            const itemsName = getHighValueItems(getHighValue.our.items, this.bot);
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
@@ -2205,6 +2210,13 @@ export default class MyHandler extends Handler {
                         } else log.info(`✅ Successfully blocked user ${steamID64}`);
                     });
 
+                    this.saveBlockedUser(
+                        steamID64,
+                        `[onFriendRequest] Banned on ${Object.keys(banned.contents)
+                            .filter(website => banned.contents[website] !== 'clean')
+                            .join(', ')}`
+                    );
+
                     return;
                 }
 
@@ -2427,6 +2439,25 @@ export default class MyHandler extends Handler {
         this.bot.listings.checkByPriceKey(priceKey, entry, false, true);
     }
 
+    saveBlockedUser(steamID: string, reason: string): void {
+        if (reason) {
+            // Will add or replace new one, if reason is defined
+            this.bot.blockedList[steamID] = reason;
+
+            files.writeFile(this.paths.files.blockedList, this.bot.blockedList, true).catch(err => {
+                log.warn('Failed to save blockedList: ', err);
+            });
+        }
+    }
+
+    removeBlockedUser(steamID: string): void {
+        delete this.bot.blockedList[steamID];
+
+        files.writeFile(this.paths.files.blockedList, this.bot.blockedList, true).catch(err => {
+            log.warn('Failed to update blockedList: ', err);
+        });
+    }
+
     onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
         if (pulse.client) {
             delete pulse.client;
@@ -2474,13 +2505,6 @@ export default class MyHandler extends Handler {
     onDeleteArchivedListingError(err: Error): void {
         log.error('Error on delete archived listings:', err);
     }
-}
-
-interface OnRun {
-    loginAttempts?: number[];
-    pricelist?: PricesDataObject;
-    loginKey?: string;
-    pollData?: PollData;
 }
 
 interface OnNewTradeOffer {

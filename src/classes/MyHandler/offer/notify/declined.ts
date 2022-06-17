@@ -8,7 +8,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     const offerReason = offer.data('action') as Action;
     const meta = offer.data('meta') as Meta;
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
+    const value = valueDiff(offer, keyPrices, isTradingKeys);
     const manualReviewDisabled = !opt.manualReview.enable;
 
     const declined = '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined';

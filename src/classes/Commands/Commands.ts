@@ -241,7 +241,7 @@ export default class Commands {
         } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
             void this.manager.blockedListCommand(steamID);
         } else if (command === 'clearfriends' && isAdmin) {
-            void this.manager.clearFriendsCommand(steamID);
+            this.manager.clearFriendsCommand(steamID);
         } else if (command === 'stop' && isAdmin) {
             this.manager.stopCommand(steamID);
         } else if (command === 'halt' && isAdmin) {
@@ -252,6 +252,8 @@ export default class Commands {
             this.manager.haltStatusCommand(steamID);
         } else if (command === 'restart' && isAdmin) {
             this.manager.restartCommand(steamID);
+        } else if (command === 'updaterepo' && isAdmin) {
+            this.manager.updaterepoCommand(steamID);
         } else if (command === 'refreshautokeys' && isAdmin) {
             this.manager.refreshAutokeysCommand(steamID);
         } else if (command === 'refreshlist' && isAdmin) {
@@ -873,16 +875,7 @@ export default class Commands {
 
         const adminInventory =
             this.adminInventory[steamid] ||
-            new Inventory(
-                steamID,
-                this.bot.manager,
-                this.bot.schema,
-                this.bot.options,
-                this.bot.effects,
-                this.bot.paints,
-                this.bot.strangeParts,
-                'their'
-            );
+            new Inventory(steamID, this.bot.manager, this.bot.schema, this.bot.options, this.bot.strangeParts, 'their');
 
         if (this.adminInventory[steamid] === undefined) {
             try {
