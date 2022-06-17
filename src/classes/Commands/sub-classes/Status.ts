@@ -370,7 +370,7 @@ export default class StatusCommands {
         );
 
         this.bot.checkForUpdates
-            .then(async ({ hasNewVersion, latestVersion, canUpdateRepo, updateMessage }) => {
+            .then(async ({ hasNewVersion, latestVersion, canUpdateRepo, updateMessage, newVersionIsMajor }) => {
                 if (!hasNewVersion) {
                     this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
@@ -383,7 +383,12 @@ export default class StatusCommands {
                     await sleepasync().Promise.sleep(1000);
 
                     if (this.bot.isCloned() && process.env.pm_id !== undefined && canUpdateRepo) {
-                        return this.bot.sendMessage(steamID, `✅ Update now with !updaterepo command now!`);
+                        return this.bot.sendMessage(
+                            steamID,
+                            newVersionIsMajor
+                                ? '⚠️ !updaterepo is not available. Please upgrade the bot manually.'
+                                : `✅ Update now with !updaterepo command now!`
+                        );
                     }
 
                     const messages: string[] = [];

@@ -890,9 +890,14 @@ export default class ManagerCommands {
         }
 
         this.bot.checkForUpdates
-            .then(async ({ hasNewVersion, latestVersion }) => {
+            .then(async ({ hasNewVersion, latestVersion, newVersionIsMajor }) => {
                 if (!hasNewVersion) {
                     return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+                } else if (newVersionIsMajor) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        '⚠️ !updaterepo is not available. Please upgrade the bot manually.'
+                    );
                 } else if (this.bot.lastNotifiedVersion === latestVersion) {
                     this.bot.sendMessage(steamID, '⌛ Updating...');
                     // Make the bot snooze on Steam, that way people will know it is not running

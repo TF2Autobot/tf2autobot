@@ -376,6 +376,7 @@ export default class Bot {
         latestVersion: string;
         canUpdateRepo: boolean;
         updateMessage: string;
+        newVersionIsMajor: boolean;
     }> {
         return this.getLatestVersion.then(async content => {
             const latestVersion = content.version;
@@ -383,6 +384,7 @@ export default class Bot {
             const updateMessage = content.updateMessage;
 
             const hasNewVersion = semver.lt(process.env.BOT_VERSION, latestVersion);
+            const newVersionIsMajor = semver.diff(process.env.BOT_VERSION, latestVersion) === 'major';
 
             if (this.lastNotifiedVersion !== latestVersion && hasNewVersion) {
                 this.lastNotifiedVersion = latestVersion;
@@ -398,8 +400,14 @@ export default class Bot {
                 await sleepasync().Promise.sleep(1000);
 
                 if (this.isCloned() && process.env.pm_id !== undefined && canUpdateRepo) {
-                    this.messageAdmins('version', `✅ Update now with !updaterepo command now!`, []);
-                    return { hasNewVersion, latestVersion, canUpdateRepo, updateMessage };
+                    this.messageAdmins(
+                        'version',
+                        newVersionIsMajor
+                            ? '⚠️ !updaterepo is not available. Please upgrade the bot manually.'
+                            : `✅ Update now with !updaterepo command now!`,
+                        []
+                    );
+                    return { hasNewVersion, latestVersion, canUpdateRepo, updateMessage, newVersionIsMajor };
                 }
 
                 if (!this.isCloned()) {
@@ -431,7 +439,7 @@ export default class Bot {
                 }
             }
 
-            return { hasNewVersion, latestVersion, canUpdateRepo, updateMessage };
+            return { hasNewVersion, latestVersion, canUpdateRepo, updateMessage, newVersionIsMajor };
         });
     }
 
