@@ -843,93 +843,87 @@ export default class Bot {
                 );
             },
             async () => {
-                log.info('Initializing inventory, bptf-listings, and profile settings');
+                log.debug('Getting inventory...');
+                await this.inventoryManager.getInventory.fetch();
+            },
+            async () => {
+                log.debug('Initializing bptf-listings...');
 
-                await Promise.all([
-                    async () => {
-                        log.debug('Getting inventory...');
-                        await this.inventoryManager.getInventory.fetch();
-                    },
-                    async () => {
-                        log.debug('Initializing bptf-listings...');
+                this.userID = this.bptf._getUserID();
 
-                        this.userID = this.bptf._getUserID();
+                this.listingManager = new ListingManager({
+                    token: this.options.bptfAccessToken,
+                    userID: this.userID,
+                    userAgent:
+                        'TF2Autobot' +
+                        (this.options.useragentHeaderCustom !== ''
+                            ? ` - ${this.options.useragentHeaderCustom}`
+                            : ' - Run your own bot for free'),
+                    schema: this.schema,
+                    steamid: this.client.steamID.getSteamID64()
+                });
 
-                        this.listingManager = new ListingManager({
-                            token: this.options.bptfAccessToken,
-                            userID: this.userID,
-                            userAgent:
-                                'TF2Autobot' +
-                                (this.options.useragentHeaderCustom !== ''
-                                    ? ` - ${this.options.useragentHeaderCustom}`
-                                    : ' - Run your own bot for free'),
-                            schema: this.schema,
-                            steamid: this.client.steamID.getSteamID64()
-                        });
+                this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
+                this.addListener(
+                    this.listingManager,
+                    'createListingsSuccessful',
+                    this.handler.onCreateListingsSuccessful.bind(this),
+                    true
+                );
+                this.addListener(
+                    this.listingManager,
+                    'updateListingsSuccessful',
+                    this.handler.onUpdateListingsSuccessful.bind(this),
+                    true
+                );
+                this.addListener(
+                    this.listingManager,
+                    'deleteListingsSuccessful',
+                    this.handler.onDeleteListingsSuccessful.bind(this),
+                    true
+                );
+                this.addListener(
+                    this.listingManager,
+                    'deleteArchivedListingSuccessful',
+                    this.handler.onDeleteArchivedListingSuccessful.bind(this),
+                    true
+                );
+                this.addListener(
+                    this.listingManager,
+                    'createListingsError',
+                    this.handler.onCreateListingsError.bind(this),
+                    true
+                );
+                this.addListener(
+                    this.listingManager,
+                    'updateListingsError',
+                    this.handler.onUpdateListingsError.bind(this),
+                    true
+                );
+                this.addListener(
+                    this.listingManager,
+                    'deleteListingsError',
+                    this.handler.onDeleteListingsError.bind(this),
+                    true
+                );
+                this.addListener(
+                    this.listingManager,
+                    'deleteArchivedListingError',
+                    this.handler.onDeleteArchivedListingError.bind(this),
+                    true
+                );
+                await promisify(this.listingManager.init.bind(this.listingManager))();
+            },
+            async () => {
+                if (this.options.skipUpdateProfileSettings) return;
 
-                        this.addListener(this.listingManager, 'pulse', this.handler.onUserAgent.bind(this), true);
-                        this.addListener(
-                            this.listingManager,
-                            'createListingsSuccessful',
-                            this.handler.onCreateListingsSuccessful.bind(this),
-                            true
-                        );
-                        this.addListener(
-                            this.listingManager,
-                            'updateListingsSuccessful',
-                            this.handler.onUpdateListingsSuccessful.bind(this),
-                            true
-                        );
-                        this.addListener(
-                            this.listingManager,
-                            'deleteListingsSuccessful',
-                            this.handler.onDeleteListingsSuccessful.bind(this),
-                            true
-                        );
-                        this.addListener(
-                            this.listingManager,
-                            'deleteArchivedListingSuccessful',
-                            this.handler.onDeleteArchivedListingSuccessful.bind(this),
-                            true
-                        );
-                        this.addListener(
-                            this.listingManager,
-                            'createListingsError',
-                            this.handler.onCreateListingsError.bind(this),
-                            true
-                        );
-                        this.addListener(
-                            this.listingManager,
-                            'updateListingsError',
-                            this.handler.onUpdateListingsError.bind(this),
-                            true
-                        );
-                        this.addListener(
-                            this.listingManager,
-                            'deleteListingsError',
-                            this.handler.onDeleteListingsError.bind(this),
-                            true
-                        );
-                        this.addListener(
-                            this.listingManager,
-                            'deleteArchivedListingError',
-                            this.handler.onDeleteArchivedListingError.bind(this),
-                            true
-                        );
-                        await promisify(this.listingManager.init.bind(this.listingManager))();
-                    },
-                    async () => {
-                        if (this.options.skipUpdateProfileSettings) return;
+                log.debug('Updating profile settings...');
 
-                        log.debug('Updating profile settings...');
-
-                        await promisify(this.community.profileSettings.bind(this.community))({
-                            profile: 3,
-                            inventory: 3,
-                            inventoryGifts: false
-                        });
-                    }
-                ]);
+                await promisify(this.community.profileSettings.bind(this.community))({
+                    profile: 3,
+                    inventory: 3,
+                    inventoryGifts: false
+                });
             },
             async () => {
                 log.info('Setting up pricelist...');
