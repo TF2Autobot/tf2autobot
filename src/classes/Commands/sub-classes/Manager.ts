@@ -908,7 +908,7 @@ export default class ManagerCommands {
                     const exec = (command: string): Promise<void> => {
                         return new Promise((resolve, reject) => {
                             child.exec(command, { cwd }, err => {
-                                if (err && command !== 'npm run build') {
+                                if (err && !['npm run build', 'pm2 restart ecosystem.json'].includes(command)) {
                                     // not sure why this error always appeared: https://prnt.sc/9eVBx95h9uT_
                                     log.error(`Error on updaterepo (executing ${command}):`, err);
                                     return reject(err);
