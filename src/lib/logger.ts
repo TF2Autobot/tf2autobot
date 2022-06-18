@@ -103,33 +103,41 @@ export function init(paths: Paths, options: Options): void {
     const debugConsole = options.debug;
     // Debug to file is enabled by default
     const debugFile = options.debugFile;
+    const enableSaveLogs = options.enableSaveLogFile;
 
-    const transports = [
-        {
-            type: 'DailyRotateFile',
-            filename: paths.logs.log,
-            level: debugFile ? 'debug' : 'verbose',
-            filter: 'private',
-            datePattern: 'YYYY-MM-DD',
-            zippedArchive: true,
-            maxFiles: '14d'
-        },
-        {
-            type: 'File',
-            filename: paths.logs.trade,
-            level: 'trade',
-            filter: 'trade'
-        },
-        {
-            type: 'File',
-            filename: paths.logs.error,
-            level: 'error'
-        },
-        {
-            type: 'Console',
-            level: debugConsole ? 'debug' : 'verbose'
-        }
-    ];
+    const transports = enableSaveLogs
+        ? [
+              {
+                  type: 'DailyRotateFile',
+                  filename: paths.logs.log,
+                  level: debugFile ? 'debug' : 'verbose',
+                  filter: 'private',
+                  datePattern: 'YYYY-MM-DD',
+                  zippedArchive: true,
+                  maxFiles: '14d'
+              },
+              {
+                  type: 'File',
+                  filename: paths.logs.trade,
+                  level: 'trade',
+                  filter: 'trade'
+              },
+              {
+                  type: 'File',
+                  filename: paths.logs.error,
+                  level: 'error'
+              },
+              {
+                  type: 'Console',
+                  level: debugConsole ? 'debug' : 'verbose'
+              }
+          ]
+        : [
+              {
+                  type: 'Console',
+                  level: debugConsole ? 'debug' : 'verbose'
+              }
+          ];
 
     transports.forEach(transport => {
         const type = transport.type;
@@ -148,13 +156,15 @@ export function init(paths: Paths, options: Options): void {
             delete transport.filter;
 
             if (filter === 'trade') {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 transport['format'] = winston.format.combine(levelFilter(filter)(), transport['format']);
             } else if (filter === 'private') {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 transport['format'] = winston.format.combine(privateFilter(), transport['format']);
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
         logger.add(new winston.transports[type](transport));
     });
 }

@@ -31,8 +31,9 @@ export default class PricesTfPricer implements IPricer {
             const pricelist = await PricesTfApi.apiRequest(
                 'GET',
                 '/json/pricelist-array',
-                {},
-                {},
+                undefined,
+                undefined,
+                undefined,
                 'https://autobot.tf'
             );
 
@@ -53,8 +54,6 @@ export default class PricesTfPricer implements IPricer {
             const start = new Date().getTime();
             log.debug('Requesting pricelist pages...');
             const response = await this.api.getPricelistPage(currentPage);
-
-            log.debug('Getting page ' + currentPage.toString() + ' of ' + totalPages.toString());
             totalPages = response.meta.totalPages;
             currentPage++;
 
@@ -81,16 +80,26 @@ export default class PricesTfPricer implements IPricer {
         }
     }
 
-    shutdown(): void {
-        this.socketManager.shutDown();
+    shutdown(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.shutDown();
+        }
     }
 
-    connect(): void {
-        this.socketManager.connect();
+    get isPricerConnecting(): boolean {
+        return this.socketManager.isConnecting;
     }
 
-    init(): void {
-        return this.socketManager.init();
+    connect(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.connect();
+        }
+    }
+
+    init(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.init();
+        }
     }
 
     parsePricesTfMessageEvent(raw: string): PricesTfItemMessageEvent {
@@ -130,12 +139,12 @@ export default class PricesTfPricer implements IPricer {
     bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void {
         this.socketManager.on('message', (message: MessageEvent) => {
             try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 const data = this.parsePricesTfMessageEvent(message.data);
 
                 if (data.type === 'AUTH_REQUIRED') {
                     // might be nicer to put this elsewhere
 
-                    log.info('prices.tf re-authorization required');
                     void this.api.setupToken().then(() => {
                         this.socketManager.send(
                             JSON.stringify({
@@ -146,7 +155,7 @@ export default class PricesTfPricer implements IPricer {
                             })
                         );
                     });
-                } else if (data.type === 'PRICE_CHANGED') {
+                } else if (data.type === 'PRICE_UPDATED') {
                     const item = this.parsePriceUpdatedData(data);
                     onPriceChange(item);
                 }

@@ -59,7 +59,7 @@ const botManager = new BotManager(
 import ON_DEATH from 'death';
 import * as inspect from 'util';
 import { Webhook } from './lib/DiscordWebhook/interfaces';
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import axios from 'axios';
 import { uptime } from './lib/tools/time';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
@@ -67,6 +67,13 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
 
     if (crashed) {
         const botReady = botManager.isBotReady;
+
+        const stackTrace = inspect.inspect(origin);
+
+        if (stackTrace.includes('Error: Not allowed')) {
+            log.error('Not Allowed');
+            return botManager.stop(null, true, true);
+        }
 
         const errorMessage = [
             'TF2Autobot' +
@@ -77,13 +84,13 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                 process.arch
             }}`,
             'Stack trace:',
-            inspect.inspect(origin),
+            stackTrace,
             `${uptime()}`
         ].join('\r\n');
 
         log.error(errorMessage);
 
-        if (options.discordWebhook.sendAlert.enable && options.discordWebhook.sendAlert.url !== '') {
+        if (options.discordWebhook.sendAlert.enable && options.discordWebhook.sendAlert.url.main !== '') {
             const optDW = options.discordWebhook;
             const sendAlertWebhook: Webhook = {
                 username: optDW.displayName ? optDW.displayName : 'Your beloved bot',
@@ -104,10 +111,13 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                 ]
             };
 
-            const request = new XMLHttpRequest();
-            request.open('POST', optDW.sendAlert.url);
-            request.setRequestHeader('Content-type', 'application/json');
-            request.send(JSON.stringify(sendAlertWebhook));
+            void axios({
+                method: 'POST',
+                url: optDW.sendAlert.url.main,
+                data: sendAlertWebhook // axios should automatically set Content-Type header to application/json
+            }).catch(err => {
+                log.error('Error sending webhook on crash', err);
+            });
         }
 
         if (botReady) {

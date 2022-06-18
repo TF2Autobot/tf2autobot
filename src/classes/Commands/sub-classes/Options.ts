@@ -869,18 +869,18 @@ export default class OptionsCommands {
                 }
 
                 if (knownParams.statistics?.sendStats?.enable === true) {
-                    this.bot.handler.sendStats();
+                    this.bot.sendStats();
                 } else if (knownParams.statistics?.sendStats?.enable === false) {
-                    this.bot.handler.disableSendStats();
+                    this.bot.disableSendStats();
                 }
 
                 if (knownParams.statistics?.sendStats?.time !== undefined) {
-                    this.bot.handler.sendStats();
+                    this.bot.sendStats();
                 }
 
                 if (knownParams.highValue !== undefined) {
                     void this.bot.inventoryManager.getInventory.fetch();
-                    Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
+                    Inventory.setOptions(this.bot.schema.paints, this.bot.strangeParts, opt.highValue);
                 }
 
                 if (typeof knownParams.normalize === 'object') {
@@ -999,7 +999,7 @@ export default class OptionsCommands {
                 opt.highValue.painted.exceptionSkus.length = 0;
             }
 
-            if (isChanged) Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
+            if (isChanged) Inventory.setOptions(this.bot.schema.paints, this.bot.strangeParts, opt.highValue);
         }
 
         if (knownParams.statistics?.sendStats?.time !== undefined) {

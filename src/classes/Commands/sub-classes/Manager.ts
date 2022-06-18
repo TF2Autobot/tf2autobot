@@ -2,11 +2,15 @@ import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
+import { Listing } from '@tf2autobot/bptf-listings';
 import validUrl from 'valid-url';
+import path from 'path';
+import child from 'child_process';
 import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
+import { EPersonaState } from 'steam-user';
 import { EFriendRelationship } from 'steam-user';
-import { fixSKU } from '../functions/utils';
+import { fixSKU, removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
@@ -32,6 +36,10 @@ export default class ManagerCommands {
     private lastExecutedRefreshSchemaTime: number | null = null;
 
     private executeRefreshSchemaTimeout: NodeJS.Timeout;
+
+    private isClearingFriends = false;
+
+    private isSendingBlockedList = false;
 
     constructor(private readonly bot: Bot) {
         this.bot = bot;
@@ -164,7 +172,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = fixSKU(params.sku);
+            const targetedSKU = fixSKU(params.sku as string);
             const [uncraft, untrade] = [
                 targetedSKU.includes(';uncraftable'),
                 targetedSKU.includes(';untradable') || targetedSKU.includes(';untradeable')
@@ -274,6 +282,41 @@ export default class ManagerCommands {
     }
 
     blockedListCommand(steamID: SteamID): void {
+        if (this.isSendingBlockedList) {
+            return;
+        }
+
+        const sendBlockedList = async (blockedFriends: string[]) => {
+            const toSend = blockedFriends.map((id, index) => {
+                let reason = '';
+                if (this.bot.blockedList[id]) {
+                    reason = this.bot.blockedList[id];
+                    const urls = reason.match(/((http|https):\/\/)?(\w+\.)?\w+\.\w+((\/\w+)+)?/g); //any link
+
+                    if (urls) {
+                        urls.forEach(url => {
+                            reason = reason.replace(url, `<${url}>`); // prevent embed links
+                        });
+                    }
+                }
+                return `${index + 1}. ${id}${reason ? ` - ${reason}` : ''}`;
+            });
+            const toSendCount = toSend.length;
+
+            const limit = 25;
+            const loops = Math.ceil(toSendCount / limit);
+
+            for (let i = 0; i < loops; i++) {
+                const last = loops - i === 1;
+
+                this.bot.sendMessage(steamID, toSend.slice(i * limit, last ? toSendCount : (i + 1) * limit).join('\n'));
+
+                await sleepasync().Promise.sleep(3000);
+            }
+
+            this.isSendingBlockedList = false;
+        };
+
         this.bot.community.getFriendsList((err, friendlist) => {
             if (err) {
                 return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
@@ -294,105 +337,132 @@ export default class ManagerCommands {
                 return this.bot.sendMessage(steamID, `❌ I don't have any blocked friends.`);
             }
 
-            this.bot.sendMessage(
-                steamID,
-                // use rep.tf for shorter link - prevent Steam rate limit :(
-                `Blocked friends:\n- ${blockedFriends.map(id => `https://rep.tf/${id}`).join('\n- ')}`
-            );
+            this.bot.sendMessage(steamID, `Blocked friends:`);
+            this.isSendingBlockedList = true;
+            void sendBlockedList(blockedFriends);
         });
     }
 
     blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock): void {
-        const steamid = CommandParser.removeCommand(message);
+        const steamidAndReason = CommandParser.removeCommand(message);
+        const parts = steamidAndReason.split(' ');
+
+        const steamid = parts[0];
+        let reason = parts[1];
 
         if (!steamid || steamid === `!${command}`) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ You forgot to add their SteamID64. Example: "!${command} 76561198798404909"`
+                `❌ You forgot to add their SteamID64. Example: "!${command} 76561198798404909${
+                    command === 'block' ? ' Trying to exploit' : ''
+                }"`
             );
         }
 
-        const targetSteamID64 = new SteamID(steamid);
-        if (!targetSteamID64.isValid()) {
-            return this.bot.sendMessage(steamID, `❌ SteamID is not valid. Example: "!${command} 76561198798404909"`);
+        const targetSteamID = new SteamID(steamid);
+        const targetSteamID64 = targetSteamID.getSteamID64();
+        if (!targetSteamID.isValid()) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ SteamID is not valid. Example: "!${command} 76561198798404909${
+                    command === 'block' ? ' Trying to exploit' : ''
+                }"`
+            );
         }
 
-        this.bot.client[command === 'block' ? 'blockUser' : 'unblockUser'](targetSteamID64, err => {
+        this.bot.client[command === 'block' ? 'blockUser' : 'unblockUser'](targetSteamID, err => {
             if (err) {
-                log.warn(`Failed to ${command} user ${targetSteamID64.getSteamID64()}: `, err);
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ Failed to ${command} user ${targetSteamID64.getSteamID64()}: ${err.message}`
-                );
+                log.warn(`Failed to ${command} user ${targetSteamID64}: `, err);
+                return this.bot.sendMessage(steamID, `❌ Failed to ${command} user ${targetSteamID64}: ${err.message}`);
             }
             this.bot.sendMessage(
                 steamID,
-                `✅ Successfully ${
-                    command === 'block' ? 'blocked' : 'unblocked'
-                } user ${targetSteamID64.getSteamID64()}`
+                `✅ Successfully ${command === 'block' ? 'blocked' : 'unblocked'} user ${targetSteamID64}`
             );
+
+            if (command === 'block' && reason) {
+                reason = removeLinkProtocol(steamidAndReason.substring(targetSteamID64.length).trim());
+                this.bot.handler.saveBlockedUser(targetSteamID64, reason);
+            } else if (command === 'unblock') {
+                this.bot.handler.removeBlockedUser(targetSteamID64);
+            }
         });
     }
 
-    async clearFriendsCommand(steamID: SteamID): Promise<void> {
+    clearFriendsCommand(steamID: SteamID): void {
+        if (this.isClearingFriends) {
+            return this.bot.sendMessage(steamID, `❌ Clearfriends is still in progess.`);
+        }
+
+        const removeFriends = async (total: number, friendsToRemove: string[], blockedFriends: string[]) => {
+            for (const steamid of friendsToRemove) {
+                if (!blockedFriends.includes(steamid)) {
+                    const getFriend = this.bot.friends.getFriend(steamid);
+
+                    this.bot.sendMessage(
+                        steamid,
+                        this.bot.options.customMessage.clearFriends
+                            ? this.bot.options.customMessage.clearFriends.replace(
+                                  /%name%/g,
+                                  getFriend ? getFriend.player_name : steamid
+                              )
+                            : `/quote Hey ${
+                                  getFriend ? getFriend.player_name : steamid
+                              }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
+                    );
+                } else {
+                    log.info(`Blocked user ${steamid} has been successfully unfriended!`);
+                }
+
+                this.bot.client.removeFriend(steamid);
+
+                // Prevent Steam from detecting the bot as spamming
+                await sleepasync().Promise.sleep(5000);
+            }
+
+            this.isClearingFriends = false;
+            this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
+        };
+
         const friendsToKeep = this.bot.handler.friendsToKeep;
 
-        let friendsToRemove: string[];
-        try {
-            friendsToRemove = this.bot.friends.getFriends.filter(steamid => !friendsToKeep.includes(steamid));
-        } catch (err) {
-            log.warn('Error while trying to remove friends:', err);
+        this.bot.community.getFriendsList((err, friendlist) => {
+            if (err) {
+                return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
+            }
 
-            const errStringify = JSON.stringify(err);
-            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
-            return this.bot.sendMessage(steamID, `❌ Error while trying to remove friends: ${errMessage}`);
-        }
+            const friendsToRemove = Object.keys(friendlist).filter(steamid => !friendsToKeep.includes(steamid));
+            if (friendsToRemove.length === 0) {
+                return this.bot.sendMessage(steamID, `❌ I don't have any friends to remove.`);
+            }
 
-        const total = friendsToRemove.length;
-
-        if (total <= 0) {
-            return this.bot.sendMessage(steamID, `❌ No friends to remove.`);
-        }
-
-        const totalTime = total * 5 * 1000;
-        const aSecond = 1000;
-        const aMin = 60 * 1000;
-        const anHour = 60 * 60 * 1000;
-
-        this.bot.sendMessage(
-            steamID,
-            `⌛ Removing ${total} friends...` +
-                `\n5 seconds between each person, so it will be about ${
-                    totalTime < aMin
-                        ? `${Math.round(totalTime / aSecond)} seconds`
-                        : totalTime < anHour
-                        ? `${Math.round(totalTime / aMin)} minutes`
-                        : `${Math.round(totalTime / anHour)} hours`
-                } to complete.`
-        );
-
-        for (const steamid of friendsToRemove) {
-            const getFriend = this.bot.friends.getFriend(steamid);
-
-            this.bot.sendMessage(
-                steamid,
-                this.bot.options.customMessage.clearFriends
-                    ? this.bot.options.customMessage.clearFriends.replace(
-                          /%name%/g,
-                          getFriend ? getFriend.player_name : steamid
-                      )
-                    : `/quote Hey ${
-                          getFriend ? getFriend.player_name : steamid
-                      }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
+            const blockedFriends = friendsToRemove.filter(friendID =>
+                [EFriendRelationship.Blocked, EFriendRelationship.Ignored, EFriendRelationship.IgnoredFriend].includes(
+                    friendlist[friendID]
+                )
             );
 
-            this.bot.client.removeFriend(steamid);
+            const total = friendsToRemove.length;
+            const totalTime = total * 5 * 1000;
+            const aSecond = 1000;
+            const aMin = 60 * 1000;
+            const anHour = 60 * 60 * 1000;
 
-            // Prevent Steam from detecting the bot as spamming
-            await sleepasync().Promise.sleep(5000);
-        }
+            this.bot.sendMessage(
+                steamID,
+                `⌛ Removing ${total} friends...` +
+                    `\n5 seconds between each person, so it will be about ${
+                        totalTime < aMin
+                            ? `${Math.round(totalTime / aSecond)} seconds`
+                            : totalTime < anHour
+                            ? `${Math.round(totalTime / aMin)} minutes`
+                            : `${Math.round(totalTime / anHour)} hours`
+                    } to complete.`
+            );
 
-        this.bot.sendMessage(steamID, `✅ Friendlist clearance success! Removed ${total} friends.`);
+            this.isClearingFriends = true;
+            void removeFriends(total, friendsToRemove, blockedFriends);
+        });
     }
 
     stopCommand(steamID: SteamID): void {
@@ -402,6 +472,28 @@ export default class ManagerCommands {
             log.warn('Error occurred while trying to stop: ', err);
             this.bot.sendMessage(steamID, `❌ An error occurred while trying to stop: ${(err as Error).message}`);
         });
+    }
+
+    async haltCommand(steamID: SteamID): Promise<void> {
+        if (this.bot.isHalted) {
+            this.bot.sendMessage(steamID, 'Already halted, nothing to halt');
+            return;
+        }
+        this.bot.sendMessage(steamID, '⌛ Halting...');
+        await this.bot.halt();
+    }
+
+    async unhaltCommand(steamID: SteamID): Promise<void> {
+        if (!this.bot.isHalted) {
+            this.bot.sendMessage(steamID, 'Not halted, nothing to unhalt');
+            return;
+        }
+        this.bot.sendMessage(steamID, '⌛ Unhalting...');
+        await this.bot.unhalt();
+    }
+
+    haltStatusCommand(steamID: SteamID): void {
+        this.bot.sendMessage(steamID, 'The bot is currently ' + (this.bot.isHalted ? '🛑 halted' : '✅ operational'));
     }
 
     restartCommand(steamID: SteamID): void {
@@ -469,8 +561,8 @@ export default class ManagerCommands {
                 )} minutes before you run refresh listings command again.`
             );
         } else {
-            const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
-            this.bot.listingManager.getListings(async err => {
+            const listings: { [sku: string]: Listing[] } = {};
+            this.bot.listingManager.getListings(false, async err => {
                 if (err) {
                     log.error('Unable to refresh listings: ', err);
 
@@ -524,16 +616,12 @@ export default class ManagerCommands {
                         listing.remove();
                     }
 
-                    if (listingsSKUs[listingSKU]) {
-                        listingsSKUs[listingSKU].intent.push(listing.intent);
-                    } else {
-                        listingsSKUs[listingSKU] = {
-                            intent: [listing.intent]
-                        };
-                    }
+                    listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
                 });
 
                 const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
+
+                const keyPrice = this.bot.pricelist.getKeyPrice.metal;
 
                 for (const sku in pricelist) {
                     if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
@@ -541,24 +629,38 @@ export default class ManagerCommands {
                     }
 
                     const entry = pricelist[sku];
-                    const listing = listingsSKUs[sku];
+                    const _listings = listings[sku];
 
                     const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
                     const amountAvailable = inventory.getAmount(sku, false, true);
 
-                    if (listing) {
-                        if (
-                            listing.intent.length === 1 &&
-                            listing.intent[0] === 0 && // We only check if the only listing exist is buy order
-                            entry.max > 1 &&
-                            amountAvailable > 0 &&
-                            amountAvailable > entry.min
-                        ) {
-                            // here we only check if the bot already have that item
-                            log.debug(`Missing sell order listings: ${sku}`);
-                        } else {
-                            delete pricelist[sku];
-                        }
+                    if (_listings) {
+                        _listings.forEach(listing => {
+                            if (
+                                _listings.length === 1 &&
+                                listing.intent === 0 && // We only check if the only listing exist is buy order
+                                entry.max > 1 &&
+                                amountAvailable > 0 &&
+                                amountAvailable > entry.min
+                            ) {
+                                // here we only check if the bot already have that item
+                                log.debug(`Missing sell order listings: ${sku}`);
+                            } else if (
+                                listing.intent === 0 &&
+                                listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
+                            ) {
+                                // if intent is buy, we check if the buying price is not same
+                                log.debug(`Buying price for ${sku} not updated`);
+                            } else if (
+                                listing.intent === 1 &&
+                                listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
+                            ) {
+                                // if intent is sell, we check if the selling price is not same
+                                log.debug(`Selling price for ${sku} not updated`);
+                            } else {
+                                delete pricelist[sku];
+                            }
+                        });
 
                         continue;
                     }
@@ -601,14 +703,14 @@ export default class ManagerCommands {
                         'Refreshing listings for ' + pluralize('item', pricelistCount, true) + '...'
                     );
 
-                    this.bot.handler.isRecentlyExecuteRefreshlistCommand = true;
-                    this.bot.handler.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
+                    this.bot.isRecentlyExecuteRefreshlistCommand = true;
+                    this.bot.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
                     this.pricelistCount = pricelistCount;
                     this.executedRefreshList = true;
                     this.executeRefreshListTimeout = setTimeout(() => {
                         this.lastExecutedRefreshListTime = null;
                         this.executedRefreshList = false;
-                        this.bot.handler.isRecentlyExecuteRefreshlistCommand = false;
+                        this.bot.isRecentlyExecuteRefreshlistCommand = false;
                         clearTimeout(this.executeRefreshListTimeout);
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
@@ -763,5 +865,100 @@ export default class ManagerCommands {
                 this.bot.sendMessage(steamID, '✅ Refresh schema success!');
             });
         }
+    }
+
+    updaterepoCommand(steamID: SteamID): void {
+        if (!this.bot.isCloned()) {
+            return this.bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
+        }
+
+        if (process.env.pm_id === undefined) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ You're not running the bot with PM2!` +
+                    `\n\nNavigate to your bot folder and run ` +
+                    `[git reset HEAD --hard && git pull && npm install && npm run build] ` +
+                    `and then restart your bot.`
+            );
+        }
+
+        if (!['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ The current OS you're running the bot with is not yet supported. OS: ${process.platform}`
+            );
+        }
+
+        this.bot.checkForUpdates
+            .then(async ({ hasNewVersion, newVersionIsMajor }) => {
+                if (!hasNewVersion) {
+                    return this.bot.sendMessage(steamID, 'You are running the latest version of TF2Autobot!');
+                }
+
+                if (newVersionIsMajor) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        '⚠️ !updaterepo is not available. Please upgrade the bot manually.'
+                    );
+                }
+
+                this.bot.sendMessage(steamID, '⌛ Updating...');
+                // Make the bot snooze on Steam, that way people will know it is not running
+                this.bot.client.setPersona(EPersonaState.Snooze);
+
+                // Set isUpdating status, so any command will not be processed
+                this.bot.handler.isUpdatingStatus = true;
+
+                // Stop polling offers
+                this.bot.manager.pollInterval = -1;
+
+                const cwd = path.resolve(__dirname, '..', '..', '..', '..');
+                const exec = (command: string): Promise<void> => {
+                    return new Promise((resolve, reject) => {
+                        child.exec(command, { cwd }, err => {
+                            if (err && !['npm run build', 'pm2 restart ecosystem.json'].includes(command)) {
+                                // not sure why this error always appeared: https://prnt.sc/9eVBx95h9uT_
+                                log.error(`Error on updaterepo (executing ${command}):`, err);
+                                return reject(err);
+                            }
+
+                            resolve();
+                        });
+                    });
+                };
+
+                const abort = (): void => {
+                    // Bring back online
+                    this.bot.client.setPersona(EPersonaState.Online);
+                    this.bot.handler.isUpdatingStatus = false;
+                    this.bot.manager.pollInterval = 5 * 1000;
+                };
+
+                try {
+                    // git reset HEAD --hard
+                    await exec('git reset HEAD --hard');
+
+                    this.bot.sendMessage(steamID, '⌛ Pulling changes...');
+                    await exec('git pull --prune');
+
+                    this.bot.sendMessage(steamID, '⌛ Deleting node_modules and dist directories...');
+                    await exec(
+                        process.platform === 'win32' ? 'rmdir /s /q node_modules dist' : 'rm -rf node_modules dist'
+                    );
+
+                    this.bot.sendMessage(steamID, '⌛ Installing packages...');
+                    await exec('npm install');
+
+                    this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
+                    await exec('npm run build');
+
+                    this.bot.sendMessage(steamID, '⌛ Restarting...');
+                    await exec('pm2 restart ecosystem.json');
+                } catch (err) {
+                    this.bot.sendMessage(steamID, `❌ Error while updating the bot: ${JSON.stringify(err)}`);
+                    return abort();
+                }
+            })
+            .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));
     }
 }

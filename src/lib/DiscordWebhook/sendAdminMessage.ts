@@ -35,13 +35,9 @@ export default function sendAdminMessage(
         ]
     };
 
-    sendWebhook(opt.messages.url, discordAdminMsg, 'partner-message')
-        .then(() => {
-            log.debug(`✅ Sent admin-message webhook (to ${their.player_name}) on Discord.`);
-        })
-        .catch(err => {
-            log.warn(`❌ Failed to send admin-message webhook (to ${their.player_name}) on Discord: `, err);
-        });
+    sendWebhook(opt.messages.url, discordAdminMsg, 'partner-message').catch(err => {
+        log.warn(`❌ Failed to send admin-message webhook (to ${their.player_name}) on Discord: `, err);
+    });
 }
 
 interface Links {

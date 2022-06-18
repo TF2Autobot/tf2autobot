@@ -1,5 +1,5 @@
 import SKU from '@tf2autobot/tf2-sku';
-import request from 'request-retry-dayjs';
+import axios from 'axios';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
 import TradeOfferManager, {
     TradeOffer,
@@ -16,7 +16,6 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from '@tf2autobot/tf2-currencies';
 import async from 'async';
-import dayjs from 'dayjs';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
@@ -25,9 +24,9 @@ import processDeclined from './offer/processDeclined';
 import { sendReview } from './offer/review/export-review';
 import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './utils/export-utils';
 
-import { BPTFGetUserInfo } from './interfaces';
+import { Blocked, BPTFGetUserInfo } from './interfaces';
 
-import Handler from '../Handler';
+import Handler, { OnRun } from '../Handler';
 import Bot from '../Bot';
 import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
@@ -42,11 +41,11 @@ import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
 
 import { noiseMakers } from '../../lib/data';
-import { sendAlert, sendStats } from '../../lib/DiscordWebhook/export';
+import { sendAlert } from '../../lib/DiscordWebhook/export';
 import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
-import IPricer, { RequestCheckFn } from '../IPricer';
+import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
 
 const filterReasons = (reasons: string[]) => {
@@ -62,8 +61,6 @@ export default class MyHandler extends Handler {
     readonly cartQueue: CartQueue;
 
     private groupsStore: string[];
-
-    private requestCheck: RequestCheckFn;
 
     private get opt(): Options {
         return this.bot.options;
@@ -129,10 +126,6 @@ export default class MyHandler extends Handler {
         return this.opt.offerReceived.duped.minKeys;
     }
 
-    private get isPriceUpdateWebhook(): boolean {
-        return this.opt.discordWebhook.priceUpdate.enable && this.opt.discordWebhook.priceUpdate.url !== '';
-    }
-
     get isWeaponsAsCurrency(): { enable: boolean; withUncraft: boolean } {
         return {
             enable: this.opt.miscSettings.weaponsAsCurrency.enable,
@@ -146,10 +139,6 @@ export default class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private get sendStatsEnabled(): boolean {
-        return this.opt.statistics.sendStats.enable;
-    }
-
     private isTradingKeys = false;
 
     get customGameName(): string {
@@ -159,6 +148,10 @@ export default class MyHandler extends Handler {
 
     private get isCraftingManual(): boolean {
         return this.opt.crafting.manual;
+    }
+
+    private get isDeletingUntradableJunk(): boolean {
+        return this.opt.miscSettings.deleteUntradableJunk.enable;
     }
 
     private isPremium = false;
@@ -193,23 +186,7 @@ export default class MyHandler extends Handler {
 
     private refreshTimeout: NodeJS.Timeout;
 
-    private sendStatsInterval: NodeJS.Timeout;
-
     private classWeaponsTimeout: NodeJS.Timeout;
-
-    private autoRefreshListingsInterval: NodeJS.Timeout;
-
-    private alreadyExecutedRefreshlist = false;
-
-    set isRecentlyExecuteRefreshlistCommand(setExecuted: boolean) {
-        this.alreadyExecutedRefreshlist = setExecuted;
-    }
-
-    private executedDelayTime = 30 * 60 * 1000;
-
-    set setRefreshlistExecutedDelay(delay: number) {
-        this.executedDelayTime = delay;
-    }
 
     constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
@@ -233,10 +210,19 @@ export default class MyHandler extends Handler {
             files.readFile(this.paths.files.loginKey, false),
             files.readFile(this.paths.files.pricelist, true),
             files.readFile(this.paths.files.loginAttempts, true),
-            files.readFile(this.paths.files.pollData, true)
-        ]).then(([loginKey, pricelist, loginAttempts, pollData]: [string, PricesDataObject, number[], PollData]) => {
-            return { loginKey, pricelist, loginAttempts, pollData };
-        });
+            files.readFile(this.paths.files.pollData, true),
+            files.readFile(this.paths.files.blockedList, true)
+        ]).then(
+            ([loginKey, pricelist, loginAttempts, pollData, blockedList]: [
+                string,
+                PricesDataObject,
+                number[],
+                PollData,
+                Blocked
+            ]) => {
+                return { loginKey, pricelist, loginAttempts, pollData, blockedList };
+            }
+        );
     }
 
     onReady(): void {
@@ -272,6 +258,11 @@ export default class MyHandler extends Handler {
             }, 5 * 1000);
         }
 
+        if (this.isDeletingUntradableJunk) {
+            // Delete untradable junk
+            this.deleteUntradableJunk();
+        }
+
         // Auto sell and buy keys if ref < minimum
         this.autokeys.check();
 
@@ -285,11 +276,11 @@ export default class MyHandler extends Handler {
         this.checkGroupInvites();
 
         // Initialize send stats
-        this.sendStats();
+        this.bot.sendStats();
 
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
         this.refreshTimeout = setTimeout(() => {
-            this.enableAutoRefreshListings();
+            this.bot.startAutoRefreshListings();
         }, 5 * 60 * 1000);
 
         // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
@@ -297,7 +288,7 @@ export default class MyHandler extends Handler {
 
         if (failedToUpdateOldPrices.length > 0) {
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && dw.url.main !== '';
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.failedToUpdateOldPrices) {
                 if (isDwEnabled) {
@@ -323,7 +314,7 @@ export default class MyHandler extends Handler {
         if (count > 0 && count < 20) {
             // we send only if less than 20
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
 
             const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced.join(
                 '\n --- '
@@ -343,7 +334,7 @@ export default class MyHandler extends Handler {
 
         if (bulkResetPartiallyPriced.length > 0) {
             const dw = this.opt.discordWebhook.sendAlert;
-            const isDwEnabled = dw.enable && dw.url !== '';
+            const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
 
             const msg =
                 `All partially priced items below has been reset to use the current prices ` +
@@ -373,12 +364,12 @@ export default class MyHandler extends Handler {
             clearInterval(this.refreshTimeout);
         }
 
-        if (this.sendStatsInterval) {
-            clearInterval(this.sendStatsInterval);
+        if (this.bot.sendStatsInterval) {
+            clearInterval(this.bot.sendStatsInterval);
         }
 
-        if (this.autoRefreshListingsInterval) {
-            clearInterval(this.autoRefreshListingsInterval);
+        if (this.bot.autoRefreshListingsInterval) {
+            clearInterval(this.bot.autoRefreshListingsInterval);
         }
 
         if (this.classWeaponsTimeout) {
@@ -387,6 +378,10 @@ export default class MyHandler extends Handler {
 
         if (this.retryRequest) {
             clearTimeout(this.retryRequest);
+        }
+
+        if (this.bot.periodicCheckAdmin) {
+            clearInterval(this.bot.periodicCheckAdmin);
         }
 
         return new Promise(resolve => {
@@ -452,7 +447,13 @@ export default class MyHandler extends Handler {
                     }
                 }
 
-                if (this.isUpdating) {
+                if (this.bot.isHalted && !this.bot.isAdmin(steamID)) {
+            const custom = this.opt.customMessage.halted;
+            return this.bot.sendMessage(
+                steamID,
+                custom ? custom : '❌ The bot is not operational right now. Please come back later.'
+            );
+        }if (this.isUpdating) {
                     return this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
                 }
 
@@ -534,226 +535,6 @@ export default class MyHandler extends Handler {
         log.warn('Please add your backpack.tf API key and access token to your environment variables!', details);
     }
 
-    enableAutoRefreshListings(): void {
-        // Automatically check for missing listings every 30 minutes
-        if (this.isPremium === false) {
-            return;
-        }
-
-        let pricelistLength = 0;
-
-        this.autoRefreshListingsInterval = setInterval(
-            () => {
-                const opt = this.opt;
-                const createListingsEnabled = opt.miscSettings.createListings.enable;
-
-                if (this.alreadyExecutedRefreshlist || !createListingsEnabled) {
-                    log.debug(
-                        `❌ ${
-                            this.alreadyExecutedRefreshlist
-                                ? 'Just recently executed refreshlist command'
-                                : 'miscSettings.createListings.enable is set to false'
-                        }, will not run automatic check for missing listings.`
-                    );
-
-                    setTimeout(() => {
-                        this.enableAutoRefreshListings();
-                    }, this.executedDelayTime);
-
-                    // reset to default
-                    this.setRefreshlistExecutedDelay = 30 * 60 * 1000;
-                    clearInterval(this.autoRefreshListingsInterval);
-                    return;
-                }
-
-                pricelistLength = 0;
-                log.debug('Running automatic check for missing listings...');
-
-                const listingsSKUs: { [sku: string]: { intent: number[] } } = {};
-                this.bot.listingManager.getListings(async err => {
-                    if (err) {
-                        log.warn('Error getting listings on auto-refresh listings operation:', err);
-                        setTimeout(() => {
-                            this.enableAutoRefreshListings();
-                        }, 30 * 60 * 1000);
-                        clearInterval(this.autoRefreshListingsInterval);
-                        return;
-                    }
-
-                    const inventoryManager = this.bot.inventoryManager;
-                    const inventory = inventoryManager.getInventory;
-                    const isFilterCantAfford = opt.pricelist.filterCantAfford.enable;
-
-                    this.bot.listingManager.listings.forEach(listing => {
-                        let listingSKU = listing.getSKU();
-                        if (listing.intent === 1) {
-                            if (opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-
-                            if (opt.normalize.festivized.our && listingSKU.includes(';festive')) {
-                                listingSKU = listingSKU.replace(';festive', '');
-                            }
-
-                            if (opt.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                                listingSKU = listingSKU.replace(';strange', '');
-                            }
-                        } else {
-                            if (/;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-                        }
-
-                        const match = this.bot.pricelist.getPrice(listingSKU);
-
-                        if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
-                            if (!canAffordToBuy) {
-                                // Listing for buying exist but we can't afford to buy, remove.
-                                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
-                                listing.remove();
-                            }
-                        }
-
-                        if (listing.intent === 1 && match !== null && !match.enabled) {
-                            // Listings for selling exist, but the item is currently disabled, remove it.
-                            log.debug(`Intent sell, removed because not selling: ${match.sku}`);
-                            listing.remove();
-                        }
-
-                        if (listingsSKUs[listingSKU]) {
-                            listingsSKUs[listingSKU].intent.push(listing.intent);
-                        } else {
-                            listingsSKUs[listingSKU] = {
-                                intent: [listing.intent]
-                            };
-                        }
-                    });
-
-                    const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
-
-                    for (const sku in pricelist) {
-                        if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
-                            continue;
-                        }
-
-                        const entry = pricelist[sku];
-                        const listing = listingsSKUs[sku];
-
-                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
-                        const amountAvailable = inventory.getAmount(sku, false, true);
-
-                        if (listing) {
-                            if (
-                                listing.intent.length === 1 &&
-                                listing.intent[0] === 0 && // We only check if the only listing exist is buy order
-                                entry.max > 1 &&
-                                amountAvailable > 0 &&
-                                amountAvailable > entry.min
-                            ) {
-                                // here we only check if the bot already have that item
-                                log.debug(`Missing sell order listings: ${sku}`);
-                            } else {
-                                delete pricelist[sku];
-                            }
-
-                            continue;
-                        }
-
-                        // listing not exist
-
-                        if (!entry.enabled) {
-                            delete pricelist[sku];
-                            log.debug(`${sku} disabled, skipping...`);
-                            continue;
-                        }
-
-                        if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
-                            amountAvailable > 0
-                        ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
-                            // return this entry
-                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
-                        } else {
-                            delete pricelist[sku];
-                        }
-                    }
-
-                    const skusToCheck = Object.keys(pricelist);
-                    const pricelistCount = skusToCheck.length;
-
-                    if (pricelistCount > 0) {
-                        log.debug(
-                            'Checking listings for ' +
-                                pluralize('item', pricelistCount, true) +
-                                ` [${skusToCheck.join(', ')}]...`
-                        );
-
-                        await this.bot.listings.recursiveCheckPricelist(
-                            skusToCheck,
-                            pricelist,
-                            true,
-                            pricelistCount > 4000 ? 400 : 200,
-                            true
-                        );
-
-                        log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
-                    } else {
-                        log.debug('❌ Nothing to refresh.');
-                    }
-
-                    pricelistLength = pricelistCount;
-                });
-            },
-            // set check every 60 minutes if pricelist to check was more than 4000 items
-            (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
-        );
-    }
-
-    disableAutoRefreshListings(): void {
-        if (this.isPremium) {
-            return;
-        }
-
-        clearInterval(this.autoRefreshListingsInterval);
-    }
-
-    sendStats(): void {
-        clearInterval(this.sendStatsInterval);
-
-        if (this.sendStatsEnabled) {
-            this.sendStatsInterval = setInterval(() => {
-                const opt = this.bot.options;
-                let times: string[];
-
-                if (opt.statistics.sendStats.time.length === 0) {
-                    times = ['T05:59', 'T11:59', 'T17:59', 'T23:59'];
-                } else {
-                    times = opt.statistics.sendStats.time;
-                }
-
-                const now = dayjs()
-                    .tz(opt.timezone ? opt.timezone : 'UTC')
-                    .format();
-
-                if (times.some(time => now.includes(time))) {
-                    if (opt.discordWebhook.sendStats.enable && opt.discordWebhook.sendStats.url !== '') {
-                        void sendStats(this.bot);
-                    } else {
-                        this.bot.getAdmins.forEach(admin => {
-                            this.commands.useStatsCommand(admin);
-                        });
-                    }
-                }
-            }, 60 * 1000);
-        }
-    }
-
-    disableSendStats(): void {
-        clearInterval(this.sendStatsInterval);
-    }
-
     async onNewTradeOffer(offer: TradeOffer): Promise<null | OnNewTradeOffer> {
         offer.log('info', 'is being processed...');
 
@@ -765,6 +546,7 @@ export default class MyHandler extends Handler {
 
         const opt = this.opt;
         const isAdmin = this.bot.isAdmin(offer.partner);
+        const partnerSteamID = offer.partner.getSteamID64();
 
         const items = {
             our: Inventory.fromItems(
@@ -773,8 +555,6 @@ export default class MyHandler extends Handler {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                this.bot.effects,
-                this.bot.paints,
                 this.bot.strangeParts,
                 'our'
             ).getItems,
@@ -784,8 +564,6 @@ export default class MyHandler extends Handler {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                this.bot.effects,
-                this.bot.paints,
                 this.bot.strangeParts,
                 isAdmin ? 'admin' : 'their'
             ).getItems
@@ -944,15 +722,12 @@ export default class MyHandler extends Handler {
             const optDw = opt.discordWebhook;
 
             if (opt.sendAlert.enable && opt.sendAlert.unableToProcessOffer) {
-                if (optDw.sendAlert.enable && optDw.sendAlert.url !== '') {
-                    sendAlert('failed-processing-offer', this.bot, null, null, null, [
-                        offer.partner.getSteamID64(),
-                        offer.id
-                    ]);
+                if (optDw.sendAlert.enable && optDw.sendAlert.url.main !== '') {
+                    sendAlert('failed-processing-offer', this.bot, null, null, null, [partnerSteamID, offer.id]);
                 } else {
                     this.bot.messageAdmins(
                         '',
-                        `Unable to process offer #${offer.id} with ${offer.partner.getSteamID64()}.` +
+                        `Unable to process offer #${offer.id} with ${partnerSteamID}.` +
                             ' The offer data received was broken because our side and their side are both empty.' +
                             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${offer.id}/` +
                             `\nSend "!faccept ${offer.id}" to force accept, or "!fdecline ${offer.id}" to decline.`,
@@ -963,6 +738,88 @@ export default class MyHandler extends Handler {
 
             // Abort processing the offer.
             return;
+        }
+
+        const manualReviewEnabled = opt.manualReview.enable;
+        const isIgnoreHalted = opt.offerReceived.halted.ignoreHalted;
+
+        // A list of things that is wrong about the offer and other information
+        const wrongAboutOffer: WrongAboutOffer[] = [];
+
+        if (this.bot.isHalted) {
+            if (manualReviewEnabled && !isIgnoreHalted) {
+                wrongAboutOffer.push({
+                    reason: '⬜_HALTED'
+                });
+                offer.log('info', 'bot is halted, review enabled & not ignore -> marking as halted ang going to skip');
+            } else if (isIgnoreHalted) {
+                // do nothing
+                offer.log('info', 'bot is halted, review disabled & set to ignore -> Do nothing');
+                return;
+            } else {
+                offer.log('info', 'bot is halted, review disabled -> declining');
+                return {
+                    action: 'decline',
+                    reason: 'HALTED',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
+            }
+        }
+
+        let checkBannedFailed = false;
+
+        offer.log('info', 'checking escrow...');
+
+        try {
+            const hasEscrow = await this.bot.checkEscrow(offer);
+
+            if (hasEscrow) {
+                offer.log('info', 'would be held if accepted, declining...');
+                return {
+                    action: 'decline',
+                    reason: 'ESCROW',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
+            }
+        } catch (err) {
+            wrongAboutOffer.push({
+                reason: '⬜_ESCROW_CHECK_FAILED'
+            });
+            log.warn('Failed to check escrow: ', err);
+        }
+
+        offer.log('info', 'checking bans...');
+
+        try {
+            const isBanned = await this.bot.checkBanned(partnerSteamID);
+
+            if (isBanned.isBanned) {
+                offer.log('info', 'partner is banned in one or more communities, declining...');
+                this.bot.client.blockUser(offer.partner, err => {
+                    if (err) {
+                        log.warn(`❌ Failed to block user ${partnerSteamID}: `, err);
+                    } else log.info(`✅ Successfully blocked user ${partnerSteamID}`);
+                });
+
+                this.saveBlockedUser(
+                    partnerSteamID,
+                    `[onReceivedOffer] Banned on ${Object.keys(isBanned.contents)
+                        .filter(website => isBanned.contents[website] !== 'clean')
+                        .join(', ')}`
+                );
+
+                return {
+                    action: 'decline',
+                    reason: 'BANNED',
+                    meta: isContainsHighValue ? { highValue: highValueMeta, banned: isBanned.contents } : undefined
+                };
+            }
+        } catch (err) {
+            checkBannedFailed = true;
+            wrongAboutOffer.push({
+                reason: '⬜_BANNED_CHECK_FAILED'
+            });
+            log.error('Failed to check banned: ', err);
         }
 
         if (hasNonTF2Items && opt.offerReceived.alwaysDeclineNonTF2Items) {
@@ -1006,6 +863,16 @@ export default class MyHandler extends Handler {
             ].some(word => offerMessage.includes(word));
 
             if (isGift) {
+                // We can accept escrow if it's gift
+                if (checkBannedFailed) {
+                    offer.log('info', `is a gift offer, but failed to check for banned status, declining...`);
+                    return {
+                        action: 'decline',
+                        reason: 'GIFT_FAILED_CHECK_BANNED',
+                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                    };
+                }
+
                 offer.log(
                     'trade',
                     `is a gift offer, accepting. Summary:\n${JSON.stringify(
@@ -1014,6 +881,7 @@ export default class MyHandler extends Handler {
                         4
                     )}`
                 );
+
                 return {
                     action: 'accept',
                     reason: 'GIFT',
@@ -1021,8 +889,20 @@ export default class MyHandler extends Handler {
                 };
             } else {
                 if (opt.bypass.giftWithoutMessage.allow) {
+                    if (checkBannedFailed) {
+                        offer.log(
+                            'info',
+                            `is a gift offer without any offer message, but failed to check for banned status, declining...`
+                        );
+                        return {
+                            action: 'decline',
+                            reason: 'GIFT_FAILED_CHECK_BANNED',
+                            meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                        };
+                    }
+
                     offer.log(
-                        'info',
+                        'trade',
                         'is a gift offer without any offer message, but allowed to be accepted, accepting...'
                     );
 
@@ -1098,15 +978,10 @@ export default class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             const highValueOurNames: string[] = [];
-            const itemsName = getHighValueItems(
-                getHighValue.our.items,
-                this.bot,
-                this.bot.paints,
-                this.bot.strangeParts
-            );
+            const itemsName = getHighValueItems(getHighValue.our.items, this.bot);
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                     for (const name in itemsName) {
                         if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
                             continue;
@@ -1146,10 +1021,6 @@ export default class MyHandler extends Handler {
 
         const keyPrice = this.bot.pricelist.getKeyPrice;
         let hasOverstockAndIsPartialPriced = false;
-
-        // A list of things that is wrong about the offer and other information
-        const wrongAboutOffer: WrongAboutOffer[] = [];
-
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];
         let hasNoPrice = false;
@@ -1590,7 +1461,7 @@ export default class MyHandler extends Handler {
                     log.debug('Dupe checking ' + assetid + '...');
                     void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug('Dupe check for ' + assetid + ' done');
-                        callback(err, result);
+                        callback(err as Error, result);
                     });
                 };
             });
@@ -1599,7 +1470,7 @@ export default class MyHandler extends Handler {
                 const result: (boolean | null)[] = await Promise.fromCallback(callback => {
                     async.series(requests, callback);
                 });
-                log.debug('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
+                log.info('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
 
                 const resultCount = result.length;
 
@@ -1633,56 +1504,6 @@ export default class MyHandler extends Handler {
                 });
             }
         }
-
-        offer.log('info', 'checking escrow...');
-
-        try {
-            const hasEscrow = await this.bot.checkEscrow(offer);
-
-            if (hasEscrow) {
-                offer.log('info', 'would be held if accepted, declining...');
-                return {
-                    action: 'decline',
-                    reason: 'ESCROW',
-                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                };
-            }
-        } catch (err) {
-            log.warn('Failed to check escrow: ', err);
-
-            wrongAboutOffer.push({
-                reason: '⬜_ESCROW_CHECK_FAILED'
-            });
-        }
-
-        offer.log('info', 'checking bans...');
-
-        try {
-            const isBanned = await this.bot.checkBanned(offer.partner.getSteamID64());
-
-            if (isBanned) {
-                offer.log('info', 'partner is banned in one or more communities, declining...');
-                this.bot.client.blockUser(offer.partner, err => {
-                    if (err) {
-                        log.warn(`❌ Failed to block user ${offer.partner.getSteamID64()}: `, err);
-                    } else log.debug(`✅ Successfully blocked user ${offer.partner.getSteamID64()}`);
-                });
-
-                return {
-                    action: 'decline',
-                    reason: 'BANNED',
-                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                };
-            }
-        } catch (err) {
-            log.error('Failed to check banned: ', err);
-
-            wrongAboutOffer.push({
-                reason: '⬜_BANNED_CHECK_FAILED'
-            });
-        }
-
-        const manualReviewEnabled = opt.manualReview.enable;
 
         if (wrongAboutOffer.length !== 0) {
             const reasons = wrongAboutOffer.map(wrong => wrong.reason);
@@ -1861,6 +1682,15 @@ export default class MyHandler extends Handler {
                 highValue: isContainsHighValue ? highValueMeta : undefined
             };
 
+            // don't use business logic if the bot is not operational
+            if (this.bot.isHalted) {
+                return {
+                    action: 'skip',
+                    reason: 'REVIEW',
+                    meta: meta
+                };
+            }
+
             if (
                 (isAcceptInvalidItems || isAcceptOverstocked || isAcceptUnderstocked || isAcceptDisabledItems) &&
                 exchange.our.value !== 0 &&
@@ -1981,11 +1811,11 @@ export default class MyHandler extends Handler {
             } else if (isIgnoreEscrowCheckFailed && isOnlyEscrowCheckFailed) {
                 // If only ⬜_ESCROW_CHECK_FAILED (and with 🟥_INVALID_VALUE)
                 // and always ignore enabled, will do nothing.
-                // Blank
+                return;
             } else if (isIgnoreBannedCheckFailed && isOnlyBannedCheckFailed) {
                 // If only ⬜_BANNED_CHECK_FAILED  (and with 🟥_INVALID_VALUE)
                 // and always ignore enabled, will do nothing.
-                // Blank
+                return;
             } else if (manualReviewEnabled) {
                 offer.log('info', `offer needs review (${uniqueReasons.join(', ')}), skipping...`);
 
@@ -2208,6 +2038,11 @@ export default class MyHandler extends Handler {
                 }, 5 * 1000);
             }
 
+            if (this.isDeletingUntradableJunk) {
+                // Delete untradable junk
+                this.deleteUntradableJunk();
+            }
+
             // Sort inventory
             this.sortInventory();
 
@@ -2304,14 +2139,50 @@ export default class MyHandler extends Handler {
         }
 
         const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
-        log.debug(`Accepting friend request from ${steamID64}...`);
-        this.bot.client.addFriend(steamID, err => {
-            if (err) {
-                log.warn(`Failed to accept friend request from ${steamID64}: `, err);
-                return;
-            }
-            log.debug('Friend request has been accepted');
-        });
+        const accept = () => {
+            log.info(`Accepting friend request from ${steamID64}...`);
+            this.bot.client.addFriend(steamID, err => {
+                if (err) {
+                    log.warn(`Failed to accept friend request from ${steamID64}: `, err);
+                    return;
+                }
+                log.debug('Friend request has been accepted');
+            });
+        };
+
+        if (this.bot.isAdmin(steamID)) {
+            return accept();
+        }
+
+        void this.bot
+            .checkBanned(steamID)
+            .then(banned => {
+                if (banned.isBanned) {
+                    log.info(`Declining friend request and blocking ${steamID64}...`);
+
+                    this.bot.client.removeFriend(steamID);
+                    this.bot.client.blockUser(steamID, err => {
+                        if (err) {
+                            log.error(`❌ Failed to block user ${steamID64}: `, err);
+                        } else log.info(`✅ Successfully blocked user ${steamID64}`);
+                    });
+
+                    this.saveBlockedUser(
+                        steamID64,
+                        `[onFriendRequest] Banned on ${Object.keys(banned.contents)
+                            .filter(website => banned.contents[website] !== 'clean')
+                            .join(', ')}`
+                    );
+
+                    return;
+                }
+
+                return accept();
+            })
+            .catch(err => {
+                log.error('Failed to check banned on respondToFriendRequest: ', err);
+                return; // We respond again later
+            });
     }
 
     private onNewFriend(steamID: SteamID, tries = 0): void {
@@ -2338,7 +2209,7 @@ export default class MyHandler extends Handler {
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
                                   .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                            : `Hi! If you don't know how things work, please type "!` + (isAdmin ? 'help' : 'how2trade')
+                            : `Hi! If you don't know how things work, please type "!${isAdmin ? 'help' : 'how2trade'}"`
                     );
                 }
 
@@ -2358,8 +2229,8 @@ export default class MyHandler extends Handler {
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
                           .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                    : `Hi ${friend.player_name}! If you don't know how things work, please type "!` +
-                          (isAdmin ? 'help' : 'how2trade')
+                    : `Hi ${friend.player_name}! If you don't know how things work, please type ` +
+                          `"!${isAdmin ? 'help' : 'how2trade'}"`
             );
         });
     }
@@ -2420,22 +2291,28 @@ export default class MyHandler extends Handler {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
-            void request(
-                {
-                    url: 'https://api.backpack.tf/api/users/info/v1',
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
-                        Cookie: 'user-id=' + this.bot.userID
-                    },
-                    qs: {
-                        key: this.opt.bptfAPIKey,
-                        steamids: steamID64
-                    },
-                    gzip: true,
-                    json: true
+            void axios({
+                url: 'https://api.backpack.tf/api/users/info/v1',
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                    Cookie: 'user-id=' + this.bot.userID
                 },
-                (err, reponse, body) => {
+                params: {
+                    key: this.opt.bptfApiKey,
+                    steamids: steamID64
+                }
+            })
+                .then(response => {
+                    const body = response.data as BPTFGetUserInfo;
+
+                    const user = body.users[steamID64];
+                    this.botName = user.name;
+                    this.botAvatarURL = user.avatar;
+                    this.isPremium = user.premium ? user.premium === 1 : false;
+                    return resolve();
+                })
+                .catch(err => {
                     if (err) {
                         log.error('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
                         clearTimeout(this.retryRequest);
@@ -2445,22 +2322,11 @@ export default class MyHandler extends Handler {
                         }, 5 * 60 * 1000);
                         return reject();
                     }
-
-                    const thisBody = body as BPTFGetUserInfo;
-
-                    const user = thisBody.users[steamID64];
-                    this.botName = user.name;
-                    this.botAvatarURL = user.avatar;
-                    this.isPremium = user.premium ? user.premium === 1 : false;
-                    return resolve();
-                }
-            ).end();
+                });
         });
     }
 
     private checkGroupInvites(): void {
-        log.debug('Checking group invites');
-
         for (const groupID64 in this.bot.client.myGroups) {
             if (!Object.prototype.hasOwnProperty.call(this.bot.client.myGroups, groupID64)) {
                 continue;
@@ -2494,6 +2360,15 @@ export default class MyHandler extends Handler {
         });
     }
 
+    private deleteUntradableJunk(): void {
+        const assetidsToDelete = this.bot.inventoryManager.getInventory.findUntradableJunk();
+
+        for (const assetid of assetidsToDelete) {
+            log.debug(`Deleting junk item ${assetid}`);
+            this.bot.tf2gc.deleteItem(assetid);
+        }
+    }
+
     onPollData(pollData: PollData): void {
         files.writeFile(this.paths.files.pollData, pollData, true).catch(err => {
             log.warn('Failed to save polldata: ', err);
@@ -2518,17 +2393,33 @@ export default class MyHandler extends Handler {
     }
 
     onPriceChange(sku: string, entry: Entry): void {
-        if (!this.isPriceUpdateWebhook) {
-            log.debug(`${sku} updated`);
-        }
         this.bot.listings.checkBySKU(sku, entry, false, true);
+    }
+
+    saveBlockedUser(steamID: string, reason: string): void {
+        if (reason) {
+            // Will add or replace new one, if reason is defined
+            this.bot.blockedList[steamID] = reason;
+
+            files.writeFile(this.paths.files.blockedList, this.bot.blockedList, true).catch(err => {
+                log.warn('Failed to save blockedList: ', err);
+            });
+        }
+    }
+
+    removeBlockedUser(steamID: string): void {
+        delete this.bot.blockedList[steamID];
+
+        files.writeFile(this.paths.files.blockedList, this.bot.blockedList, true).catch(err => {
+            log.warn('Failed to update blockedList: ', err);
+        });
     }
 
     onUserAgent(pulse: { status: string; current_time?: number; expire_at?: number; client?: string }): void {
         if (pulse.client) {
             delete pulse.client;
         }
-        log.debug('user-agent', pulse);
+        // log.debug('user-agent', pulse);
     }
 
     onLoginThrottle(wait: number): void {
@@ -2538,6 +2429,22 @@ export default class MyHandler extends Handler {
     onTF2QueueCompleted(): void {
         log.debug('Queue finished');
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
+    }
+
+    onCreateListingsSuccessful(response: { created: number; archived: number; errors: any[] }): void {
+        log.debug('Successfully create listings:', response);
+    }
+
+    onUpdateListingsSuccessful(response: { updated: number; errors: any[] }): void {
+        log.debug('Successfully update listings:', response);
+    }
+
+    onDeleteListingsSuccessful(response: Record<string, unknown>): void {
+        log.debug('Successfully delete listings:', response);
+    }
+
+    onDeleteArchivedListingSuccessful(response: boolean): void {
+        log.debug('Successfully delete an archived listing:', response);
     }
 
     onCreateListingsError(err: Error): void {
@@ -2551,13 +2458,10 @@ export default class MyHandler extends Handler {
     onDeleteListingsError(err: Error): void {
         log.error('Error on delete listings:', err);
     }
-}
 
-interface OnRun {
-    loginAttempts?: number[];
-    pricelist?: PricesDataObject;
-    loginKey?: string;
-    pollData?: PollData;
+    onDeleteArchivedListingError(err: Error): void {
+        log.error('Error on delete archived listings:', err);
+    }
 }
 
 interface OnNewTradeOffer {

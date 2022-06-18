@@ -403,7 +403,7 @@ export default class Autokeys {
 
                 const msg = 'I am now low on both keys and refs.';
                 if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
-                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                         sendAlert('lowPure', this.bot, msg);
                     } else {
                         this.bot.messageAdmins(msg, []);
@@ -449,7 +449,7 @@ export default class Autokeys {
 
                     const msg = 'I am now low on both keys and refs.';
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
@@ -493,7 +493,7 @@ export default class Autokeys {
 
                     const msg = 'I am now low on both keys and refs.';
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
@@ -598,7 +598,7 @@ export default class Autokeys {
                     false,
                     `❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                     'autokeys-failedToAdd-bank'
                 );
             });
@@ -622,7 +622,7 @@ export default class Autokeys {
                     false,
                     `❌ Failed to add Mann Co. Supply Crate Key to ${intent} automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                     `autokeys-failedToAdd-${intent}`
                 );
             });
@@ -644,7 +644,7 @@ export default class Autokeys {
                     false,
                     `❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                     'autokeys-failedToUpdate-bank'
                 );
             });
@@ -670,7 +670,7 @@ export default class Autokeys {
                         (err as Error).message
                     }`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                     `autokeys-failedToUpdate-${intent}`
                 );
             });
@@ -705,7 +705,7 @@ export default class Autokeys {
                         true,
                         `❌ Failed to disable Autokeys: ${(err as Error).message}`,
                         opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToDisable,
-                        opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                        opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                         'autokeys-failedToDisable'
                     );
                     reject();

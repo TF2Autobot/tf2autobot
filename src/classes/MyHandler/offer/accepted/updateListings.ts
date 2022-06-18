@@ -38,13 +38,14 @@ export default function updateListings(
 
     craftWeapons = weapons;
 
+    const isPricecheckRequestEnabled = opt.miscSettings.pricecheckAfterTrade.enable;
     const alwaysRemoveCustomTexture = opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable;
     const skus: string[] = [];
 
     const inventory = bot.inventoryManager.getInventory;
     const hv = highValue.items;
     const normalizePainted = opt.normalize.painted;
-    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '';
+    const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '';
     const pure = ['5000;6', '5001;6', '5002;6'];
     const pureWithWeapons = pure.concat(weapons);
     const isAdmin = bot.isAdmin(offer.partner);
@@ -79,72 +80,62 @@ export default function updateListings(
         // If the item is not an unusual sku, we "allow" still (no-op)
         const addInvalidUnusual = item.quality === 5 ? opt.pricelist.autoAddInvalidUnusual.enable : true;
 
+        const common1 =
+            normalizePainted.our === false && // must meet this setting
+            normalizePainted.their === true && // must meet this setting
+            hv && // this must be defined
+            hv[sku]?.p && // painted must be defined
+            hv[sku]?.s === undefined; // make sure spelled is undefined
+
         const isAutoaddPainted = /;[p][0-9]+/.test(sku)
             ? false // sku must NOT include any painted partial sku
             : opt.pricelist.autoAddPaintedItems.enable && // autoAddPaintedItems must enabled
-              normalizePainted.our === false && // must meet this setting
-              normalizePainted.their === true && // must meet this setting
-              hv && // this must be defined
-              hv[sku]?.p && // painted must be defined
-              hv[sku]?.s === undefined && // make sure spelled is undefined
+              common1 &&
               inPrice !== null && // base items must already in pricelist
               bot.pricelist.getPrice(`${sku};${Object.keys(hv[sku].p)[0]}`, false) === null && // painted items must not in pricelist
               inventory.getAmount(`${sku};${Object.keys(hv[sku].p)[0]}`, false, true) > 0;
 
         const isAutoAddPaintedFromAdmin = !isAdmin
             ? false
-            : normalizePainted.our === false && // must meet this setting
-              normalizePainted.their === true && // must meet this setting
-              /;[p][0-9]+/.test(sku) && // sku must include any painted partial sku
-              hv && // this must be defined
-              hv[sku]?.p && // painted must be defined
-              hv[sku]?.s === undefined && // make sure spelled is undefined
+            : /;[p][0-9]+/.test(sku) && // sku must include any painted partial sku
+              common1 &&
               inPrice === null && // painted items must not in pricelist
               inPrice2 !== null && // base items must already in pricelist
               amount > 0;
 
-        const isAutoaddInvalidItems =
-            !existInPricelist &&
-            isNotPureOrWeapons &&
-            sku !== '5021;6' && // not Mann Co. Supply Crate Key
-            isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
-            addInvalidUnusual &&
-            !isDisabledHV &&
-            !isAdmin &&
-            opt.pricelist.autoAddInvalidItems.enable;
-
-        const receivedHighValueNotInPricelist =
+        const common2 =
             !existInPricelist &&
             isNotPureOrWeapons &&
             isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
-            isDisabledHV && // This is the only difference
             !isAdmin;
+
+        const isAutoaddInvalidItems =
+            opt.pricelist.autoAddInvalidItems.enable &&
+            common2 &&
+            sku !== '5021;6' && // not Mann Co. Supply Crate Key
+            addInvalidUnusual &&
+            !isDisabledHV;
+
+        const receivedHighValueNotInPricelist = common2 && isDisabledHV;
 
         const receivedUnusualNotInPricelist =
-            !existInPricelist &&
-            isNotPureOrWeapons &&
-            isNotSkinsOrWarPaint &&
-            item.quality === 5 &&
-            opt.pricelist.autoAddInvalidUnusual.enable === false &&
-            !isAdmin;
+            opt.pricelist.autoAddInvalidUnusual.enable === false && common2 && item.quality === 5;
 
         const isAutoDisableHighValueItems =
-            existInPricelist && isDisabledHV && isNotPureOrWeapons && opt.highValue.enableHold;
+            opt.highValue.enableHold && existInPricelist && isDisabledHV && isNotPureOrWeapons;
+
+        const common3 =
+            amount < 1 && // current stock
+            isNotPureOrWeapons;
 
         const isAutoRemoveIntentSell =
             opt.pricelist.autoRemoveIntentSell.enable &&
             existInPricelist &&
             inPrice.intent === 1 &&
             (opt.autokeys.enable ? sku !== '5021;6' : true) && // not Mann Co. Supply Crate Key if Autokeys enabled
-            amount < 1 && // current stock
-            isNotPureOrWeapons;
+            common3;
 
-        const isUpdatePartialPricedItem =
-            inPrice !== null &&
-            inPrice.autoprice &&
-            inPrice.isPartialPriced &&
-            amount < 1 && // current stock
-            isNotPureOrWeapons;
+        const isUpdatePartialPricedItem = inPrice !== null && inPrice.autoprice && inPrice.isPartialPriced && common3;
 
         //
 
@@ -212,7 +203,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(paintedSKU, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(paintedSKU, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg =
@@ -229,7 +220,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(paintedSKU, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(paintedSKU, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoAddPaintedFromAdmin) {
@@ -290,7 +281,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to add ${name} (${sku}) to sell automatically: ${(err as Error).message}`;
@@ -305,7 +296,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoaddInvalidItems) {
@@ -325,11 +316,11 @@ export default function updateListings(
                 .addPrice(entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${sku}) to sell.`);
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     log.warn(`❌ Failed to add ${name} (${sku}) to sell automatically: ${(err as Error).message}`);
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 });
             //
         } else if (receivedHighValueNotInPricelist) {
@@ -354,7 +345,7 @@ export default function updateListings(
                 }
             }
 
-            addToQueu(sku, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
         } else if (receivedUnusualNotInPricelist) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a Unusual (bought with Generic Unusual), and not
             // from ADMINS, and opt.pricelist.autoAddInvalidUnusual is false, then notify admin.
@@ -370,7 +361,7 @@ export default function updateListings(
                 }
             }
 
-            addToQueu(sku, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
         } else if (isAutoDisableHighValueItems) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
             const oldGroup = inPrice.group;
@@ -423,11 +414,11 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     log.warn(`❌ Failed to disable high value ${sku}: `, err);
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 });
             //
         } else if (isAutoRemoveIntentSell) {
@@ -437,7 +428,7 @@ export default function updateListings(
                 .removePrice(sku, true)
                 .then(() => {
                     log.debug(`✅ Automatically removed ${name} (${sku}) from pricelist.`);
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to automatically remove ${name} (${sku}) from pricelist: ${
@@ -453,7 +444,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 });
         } else if (isUpdatePartialPricedItem) {
             // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
@@ -499,7 +490,7 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to automatically update prices for ${name} (${sku}): ${
@@ -515,10 +506,10 @@ export default function updateListings(
                         }
                     }
 
-                    addToQueu(sku, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
                 });
         } else {
-            addToQueu(sku, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled) addToQ(sku, isNotPure, existInPricelist);
         }
 
         if (
@@ -555,7 +546,7 @@ export default function updateListings(
     }
 }
 
-function addToQueu(sku: string, isNotPure: boolean, isExistInPricelist: boolean): void {
+function addToQ(sku: string, isNotPure: boolean, isExistInPricelist: boolean): void {
     /**
      * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
      */

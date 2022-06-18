@@ -1980,9 +1980,6 @@ class PriceUpdateQueue {
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
-            .then(() => {
-                log.debug(`Sent ${sku} update to Discord.`);
-            })
             .catch(err => {
                 log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
 

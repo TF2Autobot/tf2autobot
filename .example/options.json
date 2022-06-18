@@ -16,9 +16,6 @@
         "sendGroupInvite": {
             "enable": true
         },
-        "autobump": {
-            "enable": true
-        },
         "counterOffer": {
             "enable": true,
             "skipIncludeMessage": false
@@ -42,6 +39,16 @@
             "customTexture": {
                 "enable": true
             }
+        },
+        "deleteUntradableJunk": {
+            "enable": false
+        },
+        "reputationCheck": {
+            "checkMptfBanned": false,
+            "reptfAsPrimarySource": false
+        },
+        "pricecheckAfterTrade": {
+            "enable": true
         }
     },
     "sendAlert": {
@@ -106,10 +113,6 @@
         },
         "giftWithoutMessage": {
             "allow": false
-        },
-        "bannedPeople": {
-            "allow": false,
-            "checkMptfBanned": true
         }
     },
     "tradeSummary": {
@@ -364,6 +367,9 @@
         },
         "bannedCheckFailed": {
             "ignoreFailed": false
+        },
+        "halted": {
+            "ignoreHalted": false
         }
     },
     "manualReview": {
@@ -397,6 +403,9 @@
             "note": ""
         },
         "bannedCheckFailed": {
+            "note": ""
+        },
+        "halted": {
             "note": ""
         },
         "additionalNotes": ""
@@ -461,7 +470,10 @@
         "sendAlert": {
             "enable": true,
             "isMention": true,
-            "url": ""
+            "url": {
+                "main": "",
+                "partialPriceUpdate": ""
+            }
         },
         "sendStats": {
             "enable": false,
@@ -475,10 +487,12 @@
         "iDontKnowWhatYouMean": "",
         "success": "",
         "successEscrow": "",
+        "halted": "",
         "decline": {
             "general": "",
             "hasNonTF2Items": "",
             "giftNoNote": "",
+            "giftFailedCheckBanned": "",
             "crimeAttempt": "",
             "onlyMetal": "",
             "duelingNot5Uses": "",
@@ -487,6 +501,7 @@
             "notTradingKeys": "",
             "notSellingKeys": "",
             "notBuyingKeys": "",
+            "halted": "",
             "banned": "",
             "escrow": "",
             "manual": "",

@@ -4,6 +4,15 @@ import SteamID from 'steamid';
 import TradeOfferManager, { PollData, Meta } from '@tf2autobot/tradeoffer-manager';
 import Bot from './Bot';
 import { Entry, PricesDataObject, PricesObject } from './Pricelist';
+import { Blocked } from './MyHandler/interfaces';
+
+export interface OnRun {
+    loginAttempts?: number[];
+    pricelist?: PricesDataObject;
+    loginKey?: string;
+    pollData?: PollData;
+    blockedList?: Blocked;
+}
 
 export default abstract class Handler {
     protected constructor(readonly bot: Bot) {
@@ -17,12 +26,7 @@ export default abstract class Handler {
     /**
      * Called when the bot is first started
      */
-    abstract onRun(): Promise<{
-        loginAttempts?: number[];
-        pricelist?: PricesDataObject;
-        loginKey?: string;
-        pollData?: PollData;
-    }>;
+    abstract onRun(): Promise<OnRun>;
 
     /**
      * Called when the bot has started
@@ -190,6 +194,38 @@ export default abstract class Handler {
     }
 
     /**
+     * Called on successful creating listings
+     * @param response - created, archived, errrors
+     */
+    onCreateListingsSuccessful(response: { created: number; archived: number; errors: any[] }): void {
+        // empty function
+    }
+
+    /**
+     * Called on successful updating listings
+     * @param response - updated, errrors
+     */
+    onUpdateListingsSuccessful(response: { updated: number; errors: any[] }): void {
+        // empty function
+    }
+
+    /**
+     * Called on successful deleting listings
+     * @param response - any
+     */
+    onDeleteListingsSuccessful(response: Record<string, unknown>): void {
+        // empty function
+    }
+
+    /**
+     * Called on successful deleting listings
+     * @param response - any
+     */
+    onDeleteArchivedListingSuccessful(response: boolean): void {
+        // empty function
+    }
+
+    /**
      * Called on error when creating listings
      * @param err - Error message
      */
@@ -210,6 +246,14 @@ export default abstract class Handler {
      * @param err - Error message
      */
     onDeleteListingsError(err: Error): void {
+        // empty function
+    }
+
+    /**
+     * Called on error when deleting listings
+     * @param err - Error message
+     */
+    onDeleteArchivedListingError(err: Error): void {
         // empty function
     }
 }

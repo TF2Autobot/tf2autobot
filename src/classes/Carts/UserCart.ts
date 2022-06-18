@@ -20,20 +20,46 @@ export default class UserCart extends Cart {
      */
     private useKeys = true;
 
+    private partnerSteamID = this.partner.getSteamID64();
+
     protected async preSendOffer(): Promise<void> {
         const [banned, escrow] = await Promise.all([
             this.bot.checkBanned(this.partner),
             this.bot.checkEscrow(this.offer)
         ]);
 
-        if (banned) {
+        // Keep this banned check - in case someone that's already friend got banned and tried to trade
+
+        if (banned.isBanned) {
             this.bot.client.blockUser(this.partner, err => {
                 if (err) {
-                    log.error(`❌ Failed to block user ${this.partner.getSteamID64()}: `, err);
-                } else log.debug(`✅ Successfully blocked user ${this.partner.getSteamID64()}`);
+                    log.error(`❌ Failed to block user ${this.partnerSteamID}: `, err);
+                } else log.info(`✅ Successfully blocked user ${this.partnerSteamID}`);
             });
 
-            return Promise.reject('you are banned in one or more trading communities');
+            let checkResult = '';
+            if (banned.contents) {
+                checkResult = 'Check results:\n';
+                Object.keys(banned.contents).forEach((website, index) => {
+                    if (banned.contents[website] !== 'clean') {
+                        if (index > 0) {
+                            checkResult += '\n';
+                        }
+                        checkResult += `(${index + 1}) ${website}: ${banned.contents[website]}`;
+                    }
+                });
+
+                this.bot.handler.saveBlockedUser(
+                    this.partnerSteamID,
+                    `[onSendingOffer] Banned on ${Object.keys(banned.contents)
+                        .filter(website => banned.contents[website] !== 'clean')
+                        .join(', ')}`
+                );
+            }
+
+            return Promise.reject(
+                `you are banned in one or more trading communities${checkResult !== '' ? '.\n\n' + checkResult : ''}`
+            );
         }
 
         if (escrow) {
@@ -57,7 +83,7 @@ export default class UserCart extends Cart {
                     log.debug(`Dupe checking ${assetid}...`);
                     void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
                         log.debug(`Dupe check for ${assetid} done`);
-                        callback(err, result);
+                        callback(err as Error, result);
                     });
                 };
             });
@@ -67,7 +93,7 @@ export default class UserCart extends Cart {
                     async.series(requests, callback);
                 });
 
-                log.debug(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
+                log.info(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
 
                 const resultCount = result.length;
 
@@ -151,8 +177,6 @@ export default class UserCart extends Cart {
         price: Currencies,
         useKeys: boolean
     ): { currencies: { [sku: string]: number }; change: number } {
-        log.debug('Getting required currencies');
-
         const keyPrice = this.bot.pricelist.getKeyPrice;
 
         const currencyValues: {
@@ -236,16 +260,6 @@ export default class UserCart extends Cart {
                 remaining -= Math.floor(amount) * currencyValues[key];
             }
 
-            log.debug('Iteration', {
-                index: index,
-                key: key,
-                amount: amount,
-                remaining: remaining,
-                reverse: reverse,
-                hasReversed: hasReversed,
-                picked: pickedCurrencies
-            });
-
             if (remaining === 0) {
                 // Picked the exact amount, stop
                 break;
@@ -266,8 +280,6 @@ export default class UserCart extends Cart {
         }
 
         if (remaining < 0) {
-            log.debug('Picked too much value, removing...');
-
             // Removes unnecessary items
             for (let i = 0; i < skusCount; i++) {
                 const sku = skus[i];
@@ -285,13 +297,6 @@ export default class UserCart extends Cart {
                     remaining += amount * currencyValues[sku];
                     pickedCurrencies[sku] -= amount;
                 }
-
-                log.debug('Iteration', {
-                    sku: skus[i],
-                    amount: amount,
-                    remaining: remaining,
-                    picked: pickedCurrencies
-                });
             }
         }
 
@@ -459,8 +464,6 @@ export default class UserCart extends Cart {
             this.bot.manager,
             this.bot.schema,
             opt,
-            this.bot.effects,
-            this.bot.paints,
             this.bot.strangeParts,
             'their'
         );
@@ -468,7 +471,7 @@ export default class UserCart extends Cart {
         try {
             await theirInventory.fetch();
         } catch (err) {
-            log.error(`Failed to load inventories (${this.partner.getSteamID64()}): `, err);
+            log.error(`Failed to load inventories (${this.partnerSteamID}): `, err);
             return Promise.reject(
                 'Failed to load your inventory, Steam might be down. ' +
                     'Please try again later. If you have your profile/inventory set to private, please set it to public and try again.'
@@ -897,12 +900,6 @@ export default class UserCart extends Cart {
                         });
 
                         if (isAdded) {
-                            log.debug('Added changes:', {
-                                whose: whose,
-                                sku: sku,
-                                assetid: currencies[sku][i]
-                            });
-
                             const amount = (itemsDict[whose][sku] || 0) + 1;
                             itemsDict[whose][sku] = amount;
 

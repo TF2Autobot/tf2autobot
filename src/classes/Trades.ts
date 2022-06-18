@@ -45,6 +45,8 @@ export default class Trades {
 
     private resetRetryAcceptOfferTimeout: NodeJS.Timeout;
 
+    private retryFetchInventoryTimeout: NodeJS.Timeout;
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -221,7 +223,9 @@ export default class Trades {
     }> {
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffers(
-                includeInactive ? TradeOfferManager.EOfferFilter['All'] : TradeOfferManager.EOfferFilter['ActiveOnly'],
+                (includeInactive
+                    ? TradeOfferManager.EOfferFilter['All']
+                    : TradeOfferManager.EOfferFilter['ActiveOnly']) as number,
                 (err, sent, received) => {
                     if (err) {
                         return reject(err);
@@ -284,34 +288,36 @@ export default class Trades {
 
         offer.data('handleTimestamp', start);
 
-        void Promise.resolve(this.bot.handler.onNewTradeOffer(offer)).asCallback((err, response) => {
-            if (err) {
-                log.warn('Error occurred while handler was processing offer: ', err);
-                throw err;
-            }
+        void Promise.resolve(this.bot.handler.onNewTradeOffer(offer))
+            .then(response => {
+                if (offer.data('dict') === undefined) {
+                    throw new Error('dict not saved on offer');
+                }
 
-            if (offer.data('dict') === undefined) {
-                throw new Error('dict not saved on offer');
-            }
+                offer.data('handledByUs', true);
+                const timeTaken = dayjs().valueOf() - start;
 
-            offer.data('handledByUs', true);
-            const timeTaken = dayjs().valueOf() - start;
+                offer.data('processOfferTime', timeTaken);
+                log.debug(`Processing offer #${offer.id} took ${timeTaken} ms`);
 
-            offer.data('processOfferTime', timeTaken);
-            log.debug(`Processing offer #${offer.id} took ${timeTaken} ms`);
+                offer.log('debug', 'handler is done with offer', {
+                    response: response
+                });
 
-            offer.log('debug', 'handler is done with offer', {
-                response: response
+                if (!response) {
+                    return this.finishProcessingOffer(offer.id);
+                }
+
+                this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(() => {
+                    this.finishProcessingOffer(offer.id);
+                });
+            })
+            .catch((err: Error) => {
+                log.error('Error occurred while handler was processing offer: ', err);
+                // No throw here, because handlerProcessOffer will not handle catch.
+                this.processingOffer = false;
+                this.processNextOffer();
             });
-
-            if (!response) {
-                return this.finishProcessingOffer(offer.id);
-            }
-
-            this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(() => {
-                this.finishProcessingOffer(offer.id);
-            });
-        });
     }
 
     applyActionToOffer(
@@ -406,9 +412,9 @@ export default class Trades {
 
             if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                 const keyPrices = this.bot.pricelist.getKeyPrices;
-                const value = t.valueDiff(offer, keyPrices, false, opt.miscSettings.showOnlyMetal.enable);
+                const value = t.valueDiff(offer, keyPrices, false);
 
-                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                     const summary = t.summarizeToChat(
                         offer,
                         this.bot,
@@ -498,7 +504,7 @@ export default class Trades {
         }
     }
 
-    private finishProcessingOffer(offerId): void {
+    private finishProcessingOffer(offerId: string): void {
         this.dequeueOffer(offerId);
         this.processingOffer = false;
         this.processNextOffer();
@@ -611,14 +617,12 @@ export default class Trades {
 
                             if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                                 const keyPrices = this.bot.pricelist.getKeyPrices;
-                                const value = t.valueDiff(
-                                    offer,
-                                    keyPrices,
-                                    false,
-                                    opt.miscSettings.showOnlyMetal.enable
-                                );
+                                const value = t.valueDiff(offer, keyPrices, false);
 
-                                if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                                if (
+                                    opt.discordWebhook.sendAlert.enable &&
+                                    opt.discordWebhook.sendAlert.url.main !== ''
+                                ) {
                                     const summary = t.summarizeToChat(
                                         offer,
                                         this.bot,
@@ -705,8 +709,6 @@ export default class Trades {
                 this.bot.manager,
                 this.bot.schema,
                 opt,
-                this.bot.effects,
-                this.bot.paints,
                 this.bot.strangeParts,
                 'their'
             );
@@ -731,8 +733,6 @@ export default class Trades {
                     this.bot.manager,
                     this.bot.schema,
                     opt,
-                    this.bot.effects,
-                    this.bot.paints,
                     this.bot.strangeParts,
                     'our'
                 ).getItems;
@@ -743,8 +743,6 @@ export default class Trades {
                     this.bot.manager,
                     this.bot.schema,
                     opt,
-                    this.bot.effects,
-                    this.bot.paints,
                     this.bot.strangeParts,
                     'their'
                 ).getItems;
@@ -958,6 +956,7 @@ export default class Trades {
 
                                     if (sku == '5021;6')
                                         keyDifference += dataDict[side][sku] * (side == 'our' ? 1 : -1);
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                     if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
 
                                     possibleKeyTrade = false; //Offer contains something other than pures
@@ -1403,7 +1402,7 @@ export default class Trades {
                             clearTimeout(this.restartOnEscrowCheckFailed);
                             this.restartOnEscrowCheckFailed = setTimeout(() => {
                                 // call function to automatically restart the bot after 2 seconds
-                                void this.triggerRestartBot(offer.partner);
+                                void this.triggerRestartBot(offer.partner.getSteamID64());
                             }, 2 * 1000);
 
                             log.error('Escrow check failed: ', err);
@@ -1430,13 +1429,13 @@ export default class Trades {
         });
     }
 
-    private retryToRestart(steamID: SteamID | string): void {
+    private retryToRestart(steamID: string): void {
         this.restartOnEscrowCheckFailed = setTimeout(() => {
             void this.triggerRestartBot(steamID);
         }, 3 * 60 * 1000);
     }
 
-    private async triggerRestartBot(steamID: SteamID | string): Promise<void> {
+    private async triggerRestartBot(steamID: string): Promise<void> {
         log.debug(`Escrow check problem occured, current failed count: ${this.escrowCheckFailedCount}`);
 
         if (this.escrowCheckFailedCount >= 2) {
@@ -1444,12 +1443,12 @@ export default class Trades {
 
             const dwEnabled =
                 this.bot.options.discordWebhook.sendAlert.enable &&
-                this.bot.options.discordWebhook.sendAlert.url !== '';
+                this.bot.options.discordWebhook.sendAlert.url.main !== '';
 
             // determine whether it's good time to restart or not
             try {
                 // test if backpack.tf is alive by performing bptf banned check request
-                await isBptfBanned(steamID, this.bot.options.bptfAPIKey, this.bot.userID);
+                await isBptfBanned(steamID, this.bot.options.bptfApiKey, this.bot.userID);
             } catch (err) {
                 // do not restart, try again after 3 minutes
                 clearTimeout(this.restartOnEscrowCheckFailed);
@@ -1634,6 +1633,7 @@ export default class Trades {
             if (err) {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');
+                clearTimeout(this.retryFetchInventoryTimeout);
                 this.retryFetchInventory();
             }
 
@@ -1642,7 +1642,7 @@ export default class Trades {
     }
 
     private retryFetchInventory(): void {
-        setTimeout(() => {
+        this.retryFetchInventoryTimeout = setTimeout(() => {
             this.bot.inventoryManager.getInventory.fetch().catch(err => {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');

@@ -233,11 +233,14 @@ export default class Pricelist extends EventEmitter {
 
     get isDwAlertEnabled(): boolean {
         const opt = this.bot.options.discordWebhook.sendAlert;
-        return opt.enable && opt.url !== '';
+        return opt.enable && (opt.url.main !== '' || opt.url.partialPriceUpdate !== '');
     }
 
     init(): void {
-        this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
+        if (this.options.enableSocket) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            this.priceSource.bindHandlePriceEvent(this.boundHandlePriceChange);
+        }
     }
 
     hasPrice(sku: string, onlyEnabled = false): boolean {
@@ -709,7 +712,7 @@ export default class Pricelist extends EventEmitter {
                     });
             })
             .catch(err => {
-                log.debug('❌ Unable to get key prices: ', err);
+                log.error('❌ Unable to get key prices: ', err);
 
                 this.useTemporaryKeyPrices(entryKey);
 
@@ -737,11 +740,11 @@ export default class Pricelist extends EventEmitter {
             const temporaryKeyPrices = {
                 buy: new Currencies({
                     keys: 0,
-                    metal: 50
+                    metal: 67
                 }),
                 sell: new Currencies({
                     keys: 0,
-                    metal: 60
+                    metal: 70
                 })
             };
 
@@ -1052,16 +1055,6 @@ export default class Pricelist extends EventEmitter {
             const isNotExcluded = !['5021;6'].concat(ppu.excludeSKU).includes(match.sku);
             const maxIsOne = match.max === 1;
 
-            if (ppu.enable) {
-                log.debug('ppu status - onHandlePriceChange', {
-                    sku: match.sku,
-                    inStock: isInStock,
-                    notExceed: isNotExceedThreshold,
-                    notExclude: isNotExcluded,
-                    isMaxOne: maxIsOne
-                });
-            }
-
             // https://github.com/TF2Autobot/tf2autobot/issues/506
             // https://github.com/TF2Autobot/tf2autobot/pull/520
 
@@ -1077,16 +1070,6 @@ export default class Pricelist extends EventEmitter {
 
                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
                 const isBuyingChanged = currBuyingValue !== newBuyValue;
-
-                log.debug('ppu', {
-                    newBuyValue: newBuyValue,
-                    newSellValue: newSellValue,
-                    currBuyingValue: currBuyingValue,
-                    currSellingValue: currSellingValue,
-                    isNegativeDiff: isNegativeDiff,
-                    isBuyingChanged: isBuyingChanged,
-                    isAlreadyPartialPriced: match.isPartialPriced
-                });
 
                 if (match.isPartialPriced || isNegativeDiff || isBuyingChanged) {
                     if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
@@ -1110,9 +1093,7 @@ export default class Pricelist extends EventEmitter {
                         }
                     }
                 } else {
-                    log.debug('ppu - nothing match');
                     if (!match.isPartialPriced) {
-                        log.debug('ppu - isPartialPrice was false');
                         match.buy = newPrices.buy;
                         match.sell = newPrices.sell;
                         match.time = data.time;
@@ -1126,13 +1107,12 @@ export default class Pricelist extends EventEmitter {
                     (match.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND and has exceeded threshold
                     (match.isPartialPriced && !isInStock) // OR, still partialPrice true AND and no longer in stock
                 ) {
-                    log.debug('update price as usual');
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
                     match.time = data.time;
 
                     if (match.isPartialPriced) {
-                        log.debug('reset partial price', {
+                        log.debug('ppu - reset partial price', {
                             isExceededThreshold: !isNotExceedThreshold,
                             isNotInStock: !isInStock
                         });

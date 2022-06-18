@@ -21,6 +21,10 @@
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
 
+                "USERAGENT_HEADER_CUSTOM": "",
+
+                "MPTF_API_KEY": "",
+
                 "ADMINS": ["<your steamid 64>"],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
                 "ITEM_STATS_WHITELIST": [],
@@ -40,6 +44,8 @@
 
                 "DEBUG": true,
                 "DEBUG_FILE": true,
+                "DEBUG_SCHEMA": false,
+                "ENABLE_SAVE_LOG_FILE": true,
 
                 "ENABLE_HTTP_API": false,
                 "HTTP_API_PORT": 3001

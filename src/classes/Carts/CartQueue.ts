@@ -43,31 +43,31 @@ export default class CartQueue {
         });
 
         clearTimeout(this.queuePositionCheck);
-        this.queueCheck(cart.partner);
+        this.queueCheck(cart.partner.getSteamID64());
 
         return position;
     }
 
-    private queueCheck(steamID: SteamID | string): void {
+    private queueCheck(steamID: string): void {
         log.debug(`Checking queue position in 3 minutes...`);
         this.queuePositionCheck = setTimeout(() => {
             void this.queueCheckRestartBot(steamID);
         }, 3 * 60 * 1000);
     }
 
-    private async queueCheckRestartBot(steamID: SteamID | string): Promise<void> {
+    private async queueCheckRestartBot(steamID: string): Promise<void> {
         const position = this.carts.length;
         log.debug(`Current queue position: ${position}`);
 
         if (position >= 2) {
             const dwEnabled =
                 this.bot.options.discordWebhook.sendAlert.enable &&
-                this.bot.options.discordWebhook.sendAlert.url !== '';
+                this.bot.options.discordWebhook.sendAlert.url.main !== '';
 
             // determine whether it's good time to restart or not
             try {
                 // test if backpack.tf is alive by performing bptf banned check request
-                await isBptfBanned(steamID, this.bot.options.bptfAPIKey, this.bot.userID);
+                await isBptfBanned(steamID, this.bot.options.bptfApiKey, this.bot.userID);
             } catch (err) {
                 // do not restart, try again after 3 minutes
                 clearTimeout(this.queuePositionCheck);

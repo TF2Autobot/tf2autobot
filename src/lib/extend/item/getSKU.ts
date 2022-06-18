@@ -30,6 +30,12 @@ export = function (
         return { sku: 'unknown', isPainted: false };
     }
 
+    if (!self.market_hash_name) {
+        throw new Error(
+            `Item ${self.id} does not have the "market_hash_name" key, unable to correctly identify the item`
+        );
+    }
+
     let item = Object.assign(
         {
             defindex: getDefindex(self),
@@ -189,6 +195,10 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
         return null;
     }
 
+    if (!Array.isArray(item.descriptions)) {
+        return null;
+    }
+
     let hasCaseCollection = false;
     let skin: string | null = null;
 
@@ -239,9 +249,9 @@ function getElevatedQuality(
     const isUnusualHat =
         item.getItemTag('Type') === 'Cosmetic' &&
         quality === 5 &&
-        item.type.includes('Strange') &&
-        item.type.includes('Points Scored');
-    const isOtherItemsNotStrangeQuality = item.type.startsWith('Strange') && quality !== 11;
+        item.type?.includes('Strange') &&
+        item.type?.includes('Points Scored');
+    const isOtherItemsNotStrangeQuality = item.type?.startsWith('Strange') && quality !== 11;
 
     if (
         item.hasDescription('Strange Stat Clock Attached') ||
@@ -257,6 +267,10 @@ function getOutput(
     item: EconItem,
     schema: SchemaManager.Schema
 ): { target: number | null; output: number | null; outputQuality: number | null } {
+    if (!Array.isArray(item.descriptions)) {
+        return null;
+    }
+
     let index = -1;
 
     const descriptionsCount = item.descriptions.length;
@@ -333,9 +347,9 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
         const gameItem = schema.raw.items_game.items[defindex];
 
         if (gameItem.attributes !== undefined && gameItem.attributes['tool target item'] !== undefined) {
-            return parseInt(gameItem.attributes['tool target item'].value, 10);
+            return parseInt(gameItem.attributes['tool target item'].value as string, 10);
         } else if (gameItem.static_attrs !== undefined && gameItem.static_attrs['tool target item'] !== undefined) {
-            return parseInt(gameItem.static_attrs['tool target item'], 10);
+            return parseInt(gameItem.static_attrs['tool target item'] as string, 10);
         }
 
         // Get schema item using market_hash_name
@@ -408,6 +422,10 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
  */
 function getCrateSeries(item: EconItem): number | null {
     const defindex = getDefindex(item);
+
+    if (defindex === null) {
+        throw new Error('Could not get defindex of item "' + item.market_hash_name + '"');
+    }
 
     let series: number | null = null;
 
@@ -505,6 +523,10 @@ function getPainted(
         return null;
     }
 
+    if (!Array.isArray(item.descriptions)) {
+        return null;
+    }
+
     const descriptions = item.descriptions;
     const descriptionCount = descriptions.length;
 
@@ -513,7 +535,7 @@ function getPainted(
             const name = descriptions[i].value.replace('Paint Color: ', '').trim();
 
             if (paintsInOptions.includes(name.toLowerCase())) {
-                const paintDecimal = +paints[name].replace('p', '');
+                const paintDecimal = paints[name];
                 isPainted = true;
                 return paintDecimal;
             }
@@ -521,9 +543,9 @@ function getPainted(
     }
 
     if (
-        !item.type.includes('Tool') &&
+        !item.type?.includes('Tool') &&
         paintsInOptions.includes('legacy paint') &&
-        item.icon_url.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
+        item.icon_url?.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
     ) {
         isPainted = true;
         return 5801378;

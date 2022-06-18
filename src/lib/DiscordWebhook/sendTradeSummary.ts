@@ -44,7 +44,7 @@ export default async function sendTradeSummary(
           };
 
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);
+    const value = t.valueDiff(offer, keyPrices, isTradingKeys);
     const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, keyPrices, false, isOfferSent);
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
@@ -97,7 +97,6 @@ export default async function sendTradeSummary(
             ? optDW.ownerID.map(id => `<@!${id}>`).join(', ')
             : '';
 
-    log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
 
     const botInfo = bot.handler.getBotInfo;
@@ -234,30 +233,28 @@ export default async function sendTradeSummary(
     const url = optDW.tradeSummary.url;
 
     url.forEach((link, i) => {
-        sendWebhook(link, acceptedTradeSummary, 'trade-summary', i)
-            .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
-            .catch(err => {
-                log.warn(
-                    `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
-                        url.length > 1 ? `(${i + 1})` : ''
-                    }: `,
-                    err
-                );
+        sendWebhook(link, acceptedTradeSummary, 'trade-summary', i).catch(err => {
+            log.warn(
+                `❌ Failed to send trade-summary webhook (#${offer.id}) to Discord ${
+                    url.length > 1 ? `(${i + 1})` : ''
+                }: `,
+                err
+            );
 
-                const itemListx = t.listItems(offer, bot, itemsName, true);
+            const itemListx = t.listItems(offer, bot, itemsName, true);
 
-                void sendToAdmin(
-                    bot,
-                    offer,
-                    value,
-                    itemListx,
-                    keyPrices,
-                    isOfferSent,
-                    timeTakenToComplete,
-                    timeTakenToProcessOrConstruct,
-                    timeTakenToCounterOffer
-                );
-            });
+            void sendToAdmin(
+                bot,
+                offer,
+                value,
+                itemListx,
+                keyPrices,
+                isOfferSent,
+                timeTakenToComplete,
+                timeTakenToProcessOrConstruct,
+                timeTakenToCounterOffer
+            );
+        });
     });
 }
 

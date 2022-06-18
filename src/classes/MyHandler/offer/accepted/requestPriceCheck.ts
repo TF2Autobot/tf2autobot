@@ -22,7 +22,7 @@ export default class PriceCheckQueue {
     private static isProcessing = false;
 
     static enqueue(sku: string): void {
-        this.skus.push(sku);
+        this.skus.push(sku.replace(/;[p][0-9]+/, ''));
 
         void this.process();
     }

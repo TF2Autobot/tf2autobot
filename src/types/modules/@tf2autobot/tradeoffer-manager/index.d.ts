@@ -213,6 +213,14 @@ declare module '@tf2autobot/tradeoffer-manager' {
             error?: string;
         }
 
+        interface Halted {
+            reason: '⬜_HALTED';
+        }
+
+        interface BannedResults {
+            [website: string]: string;
+        }
+
         export type WrongAboutOffer =
             | Overstocked
             | Understocked
@@ -222,7 +230,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             | DupeCheckFailed
             | DupedItems
             | EscrowCheckFailed
-            | BannedCheckFailed;
+            | BannedCheckFailed
+            | Halted;
 
         export interface Meta {
             highValue?: HighValueOutput;
@@ -232,6 +241,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             assetids?: string[];
             sku?: string[];
             result?: boolean[];
+            banned?: BannedResults;
         }
 
         interface PartialSKUWithMention {

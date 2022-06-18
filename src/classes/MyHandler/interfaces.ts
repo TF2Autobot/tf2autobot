@@ -28,6 +28,7 @@ interface Integrations {
 interface Bans {
     steamrep_scammer?: number;
     all?: AllBans;
+    'all features': AllFeatures;
 }
 
 interface Votings {
@@ -53,6 +54,11 @@ interface AllBans {
     reason?: string;
 }
 
+interface AllFeatures {
+    end: number;
+    reason: string;
+}
+
 interface InventoryAppID {
     ranking?: number;
     value?: number;
@@ -70,4 +76,8 @@ interface Slots {
 interface BPTFTrust {
     positive?: number;
     negative?: number;
+}
+
+export interface Blocked {
+    [steamid: string]: string;
 }

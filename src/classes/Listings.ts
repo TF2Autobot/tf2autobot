@@ -20,7 +20,7 @@ export default class Listings {
     private cancelCheckingListings = false;
 
     private get isCreateListing(): boolean {
-        return this.bot.options.miscSettings.createListings.enable;
+        return this.bot.options.miscSettings.createListings.enable && !this.bot.isHalted;
     }
 
     private templates: { buy: string; sell: string };
@@ -117,7 +117,7 @@ export default class Listings {
 
                 if (isCurrenciesChanged || isListingDetailsChanged) {
                     if (showLogs) {
-                        log.debug(`Listing details don't match, updated listing`, {
+                        log.debug(`Listing details don't match, update listing`, {
                             sku: sku,
                             intent: listing.intent
                         });
@@ -169,7 +169,15 @@ export default class Listings {
                 });
             }
 
-            if (!hasSellListing && amountCanSell > 0) {
+            const assetid = assetids[assetids.length - 1];
+
+            if (!hasSellListing && amountCanSell > 0 && assetid) {
+                // assetid can be undefined, if any of the following is set to true
+                // - options.normalize.festivized.amountIncludeNonFestivized
+                // - options.normalize.strangeAsSecondQuality.amountIncludeNonStrange
+                // - options.normalize.painted.amountIncludeNonPainted
+                // https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file#-items-normalization-settings-
+
                 if (showLogs) {
                     log.debug(`We have no sell order and we can sell items, create sell listing.`);
                 }
@@ -178,7 +186,7 @@ export default class Listings {
 
                 this.bot.listingManager.createListing({
                     time: matchNew.time || dayjs().unix(),
-                    id: assetids[assetids.length - 1],
+                    id: assetid,
                     intent: 1,
                     promoted: matchNew.promoted,
                     details: this.getDetails(
@@ -377,7 +385,7 @@ export default class Listings {
                 log.debug('Checking listings...');
 
                 const prevCount = this.bot.listingManager.listings.length;
-                this.bot.listingManager.getListings(err => {
+                this.bot.listingManager.getListings(true, err => {
                     if (err) {
                         return reject(err);
                     }
@@ -401,7 +409,7 @@ export default class Listings {
         });
     }
 
-    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem, useSku = false): string {
+    private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem): string {
         const opt = this.bot.options;
         const buying = intent === 0;
         const key = buying ? 'buy' : 'sell';
@@ -420,7 +428,7 @@ export default class Listings {
                 const cTEnd = optD.customText.ender;
 
                 const optR = opt.detailsExtra;
-                const getPaints = this.bot.paints;
+                const getPaints = this.bot.schema.paints;
                 const getStrangeParts = this.bot.strangeParts;
 
                 const hv = item.hv;
@@ -454,6 +462,7 @@ export default class Listings {
                                     toJoin.push(
                                         `${name.replace(
                                             name,
+                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                             optR.strangeParts[name] ? optR.strangeParts[name] : name
                                         )}`
                                     );
@@ -463,6 +472,7 @@ export default class Listings {
                                         toJoin.push(
                                             `${name.replace(
                                                 name,
+                                                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                                                 attachment === 's'
                                                     ? optR.spells[name]
                                                     : attachment === 'ke'
@@ -519,7 +529,7 @@ export default class Listings {
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
-                .replace(/%name%/g, useSku ? entry.sku : entry.name)
+                .replace(/%name%/g, entry.name)
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
@@ -584,15 +594,17 @@ export default class Listings {
                 return details;
             }
 
-            // else we reconstruct, but replace %name% with sku instead of item full name
-            const newDetails = this.getDetails(intent, amountCanTrade, entry, item, true);
+            if (details.includes(entry.name)) {
+                details = details.replace(entry.name, entry.sku);
 
-            if (newDetails.length > 200) {
-                // if still more than 200 characters, we cut to at least 200 characters.
-                return newDetails.substring(0, 200);
+                if (details.length < 200) {
+                    // if details < 200 after replacing name with sku, use this.
+                    return details;
+                }
             }
 
-            return newDetails;
+            // else if still more than 200 characters, we cut to at least 200 characters.
+            return details.substring(0, 200);
         }
 
         return string;
@@ -610,7 +622,7 @@ function getAttachmentName(attachment: string, pSKU: string, paints: Paints, par
     else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
     else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
     else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
+    else if (attachment === 'p') return getKeyByValue(paints, parseInt(pSKU.replace('p', '')));
 }
 
 function boldDetails(str: string, style: number): string {

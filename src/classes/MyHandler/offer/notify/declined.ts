@@ -8,7 +8,7 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
     const offerReason = offer.data('action') as Action;
     const meta = offer.data('meta') as Meta;
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
+    const value = valueDiff(offer, keyPrices, isTradingKeys);
     const manualReviewDisabled = !opt.manualReview.enable;
 
     const declined = '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined';
@@ -22,6 +22,13 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         //
         const custom = opt.customMessage.decline.hasNonTF2Items;
         reply = custom ? custom : declined + ` because the offer you've sent contains Non-TF2 items.`;
+        //
+    } else if (offerReason.reason === 'GIFT_FAILED_CHECK_BANNED') {
+        //
+        const custom = opt.customMessage.decline.giftFailedCheckBanned;
+        reply = custom
+            ? custom
+            : declined + ` because the offer you've sent is a gift, but I've failed to check your reputation status.`;
         //
     } else if (offerReason.reason === 'GIFT_NO_NOTE') {
         //
@@ -98,11 +105,25 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         //
     } else if (offerReason.reason === 'BANNED') {
         //
+        let checkResult = '';
+        if (meta?.banned) {
+            checkResult = 'Check results:\n';
+            Object.keys(meta.banned).forEach((website, index) => {
+                if (meta.banned[website] !== 'clean') {
+                    if (index > 0) {
+                        checkResult += '\n';
+                    }
+                    checkResult += `(${index + 1}) ${website}: ${meta.banned[website]}`;
+                }
+            });
+        }
         const custom = opt.customMessage.decline.banned;
         reply = custom
-            ? custom
+            ? custom + `${checkResult !== '' ? '\n\n' + checkResult : ''}`
             : declined +
-              " because you're currently banned on backpack.tf or labeled as a scammer on steamrep.com or another community.";
+              ` because you're currently banned in one or more trading communities.\n\n${
+                  checkResult !== '' ? '\n\n' + checkResult : ''
+              }`;
         //
     } else if (offerReason.reason === 'ESCROW') {
         //
@@ -187,6 +208,9 @@ export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boo
         const custom = opt.offerReceived.duped.autoDecline.declineReply;
         reply = custom ? custom : declined + " because I don't accept duped items.";
         //
+    } else if (offerReason.reason === 'HALTED') {
+        const custom = opt.customMessage.decline.halted;
+        reply = custom ? custom : declined + ' because I am not operational right now. Please come back later.';
     } else {
         //
         const custom = opt.customMessage.decline.general;

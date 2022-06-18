@@ -1,5 +1,5 @@
 import TradeOfferManager, { TradeOffer } from '@tf2autobot/tradeoffer-manager';
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import axios, { AxiosError } from 'axios';
 import { Webhook } from './interfaces';
 import Bot from '../../classes/Bot';
 import log from '../logger';
@@ -50,28 +50,23 @@ export function quickLinks(name: string, links: { steam: string; bptf: string; s
 
 export function sendWebhook(url: string, webhook: Webhook, event: string, i?: number): Promise<void> {
     return new Promise((resolve, reject) => {
-        const request = new XMLHttpRequest();
+        if (i > 0 && event === 'trade-summary') {
+            webhook.content = webhook.content.replace(/( )?<@!\d+>(,)?/g, ''); // remove mention
+            webhook.embeds.forEach((embed, index) => {
+                webhook.embeds[index].description = embed.description.replace(/ \(\d+ → \d+(\/\d+)?\)/g, '');
+            });
+        }
 
-        request.onreadystatechange = (): void => {
-            if (request.readyState === 4) {
-                if (request.status === 204) {
-                    resolve();
-                } else {
-                    reject({ responseText: request.responseText, webhook });
-                }
-            }
-        };
-
-        request.open('POST', url);
-        request.setRequestHeader('Content-type', 'application/json');
-
-        // remove mention owner on the second or more links, so the owner will not getting mentioned on the other servers.
-        request.send(
-            i > 0 && event === 'trade-summary'
-                ? JSON.stringify(webhook) // this is for second and subsequent servers
-                      .replace(/( )?<@!\d+>(,)?/g, '') // remove mention
-                      .replace(/ \(\d+ → \d+(\/\d+)?\)/g, '') // remove current/max stock
-                : JSON.stringify(webhook)
-        );
+        void axios({
+            method: 'POST',
+            url: url,
+            data: webhook
+        })
+            .then(() => {
+                resolve();
+            })
+            .catch((err: AxiosError) => {
+                reject({ err: err.response.statusText, webhook });
+            });
     });
 }
