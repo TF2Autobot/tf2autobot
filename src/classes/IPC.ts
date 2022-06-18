@@ -63,7 +63,7 @@ export default class ipcHandler extends IPC {
         }
 
         // eslint-disable-next-line
-        (this.options.tls ? this.connectToNet : this.connectTo)('autobot_gui_dev', () => {
+        const onConnected = () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
             this.ourServer = this.of.autobot_gui_dev;
             log.debug('connected IPC');
@@ -78,7 +78,9 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('removeItem', this.removeItem.bind(this));
             this.ourServer.on('getTrades', this.sendTrades.bind(this));
             this.ourServer.on('sendChat', this.sendChat.bind(this));
-        });
+        };
+        if (this.options.tls) this.connectToNet('autobot_gui_dev', onConnected);
+        else this.connectTo('autobot_gui_dev', onConnected);
     }
 
     private static cleanItem(item): void {
