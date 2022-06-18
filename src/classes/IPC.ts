@@ -63,7 +63,7 @@ export default class ipcHandler extends IPC {
         }
 
         // eslint-disable-next-line
-        this.connectToNet('autobot_gui_dev', () => {
+        (this.options.tls ? this.connectToNet : this.connectTo)('autobot_gui_dev', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
             this.ourServer = this.of.autobot_gui_dev;
             log.debug('connected IPC');
