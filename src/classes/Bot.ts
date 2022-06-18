@@ -34,7 +34,7 @@ import ipcHandler from './IPC';
 
 export default class Bot {
     // Modules and classes
-    readonly ipc: ipcHandler;
+    readonly ipc?: ipcHandler;
 
     schema: SchemaManager.Schema; // should be readonly
 
@@ -139,7 +139,7 @@ export default class Bot {
         this.tf2gc = new TF2GC(this);
 
         this.handler = new MyHandler(this, this.priceSource);
-        this.ipc = new ipcHandler(this);
+        if (this.options.IPC) this.ipc = new ipcHandler(this);
 
         this.admins = this.options.admins.map(steamID => new SteamID(steamID));
 
@@ -443,7 +443,7 @@ export default class Bot {
                             }
 
                             log.info('Signed in to Steam!');
-                            this.ipc.init();
+                            if (this.options.IPC) this.ipc.init();
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         };
@@ -501,8 +501,10 @@ export default class Bot {
                         log.info('Setting properties, inventory, etc...');
                         this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
                         this.pricelist.init();
-                        this.ipc.sendPricelist();
-                        this.addListener(this.pricelist, 'pricelist', this.ipc.sendPricelist.bind(this.ipc), false); //TODO adapt
+                        if (this.options.IPC) {
+                            this.ipc.sendPricelist();
+                            this.addListener(this.pricelist, 'pricelist', this.ipc.sendPricelist.bind(this.ipc), false); //TODO adapt
+                        }
                         this.inventoryManager = new InventoryManager(this.pricelist);
 
                         const userID = this.bptf._getUserID();
