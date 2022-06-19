@@ -58,7 +58,7 @@ export function getItemAndAmount(
     }
 
     let priceKey: string;
-    let match = testSKU(name) ? bot.pricelist.getPrice(name, true) : bot.pricelist.searchByName(name, true);
+    let match = testSKU(name) ? bot.pricelist.getPriceBySkuOrAsset(name, true) : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 

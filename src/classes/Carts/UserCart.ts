@@ -156,18 +156,18 @@ export default class UserCart extends Cart {
         let value = 0;
 
         // Go through [which] items
-        for (const sku in this[which]) {
-            if (!Object.prototype.hasOwnProperty.call(this[which], sku)) {
+        for (const priceKey in this[which]) {
+            if (!Object.prototype.hasOwnProperty.call(this[which], priceKey)) {
                 continue;
             }
 
-            const match = this.bot.pricelist.getPrice(sku, true);
+            const match = this.bot.pricelist[which === 'our' ? 'getPriceBySkuOrAsset' : 'getPrice'](priceKey, true);
             if (match === null) {
                 // Ignore items that are no longer in the pricelist
                 continue;
             }
 
-            value += match[which === 'our' ? 'sell' : 'buy'].toValue(keyPrice.metal) * this[which][sku];
+            value += match[which === 'our' ? 'sell' : 'buy'].toValue(keyPrice.metal) * this[which][priceKey];
         }
 
         return Currencies.toCurrencies(value, this.canUseKeys ? keyPrice.metal : undefined);
@@ -408,7 +408,8 @@ export default class UserCart extends Cart {
             }
 
             const isAssetId = Pricelist.isAssetId(priceKey);
-            const entry = this.bot.pricelist.getPrice(priceKey, true, false);
+            const isPricedAsset = isAssetId && this.bot.pricelist.hasPrice(priceKey, false);
+            const entry = this.bot.pricelist.getPriceBySkuOrAsset(priceKey, true, false);
             let alteredMessage: string;
 
             let ourAssetids = ourInventory.findBySKU(entry.sku, true);
@@ -441,7 +442,7 @@ export default class UserCart extends Cart {
             }
 
             let skuCount: { mostCanTrade: number; name: string };
-            if (isAssetId) {
+            if (isPricedAsset) {
                 skuCount = {
                     mostCanTrade: this.bot.inventoryManager.amountCanTrade(priceKey, false, false),
                     name: entry.name
@@ -454,8 +455,8 @@ export default class UserCart extends Cart {
             if (amount > skuCount.mostCanTrade) {
                 this.removeOurItem(priceKey, Infinity);
                 if (skuCount.mostCanTrade === 0) {
-                    alteredMessage = `I can't sell more ${skuCount.name}`;
-                    this.bot.listings.checkByPriceKey(priceKey, null, false, true);
+                    alteredMessage = `I can't sell more ${entry.name}`;
+                    this.bot.listings.checkByPriceKey(isPricedAsset ? priceKey : entry.sku, null, false, true);
                 } else {
                     alteredMessage = `I can only sell ${skuCount.mostCanTrade} more ${pluralize(
                         skuCount.name,
@@ -649,7 +650,7 @@ export default class UserCart extends Cart {
             }
 
             const isAssetId = Pricelist.isAssetId(priceKey);
-            const entry = this.bot.pricelist.getPrice(priceKey, true);
+            const entry = this.bot.pricelist.getPriceBySkuOrAsset(priceKey, true);
             const amount = this.our[priceKey];
 
             let assetids = ourInventory.findBySKU(entry.sku, true);
@@ -1024,8 +1025,8 @@ export default class UserCart extends Cart {
             }
 
             itemPrices[priceKey] = {
-                buy: this.bot.pricelist.getPrice(priceKey, true).buy,
-                sell: this.bot.pricelist.getPrice(priceKey, true).sell
+                buy: this.bot.pricelist.getPriceBySkuOrAsset(priceKey, true).buy,
+                sell: this.bot.pricelist.getPriceBySkuOrAsset(priceKey, true).sell
             };
         }
 

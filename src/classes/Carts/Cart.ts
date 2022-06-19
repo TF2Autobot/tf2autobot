@@ -258,7 +258,7 @@ export default abstract class Cart {
 
             let itemName: string;
             if (Pricelist.isAssetId(priceKey)) {
-                itemName = this.bot.pricelist.getPrice(priceKey).name + ` (${priceKey})`;
+                itemName = this.bot.pricelist.getPriceBySkuOrAsset(priceKey).name + ` (${priceKey})`;
             } else {
                 itemName = this.bot.schema.getName(SKU.fromString(priceKey), false);
             }

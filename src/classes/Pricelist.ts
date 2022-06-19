@@ -266,6 +266,25 @@ export default class Pricelist extends EventEmitter {
         return null;
     }
 
+    getPriceBySkuOrAsset(priceKey: string, onlyEnabled = false, generics = false): Entry | null {
+        let entry = this.getPrice(priceKey, onlyEnabled, generics);
+
+        if (Pricelist.isAssetId(priceKey) && entry === null) {
+            if (this.hasPrice(priceKey, false) && onlyEnabled) {
+                // Is an asset, is priced, and is disabled
+                return null;
+            }
+
+            entry = this.getPrice(
+                this.bot.inventoryManager.getInventory.findByAssetid(priceKey),
+                onlyEnabled,
+                generics
+            );
+        }
+
+        return entry;
+    }
+
     /**
      * return true if the string matches all numbers
      * @param search - potential match string

@@ -39,7 +39,7 @@ export default class InventoryManager {
         }
 
         // Pricelist entry
-        let match = this.pricelist.getPrice(priceKey, true, false);
+        let match = this.pricelist.getPriceBySkuOrAsset(priceKey, true, false);
         const matchGeneric = !match && generics ? this.pricelist.getPrice(priceKey, true, true) : null;
         match = matchGeneric || match;
         // Amount in inventory should only use generic amount if there is a generic sku
