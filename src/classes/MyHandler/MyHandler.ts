@@ -174,6 +174,10 @@ export default class MyHandler extends Handler {
 
     private paths: Paths;
 
+    get getPaths(): Paths {
+        return this.paths;
+    }
+
     private isUpdating = false;
 
     set isUpdatingStatus(setStatus: boolean) {
