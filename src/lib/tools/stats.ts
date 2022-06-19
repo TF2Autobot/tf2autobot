@@ -41,7 +41,6 @@ export default function stats(bot: Bot, pollData: SteamTradeOfferManager.PollDat
     let isInvalid24Hours = 0;
     let isInvalidToday = 0;
 
-    // const pollData = loadPollData(bot.handler.getPaths.files.dir);
     const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
     const timeSince =
         +bot.options.statistics.startingTimeInUnix === 0

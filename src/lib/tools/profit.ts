@@ -19,7 +19,6 @@ interface OfferDataWithTime extends OfferData {
 
 export default async function profit(bot: Bot, pollData: SteamTradeOfferManager.PollData, start = 0): Promise<Profit> {
     return new Promise(resolve => {
-        // const pollData = loadPollData(bot.handler.getPaths.files.dir);
         const now = dayjs();
 
         if (pollData.offerData) {
