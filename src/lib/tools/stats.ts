@@ -1,8 +1,8 @@
+import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import Bot from '../../classes/Bot';
-import loadPollData from './polldata';
 
-export default function stats(bot: Bot): Stats {
+export default function stats(bot: Bot, pollData: SteamTradeOfferManager.PollData): Stats {
     const now = dayjs();
     const aDayAgo = dayjs().subtract(24, 'hour');
     const startOfDay = dayjs().startOf('day');
@@ -41,7 +41,7 @@ export default function stats(bot: Bot): Stats {
     let isInvalid24Hours = 0;
     let isInvalidToday = 0;
 
-    const pollData = loadPollData(bot.handler.getPaths.files.dir);
+    // const pollData = loadPollData(bot.handler.getPaths.files.dir);
     const oldestId = pollData.offerData === undefined ? undefined : Object.keys(pollData.offerData)[0];
     const timeSince =
         +bot.options.statistics.startingTimeInUnix === 0
