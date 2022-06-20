@@ -25,12 +25,11 @@ function generatePollDataPath(steamAccountName: string, increment: number) {
     return path.join(__dirname, `../../files/${steamAccountName}/polldata${increment > 0 ? increment : ''}.json`);
 }
 
-export default function genPaths(steamAccountName: string): Paths {
+export default function genPaths(steamAccountName: string, maxPollDataSizeMB = 5): Paths {
     let increment = 0;
     let pollDataPath = generatePollDataPath(steamAccountName, increment);
 
-    // TODO: Make max file size configurable (?)
-    while (fs.existsSync(pollDataPath) && fs.statSync(pollDataPath).size / (1024 * 1024) > 5) {
+    while (fs.existsSync(pollDataPath) && fs.statSync(pollDataPath).size / (1024 * 1024) > maxPollDataSizeMB) {
         pollDataPath = generatePollDataPath(steamAccountName, ++increment);
     }
 
