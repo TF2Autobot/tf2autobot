@@ -2463,13 +2463,35 @@ export default class MyHandler extends Handler {
     }
 
     refreshPollDataPath() {
-        this.paths = genPaths(this.opt.steamAccountName);
+        const newPaths = genPaths(this.opt.steamAccountName);
+        const pathChanged = newPaths.files.pollData !== this.paths.files.pollData;
+        this.paths = newPaths;
+
+        if (!pathChanged) {
+            return;
+        }
 
         files
             .readFile(this.paths.files.pollData, true)
-            .then(pollDataFile => {
-                this.bot.manager.pollData = (pollDataFile ? pollDataFile : {}) as SteamTradeOfferManager.PollData;
-                // TODO: Move active trades to new polldata
+            .then((pollDataFile: SteamTradeOfferManager.PollData | null) => {
+                const currentPollData = this.bot.manager.pollData;
+                const activeOffers = this.bot.trades.getActiveOffers(currentPollData);
+                const newPollData = pollDataFile
+                    ? pollDataFile
+                    : ({ sent: {}, received: {}, offerData: {} } as SteamTradeOfferManager.PollData);
+                Object.keys(activeOffers).forEach(intent => {
+                    (activeOffers[intent] as string[]).forEach(id => {
+                        (newPollData[intent] as Record<string, number>)[id] = (
+                            currentPollData[intent] as Record<string, number>
+                        )[id];
+
+                        newPollData.offerData[id] = currentPollData.offerData[id];
+                    });
+                });
+                this.bot.manager.pollData = newPollData;
+                // TODO: Remove duplicate entries
+                // Duplicates are already handled in src/lib/tools/polldata
+                // so this is only for optimizing storage
             })
             .catch(err => {
                 log.error('Failed to update polldata path:', err);
