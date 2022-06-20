@@ -47,6 +47,7 @@ import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/e
 import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
+import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -192,6 +193,8 @@ export default class MyHandler extends Handler {
 
     private classWeaponsTimeout: NodeJS.Timeout;
 
+    private pollDataInterval: NodeJS.Timeout;
+
     constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
 
@@ -286,6 +289,8 @@ export default class MyHandler extends Handler {
         this.refreshTimeout = setTimeout(() => {
             this.bot.startAutoRefreshListings();
         }, 5 * 60 * 1000);
+
+        this.pollDataInterval = setInterval(this.refreshPollDataPath.bind(this), 24 * 60 * 60 * 1000);
 
         // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
         const failedToUpdateOldPrices = this.bot.pricelist.failedUpdateOldPrices;
@@ -386,6 +391,10 @@ export default class MyHandler extends Handler {
 
         if (this.bot.periodicCheckAdmin) {
             clearInterval(this.bot.periodicCheckAdmin);
+        }
+
+        if (this.pollDataInterval) {
+            clearInterval(this.pollDataInterval);
         }
 
         return new Promise(resolve => {
@@ -2451,6 +2460,20 @@ export default class MyHandler extends Handler {
 
     onDeleteArchivedListingError(err: Error): void {
         log.error('Error on delete archived listings:', err);
+    }
+
+    refreshPollDataPath() {
+        this.paths = genPaths(this.opt.steamAccountName);
+
+        files
+            .readFile(this.paths.files.pollData, true)
+            .then(pollDataFile => {
+                this.bot.manager.pollData = (pollDataFile ? pollDataFile : {}) as SteamTradeOfferManager.PollData;
+                // TODO: Move active trades to new polldata
+            })
+            .catch(err => {
+                log.error('Failed to update polldata path:', err);
+            });
     }
 }
 
