@@ -47,6 +47,7 @@ import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/e
 import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
+import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -174,6 +175,10 @@ export default class MyHandler extends Handler {
 
     private paths: Paths;
 
+    get getPaths(): Paths {
+        return this.paths;
+    }
+
     private isUpdating = false;
 
     set isUpdatingStatus(setStatus: boolean) {
@@ -187,6 +192,8 @@ export default class MyHandler extends Handler {
     private refreshTimeout: NodeJS.Timeout;
 
     private classWeaponsTimeout: NodeJS.Timeout;
+
+    private pollDataInterval: NodeJS.Timeout;
 
     constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
@@ -282,6 +289,8 @@ export default class MyHandler extends Handler {
         this.refreshTimeout = setTimeout(() => {
             this.bot.startAutoRefreshListings();
         }, 5 * 60 * 1000);
+
+        this.pollDataInterval = setInterval(this.refreshPollDataPath.bind(this), 24 * 60 * 60 * 1000);
 
         // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
         const failedToUpdateOldPrices = this.bot.pricelist.failedUpdateOldPrices;
@@ -382,6 +391,10 @@ export default class MyHandler extends Handler {
 
         if (this.bot.periodicCheckAdmin) {
             clearInterval(this.bot.periodicCheckAdmin);
+        }
+
+        if (this.pollDataInterval) {
+            clearInterval(this.pollDataInterval);
         }
 
         return new Promise(resolve => {
@@ -2447,6 +2460,42 @@ export default class MyHandler extends Handler {
 
     onDeleteArchivedListingError(err: Error): void {
         log.error('Error on delete archived listings:', err);
+    }
+
+    refreshPollDataPath() {
+        const newPaths = genPaths(this.opt.steamAccountName);
+        const pathChanged = newPaths.files.pollData !== this.paths.files.pollData;
+        this.paths = newPaths;
+
+        if (!pathChanged) {
+            return;
+        }
+
+        files
+            .readFile(this.paths.files.pollData, true)
+            .then((pollDataFile: SteamTradeOfferManager.PollData | null) => {
+                const currentPollData = this.bot.manager.pollData;
+                const activeOffers = this.bot.trades.getActiveOffers(currentPollData);
+                const newPollData = pollDataFile
+                    ? pollDataFile
+                    : ({ sent: {}, received: {}, offerData: {} } as SteamTradeOfferManager.PollData);
+                Object.keys(activeOffers).forEach(intent => {
+                    (activeOffers[intent] as string[]).forEach(id => {
+                        (newPollData[intent] as Record<string, number>)[id] = (
+                            currentPollData[intent] as Record<string, number>
+                        )[id];
+
+                        newPollData.offerData[id] = currentPollData.offerData[id];
+                    });
+                });
+                this.bot.manager.pollData = newPollData;
+                // TODO: Remove duplicate entries
+                // Duplicates are already handled in src/lib/tools/polldata
+                // so this is only for optimizing storage
+            })
+            .catch(err => {
+                log.error('Failed to update polldata path:', err);
+            });
     }
 }
 

@@ -2,7 +2,7 @@ import Bot from '../../classes/Bot';
 import dayjs from 'dayjs';
 import { Currency } from '../../types/TeamFortress2';
 import Currencies from '@tf2autobot/tf2-currencies';
-import { OfferData } from '@tf2autobot/tradeoffer-manager';
+import SteamTradeOfferManager, { OfferData } from '@tf2autobot/tradeoffer-manager';
 
 // reference: https://github.com/ZeusJunior/tf2-automatic-gui/blob/master/app/profit.js
 
@@ -17,9 +17,8 @@ interface OfferDataWithTime extends OfferData {
     time: number;
 }
 
-export default async function profit(bot: Bot, start = 0): Promise<Profit> {
+export default async function profit(bot: Bot, pollData: SteamTradeOfferManager.PollData, start = 0): Promise<Profit> {
     return new Promise(resolve => {
-        const pollData = bot.manager.pollData;
         const now = dayjs();
 
         if (pollData.offerData) {

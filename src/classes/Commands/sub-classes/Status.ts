@@ -8,6 +8,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
 import { sendStats } from '../../../lib/DiscordWebhook/export';
+import loadPollData from '../../../lib/tools/polldata';
 
 // Bot status
 
@@ -18,8 +19,9 @@ export default class StatusCommands {
 
     async statsCommand(steamID: SteamID): Promise<void> {
         const tradesFromEnv = this.bot.options.statistics.lastTotalTrades;
-        const trades = stats(this.bot);
-        const profits = await profit(this.bot, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
+        const pollData = loadPollData(this.bot.handler.getPaths.files.dir);
+        const trades = stats(this.bot, pollData);
+        const profits = await profit(this.bot, pollData, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
 
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
