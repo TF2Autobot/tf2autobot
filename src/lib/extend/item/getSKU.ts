@@ -212,6 +212,10 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
     }
 
     if (skin === null) {
+        if (hasCaseCollection && item.market_hash_name?.includes('Red Rock Roscoe Pistol')) {
+            return 0;
+        }
+
         return null;
     }
 
