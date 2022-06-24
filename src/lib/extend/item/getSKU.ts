@@ -99,13 +99,8 @@ function getQuality(item: EconItem, schema: SchemaManager.Schema): number | null
     }
 
     const quality = item.getItemTag('Quality');
-    const isExterior = item.getItemTag('Exterior');
     if (quality !== null) {
-        if (isExterior !== null) {
-            return 15;
-        } else {
-            return schema.getQualityIdByName(quality);
-        }
+        return schema.getQualityIdByName(quality);
     }
 
     return null;
