@@ -8,6 +8,8 @@ import { fixItem } from '../../items';
 
 let isCrate = false;
 let isPainted = false;
+let replaceQualityTo11 = false;
+let replaceQualityTo15 = false;
 
 export = function (
     schema: SchemaManager.Schema,
@@ -21,6 +23,8 @@ export = function (
 
     isCrate = false;
     isPainted = false;
+    replaceQualityTo11 = false;
+    replaceQualityTo15 = false;
 
     if (self.appid != 440) {
         if (self.type && self.market_name) {
@@ -56,6 +60,14 @@ export = function (
 
     if (item.target === null) {
         item.target = getTarget(self, schema);
+    }
+
+    if (replaceQualityTo15) {
+        item.quality = 15;
+    }
+
+    if (replaceQualityTo11) {
+        item.quality = 11;
     }
 
     // Add missing properties, except if crates
@@ -256,6 +268,20 @@ function getElevatedQuality(
         item.hasDescription('Strange Stat Clock Attached') ||
         ((isUnusualHat || isOtherItemsNotStrangeQuality) && isNotNormalized)
     ) {
+        if (getPaintKit(item, schema) !== null) {
+            const hasRarityGradeTag = item.tags?.some(
+                tag => tag.category === 'Rarity' && tag.category_name === 'Grade'
+            );
+            const hasWarPaintTypeTag = item.getItemTag('Type') === 'War Paint';
+
+            if (hasWarPaintTypeTag || !hasRarityGradeTag) {
+                replaceQualityTo11 = true;
+                return null;
+            } else if (hasRarityGradeTag && quality === 11) {
+                replaceQualityTo15 = true;
+                return 11;
+            }
+        }
         return 11;
     } else {
         return null;
