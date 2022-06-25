@@ -11,6 +11,12 @@ let isPainted = false;
 let replaceQualityTo11 = false;
 let replaceQualityTo15 = false;
 
+let defindex: number = null;
+let quality: number = null;
+let killstreak: number = null;
+let wear: number = null;
+let paintkit: number = null;
+
 export = function (
     schema: SchemaManager.Schema,
     normalizeFestivizedItems: boolean,
@@ -25,6 +31,12 @@ export = function (
     isPainted = false;
     replaceQualityTo11 = false;
     replaceQualityTo15 = false;
+
+    defindex = null;
+    quality = null;
+    killstreak = null;
+    wear = null;
+    paintkit = null;
 
     if (self.appid != 440) {
         if (self.type && self.market_name) {
@@ -51,7 +63,7 @@ export = function (
             effect: getEffect(self, schema),
             wear: getWear(self),
             paintkit: getPaintKit(self, schema),
-            quality2: getElevatedQuality(self, schema, normalizeStrangeAsSecondQuality),
+            quality2: getElevatedQuality(self, normalizeStrangeAsSecondQuality),
             crateseries: getCrateSeries(self),
             paint: getPainted(self, normalizePainted, paints, paintsInOptions)
         },
@@ -88,12 +100,14 @@ export = function (
  */
 function getDefindex(item: EconItem): number | null {
     if (item.app_data !== undefined) {
-        return parseInt(item.app_data.def_index, 10);
+        defindex = parseInt(item.app_data.def_index, 10);
+        return defindex;
     }
 
     const link = item.getAction('Item Wiki Page...');
     if (link !== null) {
-        return parseInt(url.parse(link, true).query.id.toString(), 10);
+        defindex = parseInt(url.parse(link, true).query.id.toString(), 10);
+        return defindex;
     }
 
     // Last option is to get the name of the item and try and get the defindex that way
@@ -107,12 +121,14 @@ function getDefindex(item: EconItem): number | null {
  */
 function getQuality(item: EconItem, schema: SchemaManager.Schema): number | null {
     if (item.app_data !== undefined) {
-        return parseInt(item.app_data.quality, 10);
+        quality = parseInt(item.app_data.quality, 10);
+        return quality;
     }
 
-    const quality = item.getItemTag('Quality');
-    if (quality !== null) {
-        return schema.getQualityIdByName(quality);
+    const qualityFromTag = item.getItemTag('Quality');
+    if (qualityFromTag !== null) {
+        quality = schema.getQualityIdByName(qualityFromTag);
+        return quality;
     }
 
     return null;
@@ -135,7 +151,8 @@ function getKillstreak(item: EconItem): number {
 
     const index = killstreaks.findIndex(killstreak => item.market_hash_name.includes(killstreak + 'Killstreak '));
 
-    return index === -1 ? 0 : 3 - index;
+    killstreak = index === -1 ? 0 : 3 - index;
+    return killstreak;
 }
 
 /**
@@ -143,7 +160,7 @@ function getKillstreak(item: EconItem): number {
  * @param item - Item object
  */
 function isAustralium(item: EconItem): boolean {
-    if (item.getItemTag('Quality') !== 'Strange') {
+    if (quality !== 11) {
         return false;
     }
 
@@ -186,11 +203,12 @@ function getEffect(item: EconItem, schema: SchemaManager.Schema): number | null 
  * @param item - Item object
  */
 function getWear(item: EconItem): number | null {
-    const wear = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle Scarred'].indexOf(
+    const itemWear = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle Scarred'].indexOf(
         item.getItemTag('Exterior')
     );
 
-    return wear === -1 ? null : wear + 1;
+    wear = itemWear === -1 ? null : itemWear + 1;
+    return wear;
 }
 
 /**
@@ -198,7 +216,7 @@ function getWear(item: EconItem): number | null {
  * @param item - Item object
  */
 function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | null {
-    if (getWear(item) === null) {
+    if (wear) {
         return null;
     }
 
@@ -225,23 +243,26 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
 
     if (skin === null) {
         if (hasCaseCollection && item.market_hash_name?.includes('Red Rock Roscoe Pistol')) {
-            return 0;
+            paintkit = 0;
+            return paintkit;
         }
 
         return null;
     }
 
     if (skin.includes('Mk.I')) {
-        return schema.getSkinIdByName(skin);
+        paintkit = schema.getSkinIdByName(skin);
+        return paintkit;
     }
 
-    const schemaItem = schema.getItemByDefindex(getDefindex(item));
+    const schemaItem = schema.getItemByDefindex(defindex);
     // Remove weapon from skin name
     if (schemaItem !== null) {
         skin = skin.replace(schemaItem.item_type_name, '').trim();
     }
 
-    return schema.getSkinIdByName(skin);
+    paintkit = schema.getSkinIdByName(skin);
+    return paintkit;
 }
 
 /**
@@ -249,14 +270,8 @@ function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | nul
  * @param item - Item object
  * @param normalizeStrangeAsSecondQuality - toggle strange unusual normalization
  */
-function getElevatedQuality(
-    item: EconItem,
-    schema: SchemaManager.Schema,
-    normalizeStrangeAsSecondQuality: boolean
-): number | null {
+function getElevatedQuality(item: EconItem, normalizeStrangeAsSecondQuality: boolean): number | null {
     const isNotNormalized = !normalizeStrangeAsSecondQuality;
-    const quality = getQuality(item, schema);
-
     const isUnusualHat =
         item.getItemTag('Type') === 'Cosmetic' &&
         quality === 5 &&
@@ -268,7 +283,7 @@ function getElevatedQuality(
         item.hasDescription('Strange Stat Clock Attached') ||
         ((isUnusualHat || isOtherItemsNotStrangeQuality) && isNotNormalized)
     ) {
-        if (getPaintKit(item, schema) !== null) {
+        if (paintkit) {
             const hasRarityGradeTag = item.tags?.some(
                 tag => tag.category === 'Rarity' && tag.category_name === 'Grade'
             );
@@ -324,7 +339,6 @@ function getOutput(
     let outputQuality: number | null = null;
     let outputDefindex: number | null = null;
 
-    const killstreak = getKillstreak(item);
     if (killstreak !== 0) {
         // Killstreak Kit Fabricator
 
@@ -361,8 +375,6 @@ function getOutput(
 }
 
 function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null {
-    const defindex = getDefindex(item);
-
     if (defindex === null) {
         throw new Error('Could not get defindex of item "' + item.market_hash_name + '"');
     }
@@ -446,8 +458,6 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
  * @param item - Item object
  */
 function getCrateSeries(item: EconItem): number | null {
-    const defindex = getDefindex(item);
-
     if (defindex === null) {
         throw new Error('Could not get defindex of item "' + item.market_hash_name + '"');
     }
