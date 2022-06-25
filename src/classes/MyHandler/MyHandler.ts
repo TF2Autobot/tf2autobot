@@ -620,11 +620,7 @@ export default class MyHandler extends Handler {
                 // Get High-value items
                 items[which][sku].forEach(item => {
                     // Check if we have a priced asset in the trade
-                    if (
-                        which === 'our' &&
-                        ['5000;6', '5001;6', '5002;6', '5021;6'].indexOf(sku) === -1 &&
-                        this.bot.pricelist.hasPrice(item.id, false)
-                    ) {
+                    if (which === 'our' && this.bot.pricelist.hasPrice(item.id, false)) {
                         isAssetidPriceEnabled = true;
                         if (!Object.prototype.hasOwnProperty.call(ourPricedAssets, sku)) {
                             ourPricedAssets[sku] = [];
