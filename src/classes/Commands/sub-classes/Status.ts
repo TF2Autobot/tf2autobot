@@ -3,7 +3,6 @@ import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import SKU from '@tf2autobot/tf2-sku';
 import sleepasync from 'sleep-async';
-import { fixSKU } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
@@ -127,7 +126,6 @@ export default class StatusCommands {
             }
         }
 
-        sku = fixSKU(sku);
         let isSendSeparately = false;
         let boughtMessage = '';
         let soldMessage = '';

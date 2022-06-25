@@ -686,18 +686,6 @@ export function getItemFromParams(
     return fixItem(item, bot.schema);
 }
 
-export function fixSKU(sku: string): string {
-    if (sku.includes(';15') && sku.includes(';strange')) {
-        // Only fix for Strange War Paint/Skins and Strange Unusual War Paint/Skins (weird variant)
-        const item = SKU.fromString(sku);
-        item.quality = 11;
-        item.quality2 = null;
-        return SKU.fromObject(item);
-    }
-
-    return sku;
-}
-
 export function removeLinkProtocol(message: string): string {
     return message.replace(/(\w+:|^)\/\//g, '');
 }

@@ -8,7 +8,7 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 import { UnknownDictionary, UnknownDictionaryKnownValues } from '../../../types/common';
-import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
+import { removeLinkProtocol, getItemFromParams } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
@@ -173,7 +173,7 @@ export default class PricelistManagerCommands {
             }
         }
 
-        params.sku = fixSKU(params.sku as string);
+        params.sku = params.sku as string;
 
         return this.bot.pricelist
             .addPrice(params as EntryData, true, PricelistChangedSource.Command)
@@ -255,7 +255,7 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            params.sku = fixSKU(params.sku as string);
+            params.sku = params.sku as string;
 
             if (params.enabled === undefined) {
                 params.enabled = true;
@@ -983,7 +983,7 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
-        params.sku = fixSKU(params.sku as string);
+        params.sku = params.sku as string;
 
         if (!this.bot.pricelist.hasPrice(params.sku as string)) {
             return this.bot.sendMessage(steamID, '❌ Item is not in the pricelist.');
@@ -1651,7 +1651,7 @@ export default class PricelistManagerCommands {
         }
 
         this.bot.pricelist
-            .removePrice(fixSKU(sku), true)
+            .removePrice(sku, true)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
             })
@@ -1865,8 +1865,6 @@ export default class PricelistManagerCommands {
         if (sku === undefined) {
             return this.bot.sendMessage(steamID, '❌ Missing item');
         }
-
-        sku = fixSKU(sku);
 
         const match = this.bot.pricelist.getPrice(sku);
         if (match === null) {
