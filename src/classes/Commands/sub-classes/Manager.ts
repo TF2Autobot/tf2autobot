@@ -10,7 +10,7 @@ import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
 import { EPersonaState } from 'steam-user';
 import { EFriendRelationship } from 'steam-user';
-import { fixSKU, removeLinkProtocol } from '../functions/utils';
+import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
@@ -172,7 +172,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = fixSKU(params.sku as string);
+            const targetedSKU = params.sku as string;
             const [uncraft, untrade] = [
                 targetedSKU.includes(';uncraftable'),
                 targetedSKU.includes(';untradable') || targetedSKU.includes(';untradeable')

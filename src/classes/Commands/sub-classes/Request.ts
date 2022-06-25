@@ -3,7 +3,7 @@ import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import sleepasync from 'sleep-async';
 import Currencies from '@tf2autobot/tf2-currencies';
-import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
+import { removeLinkProtocol, getItemFromParams } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
@@ -38,8 +38,6 @@ export default class RequestCommands {
         } else {
             sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
         }
-
-        sku = fixSKU(sku);
 
         void this.priceSource
             .requestCheck(sku)
@@ -114,8 +112,6 @@ export default class RequestCommands {
         } else {
             sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
         }
-
-        sku = fixSKU(sku);
 
         const name = this.bot.schema.getName(SKU.fromString(sku));
         try {
