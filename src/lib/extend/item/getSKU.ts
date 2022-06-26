@@ -216,7 +216,7 @@ function getWear(item: EconItem): number | null {
  * @param item - Item object
  */
 function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | null {
-    if (wear) {
+    if (wear === null) {
         return null;
     }
 
