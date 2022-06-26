@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot",
-    "version": "4.16.1",
+    "version": "4.16.2",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
@@ -23,7 +23,7 @@
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
     "updaterepo": true,
-    "updateMessage": "Urgent patch: Fix unable to detect any War Paint or Skins.",
+    "updateMessage": "",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "^5.3.8",
