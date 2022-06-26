@@ -8,7 +8,7 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import sleepasync from 'sleep-async';
 import { UnknownDictionary, UnknownDictionaryKnownValues } from '../../../types/common';
-import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
+import { removeLinkProtocol, getItemFromParams } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
@@ -34,6 +34,10 @@ export default class PricelistManagerCommands {
 
     async addCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
+
+        if (params.isPartialPriced !== undefined) {
+            return this.bot.sendMessage(steamID, `❌ Cannot set "isPartialPriced" parameter!`);
+        }
 
         if (params.enabled === undefined) {
             params.enabled = true;
@@ -173,7 +177,7 @@ export default class PricelistManagerCommands {
             }
         }
 
-        params.sku = fixSKU(params.sku as string);
+        params.sku = params.sku as string;
 
         return this.bot.pricelist
             .addPrice(params as EntryData, true, PricelistChangedSource.Command)
@@ -220,6 +224,10 @@ export default class PricelistManagerCommands {
 
             const params = CommandParser.parseParams(itemToAdd);
 
+            if (params.isPartialPriced !== undefined) {
+                return this.bot.sendMessage(steamID, `❌ Cannot set "isPartialPriced" parameter!`);
+            }
+
             if (params.sku !== undefined && !testSKU(params.sku as string)) {
                 errorMessage.push(
                     `❌ Failed to add ${params.sku as string}: "sku" should not be empty or wrong format.`
@@ -255,7 +263,7 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            params.sku = fixSKU(params.sku as string);
+            params.sku = params.sku as string;
 
             if (params.enabled === undefined) {
                 params.enabled = true;
@@ -495,6 +503,10 @@ export default class PricelistManagerCommands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
+        if (params.isPartialPriced !== undefined) {
+            return this.bot.sendMessage(steamID, `❌ Cannot set "isPartialPriced" parameter!`);
+        }
+
         if (params.sku !== undefined || params.name !== undefined || params.defindex !== undefined) {
             return this.bot.sendMessage(
                 steamID,
@@ -672,6 +684,11 @@ export default class PricelistManagerCommands {
 
     async updateCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
+
+        if (params.isPartialPriced !== undefined && params.isPartialPriced === true) {
+            // Only disable
+            return this.bot.sendMessage(steamID, `❌ Cannot update "isPartialPriced" parameter to true!`);
+        }
 
         if (typeof params.intent === 'string') {
             const intent = ['buy', 'sell', 'bank'].indexOf(params.intent.toLowerCase());
@@ -983,7 +1000,7 @@ export default class PricelistManagerCommands {
             params.sku = SKU.fromObject(item);
         }
 
-        params.sku = fixSKU(params.sku as string);
+        params.sku = params.sku as string;
 
         if (!this.bot.pricelist.hasPrice(params.sku as string)) {
             return this.bot.sendMessage(steamID, '❌ Item is not in the pricelist.');
@@ -1144,6 +1161,10 @@ export default class PricelistManagerCommands {
 
             const params = CommandParser.parseParams(itemToUpdate);
             let sku = params.sku as string;
+
+            if (params.isPartialPriced !== undefined && params.isPartialPriced === true) {
+                return this.bot.sendMessage(steamID, `❌ Cannot update "isPartialPriced" parameter to true!`);
+            }
 
             if (params.all !== undefined) {
                 return this.bot.sendMessage(
@@ -1651,7 +1672,7 @@ export default class PricelistManagerCommands {
         }
 
         this.bot.pricelist
-            .removePrice(fixSKU(sku), true)
+            .removePrice(sku, true)
             .then(entry => {
                 this.bot.sendMessage(steamID, `✅ Removed "${entry.name}".`);
             })
@@ -1866,8 +1887,6 @@ export default class PricelistManagerCommands {
             return this.bot.sendMessage(steamID, '❌ Missing item');
         }
 
-        sku = fixSKU(sku);
-
         const match = this.bot.pricelist.getPrice(sku);
         if (match === null) {
             this.bot.sendMessage(steamID, `❌ Could not find item "${sku}" in the pricelist`);
@@ -1960,6 +1979,14 @@ export default class PricelistManagerCommands {
 
         const isPpuEnabled = this.bot.options.pricelist.partialPriceUpdate.enable;
 
+        if (!isPpuEnabled) {
+            return this.bot.sendMessage(
+                steamID,
+                '❌ This feature is disabled. Read more: ' +
+                    'https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file#--partial-price-update--'
+            );
+        }
+
         for (const sku in pricelist) {
             if (!pricelist[sku].isPartialPriced) {
                 delete pricelist[sku];
@@ -1967,14 +1994,6 @@ export default class PricelistManagerCommands {
         }
 
         if (Object.keys(pricelist).length === 0) {
-            if (!isPpuEnabled) {
-                return this.bot.sendMessage(
-                    steamID,
-                    '❌ This feature is disabled. Read more: ' +
-                        'https://github.com/TF2Autobot/tf2autobot/wiki/Configure-your-options.json-file#--partial-price-update--'
-                );
-            }
-
             return this.bot.sendMessage(steamID, '❌ No items with ppu enabled found.');
         }
 
