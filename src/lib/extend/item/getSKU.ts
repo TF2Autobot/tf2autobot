@@ -283,7 +283,7 @@ function getElevatedQuality(item: EconItem, normalizeStrangeAsSecondQuality: boo
         item.hasDescription('Strange Stat Clock Attached') ||
         ((isUnusualHat || isOtherItemsNotStrangeQuality) && isNotNormalized)
     ) {
-        if (paintkit) {
+        if (typeof paintkit === 'number') {
             const hasRarityGradeTag = item.tags?.some(
                 tag => tag.category === 'Rarity' && tag.category_name === 'Grade'
             );
