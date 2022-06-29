@@ -28,10 +28,10 @@ import { Blocked, BPTFGetUserInfo } from './interfaces';
 
 import Handler, { OnRun } from '../Handler';
 import Bot from '../Bot';
-import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
+import Pricelist, { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
-import Inventory, { Dict } from '../Inventory';
+import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
 import Autokeys from '../Autokeys/Autokeys';
 
@@ -556,9 +556,27 @@ export default class MyHandler extends Handler {
         };
 
         const exchange = {
-            contains: { items: false, metal: false, keys: false },
-            our: { value: 0, keys: 0, scrap: 0, contains: { items: false, metal: false, keys: false } },
-            their: { value: 0, keys: 0, scrap: 0, contains: { items: false, metal: false, keys: false } }
+            contains: { items: false, metal: false, keys: false, pricedAssets: false },
+            our: {
+                value: 0,
+                keys: 0,
+                scrap: 0,
+                contains: { items: false, metal: false, keys: false, pricedAssets: false },
+                pricedAssetSkus: new Set<string>(),
+                pricedAssetIds: new Set<string>(),
+                pricedAsset: new Map<string, string>(),
+                pricedAssetSkuTotals: {}
+            },
+            their: {
+                value: 0,
+                keys: 0,
+                scrap: 0,
+                contains: { items: false, metal: false, keys: false, pricedAssets: false },
+                pricedAssetSkus: new Set<string>(),
+                pricedAssetIds: new Set<string>(),
+                pricedAsset: new Map<string, string>(),
+                pricedAssetSkuTotals: {}
+            }
         };
 
         const itemsDict: ItemsDict = { our: {}, their: {} };
@@ -576,20 +594,47 @@ export default class MyHandler extends Handler {
         let isDuelingNotFullUses = false;
         let isNoiseMakerNotFullUses = false;
         const noiseMakerNotFullSKUs: string[] = [];
-
-        let isAssetidPriceEnabled = false;
-        const ourPricedAssets: Dict = {};
-
         let hasNonTF2Items = false;
 
         const states = [false, true];
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
-            // todo check out these items, we might need a whole concept of assetid items vs sku items to get this value calculated
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
                     continue;
+                }
+
+                for (const entry of items[which][sku]) {
+                    const { id } = entry;
+                    const price = this.bot.pricelist.getPrice(id);
+                    if (price) {
+                        exchange[which].pricedAssetIds.add(id);
+                        exchange[which].pricedAsset[id] = sku;
+                        itemsDict[which][id] = 1;
+                        exchange.contains.pricedAssets = true;
+                        exchange[which].contains.pricedAssets = true;
+                        exchange.contains.items = true; // we consider pricedAssets as items
+                        exchange[which].contains.items = true;
+                        if (exchange[which].pricedAssetSkus.has(sku)) {
+                            exchange[which].pricedAssetSkuTotals[sku] += 1;
+                        } else {
+                            exchange[which].pricedAssetSkus.add(sku);
+                            exchange[which].pricedAssetSkuTotals[sku] = 1;
+                        }
+                    }
+                }
+
+                let totalGeneric = 0;
+                // assign amount for sku
+                if (exchange[which].pricedAssetSkus.has(sku)) {
+                    totalGeneric = items[which][sku].length - exchange[which].pricedAssetSkuTotals[sku];
+                    if (totalGeneric > 0) {
+                        itemsDict[which][sku] = totalGeneric;
+                    }
+                } else {
+                    totalGeneric = items[which][sku].length;
+                    itemsDict[which][sku] = totalGeneric;
                 }
 
                 if (!testSKU(sku)) {
@@ -597,37 +642,27 @@ export default class MyHandler extends Handler {
                     hasNonTF2Items = true;
                 }
 
-                if (sku === '5000;6') {
-                    exchange.contains.metal = true;
-                    exchange[which].contains.metal = true;
-                } else if (sku === '5001;6') {
-                    exchange.contains.metal = true;
-                    exchange[which].contains.metal = true;
-                } else if (sku === '5002;6') {
-                    exchange.contains.metal = true;
-                    exchange[which].contains.metal = true;
-                } else if (sku === '5021;6') {
-                    exchange.contains.keys = true;
-                    exchange[which].contains.keys = true;
-                } else {
-                    exchange.contains.items = true;
-                    exchange[which].contains.items = true;
+                if (totalGeneric > 0) {
+                    if (sku === '5000;6') {
+                        exchange.contains.metal = true;
+                        exchange[which].contains.metal = true;
+                    } else if (sku === '5001;6') {
+                        exchange.contains.metal = true;
+                        exchange[which].contains.metal = true;
+                    } else if (sku === '5002;6') {
+                        exchange.contains.metal = true;
+                        exchange[which].contains.metal = true;
+                    } else if (sku === '5021;6') {
+                        exchange.contains.keys = true;
+                        exchange[which].contains.keys = true;
+                    } else {
+                        exchange.contains.items = true;
+                        exchange[which].contains.items = true;
+                    }
                 }
-
-                // assign amount for sku
-                itemsDict[which][sku] = items[which][sku].length;
 
                 // Get High-value items
                 items[which][sku].forEach(item => {
-                    // Check if we have a priced asset in the trade
-                    if (which === 'our' && this.bot.pricelist.hasPrice(item.id, false)) {
-                        isAssetidPriceEnabled = true;
-                        if (!Object.prototype.hasOwnProperty.call(ourPricedAssets, sku)) {
-                            ourPricedAssets[sku] = [];
-                        }
-                        ourPricedAssets[sku].push(item);
-                    }
-
                     if (item.hv !== undefined) {
                         // If hv exist, get the high value and assign into items
                         getHighValue[which].items[sku] = item.hv;
@@ -966,9 +1001,7 @@ export default class MyHandler extends Handler {
         const isInPricelist =
             ourItemsHVCount > 0 // Only check if this not empty
                 ? Object.keys(getHighValue.our.items).some(sku => {
-                      // look at the high value items and for the given sku see if any have a price enabled for the 'high value sku'
-                      const assetidPriceEnabled = ourPricedAssets[sku] && ourPricedAssets[sku].length > 0;
-                      return checkExist.getPrice(sku, false) !== null || assetidPriceEnabled; // Return true if exist in pricelist, enabled or not.
+                      return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
@@ -1042,46 +1075,32 @@ export default class MyHandler extends Handler {
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
 
-            // TODO: Go through all assetids and check if the item is being sold for a specific price prior to processing the whole sku
-            if (isAssetidPriceEnabled && 'our' === which) {
-                for (const sku in items['our']) {
-                    if (
-                        !Object.prototype.hasOwnProperty.call(items['our'], sku) ||
-                        !Object.prototype.hasOwnProperty.call(ourPricedAssets, sku)
-                    ) {
-                        continue;
+            if (exchange[which].contains.pricedAssets) {
+                for (const id of exchange[which].pricedAssetIds) {
+                    const match = this.bot.pricelist.getPrice(id);
+                    // Add value of items
+                    exchange[which].value += match[intentString].toValue(keyPrice.metal);
+                    exchange[which].keys += match[intentString].keys;
+                    exchange[which].scrap += Currencies.toScrap(match[intentString].metal);
+                    itemPrices[id] = {
+                        buy: match.buy,
+                        sell: match.sell
+                    };
+                    // Check if asset is disabled
+                    if (!match.enabled) {
+                        wrongAboutOffer.push({
+                            reason: '🟧_DISABLED_ITEMS',
+                            sku: exchange[which].pricedAsset[id] as string
+                        });
                     }
-                    items['our'][sku] = items['our'][sku].filter(item => {
-                        const match: Entry | null = this.bot.pricelist.getPrice(item.id);
-                        // if we have a price we want to filter this item out from the generic sku items
-                        const hasAssetPrice = null !== match;
-                        if (hasAssetPrice) {
-                            // Add value of items
-                            exchange[which].value += match[intentString].toValue(keyPrice.metal);
-                            exchange[which].keys += match[intentString].keys;
-                            exchange[which].scrap += Currencies.toScrap(match[intentString].metal);
-                            itemPrices[item.id] = {
-                                buy: match.buy,
-                                sell: match.sell
-                            };
-                            // Check if asset is disabled
-                            if (!match.enabled) {
-                                wrongAboutOffer.push({
-                                    reason: '🟧_DISABLED_ITEMS',
-                                    sku: sku
-                                });
-                            }
-                        }
-                        return !hasAssetPrice;
-                    });
                 }
             }
-            for (const sku in items[which]) {
-                if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
+            for (const sku in itemsDict[which]) {
+                if (!Object.prototype.hasOwnProperty.call(itemsDict[which], sku) || Pricelist.isAssetId(sku)) {
                     continue;
                 }
 
-                const amount = items[which][sku].length;
+                const amount = itemsDict[which][sku];
 
                 if (amount === 0) {
                     continue;

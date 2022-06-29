@@ -948,34 +948,26 @@ export default class Trades {
                         const buySell = index ? 'buy' : 'sell';
                         return (
                             Object.keys(dataDict[side])
-                                .map(sku => {
-                                    if (prices[sku] === undefined && dataDict && !puresWithKeys.includes(sku)) {
-                                        // if we are on our side, check to see if any assetids from ourItems[sku] have prices
-                                        if ('our' === side) {
-                                            hasMissingPrices = ourItems[sku].every(
-                                                item => prices[item.id] === undefined
-                                            );
-                                        } else {
-                                            hasMissingPrices = true;
-                                        }
-                                        if (hasMissingPrices) {
-                                            return 0;
-                                        }
+                                .map(assetKey => {
+                                    if (prices[assetKey] === undefined && !puresWithKeys.includes(assetKey)) {
+                                        hasMissingPrices = true;
+                                        return 0;
                                     }
 
-                                    if (sku == '5021;6')
-                                        keyDifference += dataDict[side][sku] * (side == 'our' ? 1 : -1);
+                                    if (assetKey == '5021;6')
+                                        keyDifference += dataDict[side][assetKey] * (side == 'our' ? 1 : -1);
                                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                                    if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
+                                    if (!dataDict[side][assetKey] || getPureValue(assetKey as any) !== 0) return 0;
 
                                     possibleKeyTrade = false; //Offer contains something other than pures
 
-                                    if (isWACEnabled && weapons.includes(sku)) return 0.5 * dataDict[side][sku];
+                                    if (isWACEnabled && weapons.includes(assetKey))
+                                        return 0.5 * dataDict[side][assetKey];
 
                                     return (
-                                        dataDict[side][sku] *
-                                        (prices[sku][buySell].keys * keyPriceScrap +
-                                            Currencies.toScrap(prices[sku][buySell].metal))
+                                        dataDict[side][assetKey] *
+                                        (prices[assetKey][buySell].keys * keyPriceScrap +
+                                            Currencies.toScrap(prices[assetKey][buySell].metal))
                                     );
                                 })
                                 .reduce((a, b) => a + b, 0) * (side == 'their' ? -1 : 1)
