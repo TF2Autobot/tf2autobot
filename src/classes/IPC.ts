@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import Options from './Options';
 import generateCert from '../lib/tools/generateCert';
+import { EntryData } from './Pricelist';
 
 export default class ipcHandler extends IPC {
     ourServer: any;
@@ -91,13 +92,22 @@ export default class ipcHandler extends IPC {
     }
 
     /* HANDLERS */
-    private addItem(item): void {
+    private addItem(item: any): void {
         ipcHandler.cleanItem(item);
 
+        let priceKey: string = undefined;
+        if (item.assetid) {
+            priceKey = item.assetid as string;
+            delete item.assetid;
+        }
+        priceKey = priceKey ? priceKey : (item.sku as string);
         this.bot.pricelist
-            .addPrice(item, true)
+            .addPrice(priceKey, item as EntryData, true)
             .then(item => {
-                this.ourServer.emit('itemAdded', item);
+                this.ourServer.emit(
+                    'itemAdded',
+                    Object.assign(item, priceKey === item.sku ? {} : { assetid: priceKey })
+                );
             })
             .catch((e: string) => {
                 this.ourServer.emit('itemAdded', e);
@@ -106,21 +116,34 @@ export default class ipcHandler extends IPC {
 
     private updateItem(item): void {
         ipcHandler.cleanItem(item);
+
+        let priceKey: string = undefined;
+        if (item.assetid) {
+            priceKey = item.assetid as string;
+            delete item.assetid;
+        }
+        priceKey = priceKey ? priceKey : (item.sku as string);
         this.bot.pricelist
-            .updatePrice(item, true)
+            .updatePrice(priceKey, item as EntryData, true)
             .then(item => {
-                this.ourServer.emit('itemUpdated', item);
+                this.ourServer.emit(
+                    'itemUpdated',
+                    Object.assign(item, priceKey === item.sku ? {} : { assetid: priceKey })
+                );
             })
             .catch((e: string) => {
                 this.ourServer.emit('itemUpdated', e);
             });
     }
 
-    private removeItem(sku: string): void {
+    private removeItem(priceKey: string): void {
         this.bot.pricelist
-            .removePrice(sku, true)
+            .removePrice(priceKey, true)
             .then(item => {
-                this.ourServer.emit('itemRemoved', item);
+                this.ourServer.emit(
+                    'itemRemoved',
+                    Object.assign(item, priceKey === item.sku ? {} : { assetid: priceKey })
+                );
             })
             .catch((e: string) => {
                 this.ourServer.emit('itemRemoved', e);
