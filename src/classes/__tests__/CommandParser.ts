@@ -32,9 +32,9 @@ it('can parse arrays', () => {
 });
 
 it('can parse item id commands', () => {
-    const message = '!add assetid=10151297782&intent=sell&sell.keys=1';
+    const message = '!add id=10151297782&intent=sell&sell.keys=1';
     const command = CommandParser.getCommand(message);
     expect(command).toEqual('add');
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-    expect(params).toEqual({ assetid: 10151297782, intent: 'sell', sell: { keys: 1 } });
+    expect(params).toEqual({ id: 10151297782, intent: 'sell', sell: { keys: 1 } });
 });

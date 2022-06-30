@@ -165,10 +165,7 @@ export default class PricelistManagerCommands {
                 const item = getItemFromParams(steamID, params, this.bot);
 
                 if (item === null) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ No item found to match parameters given check sku or assetid.`
-                    );
+                    return this.bot.sendMessage(steamID, `❌ No item found to match parameters given check sku or id.`);
                 }
 
                 params.sku = SKU.fromObject(item);
@@ -840,8 +837,8 @@ export default class PricelistManagerCommands {
                     }
 
                     if (typeof params.sell === 'object') {
-                        entry.sell.keys = params.sell.keys || 0;
-                        entry.sell.metal = params.sell.metal || 0;
+                        entry.sell.keys = params.sell?.keys || 0;
+                        entry.sell.metal = params.sell?.metal || 0;
 
                         if (params.autoprice === undefined) {
                             entry.autoprice = false;
@@ -1991,7 +1988,7 @@ export default class PricelistManagerCommands {
                     : `${
                           limit < listCount && limit > 0 && params.limit !== undefined ? ` (limit set to ${limit})` : ''
                       }.`
-            }\n\n 📌 #. "sku|assetid" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", "group", "isPartialPriced", *"promoted")\n\n` +
+            }\n\n 📌 #. "sku|id" - "name" ("Current Stock", "min", "max", "intent", "enabled", "autoprice", "group", "isPartialPriced", *"promoted")\n\n` +
                 '* - Only shown if your account is Backpack.tf Premium\n\n.'
         );
 

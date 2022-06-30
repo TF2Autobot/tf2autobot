@@ -54,16 +54,16 @@ export default class HelpCommands {
                 '.\n✨=== Pricelist manager ===✨\n- ' +
                     [
                         "!sku <Full Item Name|Item's sku> - Get the sku of an item.",
-                        '!add (sku|item|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+                        '!add (sku|name|defindex|item|id)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
                         '!addbulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk add pricelist entries ➕➕➕',
                         '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently' +
                             ' available in your bot inventory (about 2 seconds every item) 🤖',
                         '!stopautoadd - Stop automatic add items operation 🛑',
-                        '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry 🔄',
+                        '!update (sku|name|defindex|item|id)=<a>&[Listing-parameters] - Update a pricelist entry 🔄',
                         '!updatebulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk update pricelist entries 🔄🔄🔄',
-                        '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry 🔥',
+                        '!remove (sku|name|defindex|item|id)=<a> - Remove a pricelist entry 🔥',
                         '!removebulk (sku|item)=<a><Enter (new line)><second and so on>... - Bulk remove pricelist entries 🔥🔥🔥',
-                        '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
+                        '!get (sku|name|defindex|item|id)=<a> - Get raw information about a pricelist entry',
                         '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
                         '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
                         '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
