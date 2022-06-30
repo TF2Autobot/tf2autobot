@@ -78,6 +78,7 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('updateItem', this.updateItem.bind(this));
             this.ourServer.on('removeItem', this.removeItem.bind(this));
             this.ourServer.on('getTrades', this.sendTrades.bind(this));
+            this.ourServer.on('getInventory', this.sendInventory.bind(this));
             this.ourServer.on('sendChat', this.sendChat.bind(this));
         };
         if (this.options.tls) this.connectToNet('autobot_gui_dev', onConnected);
@@ -166,8 +167,20 @@ export default class ipcHandler extends IPC {
     }
 
     sendPricelist(): void {
-        if (this.bot.pricelist) this.ourServer.emit('pricelist', this.bot.pricelist.getPrices);
-        else this.ourServer.emit('pricelist', false);
+        const pricelist = this.bot.pricelist.getPrices;
+        if(pricelist) {
+            const pricelistMapped = Object.keys(pricelist).map(key => {
+                const item = pricelist[key];
+                if (item.sku !== key) {
+                    return Object.assign(item, { assetid: key });
+                } else {
+                    return item;
+                }
+            });
+            this.ourServer.emit('pricelist', pricelistMapped);
+        } else {
+            this.ourServer.emit('pricelist', false);
+        }
     }
 
     sendTrades(): void {
@@ -183,5 +196,9 @@ export default class ipcHandler extends IPC {
             .catch((e: string) => {
                 this.ourServer.emit('chatResp', e);
             });
+    }
+
+    sendInventory(): void {
+        this.ourServer.emit('inventory', this.bot.inventoryManager.getInventory.getItems);
     }
 }
