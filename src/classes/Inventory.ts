@@ -160,7 +160,7 @@ export default class Inventory {
                 continue;
             }
 
-            if (!this.tradable[sku].find(item => item.id.includes(assetid))) {
+            if (!this.tradable[sku].find(item => item.id === assetid)) {
                 continue;
             }
 
@@ -172,7 +172,7 @@ export default class Inventory {
                 continue;
             }
 
-            if (!this.nonTradable[sku].find(item => item.id.includes(assetid))) {
+            if (!this.nonTradable[sku].find(item => item.id === assetid)) {
                 continue;
             }
 
