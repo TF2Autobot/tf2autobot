@@ -178,9 +178,9 @@ export default class PricelistManagerCommands {
         params.sku = fixSKU(params.sku as string);
 
         let priceKey: string = undefined;
-        if (params.assetid) {
-            priceKey = params.assetid;
-            delete params.assetid;
+        if (params.id) {
+            priceKey = params.id;
+            delete params.id;
         }
         priceKey = priceKey ? priceKey : params.sku;
         return this.bot.pricelist
@@ -373,9 +373,9 @@ export default class PricelistManagerCommands {
                 params.isPartialPriced = false;
             }
             let priceKey: string = undefined;
-            if (params.assetid) {
-                priceKey = params.assetid;
-                delete params.assetid;
+            if (params.id) {
+                priceKey = params.id;
+                delete params.id;
             }
             priceKey = priceKey ? priceKey : params.sku;
 
@@ -1008,9 +1008,9 @@ export default class PricelistManagerCommands {
         }
 
         let priceKey: string = undefined;
-        if (params.assetid) {
-            priceKey = params.assetid;
-            delete params.assetid;
+        if (params.id) {
+            priceKey = params.id;
+            delete params.id;
         }
         priceKey = priceKey ? priceKey : params.sku;
 
@@ -1213,9 +1213,9 @@ export default class PricelistManagerCommands {
             }
 
             let priceKey: string = undefined;
-            if (params.assetid) {
-                priceKey = params.assetid;
-                delete params.assetid;
+            if (params.id) {
+                priceKey = params.id;
+                delete params.id;
             }
             priceKey = priceKey ? priceKey : sku;
 
@@ -1704,9 +1704,9 @@ export default class PricelistManagerCommands {
             sku = fixSKU(sku);
         }
         let priceKey: string = undefined;
-        if (params.assetid) {
-            priceKey = params.assetid;
-            delete params.assetid;
+        if (params.id) {
+            priceKey = params.id;
+            delete params.id;
         }
         priceKey = priceKey ? priceKey : sku;
 
@@ -1924,15 +1924,15 @@ export default class PricelistManagerCommands {
             }
         }
 
-        if (sku === undefined && undefined === params.assetid) {
+        if (sku === undefined && undefined === params.id) {
             return this.bot.sendMessage(steamID, '❌ Missing item');
         } else if (undefined !== sku) {
             sku = fixSKU(sku);
         }
         let priceKey: string = undefined;
-        if (params.assetid) {
-            priceKey = params.assetid;
-            delete params.assetid;
+        if (params.id) {
+            priceKey = params.id;
+            delete params.id;
         }
         priceKey = priceKey ? priceKey : sku;
         const match = this.bot.pricelist.getPrice(priceKey);

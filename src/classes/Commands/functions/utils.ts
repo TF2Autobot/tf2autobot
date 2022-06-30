@@ -225,8 +225,8 @@ export function getItemFromParams(
     params: UnknownDictionaryKnownValues,
     bot: Bot
 ): MinimumItem | null {
-    if (params.assetid) {
-        const item = bot.inventoryManager.getInventory.findByAssetid(params.assetid as string);
+    if (params.id) {
+        const item = bot.inventoryManager.getInventory.findByAssetid(params.id as string);
         if (null !== item) {
             return SKU.fromString(item);
         } else {
