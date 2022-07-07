@@ -55,7 +55,7 @@ export default function updateListings(
             continue;
         }
 
-        const inPrice = bot.pricelist.getPrice(priceKey, false);
+        const inPrice = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
         const isAssetId = Pricelist.isAssetId(priceKey);
         const amount = inventory.getAmount(priceKey, false, true);
 
