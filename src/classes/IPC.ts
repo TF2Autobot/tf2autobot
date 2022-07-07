@@ -97,18 +97,14 @@ export default class ipcHandler extends IPC {
         ipcHandler.cleanItem(item);
 
         let priceKey: string = undefined;
-        if (item.assetid) {
-            priceKey = item.assetid as string;
-            delete item.assetid;
+        if (item.id) {
+            priceKey = item.id as string;
         }
         priceKey = priceKey ? priceKey : (item.sku as string);
         this.bot.pricelist
             .addPrice(priceKey, item as EntryData, true)
             .then(item => {
-                this.ourServer.emit(
-                    'itemAdded',
-                    Object.assign(item, priceKey === item.sku ? {} : { assetid: priceKey })
-                );
+                this.ourServer.emit('itemAdded', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
             .catch((e: string) => {
                 this.ourServer.emit('itemAdded', e);
@@ -119,18 +115,14 @@ export default class ipcHandler extends IPC {
         ipcHandler.cleanItem(item);
 
         let priceKey: string = undefined;
-        if (item.assetid) {
-            priceKey = item.assetid as string;
-            delete item.assetid;
+        if (item.id) {
+            priceKey = item.id as string;
         }
         priceKey = priceKey ? priceKey : (item.sku as string);
         this.bot.pricelist
             .updatePrice(priceKey, item as EntryData, true)
             .then(item => {
-                this.ourServer.emit(
-                    'itemUpdated',
-                    Object.assign(item, priceKey === item.sku ? {} : { assetid: priceKey })
-                );
+                this.ourServer.emit('itemUpdated', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
             .catch((e: string) => {
                 this.ourServer.emit('itemUpdated', e);
@@ -143,7 +135,7 @@ export default class ipcHandler extends IPC {
             .then(item => {
                 this.ourServer.emit(
                     'itemRemoved',
-                    Object.assign(item, priceKey === item.sku ? {} : { assetid: priceKey })
+                    Object.assign(item, priceKey === item.sku ? {} : { id: priceKey })
                 );
             })
             .catch((e: string) => {
@@ -172,7 +164,7 @@ export default class ipcHandler extends IPC {
             const pricelistMapped = Object.keys(pricelist).map(key => {
                 const item = pricelist[key];
                 if (item.sku !== key) {
-                    return Object.assign(item, { assetid: key });
+                    return Object.assign(item, { id: key });
                 } else {
                     return item;
                 }
