@@ -2059,10 +2059,9 @@ export default class MyHandler extends Handler {
 
                 // Update assetid in pricelist if needed
                 if (
-                    [
-                        TradeOfferManager.ETradeOfferState['Canceled'],
-                        TradeOfferManager.ETradeOfferState['InvalidItems']
-                    ].includes(offer.state) &&
+                    ((offer.state === TradeOfferManager.ETradeOfferState['Canceled'] &&
+                        offer.data('isCanceledUnknown') === true) ||
+                        offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) &&
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     offer.tradeID
