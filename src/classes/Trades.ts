@@ -56,32 +56,8 @@ export default class Trades {
     }
 
     setPollData(pollData: TradeOfferManager.PollData): void {
-        const activeOrCreatedNeedsConfirmation: string[] = [];
-
-        for (const id in pollData.sent) {
-            if (!Object.prototype.hasOwnProperty.call(pollData.sent, id)) {
-                continue;
-            }
-
-            const state = pollData.sent[id];
-            if (
-                state === TradeOfferManager.ETradeOfferState['Active'] ||
-                state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
-            ) {
-                activeOrCreatedNeedsConfirmation.push(id);
-            }
-        }
-
-        for (const id in pollData.received) {
-            if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) {
-                continue;
-            }
-
-            const state = pollData.received[id];
-            if (state === TradeOfferManager.ETradeOfferState['Active']) {
-                activeOrCreatedNeedsConfirmation.push(id);
-            }
-        }
+        const active = this.getActiveOffers(pollData);
+        const activeOrCreatedNeedsConfirmation = active.sent.concat(active.received);
 
         // Go through all sent / received offers and mark the items as in trade
         const activeCount = activeOrCreatedNeedsConfirmation.length;
@@ -101,6 +77,38 @@ export default class Trades {
         }
 
         this.bot.manager.pollData = pollData;
+    }
+
+    getActiveOffers(pollData: TradeOfferManager.PollData) {
+        const sent: string[] = [];
+        const received: string[] = [];
+
+        for (const id in pollData.sent) {
+            if (!Object.prototype.hasOwnProperty.call(pollData.sent, id)) {
+                continue;
+            }
+
+            const state = pollData.sent[id];
+            if (
+                state === TradeOfferManager.ETradeOfferState['Active'] ||
+                state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
+            ) {
+                sent.push(id);
+            }
+        }
+
+        for (const id in pollData.received) {
+            if (!Object.prototype.hasOwnProperty.call(pollData.received, id)) {
+                continue;
+            }
+
+            const state = pollData.received[id];
+            if (state === TradeOfferManager.ETradeOfferState['Active']) {
+                received.push(id);
+            }
+        }
+
+        return { sent, received };
     }
 
     onNewOffer(offer: TradeOffer): void {
@@ -130,10 +138,7 @@ export default class Trades {
         const activeReceived = received.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);
         const activeReceivedCount = activeReceived.length;
 
-        if (
-            filter === TradeOfferManager.EOfferFilter['ActiveOnly'] &&
-            (this.pollCount * this.bot.manager.pollInterval) / (2 * 5 * 60 * 1000) >= 1
-        ) {
+        if (filter === TradeOfferManager.EOfferFilter['ActiveOnly'] && this.pollCount / 5 >= 1) {
             this.pollCount = 0;
 
             const activeSent = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);

@@ -155,17 +155,10 @@ export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): Minimu
             item.quality = 5;
         } else if (item.paintkit !== null) {
             // War Paint or Skins
-            if (item.quality2 === 11) {
+            if (item.quality2 === 11 || item.quality === 5) {
                 // Strange Unusual
-                item.quality = 11;
-                item.quality2 = null;
+                item.quality = 15;
             }
-        }
-    } else if (item.paintkit !== null) {
-        // War Paint or Skins (No effect)
-        if (item.quality2 === 11) {
-            item.quality = 11;
-            item.quality2 = null;
         }
     }
 
