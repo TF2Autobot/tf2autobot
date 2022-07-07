@@ -55,12 +55,9 @@ export default function updateListings(
             continue;
         }
 
-        const inPrice = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
-        const isAssetId = Pricelist.isAssetId(priceKey);
-        const amount = inventory.getAmount(priceKey, false, bot.pricelist.assetidInPricelist, true);
-
         if (!testSKU(priceKey)) {
-            if (inPrice !== null && isAssetId && amount === 0) {
+            const entry = bot.pricelist.getPriceBySkuOrAsset(priceKey);
+            if (entry?.id) {
                 bot.pricelist
                     .removePrice(priceKey, true)
                     .then(() => {
@@ -90,6 +87,9 @@ export default function updateListings(
         const isNotPure = !pure.includes(priceKey);
         const isNotPureOrWeapons = !pureWithWeapons.includes(priceKey);
 
+        const inPrice = bot.pricelist.getPrice(priceKey, false);
+        const isAssetId = Pricelist.isAssetId(priceKey);
+        const amount = inventory.getAmount(priceKey, false, bot.pricelist.assetidInPricelist, true);
         const existInPricelist = inPrice !== null;
 
         const itemNoPaint = SKU.fromString(priceKey);
