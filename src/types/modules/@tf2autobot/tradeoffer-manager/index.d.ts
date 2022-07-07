@@ -379,6 +379,16 @@ declare module '@tf2autobot/tradeoffer-manager' {
             ): { sku: string; isPainted: boolean } | null;
         }
 
+        export class EconItemRB extends EconItem {
+            new_assetid: string;
+
+            new_contextid: string;
+
+            rollback_new_assetid: string;
+
+            rollback_new_contextid: string;
+        }
+
         type TradeOfferItem = {
             id?: string;
             assetid: string;
@@ -476,8 +486,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
                     err?: Error,
                     status?: number,
                     tradeInitTime?: Date,
-                    receivedItems?: SteamTradeOfferManager.TradeOffer[],
-                    sentItems?: SteamTradeOfferManager.TradeOffer[]
+                    receivedItems?: EconItemRB[],
+                    sentItems?: EconItemRB[]
                 ) => void
             ): void;
 
