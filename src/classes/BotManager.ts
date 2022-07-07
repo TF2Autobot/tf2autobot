@@ -186,6 +186,9 @@ export default class BotManager {
             // Stop heartbeat and inventory timers
             clearInterval(this.bot.listingManager?._heartbeatInterval);
             clearInterval(this.bot.listingManager?._inventoryInterval);
+
+            // Stop check assetid pricelist cache
+            clearInterval(this.bot.pricelist?.checkAssetidInPricelistInterval);
         }
 
         // Disconnect from socket server to stop price updates

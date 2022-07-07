@@ -226,6 +226,8 @@ export default class Pricelist extends EventEmitter {
 
     assetidInPricelist: AssetidInPricelist = {};
 
+    checkAssetidInPricelistInterval: NodeJS.Timeout;
+
     set resetFailedUpdateOldPrices(value: number) {
         this.failedUpdateOldPrices.length = value;
     }
@@ -662,7 +664,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    cacheAssetidInPricelist(): void {
+    private cacheAssetidInPricelist(): void {
         Object.keys(this.prices).forEach(priceKey => {
             if (Pricelist.isAssetId(priceKey)) {
                 if (this.assetidInPricelist[this.prices[priceKey].sku] === undefined) {
@@ -673,7 +675,7 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    removeCacheAssetidInPricelist(assetid: string): void {
+    private removeCacheAssetidInPricelist(assetid: string): void {
         Object.keys(this.assetidInPricelist).forEach(sku => {
             if (this.assetidInPricelist[sku] && this.assetidInPricelist[sku][assetid] !== undefined) {
                 delete this.assetidInPricelist[sku][assetid];
@@ -683,6 +685,29 @@ export default class Pricelist extends EventEmitter {
                 delete this.assetidInPricelist[sku];
             }
         });
+    }
+
+    private checkCacheAssetidInPricelist(): void {
+        const inv = this.bot.inventoryManager.getInventory;
+        Object.keys(this.prices).forEach(priceKey => {
+            if (Pricelist.isAssetId(priceKey) && inv.findByAssetid(priceKey) === null) {
+                // Make sure assetid in pricelist exists, if not, remove it.
+                this.removePrice(priceKey, true)
+                    .then(() => {
+                        this.removeCacheAssetidInPricelist(priceKey);
+                        log.info(`✅ Automatically removed ${priceKey} (no longer exists)`);
+                    })
+                    .catch(err => {
+                        log.error('❌ Failed to automatically remove assetid from pricelist (no longer exists):', err);
+                    });
+            }
+        });
+    }
+
+    private initCheckCache(): void {
+        this.checkAssetidInPricelistInterval = setInterval(() => {
+            this.checkCacheAssetidInPricelist();
+        }, 2.5 * 60 * 1000);
     }
 
     async setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
@@ -708,6 +733,8 @@ export default class Pricelist extends EventEmitter {
         }
 
         this.cacheAssetidInPricelist();
+        this.checkCacheAssetidInPricelist();
+        this.initCheckCache();
 
         return this.setupPricelist();
     }
