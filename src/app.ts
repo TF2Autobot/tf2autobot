@@ -141,12 +141,17 @@ process.on('message', message => {
     }
 });
 
-void (async () => {
-    await botManager.start(options);
-
-    if (options.enableHttpApi) {
-        const { default: HttpManager } = await import('./classes/HttpManager');
-        const httpManager = new HttpManager(options);
-        await httpManager.start();
-    }
-})();
+botManager
+    .start(options)
+    .then(async () => {
+        if (options.enableHttpApi) {
+            const { default: HttpManager } = await import('./classes/HttpManager');
+            const httpManager = new HttpManager(options);
+            await httpManager.start();
+        }
+    })
+    .catch(err => {
+        if (err) {
+            throw err;
+        }
+    });

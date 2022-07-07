@@ -728,12 +728,6 @@ export default class Bot {
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        let promise = Promise.resolve();
-
-        const checkIfStopping = () => {
-            if (this.botManager.isStopping) throw new Error('Bot stopping');
-        };
-
         const promisesChain = [
             async () => {
                 log.debug('Calling onRun');
@@ -950,16 +944,30 @@ export default class Bot {
             }
         ];
 
-        for (const promiseToChain of promisesChain) {
-            promise = promise.then(promiseToChain).then(checkIfStopping);
-        }
+        let promise = Promise.resolve();
 
-        await promise.then(() => {
-            this.manager.pollInterval = 5 * 1000;
-            this.setReady = true;
-            this.handler.onReady();
-            this.manager.doPoll();
-            this.startVersionChecker();
+        return new Promise(async (resolve, reject) => {
+            const checkIfStopping = () => {
+                if (this.botManager.isStopping) return reject();
+            };
+
+            for (const promiseToChain of promisesChain) {
+                promise = promise.then(promiseToChain).then(checkIfStopping);
+            }
+
+            promise
+                .then(() => {
+                    this.manager.pollInterval = 5 * 1000;
+                    this.setReady = true;
+                    this.handler.onReady();
+                    this.manager.doPoll();
+                    this.startVersionChecker();
+
+                    resolve();
+                })
+                .catch(err => {
+                    reject(err);
+                });
         });
     }
 

@@ -60,41 +60,31 @@ export default class BotManager {
             }
         });
 
-        let promise = Promise.resolve();
-
-        const checkIfStopping = () => {
-            if (this.isStopping) {
-                this.stop(null, false, false);
-                throw new Error('Bot stopping');
-            }
-        };
-
-        const promisesChain = [
-            async () => {
+        return new Promise(async (resolve, reject) => {
+            try {
                 log.debug('Connecting to PM2...');
                 await this.connectToPM2();
-            },
-            async () => {
+
                 log.info('Starting bot...');
                 this.pricer.init(options.enableSocket);
                 this.bot = new Bot(this, options, this.pricer);
 
                 await this.bot.start();
+
+                this.pricer.connect(this.bot?.options.enableSocket);
+
+                this.schemaManager = this.bot.schemaManager;
+
+                resolve();
+            } catch (err) {
+                if (this.isStopping) {
+                    return resolve(this.stop(null, false, false));
+                }
+
+                if (err) {
+                    reject(err);
+                }
             }
-        ];
-
-        for (const promiseToChain of promisesChain) {
-            promise = promise.then(promiseToChain).then(checkIfStopping);
-        }
-
-        await promise.then(() => {
-            if (this.isStopping) {
-                this.stop(null, false, false);
-            }
-
-            this.pricer.connect(this.bot?.options.enableSocket);
-
-            this.schemaManager = this.bot.schemaManager;
         });
     }
 
