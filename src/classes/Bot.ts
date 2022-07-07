@@ -150,7 +150,9 @@ export default class Bot {
             language: 'en',
             pollInterval: -1,
             cancelTime: 15 * 60 * 1000,
-            pendingCancelTime: 1.5 * 60 * 1000
+            pendingCancelTime: 1.5 * 60 * 1000,
+            globalAssetCache: true,
+            assetCacheMaxItems: 50
         });
 
         this.bptf = new BptfLogin();
@@ -957,7 +959,7 @@ export default class Bot {
 
             promise
                 .then(() => {
-                    this.manager.pollInterval = 5 * 1000;
+                    this.manager.pollInterval = 60 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
                     this.manager.doPoll();

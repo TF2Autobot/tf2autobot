@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { promisify } from 'util';
 
 import * as c from './sub-classes/export';
-import { removeLinkProtocol, getItemFromParams, getItemAndAmount, fixSKU } from './functions/utils';
+import { removeLinkProtocol, getItemFromParams, getItemAndAmount } from './functions/utils';
 
 import Bot from '../Bot';
 import CommandParser from '../CommandParser';
@@ -860,7 +860,7 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        const sku = fixSKU(params.sku as string);
+        const sku = params.sku as string;
 
         const amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {
@@ -963,7 +963,7 @@ export default class Commands {
             params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
         }
 
-        const sku = fixSKU(params.sku as string);
+        const sku = params.sku as string;
 
         let amount = typeof params.amount === 'number' ? params.amount : 1;
         if (!Number.isInteger(amount)) {

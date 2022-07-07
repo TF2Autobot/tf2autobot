@@ -10,7 +10,7 @@ import child from 'child_process';
 import dayjs from 'dayjs';
 import { EPersonaState } from 'steam-user';
 import { EFriendRelationship } from 'steam-user';
-import { fixSKU, removeLinkProtocol } from '../functions/utils';
+import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
@@ -172,7 +172,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = fixSKU(params.sku as string);
+            const targetedSKU = params.sku as string;
             const [uncraft, untrade] = [
                 targetedSKU.includes(';uncraftable'),
                 targetedSKU.includes(';untradable') || targetedSKU.includes(';untradeable')
@@ -931,7 +931,7 @@ export default class ManagerCommands {
                     // Bring back online
                     this.bot.client.setPersona(EPersonaState.Online);
                     this.bot.handler.isUpdatingStatus = false;
-                    this.bot.manager.pollInterval = 5 * 1000;
+                    this.bot.manager.pollInterval = 60 * 1000;
                 };
 
                 try {
