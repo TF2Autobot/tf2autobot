@@ -180,9 +180,9 @@ function getSummary(
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[priceKey] === 'object' ? (dict[priceKey]['amount'] as number) : dict[priceKey];
-        const generateName = isTF2Items
-            ? bot.schema.getName(SKU.fromString(entry.sku.replace(/;p\d+/, '')), properName)
-            : priceKey; // Non-TF2 items
+        const sku = (entry?.sku ?? priceKey).replace(/;p\d+/, '');
+
+        const generateName = isTF2Items ? bot.schema.getName(SKU.fromString(sku), properName) : priceKey; // Non-TF2 items
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
@@ -209,11 +209,11 @@ function getSummary(
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
-                            ? pureEmoji.has(entry.sku)
-                                ? pureEmoji.get(entry.sku)
+                            ? pureEmoji.has(sku)
+                                ? pureEmoji.get(sku)
                                 : name
                             : name
-                    }](https://autobot.tf/items/${entry.sku})${amount > 1 ? ` x${amount}` : ''} (${
+                    }](https://autobot.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
                     }${
                         which === 'our'
@@ -247,11 +247,11 @@ function getSummary(
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
-                            ? pureEmoji.has(entry.sku)
-                                ? pureEmoji.get(entry.sku)
+                            ? pureEmoji.has(sku)
+                                ? pureEmoji.get(sku)
                                 : name
                             : name
-                    }](https://autobot.tf/items/${entry.sku})${amount > 1 ? ` x${amount}` : ''}`
+                    }](https://autobot.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`
                 );
             } else {
                 summary.push(name + (amount > 1 ? ` x${amount}` : ''));

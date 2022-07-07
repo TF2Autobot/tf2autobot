@@ -133,7 +133,9 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
 
         const name =
             testSKU(priceKey) || entry !== null
-                ? `${bot.schema.getName(SKU.fromString(entry.sku), properName)}${entry.id ? ` (${entry.id})` : ''}`
+                ? `${bot.schema.getName(SKU.fromString(entry?.sku ?? priceKey), properName)}${
+                      entry?.id ? ` (${entry.id})` : ''
+                  }`
                 : priceKey;
 
         toJoin.push(
