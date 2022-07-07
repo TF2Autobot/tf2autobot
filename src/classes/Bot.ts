@@ -948,7 +948,7 @@ export default class Bot {
 
         let promise = Promise.resolve();
 
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const checkIfStopping = () => {
                 if (this.botManager.isStopping) return reject();
             };

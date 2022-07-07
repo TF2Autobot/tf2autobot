@@ -60,32 +60,28 @@ export default class BotManager {
             }
         });
 
-        return new Promise(async (resolve, reject) => {
-            try {
-                log.debug('Connecting to PM2...');
-                await this.connectToPM2();
+        try {
+            log.debug('Connecting to PM2...');
+            await this.connectToPM2();
 
-                log.info('Starting bot...');
-                this.pricer.init(options.enableSocket);
-                this.bot = new Bot(this, options, this.pricer);
+            log.info('Starting bot...');
+            this.pricer.init(options.enableSocket);
+            this.bot = new Bot(this, options, this.pricer);
 
-                await this.bot.start();
+            await this.bot.start();
 
-                this.pricer.connect(this.bot?.options.enableSocket);
+            this.pricer.connect(this.bot?.options.enableSocket);
 
-                this.schemaManager = this.bot.schemaManager;
-
-                resolve();
-            } catch (err) {
-                if (this.isStopping) {
-                    return resolve(this.stop(null, false, false));
-                }
-
-                if (err) {
-                    reject(err);
-                }
+            this.schemaManager = this.bot.schemaManager;
+        } catch (err) {
+            if (this.isStopping) {
+                return Promise.resolve(this.stop(null, false, false));
             }
-        });
+
+            if (err) {
+                throw err;
+            }
+        }
     }
 
     stop(err: Error | null, checkIfReady = true, rudely = false): void {
