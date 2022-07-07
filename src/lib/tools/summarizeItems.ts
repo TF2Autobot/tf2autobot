@@ -114,24 +114,29 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
     let buyPrice: string;
     let sellPrice: string;
 
-    for (const sku in prices) {
+    for (const priceKey in prices) {
         let autoprice = 'removed/not listed';
 
-        if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
+        if (!Object.prototype.hasOwnProperty.call(prices, priceKey)) {
             continue;
         }
 
-        const pricelist = bot.pricelist.getPrice(sku, false);
+        const pricelist = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
         if (pricelist !== null) {
             buyPrice = pricelist.buy.toString();
             sellPrice = pricelist.sell.toString();
             autoprice = pricelist.autoprice ? `autopriced${pricelist.isPartialPriced ? ' - ppu' : ''}` : 'manual';
         } else {
-            buyPrice = new Currencies(prices[sku].buy).toString();
-            sellPrice = new Currencies(prices[sku].sell).toString();
+            buyPrice = new Currencies(prices[priceKey].buy).toString();
+            sellPrice = new Currencies(prices[priceKey].sell).toString();
         }
 
-        const name = testSKU(sku) ? bot.schema.getName(SKU.fromString(sku), properName) : sku;
+        const name =
+            pricelist.id || testSKU(priceKey)
+                ? `${bot.schema.getName(SKU.fromString(pricelist.sku), properName)}${
+                      pricelist.id ? ` (${pricelist.id})` : ''
+                  }`
+                : priceKey;
 
         toJoin.push(
             `${

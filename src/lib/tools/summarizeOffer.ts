@@ -170,24 +170,24 @@ function getSummary(
     const summary: string[] = [];
     const properName = bot.options.tradeSummary.showProperName;
 
-    for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+    for (const priceKey in dict) {
+        if (!Object.prototype.hasOwnProperty.call(dict, priceKey)) {
             continue;
         }
 
-        const isTF2Items = testSKU(sku);
+        const entry = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
+        const isTF2Items = testSKU(priceKey) || entry !== null;
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
-        const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
+        const amount = typeof dict[priceKey] === 'object' ? (dict[priceKey]['amount'] as number) : dict[priceKey];
         const generateName = isTF2Items
-            ? bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), properName)
-            : sku; // Non-TF2 items
+            ? bot.schema.getName(SKU.fromString(entry.sku.replace(/;p\d+/, '')), properName)
+            : priceKey; // Non-TF2 items
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
             let oldStock: number | null = 0;
-            const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true, true);
-            const maxStock = bot.pricelist.getPrice(sku, false);
+            const currentStock = bot.inventoryManager.getInventory.getAmount(priceKey, true, true);
 
             const summaryAccepted = ['summary-accepted'].includes(type);
             const summaryInProcess = ['review-admin', 'summary-accepting', 'summary-countering'].includes(type);
@@ -209,11 +209,11 @@ function getSummary(
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
-                            ? pureEmoji.has(sku)
-                                ? pureEmoji.get(sku)
+                            ? pureEmoji.has(entry.sku)
+                                ? pureEmoji.get(entry.sku)
                                 : name
                             : name
-                    }](https://autobot.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
+                    }](https://autobot.tf/items/${entry.sku})${amount > 1 ? ` x${amount}` : ''} (${
                         (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
                     }${
                         which === 'our'
@@ -223,7 +223,7 @@ function getSummary(
                             : summaryInProcess
                             ? currentStock + amount
                             : currentStock
-                    }${maxStock ? `/${maxStock.max}` : ''})`
+                    }${entry ? `/${entry.max}` : ''})`
                 );
             } else {
                 summary.push(
@@ -238,7 +238,7 @@ function getSummary(
                                       : summaryInProcess
                                       ? currentStock + amount
                                       : currentStock
-                              }${maxStock ? `/${maxStock.max}` : ''})`
+                              }${entry ? `/${entry.max}` : ''})`
                     }`
                 );
             }
@@ -247,11 +247,11 @@ function getSummary(
                 summary.push(
                     `[${
                         bot.options.tradeSummary.showPureInEmoji
-                            ? pureEmoji.has(sku)
-                                ? pureEmoji.get(sku)
+                            ? pureEmoji.has(entry.sku)
+                                ? pureEmoji.get(entry.sku)
                                 : name
                             : name
-                    }](https://autobot.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`
+                    }](https://autobot.tf/items/${entry.sku})${amount > 1 ? ` x${amount}` : ''}`
                 );
             } else {
                 summary.push(name + (amount > 1 ? ` x${amount}` : ''));
