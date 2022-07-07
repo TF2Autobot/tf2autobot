@@ -675,10 +675,12 @@ export default class Pricelist extends EventEmitter {
 
     removeCacheAssetidInPricelist(assetid: string): void {
         Object.keys(this.assetidInPricelist).forEach(sku => {
-            const assetidsObj = this.assetidInPricelist[sku];
-
-            if (assetidsObj && assetidsObj[assetid] !== undefined) {
+            if (this.assetidInPricelist[sku] && this.assetidInPricelist[sku][assetid] !== undefined) {
                 delete this.assetidInPricelist[sku][assetid];
+            }
+
+            if (Object.keys(this.assetidInPricelist[sku]).length < 1) {
+                delete this.assetidInPricelist[sku];
             }
         });
     }
