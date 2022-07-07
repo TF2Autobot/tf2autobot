@@ -224,7 +224,7 @@ export default class Pricelist extends EventEmitter {
 
     autoResetPartialPriceBulk: string[] = [];
 
-    assetidInPricelist: AssetidInPricelist;
+    assetidInPricelist: AssetidInPricelist = {};
 
     set resetFailedUpdateOldPrices(value: number) {
         this.failedUpdateOldPrices.length = value;
