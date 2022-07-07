@@ -78,6 +78,7 @@ export const DEFAULTS: JsonOptions = {
             tryingToTake: true
         },
         autoRemoveIntentSellFailed: true,
+        autoRemoveAssetid: true,
         autoAddPaintedItems: true,
         failedAccept: true,
         unableToProcessOffer: true,
@@ -1157,6 +1158,7 @@ interface SendAlert extends OnlyEnable {
     backpackFull?: boolean;
     highValue?: HighValueAlert;
     autoRemoveIntentSellFailed?: boolean;
+    autoRemoveAssetid?: boolean;
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;

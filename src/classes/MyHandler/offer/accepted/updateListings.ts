@@ -55,7 +55,32 @@ export default function updateListings(
             continue;
         }
 
+        const inPrice = bot.pricelist.getPrice(priceKey, false);
+        const isAssetId = Pricelist.isAssetId(priceKey);
+        const amount = inventory.getAmount(priceKey, false, true);
+
         if (!testSKU(priceKey)) {
+            if (inPrice !== null && isAssetId && amount === 0) {
+                bot.pricelist
+                    .removePrice(priceKey, true)
+                    .then(() => {
+                        log.debug(`✅ Automatically removed ${priceKey} from pricelist.`);
+                    })
+                    .catch(err => {
+                        const msg = `❌ Failed to automatically remove ${priceKey} from pricelist: ${
+                            (err as Error).message
+                        }`;
+                        log.warn(msg, err);
+
+                        if (opt.sendAlert.enable && opt.sendAlert.autoRemoveAssetid) {
+                            if (dwEnabled) {
+                                sendAlert('autoRemoveAssetidFailed', bot, msg, null, null, [priceKey]);
+                            } else {
+                                bot.messageAdmins(msg, []);
+                            }
+                        }
+                    });
+            }
             continue;
         }
 
@@ -64,10 +89,8 @@ export default function updateListings(
 
         const isNotPure = !pure.includes(priceKey);
         const isNotPureOrWeapons = !pureWithWeapons.includes(priceKey);
-        const inPrice = bot.pricelist.getPrice(priceKey, false);
+
         const existInPricelist = inPrice !== null;
-        const amount = inventory.getAmount(priceKey, false, true);
-        const isAssetId = Pricelist.isAssetId(priceKey);
 
         const itemNoPaint = SKU.fromString(priceKey);
         itemNoPaint.paint = null;
