@@ -139,7 +139,10 @@ export default class Trades {
         const activeReceived = received.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);
         const activeReceivedCount = activeReceived.length;
 
-        if (filter === TradeOfferManager.EOfferFilter['ActiveOnly'] && this.pollCount / 5 >= 1) {
+        if (
+            filter === TradeOfferManager.EOfferFilter['ActiveOnly'] &&
+            (this.pollCount * this.bot.manager.pollInterval) / (2 * 5 * 60 * 1000) >= 1
+        ) {
             this.pollCount = 0;
 
             const activeSent = sent.filter(offer => offer.state === TradeOfferManager.ETradeOfferState['Active']);

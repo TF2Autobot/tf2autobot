@@ -959,7 +959,7 @@ export default class Bot {
 
             promise
                 .then(() => {
-                    this.manager.pollInterval = 60 * 1000;
+                    this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
                     this.manager.doPoll();
