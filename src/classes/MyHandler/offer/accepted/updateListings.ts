@@ -56,28 +56,30 @@ export default function updateListings(
         }
 
         if (!testSKU(priceKey)) {
-            const entry = bot.pricelist.getPriceBySkuOrAsset(priceKey);
-            if (entry?.id) {
-                bot.pricelist
-                    .removePrice(priceKey, true)
-                    .then(() => {
-                        log.debug(`✅ Automatically removed ${priceKey} from pricelist.`);
-                    })
-                    .catch(err => {
-                        const msg = `❌ Failed to automatically remove ${priceKey} from pricelist: ${
-                            (err as Error).message
-                        }`;
-                        log.warn(msg, err);
+            continue;
+        }
 
-                        if (opt.sendAlert.enable && opt.sendAlert.autoRemoveAssetidFailed) {
-                            if (dwEnabled) {
-                                sendAlert('autoRemoveAssetidFailed', bot, msg, null, null, [priceKey]);
-                            } else {
-                                bot.messageAdmins(msg, []);
-                            }
+        if (bot.pricelist.getPriceBySkuOrAsset(priceKey)?.id) {
+            bot.pricelist
+                .removePrice(priceKey, true)
+                .then(() => {
+                    log.debug(`✅ Automatically removed ${priceKey} from pricelist.`);
+                })
+                .catch(err => {
+                    const msg = `❌ Failed to automatically remove ${priceKey} from pricelist: ${
+                        (err as Error).message
+                    }`;
+                    log.warn(msg, err);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.autoRemoveAssetidFailed) {
+                        if (dwEnabled) {
+                            sendAlert('autoRemoveAssetidFailed', bot, msg, null, null, [priceKey]);
+                        } else {
+                            bot.messageAdmins(msg, []);
                         }
-                    });
-            }
+                    }
+                });
+
             continue;
         }
 
