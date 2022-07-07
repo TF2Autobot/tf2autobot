@@ -121,21 +121,19 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
             continue;
         }
 
-        const pricelist = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
-        if (pricelist !== null) {
-            buyPrice = pricelist.buy.toString();
-            sellPrice = pricelist.sell.toString();
-            autoprice = pricelist.autoprice ? `autopriced${pricelist.isPartialPriced ? ' - ppu' : ''}` : 'manual';
+        const entry = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
+        if (entry !== null) {
+            buyPrice = entry.buy.toString();
+            sellPrice = entry.sell.toString();
+            autoprice = entry.autoprice ? `autopriced${entry.isPartialPriced ? ' - ppu' : ''}` : 'manual';
         } else {
             buyPrice = new Currencies(prices[priceKey].buy).toString();
             sellPrice = new Currencies(prices[priceKey].sell).toString();
         }
 
         const name =
-            pricelist.id || testSKU(priceKey)
-                ? `${bot.schema.getName(SKU.fromString(pricelist.sku), properName)}${
-                      pricelist.id ? ` (${pricelist.id})` : ''
-                  }`
+            entry.id || testSKU(priceKey)
+                ? `${bot.schema.getName(SKU.fromString(entry.sku), properName)}${entry.id ? ` (${entry.id})` : ''}`
                 : priceKey;
 
         toJoin.push(
