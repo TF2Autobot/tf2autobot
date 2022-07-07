@@ -2055,7 +2055,27 @@ export default class MyHandler extends Handler {
                                 TradeOfferManager.ETradeOfferState['RollbackFailed']
                             ].includes(offer.state)
                         ) {
-                            // Something here that handle changes of item assetid(s)
+                            offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
+                                if (err) {
+                                    return log.error(err);
+                                }
+
+                                if (Array.isArray(sentItems)) {
+                                    sentItems.forEach(item => {
+                                        const entry = this.bot.pricelist.getPriceBySkuOrAsset(item.assetid);
+
+                                        if (entry !== null && entry.id) {
+                                            const newEntry = Object.assign({}, entry);
+                                            const oldId = entry.id;
+                                            newEntry.id = item.rollback_new_assetid;
+                                            delete newEntry.name;
+                                            delete newEntry.time;
+
+                                            this.bot.pricelist.replacePriceEntry(oldId, newEntry);
+                                        }
+                                    });
+                                }
+                            });
                         }
                     }
                     MyHandler.removePolldataKeys(offer);
