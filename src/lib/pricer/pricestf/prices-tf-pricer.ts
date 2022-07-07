@@ -1,3 +1,4 @@
+import timersPromises from 'timers/promises';
 import Currencies from '@tf2autobot/tf2-currencies';
 import PricesTfSocketManager from './prices-tf-socket-manager';
 import IPricer, {
@@ -50,7 +51,7 @@ export default class PricesTfPricer implements IPricer {
         const minDelay = 200;
 
         do {
-            await Promise.delay(delay);
+            await timersPromises.setTimeout(delay);
             const start = new Date().getTime();
             log.debug('Requesting pricelist pages...');
             const response = await this.api.getPricelistPage(currentPage);

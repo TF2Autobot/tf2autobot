@@ -1,7 +1,7 @@
 import SKU from '@tf2autobot/tf2-sku';
 import SchemaManager from '@tf2autobot/tf2-schema';
 import Currencies from '@tf2autobot/tf2-currencies';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';
 
@@ -1972,7 +1972,7 @@ class PriceUpdateQueue {
 
         this.isProcessing = true;
 
-        await sleepasync().Promise.sleep(this.sleepTime);
+        await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
             this.sleepTime = 1000;

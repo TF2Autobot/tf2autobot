@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Currencies from '@tf2autobot/tf2-currencies';
 import { removeLinkProtocol, getItemFromParams } from '../functions/utils';
 import Bot from '../../Bot';
@@ -167,7 +167,7 @@ class Pricecheck {
     }
 
     async executeCheck(): Promise<void> {
-        await sleepasync().Promise.sleep(2000);
+        await timersPromises.setTimeout(2000);
 
         void Pricecheck.requestCheck(this.sku)
             .then(() => {

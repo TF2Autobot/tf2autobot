@@ -3,6 +3,7 @@ import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import dayjs from 'dayjs';
+import { promisify } from 'util';
 
 import * as c from './sub-classes/export';
 import { removeLinkProtocol, getItemFromParams, getItemAndAmount } from './functions/utils';
@@ -722,37 +723,38 @@ export default class Commands {
                 );
             }
 
-            void this.bot.trades.getOffer(activeOffer).asCallback((err, offer) => {
-                if (err || !offer) {
+            void this.bot.trades
+                .getOffer(activeOffer)
+                .then(offer => {
+                    if (!offer) throw new Error('Offer might already be canceled');
+                    offer.data('canceledByUser', true);
+
+                    void promisify(offer.cancel.bind(offer))()
+                        .then(() => {
+                            this.bot.sendMessage(
+                                steamID,
+                                `✅ Offer sent (${offer.id}) has been successfully cancelled.`
+                            );
+                        })
+                        .catch((err: Error) => {
+                            // Only react to error, if the offer is canceled then the user
+                            // will get an alert from the onTradeOfferChanged handler
+
+                            log.warn('Error while trying to cancel an offer: ', err);
+                            return this.bot.sendMessage(
+                                steamID,
+                                `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
+                            );
+                        });
+                })
+                .catch((err: Error) => {
                     const errStringify = JSON.stringify(err);
-                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                    const errMessage = errStringify === '' ? err?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
-                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${errMessage}` +
-                            (!offer ? ` (or the offer might already be canceled)` : '')
-                    );
-                }
-
-                offer.data('canceledByUser', true);
-
-                offer.cancel(err => {
-                    // Only react to error, if the offer is canceled then the user
-                    // will get an alert from the onTradeOfferChanged handler
-
-                    if (err) {
-                        log.warn('Error while trying to cancel an offer: ', err);
-                        return this.bot.sendMessage(
-                            steamID,
-                            `❌ Ohh nooooes! Something went wrong while trying to cancel the offer: ${err.message}`
-                        );
-                    }
-
-                    return this.bot.sendMessage(
-                        steamID,
-                        `✅ Offer sent (${offer.id}) has been successfully cancelled.`
+                        `❌ Ohh nooooes! Something went wrong while trying to get the offer: ${errMessage}`
                     );
                 });
-            });
         }
     }
 

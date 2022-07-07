@@ -6,7 +6,7 @@ import SKU from '@tf2autobot/tf2-sku';
 import Currencies from '@tf2autobot/tf2-currencies';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { UnknownDictionary, UnknownDictionaryKnownValues } from '../../../types/common';
 import { removeLinkProtocol, getItemFromParams } from '../functions/utils';
 import Bot from '../../Bot';
@@ -400,7 +400,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(3000);
+                    await timersPromises.setTimeout(3000);
                 }
             }
 
@@ -1405,7 +1405,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(3000);
+                    await timersPromises.setTimeout(3000);
                 }
             }
 
@@ -1607,7 +1607,7 @@ export default class PricelistManagerCommands {
 
             if (params.withgroup || params.withoutgroup) {
                 try {
-                    await this.bot.pricelist.setNewPricelist(newPricelist);
+                    this.bot.pricelist.setNewPricelist(newPricelist);
                     this.bot.sendMessage(steamID, `✅ Removed ${removeCount} items from pricelist.`);
                     return await this.bot.listings.redoListings();
                 } catch (err) {
@@ -1618,7 +1618,7 @@ export default class PricelistManagerCommands {
                 }
             } else {
                 try {
-                    await this.bot.pricelist.removeAll();
+                    this.bot.pricelist.removeAll();
                     return this.bot.sendMessage(steamID, '✅ Cleared pricelist!');
                 } catch (err) {
                     return this.bot.sendMessage(steamID, `❌ Failed to clear pricelist: ${(err as Error).message}`);
@@ -1781,7 +1781,7 @@ export default class PricelistManagerCommands {
 
                     bot.sendMessage(steamID, errorMessage.slice(i10, last ? firstOrLast : (i + 1) * limit).join('\n'));
 
-                    await sleepasync().Promise.sleep(3000);
+                    await timersPromises.setTimeout(3000);
                 }
             }
 
@@ -1958,7 +1958,7 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-            await sleepasync().Promise.sleep(3000);
+            await timersPromises.setTimeout(3000);
         }
 
         PricelistManagerCommands.isSending = false;
@@ -2047,7 +2047,7 @@ export default class PricelistManagerCommands {
 
             this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-            await sleepasync().Promise.sleep(3000);
+            await timersPromises.setTimeout(3000);
         }
 
         PricelistManagerCommands.isSending = false;
@@ -2236,7 +2236,7 @@ export default class PricelistManagerCommands {
 
                 this.bot.sendMessage(steamID, list.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
             }
 
             PricelistManagerCommands.isSending = false;
@@ -2297,7 +2297,7 @@ class AutoAddQueue {
             return this.bot.sendMessage(this.steamID, '----------\n🛑 Stopped auto-add items');
         }
 
-        await sleepasync().Promise.sleep(2000);
+        await timersPromises.setTimeout(2000);
 
         this.params.sku = this.sku;
 

@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { removeLinkProtocol } from '../functions/utils';
 import CommandParser from '../../CommandParser';
 import Bot from '../../Bot';
@@ -244,7 +244,7 @@ export default class MiscCommands {
 
                 this.bot.sendMessage(steamID, weaponStock.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
             }
 
             return;

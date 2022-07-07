@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import SKU from '@tf2autobot/tf2-sku';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
@@ -351,13 +351,13 @@ export default class StatusCommands {
 
         if (isSendSeparately) {
             this.bot.sendMessage(steamID, reply);
-            await sleepasync().Promise.sleep(1000);
+            await timersPromises.setTimeout(1000);
             this.bot.sendMessage(steamID, boughtMessage);
-            await sleepasync().Promise.sleep(3000);
+            await timersPromises.setTimeout(3000);
             this.bot.sendMessage(steamID, soldMessage);
 
             if (adminOnlyMessage) {
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(steamID, adminOnlyMessage);
             }
         } else this.bot.sendMessage(steamID, reply);
@@ -380,7 +380,7 @@ export default class StatusCommands {
                             `\n\n📰 Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
                             (updateMessage ? `\n\n💬 Update message: ${updateMessage}` : '')
                     );
-                    await sleepasync().Promise.sleep(1000);
+                    await timersPromises.setTimeout(1000);
 
                     if (this.bot.isCloned() && process.env.pm_id !== undefined && canUpdateRepo) {
                         return this.bot.sendMessage(
@@ -415,7 +415,7 @@ export default class StatusCommands {
                     }
 
                     for (const message of messages) {
-                        await sleepasync().Promise.sleep(1000);
+                        await timersPromises.setTimeout(1000);
                         this.bot.sendMessage(steamID, message);
                     }
                 }
