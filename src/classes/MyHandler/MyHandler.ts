@@ -2049,40 +2049,45 @@ export default class MyHandler extends Handler {
                         offer.data('isFailedConfirmation', true);
                     } else {
                         offer.data('isCanceledUnknown', true);
-                        if (
-                            [
-                                TradeOfferManager.ETradeOfferState['Canceled'],
-                                TradeOfferManager.ETradeOfferState['InvalidItems']
-                            ].includes(offer.state)
-                        ) {
-                            offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
-                                if (err) {
-                                    return log.error(err);
-                                }
-
-                                if (Array.isArray(sentItems)) {
-                                    sentItems.forEach(item => {
-                                        const entry = this.bot.pricelist.getPriceBySkuOrAsset(item.assetid);
-
-                                        if (entry !== null && entry.id) {
-                                            const newEntry = Object.assign({}, entry);
-                                            const oldId = entry.id;
-                                            newEntry.id = item.rollback_new_assetid;
-                                            delete newEntry.name;
-                                            delete newEntry.time;
-
-                                            this.bot.pricelist.replacePriceEntry(oldId, newEntry);
-                                        }
-                                    });
-                                }
-                            });
-                        }
                     }
                     MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
                     if (notifyOpt.onTradedAway) invalid(offer, this.bot);
                     offer.data('isInvalid', true);
                     MyHandler.removePolldataKeys(offer);
+                }
+
+                // Update assetid in pricelist if needed
+                if (
+                    [
+                        TradeOfferManager.ETradeOfferState['Canceled'],
+                        TradeOfferManager.ETradeOfferState['InvalidItems']
+                    ].includes(offer.state) &&
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    offer.tradeID
+                ) {
+                    offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
+                        if (err) {
+                            return log.error(err);
+                        }
+
+                        if (Array.isArray(sentItems)) {
+                            sentItems.forEach(item => {
+                                const entry = this.bot.pricelist.getPriceBySkuOrAsset(item.assetid);
+
+                                if (entry !== null && entry.id && item.rollback_new_assetid) {
+                                    const newEntry = Object.assign({}, entry);
+                                    const oldId = entry.id;
+                                    newEntry.id = item.rollback_new_assetid;
+                                    delete newEntry.name;
+                                    delete newEntry.time;
+
+                                    this.bot.pricelist.replacePriceEntry(oldId, newEntry);
+                                }
+                            });
+                        }
+                    });
                 }
             }
 
