@@ -1,6 +1,6 @@
 import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from '../../../Bot';
 import { KeyPrices } from '../../../Pricelist';
 import log from '../../../../lib/logger';
@@ -297,13 +297,13 @@ export async function sendToAdmin(
 
         log.debug('Sending message 1');
         bot.messageAdmins('trade', message1, []);
-        await sleepasync().Promise.sleep(1500); // bruh
+        await timersPromises.setTimeout(1500); // bruh
         log.debug('Sending message 2');
         bot.messageAdmins('trade', message2, []);
-        await sleepasync().Promise.sleep(1500);
+        await timersPromises.setTimeout(1500);
         log.debug('Sending message 3');
         bot.messageAdmins('trade', message3, []);
-        await sleepasync().Promise.sleep(1000);
+        await timersPromises.setTimeout(1000);
         log.debug('Sending message 4');
         return bot.messageAdmins('trade', message4, []);
     }

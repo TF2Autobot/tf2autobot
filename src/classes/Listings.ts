@@ -2,7 +2,7 @@ import callbackQueue from 'callback-queue';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import Currencies from '@tf2autobot/tf2-currencies';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from './Bot';
 import Pricelist, { Entry, PricesObject } from './Pricelist';
 import log from '../lib/logger';
@@ -311,7 +311,7 @@ export default class Listings {
 
                 log.debug('Checking listings for ' + pluralize('item', priceKeys.length, true) + '...');
 
-                void this.recursiveCheckPricelist(priceKeys, pricelist).asCallback(() => {
+                void this.recursiveCheckPricelist(priceKeys, pricelist).finally(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -348,7 +348,7 @@ export default class Listings {
                 if (withDelay) {
                     this.checkByPriceKey(priceKeys[index], pricelist[priceKeys[index]], false, showLogs);
                     index++;
-                    await sleepasync().Promise.sleep(time ? time : 200);
+                    await timersPromises.setTimeout(time ? time : 200);
                     void iteration();
                 } else {
                     setImmediate(() => {
@@ -385,7 +385,7 @@ export default class Listings {
                 return;
             }
 
-            void this.removeAllListings().asCallback(next);
+            void this.removeAllListings().finally(next);
         });
     }
 

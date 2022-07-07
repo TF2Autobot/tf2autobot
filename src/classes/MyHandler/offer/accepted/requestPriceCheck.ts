@@ -1,4 +1,4 @@
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { RequestCheckFn, RequestCheckResponse } from '../../../IPricer';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
@@ -48,7 +48,7 @@ export default class PriceCheckQueue {
 
         this.isProcessing = true;
 
-        await sleepasync().Promise.sleep(2000);
+        await timersPromises.setTimeout(2000);
 
         // Update listings (exclude weapons/pure)
         this.bot.listings.checkByPriceKey(sku, null, false, true);

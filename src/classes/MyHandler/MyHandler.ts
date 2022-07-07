@@ -15,7 +15,6 @@ import TradeOfferManager, {
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from '@tf2autobot/tf2-currencies';
-import async from 'async';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
@@ -411,13 +410,12 @@ export default class MyHandler extends Handler {
                             return resolve();
                         }
 
-                        void this.bot.listings.removeAll().asCallback(err => {
-                            if (err) {
-                                log.warn('Failed to remove all listings on shutdown (autokeys was enabled): ', err);
-                            }
-
-                            resolve();
-                        });
+                        void this.bot.listings
+                            .removeAll()
+                            .catch((err: Error) =>
+                                log.warn('Failed to remove all listings on shutdown (autokeys was enabled): ', err)
+                            )
+                            .finally(() => resolve());
                     });
             } else {
                 if (this.bot.listingManager.ready !== true) {
@@ -425,13 +423,10 @@ export default class MyHandler extends Handler {
                     return resolve();
                 }
 
-                void this.bot.listings.removeAll().asCallback(err => {
-                    if (err) {
-                        log.warn('Failed to remove all listings on shutdown: ', err);
-                    }
-
-                    resolve();
-                });
+                void this.bot.listings
+                    .removeAll()
+                    .catch((err: Error) => log.warn('Failed to remove all listings on shutdown: ', err))
+                    .finally(() => resolve());
             }
         });
     }
@@ -1288,7 +1283,7 @@ export default class MyHandler extends Handler {
                         let itemSuggestedValue = 'No price';
 
                         if (!isNonTF2Items) {
-                            // await sleepasync().Promise.sleep(1 * 1000);
+                            // await timersPromises.setTimeout(1 * 1000);
                             const price = await this.bot.pricelist.getItemPrices(sku);
                             const item = SKU.fromString(sku);
 
@@ -1527,21 +1522,16 @@ export default class MyHandler extends Handler {
             offer.log('info', 'checking ' + pluralize('item', assetidsToCheckCount, true) + ' for dupes...');
             const inventory = new TF2Inventory(offer.partner, this.bot.manager);
 
-            const requests = assetidsToCheck.map(assetid => {
-                return (callback: (err: Error | null, result: boolean | null) => void): void => {
-                    log.debug('Dupe checking ' + assetid + '...');
-                    void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
-                        log.debug('Dupe check for ' + assetid + ' done');
-                        callback(err as Error, result);
-                    });
-                };
+            const requests = assetidsToCheck.map(async (assetid): Promise<boolean | null> => {
+                log.debug(`Dupe checking ${assetid}...`);
+                const result = await inventory.isDuped(assetid, this.bot.userID);
+                log.debug(`Dupe check for ${assetid}... done`);
+                return result;
             });
 
             try {
-                const result: (boolean | null)[] = await Promise.fromCallback(callback => {
-                    async.series(requests, callback);
-                });
-                log.info('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
+                const result: (boolean | null)[] = await Promise.all(requests);
+                log.info(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
 
                 const resultCount = result.length;
 

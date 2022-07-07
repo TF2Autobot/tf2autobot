@@ -605,24 +605,16 @@ export default class Pricelist extends EventEmitter {
         return entry;
     }
 
-    setNewPricelist(newEntry: PricesObject): Promise<any> {
-        return new Promise(resolve => {
-            this.prices = newEntry;
-            this.emit('pricelist', newEntry);
-
-            return resolve();
-        });
+    setNewPricelist(newEntry: PricesObject): void {
+        this.prices = newEntry;
+        this.emit('pricelist', newEntry);
     }
 
-    removeAll(): Promise<any> {
-        return new Promise(resolve => {
-            if (this.getLength !== 0) {
-                this.prices = {};
-                this.emit('pricelist', []);
-            }
-
-            return resolve();
-        });
+    removeAll(): void {
+        if (this.getLength !== 0) {
+            this.prices = {};
+            this.emit('pricelist', []);
+        }
     }
 
     removePrice(priceKey: string, emitChange: boolean): Promise<Entry> {

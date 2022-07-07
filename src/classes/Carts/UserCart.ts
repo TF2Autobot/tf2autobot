@@ -1,7 +1,6 @@
 import pluralize from 'pluralize';
 import SKU from '@tf2autobot/tf2-sku';
 import Currencies from '@tf2autobot/tf2-currencies';
-import async from 'async';
 import { ItemsDict, OurTheirItemsDict, Prices } from '@tf2autobot/tradeoffer-manager';
 import Cart from './Cart';
 import Inventory, { getSkuAmountCanTrade, DictItem } from '../Inventory';
@@ -79,20 +78,15 @@ export default class UserCart extends Cart {
         if (this.bot.handler.dupeCheckEnabled && assetidsToCheck.length > 0) {
             const inventory = new TF2Inventory(this.partner, this.bot.manager);
 
-            const requests = assetidsToCheck.map(assetid => {
-                return (callback: (err: Error | null, result: boolean | null) => void): void => {
-                    log.debug(`Dupe checking ${assetid}...`);
-                    void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
-                        log.debug(`Dupe check for ${assetid} done`);
-                        callback(err as Error, result);
-                    });
-                };
+            const requests = assetidsToCheck.map(async (assetid): Promise<boolean | null> => {
+                log.debug(`Dupe checking ${assetid}...`);
+                const result = await inventory.isDuped(assetid, this.bot.userID);
+                log.debug(`Dupe check for ${assetid} done`);
+                return result;
             });
 
             try {
-                const result: (boolean | null)[] = await Promise.fromCallback(callback => {
-                    async.series(requests, callback);
-                });
+                const result: (boolean | null)[] = await Promise.all(requests);
 
                 log.info(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
 

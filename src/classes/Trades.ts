@@ -13,6 +13,7 @@ import pluralize from 'pluralize';
 import retry from 'retry';
 import SteamID from 'steamid';
 import Currencies from '@tf2autobot/tf2-currencies';
+import timersPromises from 'timers/promises';
 
 import { UnknownDictionaryKnownValues, UnknownDictionary } from '../types/common';
 import Bot from './Bot';
@@ -528,8 +529,19 @@ export default class Trades {
 
         log.verbose(`Handling offer #${offerId}...`);
 
-        void this.getOffer(offerId).asCallback((err, offer) => {
-            if (err) {
+        void this.getOffer(offerId)
+            .then(offer => {
+                if (!offer) {
+                    log.debug('Failed to get offer');
+                    // Failed to get the offer
+                    this.finishProcessingOffer(offerId);
+                } else {
+                    log.debug('Got offer, handling it');
+                    // Got the offer, give it to the handler
+                    this.handlerProcessOffer(offer);
+                }
+            })
+            .catch((err: Error) => {
                 log.warn(`Failed to get offer #${offerId}: `, err);
                 // After many retries we could not get the offer data
 
@@ -537,18 +549,7 @@ export default class Trades {
                     // Remove the offer from the queue and add it to the back of the queue
                     this.receivedOffers.push(offerId);
                 }
-            }
-
-            if (!offer) {
-                log.debug('Failed to get offer');
-                // Failed to get the offer
-                this.finishProcessingOffer(offerId);
-            } else {
-                log.debug('Got offer, handling it');
-                // Got the offer, give it to the handler
-                this.handlerProcessOffer(offer);
-            }
-        });
+            });
     }
 
     getOffer(offerId: string, attempts = 0): Promise<TradeOffer> {
@@ -568,17 +569,20 @@ export default class Trades {
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        return void Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        return void timersPromises.setTimeout(exponentialBackoff(attempts)).then(() => {
                             resolve(this.getOffer(offerId, attempts));
                         });
                     }
 
-                    return void this.bot.getWebSession(true).asCallback(err => {
-                        // If there is no error when waiting for web session, then attempt to fetch the offer right away
-                        void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
-                            resolve(this.getOffer(offerId, attempts));
+                    return void this.bot
+                        .getWebSession(true)
+                        .catch((err: Error) => err)
+                        .then(err => {
+                            // If there is no error when waiting for web session, then attempt to fetch the offer right away
+                            void timersPromises.setTimeout(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
+                                resolve(this.getOffer(offerId, attempts));
+                            });
                         });
-                    });
                 }
 
                 if (offer.state !== TradeOfferManager.ETradeOfferState['Active']) {
@@ -597,113 +601,115 @@ export default class Trades {
             const start = dayjs().valueOf();
             offer.data('actionTimestamp', start);
 
-            void this.acceptOfferRetry(offer).asCallback((err, status) => {
-                const actionTime = dayjs().valueOf() - start;
-                log.debug('actionTime', actionTime);
+            void this.acceptOfferRetry(offer)
+                .then(status => {
+                    offer.log(
+                        'trade',
+                        'successfully accepted' + (status === 'pending' ? '; confirmation required' : '')
+                    );
 
-                if (err) {
-                    return reject(err);
-                }
+                    if (status === 'pending') {
+                        // Maybe wait for confirmation to be accepted and then resolve?
+                        this.acceptConfirmation(offer).catch(err => {
+                            log.warn(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
 
-                offer.log('trade', 'successfully accepted' + (status === 'pending' ? '; confirmation required' : ''));
+                            const isNotIgnoredError =
+                                !(err as CustomError).message?.includes('Could not act on confirmation') &&
+                                !(err as CustomError).message?.includes('Could not find confirmation for object');
 
-                if (status === 'pending') {
-                    // Maybe wait for confirmation to be accepted and then resolve?
-                    this.acceptConfirmation(offer).catch(err => {
-                        log.warn(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
+                            if (isNotIgnoredError) {
+                                // Only notify if error is not "Could not act on confirmation" or not "Could not find confirmation for object"
+                                const opt = this.bot.options;
 
-                        const isNotIgnoredError =
-                            !(err as CustomError).message?.includes('Could not act on confirmation') &&
-                            !(err as CustomError).message?.includes('Could not find confirmation for object');
+                                if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
+                                    const keyPrices = this.bot.pricelist.getKeyPrices;
+                                    const value = t.valueDiff(offer, keyPrices, false);
 
-                        if (isNotIgnoredError) {
-                            // Only notify if error is not "Could not act on confirmation" or not "Could not find confirmation for object"
-                            const opt = this.bot.options;
+                                    if (
+                                        opt.discordWebhook.sendAlert.enable &&
+                                        opt.discordWebhook.sendAlert.url.main !== ''
+                                    ) {
+                                        const summary = t.summarizeToChat(
+                                            offer,
+                                            this.bot,
+                                            'summary-accepting',
+                                            true,
+                                            value,
+                                            keyPrices,
+                                            false,
+                                            false
+                                        );
+                                        sendAlert(
+                                            `error-accept`,
+                                            this.bot,
+                                            `Error while trying to accept mobile confirmation on offer #${offer.id}` +
+                                                summary +
+                                                `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                                ` sending "!trade ${offer.id}"`,
+                                            null,
+                                            err,
+                                            [offer.id]
+                                        );
+                                    } else {
+                                        const summary = t.summarizeToChat(
+                                            offer,
+                                            this.bot,
+                                            'summary-accepting',
+                                            false,
+                                            value,
+                                            keyPrices,
+                                            true,
+                                            false
+                                        );
 
-                            if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
-                                const keyPrices = this.bot.pricelist.getKeyPrices;
-                                const value = t.valueDiff(offer, keyPrices, false);
-
-                                if (
-                                    opt.discordWebhook.sendAlert.enable &&
-                                    opt.discordWebhook.sendAlert.url.main !== ''
-                                ) {
-                                    const summary = t.summarizeToChat(
-                                        offer,
-                                        this.bot,
-                                        'summary-accepting',
-                                        true,
-                                        value,
-                                        keyPrices,
-                                        false,
-                                        false
-                                    );
-                                    sendAlert(
-                                        `error-accept`,
-                                        this.bot,
-                                        `Error while trying to accept mobile confirmation on offer #${offer.id}` +
-                                            summary +
-                                            `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                            ` sending "!trade ${offer.id}"`,
-                                        null,
-                                        err,
-                                        [offer.id]
-                                    );
-                                } else {
-                                    const summary = t.summarizeToChat(
-                                        offer,
-                                        this.bot,
-                                        'summary-accepting',
-                                        false,
-                                        value,
-                                        keyPrices,
-                                        true,
-                                        false
-                                    );
-
-                                    this.bot.messageAdmins(
-                                        `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
-                                            summary +
-                                            `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                            ` sending "!trade ${offer.id}` +
-                                            `\n\nError: ${
-                                                (err as CustomError).eresult
-                                                    ? `${
-                                                          TradeOfferManager.EResult[
-                                                              (err as CustomError).eresult
-                                                          ] as string
-                                                      } - https://steamerrors.com/${(err as CustomError).eresult}`
-                                                    : (err as Error).message
-                                            }`,
-                                        []
-                                    );
+                                        this.bot.messageAdmins(
+                                            `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
+                                                summary +
+                                                `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
+                                                ` sending "!trade ${offer.id}` +
+                                                `\n\nError: ${
+                                                    (err as CustomError).eresult
+                                                        ? `${
+                                                              TradeOfferManager.EResult[
+                                                                  (err as CustomError).eresult
+                                                              ] as string
+                                                          } - https://steamerrors.com/${(err as CustomError).eresult}`
+                                                        : (err as Error).message
+                                                }`,
+                                            []
+                                        );
+                                    }
                                 }
+
+                                if (!this.retryAcceptOffer[offer.id]) {
+                                    // Only retry once
+                                    clearTimeout(this.resetRetryAcceptOfferTimeout);
+                                    this.retryAcceptOffer[offer.id] = true;
+
+                                    setTimeout(() => {
+                                        // Auto-retry after 30 seconds
+                                        void this.retryActionAfterFailure(offer.id, 'accept');
+                                    }, 30 * 1000);
+                                }
+
+                                this.resetRetryAcceptOfferTimeout = setTimeout(() => {
+                                    this.retryAcceptOffer = {};
+                                }, 2 * 60 * 1000);
                             }
+                        });
+                    }
 
-                            if (!this.retryAcceptOffer[offer.id]) {
-                                // Only retry once
-                                clearTimeout(this.resetRetryAcceptOfferTimeout);
-                                this.retryAcceptOffer[offer.id] = true;
-
-                                setTimeout(() => {
-                                    // Auto-retry after 30 seconds
-                                    void this.retryActionAfterFailure(offer.id, 'accept');
-                                }, 30 * 1000);
-                            }
-
-                            this.resetRetryAcceptOfferTimeout = setTimeout(() => {
-                                this.retryAcceptOffer = {};
-                            }, 2 * 60 * 1000);
-                        }
-                    });
-                }
-
-                return resolve(status);
-            });
+                    return resolve(status);
+                })
+                .catch((err: Error) => {
+                    const actionTime = dayjs().valueOf() - start;
+                    log.debug('actionTime', actionTime);
+                    return reject(err);
+                });
         });
     }
 
-    private counterOffer(offer: TradeOffer, meta: Meta): Promise<string> {
+    private counterOffer(offer: TradeOffer, meta: Meta): Promise<void> {
         return new Promise((resolve, reject) => {
             const start = dayjs().valueOf();
 
@@ -721,8 +727,470 @@ export default class Trades {
             const ourInventoryItems = this.bot.inventoryManager.getInventory.getItems;
 
             log.debug('Fetching their inventory...');
-            void theirInventory.fetch().asCallback(err => {
-                if (err) {
+            void theirInventory
+                .fetch()
+                .then(() => {
+                    const ourItems = Inventory.fromItems(
+                        this.bot.client.steamID || this.bot.community.steamID,
+                        offer.itemsToGive,
+                        this.bot.manager,
+                        this.bot.schema,
+                        opt,
+                        this.bot.strangeParts,
+                        'our'
+                    ).getItems;
+
+                    const theirItems = Inventory.fromItems(
+                        offer.partner,
+                        offer.itemsToReceive,
+                        this.bot.manager,
+                        this.bot.schema,
+                        opt,
+                        this.bot.strangeParts,
+                        'their'
+                    ).getItems;
+
+                    const theirInventoryItems = theirInventory.getItems;
+
+                    log.debug('Set counteroffer...');
+                    const counter = offer.counter();
+
+                    const showOnlyMetal = opt.miscSettings.showOnlyMetal.enable;
+                    // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
+                    // Extensive tutorial if you want to update this function https://www.youtube.com/watch?v=dQw4w9WgXcQ.
+
+                    log.debug('Set counteroffer message...');
+                    const customMessage = opt.customMessage.counterOffer;
+                    counter.setMessage(
+                        customMessage
+                            ? customMessage
+                            : "Your offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
+                    );
+
+                    function getPureValue(sku: PureSKU) {
+                        if (sku === '5021;6') return keyPriceScrap;
+                        const pures: PureSKU[] = ['5000;6', '5001;6', '5002;6'];
+                        const index = pures.indexOf(sku);
+                        return index === -1 ? 0 : Math.pow(3, index);
+                    }
+
+                    let lockKeys = false;
+                    function calculate(
+                        sku: PureSKU,
+                        side: Dict | number,
+                        increaseDifference: boolean,
+                        overpay?: boolean
+                    ) {
+                        const value = getPureValue(sku);
+                        if (!value) return 0;
+                        if (possibleKeyTrade && sku == '5021;6') {
+                            const ret =
+                                increaseDifference === keyDifference > 0 && !lockKeys ? Math.abs(keyDifference) : 0;
+                            lockKeys = !!ret;
+                            return ret;
+                        }
+                        const floorCeil = Math[overpay ? 'ceil' : 'floor'];
+                        const length = typeof side === 'number' ? side : side[sku]?.length || 0;
+                        const amount =
+                            Math.min(
+                                length,
+                                Math.max(floorCeil((NonPureWorth * (increaseDifference ? -1 : 1)) / value), 0)
+                            ) || 0;
+
+                        NonPureWorth += amount * value * (increaseDifference ? 1 : -1);
+                        return amount;
+                    }
+
+                    // + for add - for remove
+                    function changeItems(side: 'My' | 'Their', dict: Dict, amount: number, sku: PureSKU) {
+                        if (!amount) return;
+                        const intent = amount >= 0 ? 'add' : 'remove';
+                        const tradeAmount = Math.abs(amount);
+                        const arr = dict[sku];
+                        const whichSide = side == 'My' ? 'our' : 'their';
+                        const changedAmount = counter[(intent + side + 'Items') as AddOrRemoveMyOrTheirItems](
+                            arr.splice(0, tradeAmount).map(item => {
+                                return {
+                                    appid: 440,
+                                    contextid: '2',
+                                    assetid: item.id
+                                };
+                            })
+                        );
+
+                        if (changedAmount !== tradeAmount) {
+                            return reject(
+                                new Error(`Couldn't ${intent} ${whichSide} ${tradeAmount} ${sku}'s to Trade`)
+                            );
+                        }
+
+                        if (!showOnlyMetal && !possibleKeyTrade && sku === '5021;6') {
+                            tradeValues[whichSide].keys += amount;
+                        } else {
+                            tradeValues[whichSide].scrap +=
+                                amount *
+                                (possibleKeyTrade && sku == '5021;6' && side == 'Their'
+                                    ? Currencies.toScrap(prices['5021;6'].buy.metal)
+                                    : getPureValue(sku));
+                        }
+
+                        dataDict[whichSide][sku] ??= 0;
+                        dataDict[whichSide][sku] += amount;
+
+                        // For removing 0's from the dict
+                        if (dataDict[whichSide][sku] === 0) {
+                            delete dataDict[whichSide][sku];
+                        }
+                    }
+
+                    const setOfferDataAndSend = () => {
+                        // Backup it should never make it to here as an error
+                        log.debug('Checking final mismatch...');
+                        if (
+                            tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
+                            tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
+                        ) {
+                            return reject(
+                                new Error(
+                                    `Couldn't counter an offer - value mismatch:\n${JSON.stringify({
+                                        value: NonPureWorth,
+                                        needToTakeWeapon,
+                                        ourTradesValue: tradeValues.our,
+                                        ourItems: dataDict.our,
+                                        theirTradesValue: tradeValues.their,
+                                        theirItems: dataDict.their
+                                    })}`
+                                )
+                            );
+                            // Maybe add some info that they can provide us so we can fix it if it happens again?
+                        }
+
+                        // Set polldata datas
+                        log.debug('Setting counter polldata...');
+                        const handleTimestamp = offer.data('handleTimestamp') as number;
+                        counter.data('handleTimestamp', handleTimestamp);
+                        counter.data('notify', true);
+
+                        counter.data('value', {
+                            our: {
+                                total: tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap,
+                                keys: tradeValues.our.keys,
+                                metal: Currencies.toRefined(tradeValues.our.scrap)
+                            },
+                            their: {
+                                total: tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap,
+                                keys: tradeValues.their.keys,
+                                metal: Currencies.toRefined(tradeValues.their.scrap)
+                            },
+                            rate: values.rate
+                        });
+
+                        counter.data('dict', dataDict);
+
+                        counter.data('prices', prices);
+
+                        counter.data('action', {
+                            action: 'counter',
+                            reason: 'COUNTERED'
+                        } as Action);
+
+                        counter.data('meta', meta);
+
+                        if (meta.highValue) {
+                            counter.data('highValue', meta.highValue);
+                        }
+
+                        const processTime = offer.data('processOfferTime') as number;
+                        counter.data('processOfferTime', processTime);
+                        const processCounterTime = dayjs().valueOf() - start;
+                        counter.data('processCounterTime', processCounterTime);
+
+                        // Send countered offer
+                        log.debug('Sending countered offer...');
+                        void this.sendOffer(counter)
+                            .then(status => {
+                                log.debug('Countered offer sent.');
+                                if (status === 'pending') {
+                                    log.debug('Accepting mobile confirmation...');
+                                    void this.acceptConfirmation(counter);
+                                }
+
+                                log.debug(`Done counteroffer for offer #${offer.id}`);
+                                return resolve();
+                            })
+                            .catch(err => {
+                                const errStringify = JSON.stringify(err);
+                                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                                reject(new Error(`Something wrong while sending countered offer: ${errMessage}`));
+                            });
+                    };
+
+                    const values = offer.data('value') as ItemsValue;
+                    const dataDict = offer.data('dict') as ItemsDict;
+                    const prices = offer.data('prices') as Prices;
+
+                    const keyPriceScrap = Currencies.toScrap(values.rate);
+                    const tradeValues = {
+                        our: {
+                            scrap: values.our.total - values.our.keys * keyPriceScrap,
+                            keys: values.our.keys
+                        },
+                        their: {
+                            scrap: values.their.total - values.their.keys * keyPriceScrap,
+                            keys: values.their.keys
+                        }
+                    };
+
+                    const isWACEnabled = opt.miscSettings.weaponsAsCurrency.enable;
+                    const isUncraftEnabled = opt.miscSettings.weaponsAsCurrency.withUncraft;
+                    const weapons = isUncraftEnabled
+                        ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                        : this.bot.craftWeapons;
+
+                    // Bigger than 0 ? they have to pay : we have to pay
+                    const puresWithKeys = ['5000;6', '5001;6', '5002;6', '5021;6'];
+                    let hasMissingPrices = false;
+
+                    let possibleKeyTrade = true;
+                    let keyDifference = 0;
+
+                    let NonPureWorth = (['our', 'their'] as ['our', 'their'])
+                        .map((side, index) => {
+                            const buySell = index ? 'buy' : 'sell';
+                            return (
+                                Object.keys(dataDict[side])
+                                    .map(assetKey => {
+                                        if (prices[assetKey] === undefined && !puresWithKeys.includes(assetKey)) {
+                                            hasMissingPrices = true;
+                                            return 0;
+                                        }
+
+                                        if (assetKey == '5021;6')
+                                            keyDifference += dataDict[side][assetKey] * (side == 'our' ? 1 : -1);
+                                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                                        if (!dataDict[side][assetKey] || getPureValue(assetKey as any) !== 0) return 0;
+
+                                        possibleKeyTrade = false; //Offer contains something other than pures
+
+                                        if (isWACEnabled && weapons.includes(assetKey))
+                                            return 0.5 * dataDict[side][assetKey];
+
+                                        return (
+                                            dataDict[side][assetKey] *
+                                            (prices[assetKey][buySell].keys * keyPriceScrap +
+                                                Currencies.toScrap(prices[assetKey][buySell].metal))
+                                        );
+                                    })
+                                    .reduce((a, b) => a + b, 0) * (side == 'their' ? -1 : 1)
+                            );
+                        })
+                        .reduce((a, b) => b + a, 0);
+
+                    if (hasMissingPrices) {
+                        return reject(
+                            new Error(
+                                `Failed to counter offer #${
+                                    offer.id
+                                } - offer data was not properly saved: ${JSON.stringify({ values, dataDict, prices })}`
+                            )
+                        );
+                    }
+                    if (possibleKeyTrade) {
+                        NonPureWorth +=
+                            keyDifference *
+                            Currencies.toScrap(prices['5021;6'][keyDifference > 0 ? 'sell' : 'buy'].metal);
+                    }
+                    // Determine if we need to take a weapon from them
+                    const needToTakeWeapon = NonPureWorth - Math.trunc(NonPureWorth) !== 0;
+
+                    if (needToTakeWeapon) {
+                        log.debug('needToTakeWeapon:', needToTakeWeapon);
+                        const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                            ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                            : this.bot.craftWeapons;
+
+                        const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
+
+                        // return filtered weapons
+                        let filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+
+                        if (filtered.length === 0) {
+                            // but if nothing left, then just use all
+                            filtered = allWeapons;
+                        }
+
+                        const chosenOne = filtered
+                            .filter(sku => theirItems[sku] === undefined) // filter weapons that are not in their offer
+                            .find(sku => theirInventoryItems[sku]); // find one that is in their inventory
+
+                        log.debug('weaponOfChoice:', chosenOne);
+
+                        const item = theirInventoryItems[chosenOne];
+                        log.debug('item:', item);
+                        if (item) {
+                            const isAdded = counter.addTheirItem({
+                                appid: 440,
+                                contextid: '2',
+                                assetid: item[0].id
+                            });
+                            if (isAdded) {
+                                NonPureWorth -= 0.5;
+                                tradeValues['their'].scrap += 0.5;
+                                dataDict['their'][chosenOne] ??= 0;
+                                dataDict['their'][chosenOne] += 1;
+
+                                const isInPricelist = this.bot.pricelist.getPrice(chosenOne, false);
+
+                                if (isInPricelist !== null) {
+                                    prices[chosenOne] = {
+                                        buy: isInPricelist.buy,
+                                        sell: isInPricelist.sell
+                                    };
+                                }
+                            }
+                        }
+                    }
+
+                    const ourBestWay: Record<PureSKU, number> = {
+                        '5021;6': calculate('5021;6', ourInventoryItems, true),
+                        '5002;6': calculate('5002;6', ourInventoryItems, true),
+                        '5001;6': calculate('5001;6', ourInventoryItems, true),
+                        '5000;6': calculate('5000;6', ourInventoryItems, true)
+                    };
+                    if (NonPureWorth < 0) {
+                        log.debug('NonPureWorth < 0 - ourBestWay before', {
+                            ourBestWay
+                        });
+
+                        ourBestWay['5002;6'] += calculate(
+                            '5002;6',
+                            (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
+                            true,
+                            true
+                        );
+                        ourBestWay['5001;6'] += calculate(
+                            '5001;6',
+                            (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
+                            true,
+                            true
+                        );
+                        ourBestWay['5021;6'] += calculate(
+                            '5021;6',
+                            (ourInventoryItems['5021;6']?.length || 0) - ourBestWay['5021;6'],
+                            true,
+                            true
+                        );
+
+                        ourBestWay['5002;6'] -= calculate('5002;6', ourBestWay['5002;6'], false);
+                        ourBestWay['5001;6'] -= calculate('5001;6', ourBestWay['5001;6'], false);
+                        ourBestWay['5000;6'] -= calculate('5000;6', ourBestWay['5000;6'], false);
+
+                        log.debug('NonPureWorth < 0 - ourBestWay after', {
+                            ourBestWay
+                        });
+                    }
+
+                    const theirBestWay: Record<PureSKU, number> = {
+                        '5021;6': calculate('5021;6', theirInventoryItems, false),
+                        '5002;6': calculate('5002;6', theirInventoryItems, false),
+                        '5001;6': calculate('5001;6', theirInventoryItems, false),
+                        '5000;6': calculate('5000;6', theirInventoryItems, false)
+                    };
+                    if (NonPureWorth > 0) {
+                        log.debug('NonPureWorth > 0 - theirBestWay before', {
+                            theirBestWay
+                        });
+                        theirBestWay['5002;6'] += calculate(
+                            '5002;6',
+                            (theirInventoryItems['5002;6']?.length || 0) - theirBestWay['5002;6'],
+                            false,
+                            true
+                        );
+                        theirBestWay['5001;6'] += calculate(
+                            '5001;6',
+                            (theirInventoryItems['5001;6']?.length || 0) - theirBestWay['5001;6'],
+                            false,
+                            true
+                        );
+                        theirBestWay['5021;6'] += calculate(
+                            '5021;6',
+                            (theirInventoryItems['5021;6']?.length || 0) - theirBestWay['5021;6'],
+                            false,
+                            true
+                        );
+
+                        theirBestWay['5002;6'] -= calculate('5002;6', theirBestWay['5002;6'], true);
+                        theirBestWay['5001;6'] -= calculate('5001;6', theirBestWay['5001;6'], true);
+                        theirBestWay['5000;6'] -= calculate('5000;6', theirBestWay['5000;6'], true);
+
+                        log.debug('NonPureWorth > 0 - theirBestWay after', {
+                            theirBestWay
+                        });
+
+                        log.debug('Add some of our items if they are still overpaying - before', {
+                            ourBestWay
+                        });
+                        // Add some of our items if they are still overpaying
+                        ourBestWay['5002;6'] += calculate(
+                            '5002;6',
+                            (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
+                            true
+                        );
+                        ourBestWay['5001;6'] += calculate(
+                            '5001;6',
+                            (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
+                            true
+                        );
+                        ourBestWay['5000;6'] += calculate(
+                            '5000;6',
+                            (ourInventoryItems['5000;6']?.length || 0) - ourBestWay['5000;6'],
+                            true
+                        );
+
+                        log.debug('Add some of our items if they are still overpaying - after', {
+                            ourBestWay
+                        });
+                    }
+
+                    if (NonPureWorth !== 0) {
+                        return reject(new Error(`Couldn't counter an offer value mismatch: ${NonPureWorth}`));
+                    }
+
+                    // Filter out trade items from inventories
+                    // Now try to match this on the trade offer
+                    Object.keys(theirItems).forEach(sku => {
+                        theirInventoryItems[sku] = theirInventoryItems[sku]?.filter(
+                            i => !theirItems[sku]?.find(i2 => i2.id === i.id)
+                        );
+                    });
+
+                    Object.keys(ourItems).forEach(sku => {
+                        ourInventoryItems[sku] = ourInventoryItems[sku]?.filter(
+                            i => !ourItems[sku]?.find(i2 => i2.id === i.id)
+                        );
+                    });
+
+                    [theirBestWay, ourBestWay].forEach((side, index) => {
+                        const [sideText, inventory, tradeInventory] =
+                            index === 0
+                                ? ['Their', theirInventoryItems, theirItems]
+                                : ['My', ourInventoryItems, ourItems];
+
+                        (Object.keys(side) as PureSKU[]).forEach(sku => {
+                            const amount = side[sku] - (tradeInventory[sku]?.length || 0);
+                            changeItems(
+                                sideText as 'Their' | 'My',
+                                amount > 0 ? inventory : tradeInventory,
+                                amount,
+                                sku
+                            );
+                        });
+                    });
+
+                    log.debug('Set counteroffer and sending...');
+                    setOfferDataAndSend();
+                })
+                .catch((err: Error) => {
                     log.error(`Failed to load inventories (${offer.partner.getSteamID64()}): `, err);
                     return reject(
                         new Error(
@@ -730,452 +1198,7 @@ export default class Trades {
                                 ` If your profile/inventory is set to private, please set it to public and try again.`
                         )
                     );
-                }
-
-                const ourItems = Inventory.fromItems(
-                    this.bot.client.steamID || this.bot.community.steamID,
-                    offer.itemsToGive,
-                    this.bot.manager,
-                    this.bot.schema,
-                    opt,
-                    this.bot.strangeParts,
-                    'our'
-                ).getItems;
-
-                const theirItems = Inventory.fromItems(
-                    offer.partner,
-                    offer.itemsToReceive,
-                    this.bot.manager,
-                    this.bot.schema,
-                    opt,
-                    this.bot.strangeParts,
-                    'their'
-                ).getItems;
-
-                const theirInventoryItems = theirInventory.getItems;
-
-                log.debug('Set counteroffer...');
-                const counter = offer.counter();
-
-                const showOnlyMetal = opt.miscSettings.showOnlyMetal.enable;
-                // To the person who thinks about changing it. I have a gun keep out ( う-´)づ︻╦̵̵̿╤── \(˚☐˚”)/
-                // Extensive tutorial if you want to update this function https://www.youtube.com/watch?v=dQw4w9WgXcQ.
-
-                log.debug('Set counteroffer message...');
-                const customMessage = opt.customMessage.counterOffer;
-                counter.setMessage(
-                    customMessage
-                        ? customMessage
-                        : "Your offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
-                );
-
-                function getPureValue(sku: PureSKU) {
-                    if (sku === '5021;6') return keyPriceScrap;
-                    const pures: PureSKU[] = ['5000;6', '5001;6', '5002;6'];
-                    const index = pures.indexOf(sku);
-                    return index === -1 ? 0 : Math.pow(3, index);
-                }
-
-                let lockKeys = false;
-                function calculate(sku: PureSKU, side: Dict | number, increaseDifference: boolean, overpay?: boolean) {
-                    const value = getPureValue(sku);
-                    if (!value) return 0;
-                    if (possibleKeyTrade && sku == '5021;6') {
-                        const ret = increaseDifference === keyDifference > 0 && !lockKeys ? Math.abs(keyDifference) : 0;
-                        lockKeys = !!ret;
-                        return ret;
-                    }
-                    const floorCeil = Math[overpay ? 'ceil' : 'floor'];
-                    const length = typeof side === 'number' ? side : side[sku]?.length || 0;
-                    const amount =
-                        Math.min(
-                            length,
-                            Math.max(floorCeil((NonPureWorth * (increaseDifference ? -1 : 1)) / value), 0)
-                        ) || 0;
-
-                    NonPureWorth += amount * value * (increaseDifference ? 1 : -1);
-                    return amount;
-                }
-
-                // + for add - for remove
-                function changeItems(side: 'My' | 'Their', dict: Dict, amount: number, sku: PureSKU) {
-                    if (!amount) return;
-                    const intent = amount >= 0 ? 'add' : 'remove';
-                    const tradeAmount = Math.abs(amount);
-                    const arr = dict[sku];
-                    const whichSide = side == 'My' ? 'our' : 'their';
-                    const changedAmount = counter[(intent + side + 'Items') as AddOrRemoveMyOrTheirItems](
-                        arr.splice(0, tradeAmount).map(item => {
-                            return {
-                                appid: 440,
-                                contextid: '2',
-                                assetid: item.id
-                            };
-                        })
-                    );
-
-                    if (changedAmount !== tradeAmount) {
-                        return reject(new Error(`Couldn't ${intent} ${whichSide} ${tradeAmount} ${sku}'s to Trade`));
-                    }
-
-                    if (!showOnlyMetal && !possibleKeyTrade && sku === '5021;6') {
-                        tradeValues[whichSide].keys += amount;
-                    } else {
-                        tradeValues[whichSide].scrap +=
-                            amount *
-                            (possibleKeyTrade && sku == '5021;6' && side == 'Their'
-                                ? Currencies.toScrap(prices['5021;6'].buy.metal)
-                                : getPureValue(sku));
-                    }
-
-                    dataDict[whichSide][sku] ??= 0;
-                    dataDict[whichSide][sku] += amount;
-
-                    // For removing 0's from the dict
-                    if (dataDict[whichSide][sku] === 0) {
-                        delete dataDict[whichSide][sku];
-                    }
-                }
-
-                const setOfferDataAndSend = () => {
-                    // Backup it should never make it to here as an error
-                    log.debug('Checking final mismatch...');
-                    if (
-                        tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
-                        tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
-                    ) {
-                        return reject(
-                            new Error(
-                                `Couldn't counter an offer - value mismatch:\n${JSON.stringify({
-                                    value: NonPureWorth,
-                                    needToTakeWeapon,
-                                    ourTradesValue: tradeValues.our,
-                                    ourItems: dataDict.our,
-                                    theirTradesValue: tradeValues.their,
-                                    theirItems: dataDict.their
-                                })}`
-                            )
-                        );
-                        // Maybe add some info that they can provide us so we can fix it if it happens again?
-                    }
-
-                    // Set polldata datas
-                    log.debug('Setting counter polldata...');
-                    const handleTimestamp = offer.data('handleTimestamp') as number;
-                    counter.data('handleTimestamp', handleTimestamp);
-                    counter.data('notify', true);
-
-                    counter.data('value', {
-                        our: {
-                            total: tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap,
-                            keys: tradeValues.our.keys,
-                            metal: Currencies.toRefined(tradeValues.our.scrap)
-                        },
-                        their: {
-                            total: tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap,
-                            keys: tradeValues.their.keys,
-                            metal: Currencies.toRefined(tradeValues.their.scrap)
-                        },
-                        rate: values.rate
-                    });
-
-                    counter.data('dict', dataDict);
-
-                    counter.data('prices', prices);
-
-                    counter.data('action', {
-                        action: 'counter',
-                        reason: 'COUNTERED'
-                    } as Action);
-
-                    counter.data('meta', meta);
-
-                    if (meta.highValue) {
-                        counter.data('highValue', meta.highValue);
-                    }
-
-                    const processTime = offer.data('processOfferTime') as number;
-                    counter.data('processOfferTime', processTime);
-                    const processCounterTime = dayjs().valueOf() - start;
-                    counter.data('processCounterTime', processCounterTime);
-
-                    // Send countered offer
-                    log.debug('Sending countered offer...');
-                    void this.sendOffer(counter)
-                        .then(status => {
-                            log.debug('Countered offer sent.');
-                            if (status === 'pending') {
-                                log.debug('Accepting mobile confirmation...');
-                                void this.acceptConfirmation(counter).reflect();
-                            }
-
-                            log.debug(`Done counteroffer for offer #${offer.id}`);
-                            return resolve();
-                        })
-                        .catch(err => {
-                            const errStringify = JSON.stringify(err);
-                            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
-                            reject(new Error(`Something wrong while sending countered offer: ${errMessage}`));
-                        });
-                };
-
-                const values = offer.data('value') as ItemsValue;
-                const dataDict = offer.data('dict') as ItemsDict;
-                const prices = offer.data('prices') as Prices;
-
-                const keyPriceScrap = Currencies.toScrap(values.rate);
-                const tradeValues = {
-                    our: {
-                        scrap: values.our.total - values.our.keys * keyPriceScrap,
-                        keys: values.our.keys
-                    },
-                    their: {
-                        scrap: values.their.total - values.their.keys * keyPriceScrap,
-                        keys: values.their.keys
-                    }
-                };
-
-                const isWACEnabled = opt.miscSettings.weaponsAsCurrency.enable;
-                const isUncraftEnabled = opt.miscSettings.weaponsAsCurrency.withUncraft;
-                const weapons = isUncraftEnabled
-                    ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
-                    : this.bot.craftWeapons;
-
-                // Bigger than 0 ? they have to pay : we have to pay
-                const puresWithKeys = ['5000;6', '5001;6', '5002;6', '5021;6'];
-                let hasMissingPrices = false;
-
-                let possibleKeyTrade = true;
-                let keyDifference = 0;
-
-                let NonPureWorth = (['our', 'their'] as ['our', 'their'])
-                    .map((side, index) => {
-                        const buySell = index ? 'buy' : 'sell';
-                        return (
-                            Object.keys(dataDict[side])
-                                .map(assetKey => {
-                                    if (prices[assetKey] === undefined && !puresWithKeys.includes(assetKey)) {
-                                        hasMissingPrices = true;
-                                        return 0;
-                                    }
-
-                                    if (assetKey == '5021;6')
-                                        keyDifference += dataDict[side][assetKey] * (side == 'our' ? 1 : -1);
-                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                                    if (!dataDict[side][assetKey] || getPureValue(assetKey as any) !== 0) return 0;
-
-                                    possibleKeyTrade = false; //Offer contains something other than pures
-
-                                    if (isWACEnabled && weapons.includes(assetKey))
-                                        return 0.5 * dataDict[side][assetKey];
-
-                                    return (
-                                        dataDict[side][assetKey] *
-                                        (prices[assetKey][buySell].keys * keyPriceScrap +
-                                            Currencies.toScrap(prices[assetKey][buySell].metal))
-                                    );
-                                })
-                                .reduce((a, b) => a + b, 0) * (side == 'their' ? -1 : 1)
-                        );
-                    })
-                    .reduce((a, b) => b + a, 0);
-
-                if (hasMissingPrices) {
-                    return reject(
-                        new Error(
-                            `Failed to counter offer #${offer.id} - offer data was not properly saved: ${JSON.stringify(
-                                { values, dataDict, prices }
-                            )}`
-                        )
-                    );
-                }
-                if (possibleKeyTrade) {
-                    NonPureWorth +=
-                        keyDifference * Currencies.toScrap(prices['5021;6'][keyDifference > 0 ? 'sell' : 'buy'].metal);
-                }
-                // Determine if we need to take a weapon from them
-                const needToTakeWeapon = NonPureWorth - Math.trunc(NonPureWorth) !== 0;
-
-                if (needToTakeWeapon) {
-                    log.debug('needToTakeWeapon:', needToTakeWeapon);
-                    const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
-                        ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
-                        : this.bot.craftWeapons;
-
-                    const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
-
-                    // return filtered weapons
-                    let filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
-
-                    if (filtered.length === 0) {
-                        // but if nothing left, then just use all
-                        filtered = allWeapons;
-                    }
-
-                    const chosenOne = filtered
-                        .filter(sku => theirItems[sku] === undefined) // filter weapons that are not in their offer
-                        .find(sku => theirInventoryItems[sku]); // find one that is in their inventory
-
-                    log.debug('weaponOfChoice:', chosenOne);
-
-                    const item = theirInventoryItems[chosenOne];
-                    log.debug('item:', item);
-                    if (item) {
-                        const isAdded = counter.addTheirItem({
-                            appid: 440,
-                            contextid: '2',
-                            assetid: item[0].id
-                        });
-                        if (isAdded) {
-                            NonPureWorth -= 0.5;
-                            tradeValues['their'].scrap += 0.5;
-                            dataDict['their'][chosenOne] ??= 0;
-                            dataDict['their'][chosenOne] += 1;
-
-                            const isInPricelist = this.bot.pricelist.getPrice(chosenOne, false);
-
-                            if (isInPricelist !== null) {
-                                prices[chosenOne] = {
-                                    buy: isInPricelist.buy,
-                                    sell: isInPricelist.sell
-                                };
-                            }
-                        }
-                    }
-                }
-
-                const ourBestWay: Record<PureSKU, number> = {
-                    '5021;6': calculate('5021;6', ourInventoryItems, true),
-                    '5002;6': calculate('5002;6', ourInventoryItems, true),
-                    '5001;6': calculate('5001;6', ourInventoryItems, true),
-                    '5000;6': calculate('5000;6', ourInventoryItems, true)
-                };
-                if (NonPureWorth < 0) {
-                    log.debug('NonPureWorth < 0 - ourBestWay before', {
-                        ourBestWay
-                    });
-
-                    ourBestWay['5002;6'] += calculate(
-                        '5002;6',
-                        (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
-                        true,
-                        true
-                    );
-                    ourBestWay['5001;6'] += calculate(
-                        '5001;6',
-                        (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
-                        true,
-                        true
-                    );
-                    ourBestWay['5021;6'] += calculate(
-                        '5021;6',
-                        (ourInventoryItems['5021;6']?.length || 0) - ourBestWay['5021;6'],
-                        true,
-                        true
-                    );
-
-                    ourBestWay['5002;6'] -= calculate('5002;6', ourBestWay['5002;6'], false);
-                    ourBestWay['5001;6'] -= calculate('5001;6', ourBestWay['5001;6'], false);
-                    ourBestWay['5000;6'] -= calculate('5000;6', ourBestWay['5000;6'], false);
-
-                    log.debug('NonPureWorth < 0 - ourBestWay after', {
-                        ourBestWay
-                    });
-                }
-
-                const theirBestWay: Record<PureSKU, number> = {
-                    '5021;6': calculate('5021;6', theirInventoryItems, false),
-                    '5002;6': calculate('5002;6', theirInventoryItems, false),
-                    '5001;6': calculate('5001;6', theirInventoryItems, false),
-                    '5000;6': calculate('5000;6', theirInventoryItems, false)
-                };
-                if (NonPureWorth > 0) {
-                    log.debug('NonPureWorth > 0 - theirBestWay before', {
-                        theirBestWay
-                    });
-                    theirBestWay['5002;6'] += calculate(
-                        '5002;6',
-                        (theirInventoryItems['5002;6']?.length || 0) - theirBestWay['5002;6'],
-                        false,
-                        true
-                    );
-                    theirBestWay['5001;6'] += calculate(
-                        '5001;6',
-                        (theirInventoryItems['5001;6']?.length || 0) - theirBestWay['5001;6'],
-                        false,
-                        true
-                    );
-                    theirBestWay['5021;6'] += calculate(
-                        '5021;6',
-                        (theirInventoryItems['5021;6']?.length || 0) - theirBestWay['5021;6'],
-                        false,
-                        true
-                    );
-
-                    theirBestWay['5002;6'] -= calculate('5002;6', theirBestWay['5002;6'], true);
-                    theirBestWay['5001;6'] -= calculate('5001;6', theirBestWay['5001;6'], true);
-                    theirBestWay['5000;6'] -= calculate('5000;6', theirBestWay['5000;6'], true);
-
-                    log.debug('NonPureWorth > 0 - theirBestWay after', {
-                        theirBestWay
-                    });
-
-                    log.debug('Add some of our items if they are still overpaying - before', {
-                        ourBestWay
-                    });
-                    // Add some of our items if they are still overpaying
-                    ourBestWay['5002;6'] += calculate(
-                        '5002;6',
-                        (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
-                        true
-                    );
-                    ourBestWay['5001;6'] += calculate(
-                        '5001;6',
-                        (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
-                        true
-                    );
-                    ourBestWay['5000;6'] += calculate(
-                        '5000;6',
-                        (ourInventoryItems['5000;6']?.length || 0) - ourBestWay['5000;6'],
-                        true
-                    );
-
-                    log.debug('Add some of our items if they are still overpaying - after', {
-                        ourBestWay
-                    });
-                }
-
-                if (NonPureWorth !== 0) {
-                    return reject(new Error(`Couldn't counter an offer value mismatch: ${NonPureWorth}`));
-                }
-
-                // Filter out trade items from inventories
-                // Now try to match this on the trade offer
-                Object.keys(theirItems).forEach(sku => {
-                    theirInventoryItems[sku] = theirInventoryItems[sku]?.filter(
-                        i => !theirItems[sku]?.find(i2 => i2.id === i.id)
-                    );
                 });
-
-                Object.keys(ourItems).forEach(sku => {
-                    ourInventoryItems[sku] = ourInventoryItems[sku]?.filter(
-                        i => !ourItems[sku]?.find(i2 => i2.id === i.id)
-                    );
-                });
-
-                [theirBestWay, ourBestWay].forEach((side, index) => {
-                    const [sideText, inventory, tradeInventory] =
-                        index === 0 ? ['Their', theirInventoryItems, theirItems] : ['My', ourInventoryItems, ourItems];
-
-                    (Object.keys(side) as PureSKU[]).forEach(sku => {
-                        const amount = side[sku] - (tradeInventory[sku]?.length || 0);
-                        changeItems(sideText as 'Their' | 'My', amount > 0 ? inventory : tradeInventory, amount, sku);
-                    });
-                });
-
-                log.debug('Set counteroffer and sending...');
-                setOfferDataAndSend();
-            });
         });
     }
 
@@ -1213,17 +1236,20 @@ export default class Trades {
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        return void Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        return void timersPromises.setTimeout(exponentialBackoff(attempts)).then(() => {
                             resolve(this.acceptOfferRetry(offer, attempts));
                         });
                     }
 
-                    return void this.bot.getWebSession(true).asCallback(err => {
-                        // If there is no error when waiting for web session, then attempt to fetch the offer right away
-                        void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
-                            resolve(this.acceptOfferRetry(offer, attempts));
+                    return void this.bot
+                        .getWebSession(true)
+                        .catch((err: Error) => err)
+                        .then(err => {
+                            // If there is no error when waiting for web session, then attempt to fetch the offer right away
+                            void timersPromises.setTimeout(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
+                                resolve(this.acceptOfferRetry(offer, attempts));
+                            });
                         });
-                    });
                 }
 
                 return resolve(status);
@@ -1269,21 +1295,27 @@ export default class Trades {
 
             log.debug('Sending offer...');
 
-            void this.sendOfferRetry(offer, 0).asCallback((err, status) => {
-                const actionTime = dayjs().valueOf() - start;
-                offer.data('actionTime', actionTime);
+            void this.sendOfferRetry(offer, 0)
+                .then(status => {
+                    const actionTime = dayjs().valueOf() - start;
+                    offer.data('actionTime', actionTime);
 
-                if (err) {
+                    offer.log(
+                        'trade',
+                        'successfully created' + (status === 'pending' ? '; confirmation required' : '')
+                    );
+
+                    return resolve(status);
+                })
+                .catch((err: Error) => {
+                    const actionTime = dayjs().valueOf() - start;
+                    offer.data('actionTime', actionTime);
+
                     offer.itemsToGive.forEach(item => {
                         this.unsetItemInTrade = item.assetid;
                     });
                     return reject(err);
-                }
-
-                offer.log('trade', 'successfully created' + (status === 'pending' ? '; confirmation required' : ''));
-
-                return resolve(status);
-            });
+                });
         });
     }
 
@@ -1308,53 +1340,50 @@ export default class Trades {
 
                     if (err.eresult === TradeOfferManager.EResult['Revoked']) {
                         // One or more of the items does not exist in the inventories, refresh our inventory and return the error
-                        return void this.bot.inventoryManager.getInventory.fetch().asCallback(() => {
+                        return void this.bot.inventoryManager.getInventory.fetch().finally(() => {
                             reject(err);
                         });
                     } else if (err.eresult === TradeOfferManager.EResult['Timeout']) {
                         // The offer may or may not have been made, will wait some time and check if if we can find a matching offer
-                        return void Promise.delay(exponentialBackoff(attempts, 4000)).then(() => {
+                        return void timersPromises.setTimeout(exponentialBackoff(attempts, 4000)).then(() => {
                             // Done waiting, try and find matching offer
-                            void this.findMatchingOffer(offer, true).asCallback((err, match) => {
-                                if (err) {
-                                    // Failed to get offers, return error
-                                    return reject(err);
-                                }
-
-                                if (match === null) {
-                                    // Did not find a matching offer, retry sending the offer
-                                    return resolve(this.sendOfferRetry(offer, attempts));
-                                }
-
-                                // Update the offer we attempted to send with the properties from the matching offer
-                                offer.id = match.id;
-                                offer.state = match.state;
-                                offer.created = match.created;
-                                offer.updated = match.updated;
-                                offer.expires = match.expires;
-                                offer.confirmationMethod = match.confirmationMethod;
-
-                                for (const property in offer._tempData) {
-                                    if (Object.prototype.hasOwnProperty.call(offer._tempData, property)) {
-                                        offer.manager.pollData.offerData = offer.manager.pollData.offerData || {};
-                                        offer.manager.pollData.offerData[offer.id] =
-                                            offer.manager.pollData.offerData[offer.id] || {};
-                                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                                        offer.manager.pollData.offerData[offer.id][property] =
-                                            offer._tempData[property];
+                            void this.findMatchingOffer(offer, true)
+                                .then(match => {
+                                    if (match === null) {
+                                        // Did not find a matching offer, retry sending the offer
+                                        return resolve(this.sendOfferRetry(offer, attempts));
                                     }
-                                }
 
-                                delete offer._tempData;
+                                    // Update the offer we attempted to send with the properties from the matching offer
+                                    offer.id = match.id;
+                                    offer.state = match.state;
+                                    offer.created = match.created;
+                                    offer.updated = match.updated;
+                                    offer.expires = match.expires;
+                                    offer.confirmationMethod = match.confirmationMethod;
 
-                                offer.manager.emit('pollData', offer.manager.pollData);
+                                    for (const property in offer._tempData) {
+                                        if (Object.prototype.hasOwnProperty.call(offer._tempData, property)) {
+                                            offer.manager.pollData.offerData = offer.manager.pollData.offerData || {};
+                                            offer.manager.pollData.offerData[offer.id] =
+                                                offer.manager.pollData.offerData[offer.id] || {};
+                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                                            offer.manager.pollData.offerData[offer.id][property] =
+                                                offer._tempData[property];
+                                        }
+                                    }
 
-                                return resolve(
-                                    offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
-                                        ? 'pending'
-                                        : 'sent'
-                                );
-                            });
+                                    delete offer._tempData;
+
+                                    offer.manager.emit('pollData', offer.manager.pollData);
+
+                                    return resolve(
+                                        offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
+                                            ? 'pending'
+                                            : 'sent'
+                                    );
+                                })
+                                .catch((err: Error) => reject(err));
                         });
                     } else if (err.eresult !== undefined) {
                         return reject(err);
@@ -1362,17 +1391,20 @@ export default class Trades {
 
                     if (err.message !== 'Not Logged In') {
                         // We got an error getting the offer, retry after some time
-                        return void Promise.delay(exponentialBackoff(attempts)).then(() => {
+                        return void timersPromises.setTimeout(exponentialBackoff(attempts)).then(() => {
                             resolve(this.sendOfferRetry(offer, attempts));
                         });
                     }
 
-                    return void this.bot.getWebSession(true).asCallback(err => {
-                        // If there is no error when waiting for web session, then attempt to fetch the offer right away
-                        void Promise.delay(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
-                            resolve(this.sendOfferRetry(offer, attempts));
+                    return void this.bot
+                        .getWebSession(true)
+                        .catch((err: Error) => err)
+                        .then(err => {
+                            // If there is no error when waiting for web session, then attempt to fetch the offer right away
+                            void timersPromises.setTimeout(err !== null ? 0 : exponentialBackoff(attempts)).then(() => {
+                                resolve(this.sendOfferRetry(offer, attempts));
+                            });
                         });
-                    });
                 }
 
                 resolve(status);
@@ -1426,7 +1458,7 @@ export default class Trades {
                     operation.reset();
 
                     // Wait for bot to sign in to retry
-                    void this.bot.getWebSession(true).asCallback(() => {
+                    void this.bot.getWebSession(true).finally(() => {
                         // Callback was called, ignore error from callback and retry
                         operation.retry(err);
                     });
@@ -1635,16 +1667,17 @@ export default class Trades {
         this.bot.client.gamesPlayed([]);
 
         // Canceled offer, declined countered offer => new item assetid
-        void this.bot.inventoryManager.getInventory.fetch().asCallback(err => {
-            if (err) {
+        void this.bot.inventoryManager.getInventory
+            .fetch()
+            .catch(err => {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');
                 clearTimeout(this.retryFetchInventoryTimeout);
                 this.retryFetchInventory();
-            }
-
-            this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
-        });
+            })
+            .finally(() => {
+                this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
+            });
     }
 
     private retryFetchInventory(): void {

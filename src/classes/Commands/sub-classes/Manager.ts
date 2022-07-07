@@ -4,9 +4,9 @@ import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import { Listing } from '@tf2autobot/bptf-listings';
 import validUrl from 'valid-url';
+import * as timersPromises from 'timers/promises';
 import path from 'path';
 import child from 'child_process';
-import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
 import { EPersonaState } from 'steam-user';
 import { EFriendRelationship } from 'steam-user';
@@ -311,7 +311,7 @@ export default class ManagerCommands {
 
                 this.bot.sendMessage(steamID, toSend.slice(i * limit, last ? toSendCount : (i + 1) * limit).join('\n'));
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
             }
 
             this.isSendingBlockedList = false;
@@ -417,7 +417,7 @@ export default class ManagerCommands {
                 this.bot.client.removeFriend(steamid);
 
                 // Prevent Steam from detecting the bot as spamming
-                await sleepasync().Promise.sleep(5000);
+                await timersPromises.setTimeout(5000);
             }
 
             this.isClearingFriends = false;
