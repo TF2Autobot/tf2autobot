@@ -183,7 +183,9 @@ function getSummary(
         const sku =
             type === 'summary-accepted' ? (entry?.sku ?? priceKey).replace(/;p\d+/, '') : entry?.sku ?? priceKey;
 
-        const generateName = isTF2Items ? bot.schema.getName(SKU.fromString(sku), properName) : priceKey; // Non-TF2 items
+        const generateName = isTF2Items
+            ? `${bot.schema.getName(SKU.fromString(sku), properName)}}${entry?.id ? ` (${entry.id})` : ''}`
+            : priceKey; // Non-TF2 items
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
