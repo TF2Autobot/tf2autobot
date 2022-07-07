@@ -64,6 +64,18 @@ declare module '@tf2autobot/tradeoffer-manager' {
             ) => void
         ): void;
 
+        // https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOffer#getexchangedetailsgetdetailsiffailed-callback
+        getExchangeDetails(
+            getDetailsIfFailed: boolean,
+            callback: (
+                err?: Error,
+                status?: number,
+                tradeInitTime?: Date,
+                receivedItems?: SteamTradeOfferManager.TradeOffer[],
+                sentItems?: SteamTradeOfferManager.TradeOffer[]
+            ) => void
+        ): void;
+
         doPoll(): void;
 
         setCookies(cookies: string[], callback?: (err?: Error) => void): void;

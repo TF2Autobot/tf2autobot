@@ -2049,6 +2049,14 @@ export default class MyHandler extends Handler {
                         offer.data('isFailedConfirmation', true);
                     } else {
                         offer.data('isCanceledUnknown', true);
+                        if (
+                            [
+                                TradeOfferManager.ETradeOfferState['FullSupportRollback'],
+                                TradeOfferManager.ETradeOfferState['RollbackFailed']
+                            ].includes(offer.state)
+                        ) {
+                            // Something here that handle changes of item assetid(s)
+                        }
                     }
                     MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
