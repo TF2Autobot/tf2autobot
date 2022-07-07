@@ -513,7 +513,7 @@ export const optionsSchema: jsonschema.Schema = {
                 autoRemoveIntentSellFailed: {
                     type: 'boolean'
                 },
-                autoRemoveAssetid: {
+                autoRemoveAssetidFailed: {
                     type: 'boolean'
                 },
                 autoAddPaintedItems: {
@@ -566,7 +566,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'backpackFull',
                 'highValue',
                 'autoRemoveIntentSellFailed',
-                'autoRemoveAssetid',
+                'autoRemoveAssetidFailed',
                 'autoAddPaintedItems',
                 'failedAccept',
                 'unableToProcessOffer',

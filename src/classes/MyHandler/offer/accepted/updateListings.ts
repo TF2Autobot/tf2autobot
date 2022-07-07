@@ -69,7 +69,7 @@ export default function updateListings(
                         }`;
                         log.warn(msg, err);
 
-                        if (opt.sendAlert.enable && opt.sendAlert.autoRemoveAssetid) {
+                        if (opt.sendAlert.enable && opt.sendAlert.autoRemoveAssetidFailed) {
                             if (dwEnabled) {
                                 sendAlert('autoRemoveAssetidFailed', bot, msg, null, null, [priceKey]);
                             } else {
