@@ -1672,24 +1672,25 @@ export default class Trades {
         // Canceled offer, declined countered offer => new item assetid
         void this.bot.inventoryManager.getInventory
             .fetch()
+            .then(() => this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete))
             .catch(err => {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');
                 clearTimeout(this.retryFetchInventoryTimeout);
-                this.retryFetchInventory();
-            })
-            .finally(() => {
-                this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
+                this.retryFetchInventory(offer, oldState, timeTakenToComplete);
             });
     }
 
-    private retryFetchInventory(): void {
+    private retryFetchInventory(offer: TradeOffer, oldState: number, timeTakenToComplete: number): void {
         this.retryFetchInventoryTimeout = setTimeout(() => {
-            this.bot.inventoryManager.getInventory.fetch().catch(err => {
-                log.warn('Error fetching inventory: ', err);
-                log.debug('Retrying to fetch inventory in 30 seconds...');
-                this.retryFetchInventory();
-            });
+            this.bot.inventoryManager.getInventory
+                .fetch()
+                .then(() => this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete))
+                .catch(err => {
+                    log.warn('Error fetching inventory: ', err);
+                    log.debug('Retrying to fetch inventory in 30 seconds...');
+                    this.retryFetchInventory(offer, oldState, timeTakenToComplete);
+                });
         }, 30 * 1000);
     }
 
