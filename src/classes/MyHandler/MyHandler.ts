@@ -2051,8 +2051,8 @@ export default class MyHandler extends Handler {
                         offer.data('isCanceledUnknown', true);
                         if (
                             [
-                                TradeOfferManager.ETradeOfferState['FullSupportRollback'],
-                                TradeOfferManager.ETradeOfferState['RollbackFailed']
+                                TradeOfferManager.ETradeOfferState['Canceled'],
+                                TradeOfferManager.ETradeOfferState['InvalidItems']
                             ].includes(offer.state)
                         ) {
                             offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
