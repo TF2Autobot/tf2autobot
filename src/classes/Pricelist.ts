@@ -19,6 +19,7 @@ export enum PricelistChangedSource {
 
 export interface EntryData {
     sku: string;
+    id?: string;
     enabled: boolean;
     autoprice: boolean;
     min: number;
@@ -35,6 +36,8 @@ export interface EntryData {
 
 export class Entry implements EntryData {
     sku: string;
+
+    id?: string;
 
     name: string;
 
@@ -64,6 +67,11 @@ export class Entry implements EntryData {
 
     private constructor(entry: EntryData, name: string) {
         this.sku = entry.sku;
+
+        if (entry.id) {
+            this.id = entry.id;
+        }
+
         this.name = name;
         this.enabled = entry.enabled;
         this.autoprice = entry.autoprice;
@@ -135,7 +143,7 @@ export class Entry implements EntryData {
     }
 
     getJSON(): EntryData {
-        return {
+        const obj = {
             sku: this.sku,
             enabled: this.enabled,
             autoprice: this.autoprice,
@@ -150,15 +158,21 @@ export class Entry implements EntryData {
             isPartialPriced: this.isPartialPriced,
             time: this.time
         };
+
+        if (this.id) {
+            obj['id'] = this.id;
+        }
+
+        return obj;
     }
 }
 
 export interface PricesObject {
-    [id: string]: Entry;
+    [priceKey: string]: Entry;
 }
 
 export interface PricesDataObject {
-    [id: string]: EntryData;
+    [priceKey: string]: EntryData;
 }
 
 export default class Pricelist extends EventEmitter {

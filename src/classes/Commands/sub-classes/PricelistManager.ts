@@ -175,7 +175,6 @@ export default class PricelistManagerCommands {
         let priceKey: string = undefined;
         if (params.id) {
             priceKey = String(params.id);
-            delete params.id;
         }
         priceKey = priceKey ? priceKey : params.sku;
         return this.bot.pricelist
@@ -372,7 +371,6 @@ export default class PricelistManagerCommands {
             let priceKey: string = undefined;
             if (params.id) {
                 priceKey = String(params.id);
-                delete params.id;
             }
             priceKey = priceKey ? priceKey : params.sku;
 
@@ -1012,7 +1010,6 @@ export default class PricelistManagerCommands {
         let priceKey: string = undefined;
         if (params.id) {
             priceKey = String(params.id);
-            delete params.id;
         }
         priceKey = priceKey ? priceKey : params.sku;
 
@@ -1221,7 +1218,6 @@ export default class PricelistManagerCommands {
             let priceKey: string = undefined;
             if (params.id) {
                 priceKey = String(params.id);
-                delete params.id;
             }
             priceKey = priceKey ? priceKey : sku;
 
@@ -1709,7 +1705,6 @@ export default class PricelistManagerCommands {
         let priceKey: string = undefined;
         if (params.id) {
             priceKey = String(params.id);
-            delete params.id;
         }
         priceKey = priceKey ? priceKey : sku;
 
@@ -1934,7 +1929,6 @@ export default class PricelistManagerCommands {
         let priceKey: string = undefined;
         if (params.id) {
             priceKey = String(params.id);
-            delete params.id;
         }
         priceKey = priceKey ? priceKey : sku;
         const match = this.bot.pricelist.getPrice(priceKey);

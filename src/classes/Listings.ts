@@ -577,7 +577,7 @@ export default class Listings {
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
-                .replace(/%name%/g, entry.name)
+                .replace(/%name%/g, entry.id ?? entry.name)
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
@@ -642,7 +642,7 @@ export default class Listings {
                 return details;
             }
 
-            if (details.includes(entry.name)) {
+            if (!entry.id && details.includes(entry.name)) {
                 details = details.replace(entry.name, entry.sku);
 
                 if (details.length < 200) {
