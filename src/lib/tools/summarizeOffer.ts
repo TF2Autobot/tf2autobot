@@ -180,7 +180,8 @@ function getSummary(
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
         const amount = typeof dict[priceKey] === 'object' ? (dict[priceKey]['amount'] as number) : dict[priceKey];
-        const sku = (entry?.sku ?? priceKey).replace(/;p\d+/, '');
+        const sku =
+            type === 'summary-accepted' ? (entry?.sku ?? priceKey).replace(/;p\d+/, '') : entry?.sku ?? priceKey;
 
         const generateName = isTF2Items ? bot.schema.getName(SKU.fromString(sku), properName) : priceKey; // Non-TF2 items
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
