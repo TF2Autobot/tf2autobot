@@ -44,8 +44,8 @@ export default class InventoryManager {
         match = matchGeneric || match;
         // Amount in inventory should only use generic amount if there is a generic sku
         const amount = matchGeneric
-            ? this.inventory.getAmountOfGenerics(priceKey, true)
-            : this.inventory.getAmount(priceKey, true, true);
+            ? this.inventory.getAmountOfGenerics(priceKey, this.pricelist.assetidInPricelist, true)
+            : this.inventory.getAmount(priceKey, true, this.pricelist.assetidInPricelist, true);
 
         if (match === null) {
             // No price for item

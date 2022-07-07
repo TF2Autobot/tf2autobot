@@ -572,7 +572,12 @@ export default class Bot {
                         const _listings = listings[priceKey];
 
                         const amountCanBuy = inventoryManager.amountCanTrade(priceKey, true);
-                        const amountAvailable = inventory.getAmount(priceKey, false, true);
+                        const amountAvailable = inventory.getAmount(
+                            priceKey,
+                            false,
+                            this.pricelist.assetidInPricelist,
+                            true
+                        );
 
                         if (_listings) {
                             _listings.forEach(listing => {

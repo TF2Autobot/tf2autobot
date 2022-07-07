@@ -632,7 +632,12 @@ export default class ManagerCommands {
                     const _listings = listings[sku];
 
                     const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
-                    const amountAvailable = inventory.getAmount(sku, false, true);
+                    const amountAvailable = inventory.getAmount(
+                        sku,
+                        false,
+                        this.bot.pricelist.assetidInPricelist,
+                        true
+                    );
 
                     if (_listings) {
                         _listings.forEach(listing => {

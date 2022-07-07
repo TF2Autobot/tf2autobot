@@ -235,7 +235,7 @@ export default class CraftingCommands {
                     sku = '5010;6';
             }
 
-            const currentTokenStock = inventory.getAmount(sku, false, true);
+            const currentTokenStock = inventory.getAmount(sku, false, null, true);
 
             reply.push(
                 `Class Token - ${capSubTokenType}: can craft ${amountCanCraft} (${availableAmount} items), token stock: ${currentTokenStock}`
@@ -289,7 +289,7 @@ export default class CraftingCommands {
                     break;
             }
 
-            const currentTokenStock = inventory.getAmount(sku, false, true);
+            const currentTokenStock = inventory.getAmount(sku, false, null, true);
 
             reply.push(
                 `Slot Token - ${capSubTokenType}: can craft ${amountCanCraft} (${availableAmount} items), token stock: ${currentTokenStock}`

@@ -413,7 +413,12 @@ export default class Commands {
             }
         }
 
-        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true)}`;
+        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(
+            match.sku,
+            false,
+            this.bot.pricelist.assetidInPricelist,
+            true
+        )}`;
 
         if (match.max !== -1 && isBuying) {
             reply += ` / ${match.max}`;
@@ -510,7 +515,12 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(info.priceKey);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.priceKey, false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(
+            info.priceKey,
+            false,
+            this.bot.pricelist.assetidInPricelist,
+            true
+        );
         const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.priceKey, false) - cartAmount;
 
         const name = info.match.name;
@@ -983,7 +993,12 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(
+            sku,
+            false,
+            this.bot.pricelist.assetidInPricelist,
+            true
+        );
         const amountCanTrade = ourAmount - cartAmount;
         const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
@@ -1189,7 +1204,12 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(
+            sku,
+            false,
+            this.bot.pricelist.assetidInPricelist,
+            true
+        );
         const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(sku), false);
@@ -1299,7 +1319,7 @@ export default class Commands {
         const numEvens = numMonths - numOdds;
         const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
 
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', false, null, true);
 
         if (ourAmount < amountKeys) {
             return this.bot.sendMessage(

@@ -57,7 +57,7 @@ export default function updateListings(
 
         const inPrice = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
         const isAssetId = Pricelist.isAssetId(priceKey);
-        const amount = inventory.getAmount(priceKey, false, true);
+        const amount = inventory.getAmount(priceKey, false, bot.pricelist.assetidInPricelist, true);
 
         if (!testSKU(priceKey)) {
             if (inPrice !== null && isAssetId && amount === 0) {
@@ -117,7 +117,12 @@ export default function updateListings(
               common1 &&
               inPrice !== null && // base items must already in pricelist
               bot.pricelist.getPrice(`${priceKey};${Object.keys(hv[priceKey].p)[0]}`, false) === null && // painted items must not in pricelist
-              inventory.getAmount(`${priceKey};${Object.keys(hv[priceKey].p)[0]}`, false, true) > 0;
+              inventory.getAmount(
+                  `${priceKey};${Object.keys(hv[priceKey].p)[0]}`,
+                  false,
+                  bot.pricelist.assetidInPricelist,
+                  true
+              ) > 0;
 
         const isAutoAddPaintedFromAdmin = !isAdmin
             ? false

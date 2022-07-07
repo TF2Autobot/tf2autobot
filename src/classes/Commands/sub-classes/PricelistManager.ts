@@ -1549,7 +1549,11 @@ export default class PricelistManagerCommands {
 
     private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
         const keyPrice = this.bot.pricelist.getKeyPrice;
-        const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku, false);
+        const amount = this.bot.inventoryManager.getInventory.getAmount(
+            oldEntry.sku,
+            false,
+            this.bot.pricelist.assetidInPricelist
+        );
 
         return (
             `\n💲 Buy: ${
@@ -1946,7 +1950,12 @@ export default class PricelistManagerCommands {
     }
 
     private generateOutput(filtered: Entry): string {
-        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, false, true);
+        const currentStock = this.bot.inventoryManager.getInventory.getAmount(
+            filtered.sku,
+            false,
+            this.bot.pricelist.assetidInPricelist,
+            true
+        );
         filtered['stock'] = currentStock;
 
         return JSON.stringify(filtered, null, 4);
@@ -1969,7 +1978,12 @@ export default class PricelistManagerCommands {
         const list = Object.keys(pricelist).map((priceKey, i) => {
             const entry = pricelist[priceKey];
             const name = entry.name;
-            const stock = this.bot.inventoryManager.getInventory.getAmount(priceKey, false, true);
+            const stock = this.bot.inventoryManager.getInventory.getAmount(
+                priceKey,
+                false,
+                this.bot.pricelist.assetidInPricelist,
+                true
+            );
 
             return `${i + 1}. ${priceKey} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
@@ -2245,7 +2259,12 @@ export default class PricelistManagerCommands {
 
             const list = filter.map((entry, i) => {
                 const name = entry.name;
-                const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
+                const stock = this.bot.inventoryManager.getInventory.getAmount(
+                    entry.sku,
+                    false,
+                    this.bot.pricelist.assetidInPricelist,
+                    true
+                );
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max
@@ -2295,7 +2314,7 @@ export default class PricelistManagerCommands {
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
-    const amount = bot.inventoryManager.getInventory.getAmount(entry.sku, false);
+    const amount = bot.inventoryManager.getInventory.getAmount(entry.sku, false, bot.pricelist.assetidInPricelist);
 
     return (
         `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +

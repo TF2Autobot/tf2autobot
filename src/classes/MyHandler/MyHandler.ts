@@ -1227,7 +1227,11 @@ export default class MyHandler extends Handler {
                                 if (match.min !== 0 || match.intent === 0) {
                                     // If min is set to 0, how come it can be understocked right?
                                     // fix exploit found on August 4th, 2021
-                                    const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
+                                    const amountInInventory = inventoryManager.getInventory.getAmount(
+                                        sku,
+                                        false,
+                                        this.bot.pricelist.assetidInPricelist
+                                    );
 
                                     if (amountInInventory > 0) {
                                         wrongAboutOffer.push({
@@ -1436,7 +1440,11 @@ export default class MyHandler extends Handler {
                     // User is taking too many
 
                     if (priceEntry.min !== 0) {
-                        const amountInInventory = inventoryManager.getInventory.getAmount('5021;6', false);
+                        const amountInInventory = inventoryManager.getInventory.getAmount(
+                            '5021;6',
+                            false,
+                            this.bot.pricelist.assetidInPricelist
+                        );
 
                         if (amountInInventory > 0) {
                             wrongAboutOffer.push({

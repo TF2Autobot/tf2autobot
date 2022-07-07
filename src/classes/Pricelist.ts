@@ -175,6 +175,10 @@ export interface PricesDataObject {
     [priceKey: string]: EntryData;
 }
 
+export interface AssetidInPricelist {
+    [sku: string]: { [assetid: string]: number };
+}
+
 export default class Pricelist extends EventEmitter {
     private prices: PricesObject = {};
 
@@ -219,6 +223,8 @@ export default class Pricelist extends EventEmitter {
     partialPricedUpdateBulk: string[] = [];
 
     autoResetPartialPriceBulk: string[] = [];
+
+    assetidInPricelist: AssetidInPricelist;
 
     set resetFailedUpdateOldPrices(value: number) {
         this.failedUpdateOldPrices.length = value;
@@ -562,6 +568,10 @@ export default class Pricelist extends EventEmitter {
             this.transformedPricelistForBulk = undefined;
         }
 
+        if (Pricelist.isAssetId(priceKey)) {
+            this.cacheAssetidInPricelist();
+        }
+
         return entry;
     }
 
@@ -644,7 +654,32 @@ export default class Pricelist extends EventEmitter {
                 this.priceChanged(priceKey, entry);
             }
 
+            if (Pricelist.isAssetId(priceKey)) {
+                this.removeCacheAssetidInPricelist(priceKey);
+            }
+
             return resolve(entry);
+        });
+    }
+
+    cacheAssetidInPricelist(): void {
+        Object.keys(this.prices).forEach(priceKey => {
+            if (Pricelist.isAssetId(priceKey)) {
+                if (this.assetidInPricelist[this.prices[priceKey].sku] === undefined) {
+                    this.assetidInPricelist[this.prices[priceKey].sku] = {};
+                }
+                this.assetidInPricelist[this.prices[priceKey].sku][priceKey] = 1;
+            }
+        });
+    }
+
+    removeCacheAssetidInPricelist(assetid: string): void {
+        Object.keys(this.assetidInPricelist).forEach(sku => {
+            const assetidsObj = this.assetidInPricelist[sku];
+
+            if (assetidsObj && assetidsObj[assetid] !== undefined) {
+                delete this.assetidInPricelist[sku][assetid];
+            }
         });
     }
 
@@ -669,6 +704,8 @@ export default class Pricelist extends EventEmitter {
         if (errors !== null) {
             throw new Error(errors.join(', '));
         }
+
+        this.cacheAssetidInPricelist();
 
         return this.setupPricelist();
     }
@@ -909,7 +946,7 @@ export default class Pricelist extends EventEmitter {
                     const currBuyingValue = currPrice.buy.toValue(keyPrice);
                     const currSellingValue = currPrice.sell.toValue(keyPrice);
 
-                    const isInStock = inventory.getAmount(sku, false, true) > 0;
+                    const isInStock = inventory.getAmount(sku, false, this.assetidInPricelist, true) > 0;
                     const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
                     const isNotExcluded = !excludedSKU.includes(sku);
                     const maxIsOne = currPrice.max === 1;
@@ -1092,7 +1129,12 @@ export default class Pricelist extends EventEmitter {
             }
 
             let pricesChanged = false;
-            const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true);
+            const currentStock = this.bot.inventoryManager.getInventory.getAmount(
+                match.sku,
+                false,
+                this.bot.pricelist.assetidInPricelist,
+                true
+            );
 
             const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = currentStock > 0;

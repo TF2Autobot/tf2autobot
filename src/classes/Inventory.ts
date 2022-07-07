@@ -5,7 +5,7 @@ import SKU from '@tf2autobot/tf2-sku';
 import Options, { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-import Pricelist from './Pricelist';
+import Pricelist, { AssetidInPricelist } from './Pricelist';
 
 export default class Inventory {
     private readonly steamID: SteamID;
@@ -194,11 +194,18 @@ export default class Inventory {
         return nonTradable.concat(tradable).slice(0);
     }
 
-    getAmount(priceKey: string, includeNonNormalized: boolean, tradableOnly?: boolean): number {
+    getAmount(
+        priceKey: string,
+        includeNonNormalized: boolean,
+        assetidInPricelist: AssetidInPricelist,
+        tradableOnly?: boolean
+    ): number {
         if (Pricelist.isAssetId(priceKey)) {
             return null !== this.findByAssetid(priceKey) ? 1 : 0;
         }
         const sku = priceKey;
+        const amountToDeduct =
+            assetidInPricelist && assetidInPricelist[sku] ? Object.keys(assetidInPricelist[sku]).length : 0;
         if (includeNonNormalized && !['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) {
             // This is true only on src/lib/tools/summarizeOffer.ts @ L180, and src/classes/InventoryManager.ts @ L69
             let accAmount = this.findBySKU(sku, tradableOnly).length;
@@ -252,14 +259,14 @@ export default class Inventory {
                 }
             }
 
-            return accAmount;
+            return accAmount - amountToDeduct;
         }
 
         // else just return amount
-        return this.findBySKU(sku, tradableOnly).length;
+        return this.findBySKU(sku, tradableOnly).length - amountToDeduct;
     }
 
-    getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
+    getAmountOfGenerics(sku: string, assetidInPricelist: AssetidInPricelist, tradableOnly?: boolean): number {
         const s = SKU.fromString(sku);
 
         if (s.quality === 5) {
@@ -269,10 +276,10 @@ export default class Inventory {
             return all
                 .filter(e => e.startsWith(sku))
                 .reduce((sum, s) => {
-                    return sum + this.getAmount(s, false, tradableOnly);
+                    return sum + this.getAmount(s, false, assetidInPricelist, tradableOnly);
                 }, 0);
         } else {
-            return this.getAmount(sku, false, tradableOnly);
+            return this.getAmount(sku, false, assetidInPricelist, tradableOnly);
         }
     }
 
