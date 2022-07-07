@@ -7,7 +7,7 @@ import SKU from '@tf2autobot/tf2-sku';
 import SchemaManager from '@tf2autobot/tf2-schema';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { generateLinks, testSKU } from '../../../lib/tools/export';
+import { generateLinks, testPriceKey } from '../../../lib/tools/export';
 
 // Manual review commands
 
@@ -145,7 +145,7 @@ export default class ReviewCommands {
                     continue;
                 }
 
-                const name = testSKU(sku) ? schema.getName(SKU.fromString(sku), false) : sku;
+                const name = testPriceKey(sku) ? schema.getName(SKU.fromString(sku), false) : sku;
 
                 summary.push(name + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
             }

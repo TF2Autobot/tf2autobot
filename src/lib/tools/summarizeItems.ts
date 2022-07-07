@@ -2,7 +2,7 @@ import { TradeOffer, Prices } from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
 import Currencies from '@tf2autobot/tf2-currencies';
 import Bot from '../../classes/Bot';
-import { replace, testSKU } from '../tools/export';
+import { replace, testPriceKey } from '../tools/export';
 
 interface Items {
     invalid: string[];
@@ -131,7 +131,7 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
             sellPrice = new Currencies(prices[priceKey].sell).toString();
         }
 
-        const name = testSKU(priceKey)
+        const name = testPriceKey(priceKey)
             ? bot.schema.getName(SKU.fromString(entry?.sku ?? priceKey), properName)
             : priceKey;
 

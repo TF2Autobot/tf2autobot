@@ -13,7 +13,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import Pricelist, { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
 import validator from '../../../lib/validator';
-import { testSKU } from '../../../lib/tools/export';
+import { testPriceKey } from '../../../lib/tools/export';
 import IPricer from '../../IPricer';
 import { Currency } from 'src/types/TeamFortress2';
 
@@ -144,7 +144,7 @@ export default class PricelistManagerCommands {
             params.isPartialPriced = false;
         }
 
-        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+        if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
@@ -227,7 +227,7 @@ export default class PricelistManagerCommands {
                 return this.bot.sendMessage(steamID, `❌ Cannot set "isPartialPriced" parameter!`);
             }
 
-            if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
                 errorMessage.push(
                     `❌ Failed to add ${params.sku as string}: "sku" should not be empty or wrong format.`
                 );
@@ -919,7 +919,7 @@ export default class PricelistManagerCommands {
                 });
         }
 
-        if (params.sku !== undefined && !testSKU(params.sku as string)) {
+        if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
@@ -1187,7 +1187,7 @@ export default class PricelistManagerCommands {
                 );
             }
 
-            if (sku !== undefined && !testSKU(sku)) {
+            if (sku !== undefined && !testPriceKey(sku)) {
                 errorMessage.push(`❌ Failed to update ${sku}: "sku" should not be empty or wrong format.`);
                 failed++;
                 continue;
@@ -1669,7 +1669,7 @@ export default class PricelistManagerCommands {
 
         let sku = params.sku as string;
 
-        if (sku !== undefined && !testSKU(sku)) {
+        if (sku !== undefined && !testPriceKey(sku)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
@@ -1766,7 +1766,7 @@ export default class PricelistManagerCommands {
                 );
             }
 
-            if (sku !== undefined && !testSKU(sku)) {
+            if (sku !== undefined && !testPriceKey(sku)) {
                 errorMessage.push(`❌ Failed to remove ${sku}: "sku" should not be empty or wrong format.`);
                 failed++;
                 continue;
@@ -1890,7 +1890,7 @@ export default class PricelistManagerCommands {
     getCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         let sku = params.sku as string;
-        if (sku !== undefined && !testSKU(sku)) {
+        if (sku !== undefined && !testPriceKey(sku)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 

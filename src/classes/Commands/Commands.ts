@@ -21,7 +21,7 @@ import IPricer from '../IPricer';
 import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
-import { testSKU } from '../../lib/tools/export';
+import { testPriceKey } from '../../lib/tools/export';
 import axios from 'axios';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
@@ -328,7 +328,7 @@ export default class Commands {
             return this.bot.sendMessage(steamID, `❌ Missing item name or item sku!`);
         }
 
-        if (!testSKU(itemNameOrSku)) {
+        if (!testPriceKey(itemNameOrSku)) {
             // Receive name
             const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
 
@@ -1429,7 +1429,7 @@ function getMptfDashboardItems(mptfApiKey: string, ignorePainted = false): Promi
                             amount: item.num_for_sale
                         };
                     })
-                    .filter(item => testSKU(item.sku));
+                    .filter(item => testPriceKey(item.sku));
 
                 const itemsSize = items.length;
                 const toReturn = {};

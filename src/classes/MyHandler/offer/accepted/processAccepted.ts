@@ -41,7 +41,7 @@ export default function processAccepted(
                 // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
                 (meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(el => {
-                    const name = t.testSKU(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
+                    const name = t.testPriceKey(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
 
                     accepted.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
                 });

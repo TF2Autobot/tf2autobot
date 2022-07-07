@@ -9,7 +9,7 @@ import Bot from '../../Bot';
 import Pricelist, { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
-import { testSKU } from '../../../lib/tools/export';
+import { testPriceKey } from '../../../lib/tools/export';
 
 export function getItemAndAmount(
     steamID: SteamID,
@@ -58,7 +58,9 @@ export function getItemAndAmount(
     }
 
     let priceKey: string;
-    let match = testSKU(name) ? bot.pricelist.getPriceBySkuOrAsset(name, true) : bot.pricelist.searchByName(name, true);
+    let match = testPriceKey(name)
+        ? bot.pricelist.getPriceBySkuOrAsset(name, true)
+        : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 

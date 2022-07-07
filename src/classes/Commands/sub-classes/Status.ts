@@ -5,7 +5,7 @@ import SKU from '@tf2autobot/tf2-sku';
 import * as timersPromises from 'timers/promises';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
+import { stats, profit, itemStats, testPriceKey } from '../../../lib/tools/export';
 import { sendStats } from '../../../lib/DiscordWebhook/export';
 import loadPollData from '../../../lib/tools/polldata';
 
@@ -113,7 +113,7 @@ export default class StatusCommands {
     async itemStatsCommand(steamID: SteamID, message: string): Promise<void> {
         message = CommandParser.removeCommand(message).trim();
         let sku = '';
-        if (testSKU(message)) {
+        if (testPriceKey(message)) {
             sku = message;
         } else {
             sku = this.bot.schema.getSkuFromName(message);

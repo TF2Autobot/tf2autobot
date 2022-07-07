@@ -14,7 +14,7 @@ import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
-import { pure, testSKU } from '../../../lib/tools/export';
+import { pure, testPriceKey } from '../../../lib/tools/export';
 
 // Bot manager commands
 
@@ -78,7 +78,7 @@ export default class ManagerCommands {
             });
         } else {
             // For use and delete commands
-            if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
                 return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             }
 

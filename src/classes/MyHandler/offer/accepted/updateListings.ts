@@ -11,7 +11,7 @@ import { Attributes } from '../../../TF2GC';
 import log from '../../../../lib/logger';
 import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';
-import { testSKU } from '../../../../lib/tools/export';
+import { testPriceKey } from '../../../../lib/tools/export';
 
 let itemsFromPreviousTrades: string[] = [];
 
@@ -55,7 +55,7 @@ export default function updateListings(
             continue;
         }
 
-        if (!testSKU(priceKey)) {
+        if (!testPriceKey(priceKey)) {
             continue;
         }
 

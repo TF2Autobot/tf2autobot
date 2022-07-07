@@ -41,7 +41,7 @@ import { exponentialBackoff } from '../../lib/helpers';
 
 import { noiseMakers } from '../../lib/data';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
+import { summarize, uptime, getHighValueItems, testPriceKey } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
@@ -645,7 +645,7 @@ export default class MyHandler extends Handler {
                     itemsDict[which][sku] = totalGeneric;
                 }
 
-                if (!testSKU(sku)) {
+                if (!testPriceKey(sku)) {
                     // Offer contains an item that is not from TF2
                     hasNonTF2Items = true;
                 }
@@ -1139,7 +1139,7 @@ export default class MyHandler extends Handler {
                     let match: Entry | null = null;
 
                     if (hasNonTF2Items) {
-                        if (testSKU(sku)) {
+                        if (testPriceKey(sku)) {
                             match =
                                 which === 'our'
                                     ? this.bot.pricelist.getPrice(sku)

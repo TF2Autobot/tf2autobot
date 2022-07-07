@@ -8,7 +8,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
-import { testSKU } from '../../../lib/tools/export';
+import { testPriceKey } from '../../../lib/tools/export';
 import { UnknownDictionary } from '../../../types/common';
 import IPricer, { RequestCheckFn, RequestCheckResponse } from '../../IPricer';
 
@@ -24,7 +24,7 @@ export default class RequestCommands {
     pricecheckCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         let sku = params.sku as string;
-        if (sku !== undefined && !testSKU(sku)) {
+        if (sku !== undefined && !testPriceKey(sku)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
@@ -98,7 +98,7 @@ export default class RequestCommands {
     async checkCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         let sku = params.sku as string;
-        if (sku !== undefined && !testSKU(sku)) {
+        if (sku !== undefined && !testPriceKey(sku)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 

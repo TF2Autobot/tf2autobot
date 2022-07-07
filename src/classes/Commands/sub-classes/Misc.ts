@@ -6,7 +6,7 @@ import { removeLinkProtocol } from '../functions/utils';
 import CommandParser from '../../CommandParser';
 import Bot from '../../Bot';
 import { Discord, Stock } from '../../Options';
-import { pure, timeNow, uptime, testSKU } from '../../../lib/tools/export';
+import { pure, timeNow, uptime, testPriceKey } from '../../../lib/tools/export';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -100,7 +100,7 @@ export default class MiscCommands {
             let isWithSomething = false;
 
             if (itemNameOrSku !== '!sku') {
-                if (!testSKU(itemNameOrSku)) {
+                if (!testPriceKey(itemNameOrSku)) {
                     // Receive name
                     const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
                     if (itemNameOrSku !== '!stock') {
