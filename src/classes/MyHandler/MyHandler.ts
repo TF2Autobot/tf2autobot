@@ -2066,6 +2066,11 @@ export default class MyHandler extends Handler {
                     // @ts-ignore
                     offer.tradeID
                 ) {
+                    if (Object.keys(this.bot.pricelist.assetidInPricelist).length < 1) {
+                        // Check if cache is not empty
+                        return;
+                    }
+
                     offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
                         if (err) {
                             return log.error(err);
