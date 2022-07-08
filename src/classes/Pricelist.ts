@@ -664,6 +664,23 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
+    replacePriceEntry(oldId: string, newEntry: EntryData): void {
+        this.removePrice(oldId, true)
+            .then(() => {
+                this.bot.pricelist
+                    .addPrice(newEntry.id, newEntry, true)
+                    .then(() => {
+                        log.info(`Successfully replaced ${oldId} to ${newEntry.id}`);
+                    })
+                    .catch(err => {
+                        log.error(`Error replacing ${oldId} to ${newEntry.id}: `, err);
+                    });
+            })
+            .catch(err => {
+                log.error(`Error removing ${oldId} while replacing to ${newEntry.id}: `, err);
+            });
+    }
+
     private cacheAssetidInPricelist(): void {
         Object.keys(this.prices).forEach(priceKey => {
             if (Pricelist.isAssetId(priceKey)) {
