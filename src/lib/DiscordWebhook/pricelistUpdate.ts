@@ -6,7 +6,7 @@ import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';
 
 import log from '../logger';
-import { Entry } from '../../classes/Pricelist';
+import { BuyAndSell } from '../../classes/Pricelist';
 import Options from '../../classes/Options';
 
 const australiumImageURL: { [defindex: number]: string } = {
@@ -1781,9 +1781,9 @@ export default function sendWebHookPriceUpdateV1(
     schema: Schema,
     options: Options,
     sku: string,
-    time: number,
-    newPrices: Entry,
-    oldPrices: Entry | null,
+    time: string,
+    newPrices: BuyAndSell,
+    oldPrices: BuyAndSell,
     currentStock: number,
     conversion: number,
     buyChangesValue: number | null,

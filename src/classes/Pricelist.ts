@@ -1199,7 +1199,7 @@ export interface KeyPrices {
     time: number;
 }
 
-interface BuyAndSell {
+export interface BuyAndSell {
     buy: Currencies;
     sell: Currencies;
 }
