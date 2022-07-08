@@ -1141,14 +1141,14 @@ export default class Pricelist extends EventEmitter {
                         .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
 
                     sendWebHookPriceUpdateV1(
-                        data.sku,
-                        this.schema.getItemBySKU(data.sku).name,
-                        match,
-                        time,
                         this.schema,
                         opt,
-                        currentStock,
+                        match.sku,
+                        time,
+                        newPrices,
                         oldPrice,
+                        currentStock,
+                        match.sku === '5021;6' ? undefined : keyPrice,
                         buyChangesValue,
                         sellChangesValue,
                         this.isUseCustomPricer
