@@ -283,7 +283,7 @@ export default class Listings {
                                 ? null === inventory.findByAssetid(priceKey)
                                     ? 0
                                     : 1
-                                : inventory.getAmount(priceKey, false, this.bot.pricelist.assetidInPricelist, true) > 0
+                                : inventory.getAmount(priceKey, false, true) > 0
                         ) {
                             // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
@@ -572,9 +572,7 @@ export default class Listings {
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             const price = entry[key].toString();
             const maxStock = entry.max === -1 ? '∞' : entry.max.toString();
-            const currentStock = inventory
-                .getAmount(entry.sku, false, this.bot.pricelist.assetidInPricelist, true)
-                .toString();
+            const currentStock = inventory.getAmount(entry.sku, false, true).toString();
             const amountTrade = amountCanTrade.toString();
 
             return details

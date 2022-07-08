@@ -190,12 +190,7 @@ function getSummary(
 
         if (showStockChanges) {
             let oldStock: number | null = 0;
-            const currentStock = bot.inventoryManager.getInventory.getAmount(
-                priceKey,
-                true,
-                bot.pricelist.assetidInPricelist,
-                true
-            );
+            const currentStock = bot.inventoryManager.getInventory.getAmount(priceKey, true, true);
 
             const summaryAccepted = ['summary-accepted'].includes(type);
             const summaryInProcess = ['review-admin', 'summary-accepting', 'summary-countering'].includes(type);

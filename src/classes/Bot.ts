@@ -572,12 +572,7 @@ export default class Bot {
                         const _listings = listings[priceKey];
 
                         const amountCanBuy = inventoryManager.amountCanTrade(priceKey, true);
-                        const amountAvailable = inventory.getAmount(
-                            priceKey,
-                            false,
-                            this.pricelist.assetidInPricelist,
-                            true
-                        );
+                        const amountAvailable = inventory.getAmount(priceKey, false, true);
 
                         if (_listings) {
                             _listings.forEach(listing => {
@@ -848,14 +843,7 @@ export default class Bot {
                 // only call this here, and in Commands/Options
                 Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
 
-                this.inventoryManager.setInventory = new Inventory(
-                    this.client.steamID,
-                    this.manager,
-                    this.schema,
-                    this.options,
-                    this.strangeParts,
-                    'our'
-                );
+                this.inventoryManager.setInventory = new Inventory(this.client.steamID, this, 'our');
                 await this.inventoryManager.getInventory.fetch();
             },
             async () => {

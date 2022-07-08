@@ -718,14 +718,7 @@ export default class Trades {
 
             const opt = this.bot.options;
 
-            const theirInventory = new Inventory(
-                offer.partner,
-                this.bot.manager,
-                this.bot.schema,
-                opt,
-                this.bot.strangeParts,
-                'their'
-            );
+            const theirInventory = new Inventory(offer.partner, this.bot, 'their');
 
             const ourInventoryItems = this.bot.inventoryManager.getInventory.getItems;
 
@@ -736,20 +729,14 @@ export default class Trades {
                     const ourItems = Inventory.fromItems(
                         this.bot.client.steamID || this.bot.community.steamID,
                         offer.itemsToGive,
-                        this.bot.manager,
-                        this.bot.schema,
-                        opt,
-                        this.bot.strangeParts,
+                        this.bot,
                         'our'
                     ).getItems;
 
                     const theirItems = Inventory.fromItems(
                         offer.partner,
                         offer.itemsToReceive,
-                        this.bot.manager,
-                        this.bot.schema,
-                        opt,
-                        this.bot.strangeParts,
+                        this.bot,
                         'their'
                     ).getItems;
 

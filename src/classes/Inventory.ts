@@ -1,11 +1,11 @@
 import SteamID from 'steamid';
-import TradeOfferManager, { EconItem, ItemAttributes, PartialSKUWithMention } from '@tf2autobot/tradeoffer-manager';
-import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import { EconItem, ItemAttributes, PartialSKUWithMention } from '@tf2autobot/tradeoffer-manager';
+import { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 import SKU from '@tf2autobot/tf2-sku';
-import Options, { HighValue } from './Options';
+import { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
-import Pricelist, { AssetidInPricelist } from './Pricelist';
+import Pricelist from './Pricelist';
 
 export default class Inventory {
     private readonly steamID: SteamID;
@@ -43,30 +43,19 @@ export default class Inventory {
 
     constructor(
         steamID: SteamID | string,
-        private readonly manager: TradeOfferManager,
-        private readonly schema: SchemaManager.Schema,
-        private readonly options: Options,
-        private readonly strangeParts: StrangeParts,
+        private readonly bot: Bot,
         private readonly which: 'our' | 'their' | 'admin'
     ) {
         this.steamID = new SteamID(steamID.toString());
-        this.manager = manager;
-        this.schema = schema;
-        this.options = options;
-        this.strangeParts = strangeParts;
-        this.which = which;
     }
 
     static fromItems(
         steamID: SteamID | string,
         items: EconItem[],
-        manager: TradeOfferManager,
-        schema: SchemaManager.Schema,
-        options: Options,
-        strangeParts: StrangeParts,
+        bot: Bot,
         which: 'our' | 'their' | 'admin'
     ): Inventory {
-        const inventory = new Inventory(steamID, manager, schema, options, strangeParts, which);
+        const inventory = new Inventory(steamID, bot, which);
         inventory.setItems = items;
         return inventory;
     }
@@ -126,7 +115,7 @@ export default class Inventory {
 
     fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.manager.getUserInventoryContents(this.getSteamID, 440, '2', false, (err, items) => {
+            this.bot.manager.getUserInventoryContents(this.getSteamID, 440, '2', false, (err, items) => {
                 if (err) {
                     return reject(err);
                 }
@@ -140,16 +129,14 @@ export default class Inventory {
     private set setItems(items: EconItem[]) {
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
-            this.schema,
-            this.options,
-            this.strangeParts,
+            this.bot,
+            this.bot.strangeParts,
             this.which
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
-            this.schema,
-            this.options,
-            this.strangeParts,
+            this.bot,
+            this.bot.strangeParts,
             this.which
         );
     }
@@ -194,32 +181,28 @@ export default class Inventory {
         return nonTradable.concat(tradable).slice(0);
     }
 
-    getAmount(
-        priceKey: string,
-        includeNonNormalized: boolean,
-        assetidInPricelist: AssetidInPricelist,
-        tradableOnly?: boolean
-    ): number {
+    getAmount(priceKey: string, includeNonNormalized: boolean, tradableOnly?: boolean): number {
         if (Pricelist.isAssetId(priceKey)) {
             return null !== this.findByAssetid(priceKey) ? 1 : 0;
         }
         const sku = priceKey;
+        const assetidInPricelist = this.bot.pricelist.assetidInPricelist;
         const amountToDeduct =
             assetidInPricelist && assetidInPricelist[sku] ? Object.keys(assetidInPricelist[sku]).length : 0;
         if (includeNonNormalized && !['5021;6', '5002;6', '5001;6', '5000;6'].includes(sku)) {
             // This is true only on src/lib/tools/summarizeOffer.ts @ L180, and src/classes/InventoryManager.ts @ L69
             let accAmount = this.findBySKU(sku, tradableOnly).length;
 
-            const optNormalize = this.options.normalize;
+            const optNormalize = this.bot.options.normalize;
             const normFestivized = optNormalize.festivized;
             const normPainted = optNormalize.painted;
             const normStrange = optNormalize.strangeAsSecondQuality;
 
-            const schemaItem = this.schema.getItemBySKU(sku);
+            const schemaItem = this.bot.schema.getItemBySKU(sku);
             if (schemaItem) {
                 const canBeFestivized =
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    this.schema.raw.items_game.items[`${schemaItem.defindex}`].tags?.can_be_festivized == 1;
+                    this.bot.schema.raw.items_game.items[`${schemaItem.defindex}`].tags?.can_be_festivized == 1;
 
                 // Festivized
                 if (
@@ -240,7 +223,7 @@ export default class Inventory {
                     normPainted.amountIncludeNonPainted &&
                     !normPainted.our
                 ) {
-                    const paintPartialSKU = Object.values(this.schema.paints);
+                    const paintPartialSKU = Object.values(this.bot.schema.paints);
                     for (const pSKU of paintPartialSKU) {
                         accAmount += this.findBySKU(`${sku};p${pSKU}`, tradableOnly).length;
                     }
@@ -266,7 +249,7 @@ export default class Inventory {
         return this.findBySKU(sku, tradableOnly).length - amountToDeduct;
     }
 
-    getAmountOfGenerics(sku: string, assetidInPricelist: AssetidInPricelist, tradableOnly?: boolean): number {
+    getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
         const s = SKU.fromString(sku);
 
         if (s.quality === 5) {
@@ -276,10 +259,10 @@ export default class Inventory {
             return all
                 .filter(e => e.startsWith(sku))
                 .reduce((sum, s) => {
-                    return sum + this.getAmount(s, false, assetidInPricelist, tradableOnly);
+                    return sum + this.getAmount(s, false, tradableOnly);
                 }, 0);
         } else {
-            return this.getAmount(sku, false, assetidInPricelist, tradableOnly);
+            return this.getAmount(sku, false, tradableOnly);
         }
     }
 
@@ -390,8 +373,7 @@ export default class Inventory {
 
     private static createDictionary(
         items: EconItem[],
-        schema: SchemaManager.Schema,
-        opt: Options,
+        bot: Bot,
         strangeParts: StrangeParts,
         which: 'our' | 'their' | 'admin'
     ): Dict {
@@ -401,19 +383,18 @@ export default class Inventory {
         const isAdmin = which === 'admin';
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const isNormalizeFestivized = isAdmin ? false : opt.normalize.festivized[which];
+        const isNormalizeFestivized = isAdmin ? false : bot.options.normalize.festivized[which];
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const isNormalizeStrangeAsSecondQuality = isAdmin ? false : opt.normalize.strangeAsSecondQuality[which];
+        const isNormalizeStrangeAsSecondQuality = isAdmin ? false : bot.options.normalize.strangeAsSecondQuality[which];
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const isNormalizePainted = isAdmin ? false : opt.normalize.painted[which];
+        const isNormalizePainted = isAdmin ? false : bot.options.normalize.painted[which];
 
         for (let i = 0; i < itemsCount; i++) {
             const getSku = items[i].getSKU(
-                schema,
+                bot.schema,
                 isNormalizeFestivized,
                 isNormalizeStrangeAsSecondQuality,
                 isNormalizePainted,
-                schema.paints,
                 this.paintedOptions
             );
 
@@ -427,7 +408,7 @@ export default class Inventory {
                 sku = removePaintedPartialSku(sku);
             }
 
-            const attributes = this.highValue(sku, items[i], schema.paints, strangeParts);
+            const attributes = this.highValue(sku, items[i], bot.schema.paints, strangeParts);
             const attributesCount = Object.keys(attributes).length;
 
             const isUses =

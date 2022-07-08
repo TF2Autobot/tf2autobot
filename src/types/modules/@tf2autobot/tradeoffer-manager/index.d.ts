@@ -2,7 +2,7 @@
 declare module '@tf2autobot/tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
-    import SchemaManager, { Paints } from '@tf2autobot/tf2-schema';
+    import SchemaManager from '@tf2autobot/tf2-schema';
     import Currencies from '@tf2autobot/tf2-currencies';
 
     interface UnknownKeys<T> {
@@ -374,7 +374,6 @@ declare module '@tf2autobot/tradeoffer-manager' {
                 normalizeFestivizedItems: boolean,
                 normalizeStrangeAsSecondQuality: boolean,
                 normalizePainted: boolean,
-                paints: Paints,
                 paintsInOptions: string[]
             ): { sku: string; isPainted: boolean } | null;
         }

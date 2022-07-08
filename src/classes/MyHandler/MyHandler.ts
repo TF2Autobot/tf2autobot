@@ -546,21 +546,11 @@ export default class MyHandler extends Handler {
             our: Inventory.fromItems(
                 this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
                 offer.itemsToGive,
-                this.bot.manager,
-                this.bot.schema,
-                opt,
-                this.bot.strangeParts,
+                this.bot,
                 'our'
             ).getItems,
-            their: Inventory.fromItems(
-                offer.partner,
-                offer.itemsToReceive,
-                this.bot.manager,
-                this.bot.schema,
-                opt,
-                this.bot.strangeParts,
-                isAdmin ? 'admin' : 'their'
-            ).getItems
+            their: Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot, isAdmin ? 'admin' : 'their')
+                .getItems
         };
 
         const exchange = {
@@ -1227,11 +1217,7 @@ export default class MyHandler extends Handler {
                                 if (match.min !== 0 || match.intent === 0) {
                                     // If min is set to 0, how come it can be understocked right?
                                     // fix exploit found on August 4th, 2021
-                                    const amountInInventory = inventoryManager.getInventory.getAmount(
-                                        sku,
-                                        false,
-                                        this.bot.pricelist.assetidInPricelist
-                                    );
+                                    const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
 
                                     if (amountInInventory > 0) {
                                         wrongAboutOffer.push({
@@ -1440,11 +1426,7 @@ export default class MyHandler extends Handler {
                     // User is taking too many
 
                     if (priceEntry.min !== 0) {
-                        const amountInInventory = inventoryManager.getInventory.getAmount(
-                            '5021;6',
-                            false,
-                            this.bot.pricelist.assetidInPricelist
-                        );
+                        const amountInInventory = inventoryManager.getInventory.getAmount('5021;6', false);
 
                         if (amountInInventory > 0) {
                             wrongAboutOffer.push({
