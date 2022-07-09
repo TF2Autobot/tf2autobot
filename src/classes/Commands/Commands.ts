@@ -413,14 +413,21 @@ export default class Commands {
             }
         }
 
-        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true)}`;
+        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: match.sku,
+            includeNonNormalized: false,
+            tradableOnly: true
+        })}`;
 
         if (match.max !== -1 && isBuying) {
             reply += ` / ${match.max}`;
         }
 
         if (isSelling && match.min !== 0) {
-            reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade(match.sku, false)}`;
+            reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade({
+                priceKey: match.sku,
+                tradeIntent: 'selling'
+            })}`;
         }
 
         reply += '. ';
@@ -510,8 +517,13 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(info.priceKey);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.priceKey, false, true);
-        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.priceKey, false) - cartAmount;
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: info.priceKey,
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
+        const amountCanTrade =
+            this.bot.inventoryManager.amountCanTrade({ priceKey: info.priceKey, tradeIntent: 'selling' }) - cartAmount;
 
         const name = info.match.name;
 
@@ -981,7 +993,11 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: sku,
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
         const amountCanTrade = ourAmount - cartAmount;
         const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
@@ -1078,7 +1094,7 @@ export default class Commands {
                 let isWithinGroup = false;
 
                 if (withGroup) {
-                    if (withGroup !== this.bot.pricelist.getPrice(sku)?.group) {
+                    if (withGroup !== this.bot.pricelist.getPrice({ priceKey: sku })?.group) {
                         delete clonedDict[sku];
                         continue;
                     }
@@ -1187,7 +1203,11 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: sku,
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
         const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(sku), false);
@@ -1297,7 +1317,11 @@ export default class Commands {
         const numEvens = numMonths - numOdds;
         const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
 
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: '5021;6',
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
 
         if (ourAmount < amountKeys) {
             return this.bot.sendMessage(

@@ -175,7 +175,7 @@ function getSummary(
             continue;
         }
 
-        const entry = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
+        const entry = bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
         const isTF2Items = testPriceKey(priceKey);
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
@@ -190,7 +190,11 @@ function getSummary(
 
         if (showStockChanges) {
             let oldStock: number | null = 0;
-            const currentStock = bot.inventoryManager.getInventory.getAmount(priceKey, true, true);
+            const currentStock = bot.inventoryManager.getInventory.getAmount({
+                priceKey,
+                includeNonNormalized: true,
+                tradableOnly: true
+            });
 
             const summaryAccepted = ['summary-accepted'].includes(type);
             const summaryInProcess = ['review-admin', 'summary-accepting', 'summary-countering'].includes(type);

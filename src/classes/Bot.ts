@@ -412,23 +412,23 @@ export default class Bot {
                     this.messageAdmins('version', `⚠️ The bot local repository is not cloned from Github.`, []);
                 }
 
-                const messages: string[] = [];
+                let messages: string[];
 
                 if (process.platform === 'win32') {
-                    messages.concat([
+                    messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
                         '/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js'
-                    ]);
+                    ];
                 } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
-                    messages.concat([
+                    messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory:\n',
                         '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
-                    ]);
+                    ];
                 } else {
-                    messages.concat([
+                    messages = [
                         '❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n',
                         '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
-                    ]);
+                    ];
                 }
 
                 for (const message of messages) {
@@ -535,11 +535,11 @@ export default class Bot {
                         }
 
                         let match: Entry | null;
-                        const assetIdPrice = this.pricelist.getPrice(listing.id.slice('440_'.length));
+                        const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
                         if (null !== assetIdPrice) {
                             match = assetIdPrice;
                         } else {
-                            match = this.pricelist.getPrice(listingSKU);
+                            match = this.pricelist.getPrice({ priceKey: listingSKU });
                         }
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
@@ -571,8 +571,12 @@ export default class Bot {
                         const entry = pricelist[priceKey];
                         const _listings = listings[priceKey];
 
-                        const amountCanBuy = inventoryManager.amountCanTrade(priceKey, true);
-                        const amountAvailable = inventory.getAmount(priceKey, false, true);
+                        const amountCanBuy = inventoryManager.amountCanTrade({ priceKey, tradeIntent: 'buying' });
+                        const amountAvailable = inventory.getAmount({
+                            priceKey,
+                            includeNonNormalized: false,
+                            tradableOnly: true
+                        });
 
                         if (_listings) {
                             _listings.forEach(listing => {
@@ -1264,7 +1268,7 @@ export default class Bot {
     }
 
     private onWebSession(sessionID: string, cookies: string[]): void {
-        log.debug('New web session');
+        log.debug(`New web session: ${sessionID}`);
 
         void this.setCookies(cookies);
     }
@@ -1289,7 +1293,7 @@ export default class Bot {
     }
 
     private onSteamGuard(domain: string, callback: (authCode: string) => void, lastCodeWrong: boolean): void {
-        log.debug('Steam guard code requested');
+        log.debug(`Steam guard code requested for ${domain}`);
 
         if (lastCodeWrong === false) {
             this.consecutiveSteamGuardCodesWrong = 0;

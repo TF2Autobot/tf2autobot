@@ -528,7 +528,7 @@ export default class ManagerCommands {
             }
         }
 
-        this.bot.sendMessage(steamID, '/pre ' + this.generateAutokeysReply(steamID, this.bot));
+        this.bot.sendMessage(steamID, '/pre ' + ManagerCommands.generateAutokeysReply(steamID, this.bot));
     }
 
     refreshAutokeysCommand(steamID: SteamID): void {
@@ -598,7 +598,7 @@ export default class ManagerCommands {
                         }
                     }
 
-                    const match = this.bot.pricelist.getPrice(listingSKU);
+                    const match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
 
                     if (isFilterCantAfford && listing.intent === 0 && match !== null) {
                         const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
@@ -631,8 +631,12 @@ export default class ManagerCommands {
                     const entry = pricelist[sku];
                     const _listings = listings[sku];
 
-                    const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
-                    const amountAvailable = inventory.getAmount(sku, false, true);
+                    const amountCanBuy = inventoryManager.amountCanTrade({ priceKey: sku, tradeIntent: 'buying' });
+                    const amountAvailable = inventory.getAmount({
+                        priceKey: sku,
+                        includeNonNormalized: false,
+                        tradableOnly: true
+                    });
 
                     if (_listings) {
                         _listings.forEach(listing => {
@@ -731,7 +735,7 @@ export default class ManagerCommands {
         }
     }
 
-    private generateAutokeysReply(steamID: SteamID, bot: Bot): string {
+    private static generateAutokeysReply(steamID: SteamID, bot: Bot): string {
         const pureNow = pure.currPure(bot);
         const currKey = pureNow.key;
         const currRef = pureNow.refTotalInScrap;

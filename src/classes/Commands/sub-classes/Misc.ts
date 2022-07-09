@@ -158,19 +158,19 @@ export default class MiscCommands {
             const pure = [
                 {
                     name: 'Mann Co. Supply Crate Key',
-                    amount: inventory.getAmount('5021;6', false)
+                    amount: inventory.getAmount({ priceKey: '5021;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Refined Metal',
-                    amount: inventory.getAmount('5002;6', false)
+                    amount: inventory.getAmount({ priceKey: '5002;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Reclaimed Metal',
-                    amount: inventory.getAmount('5001;6', false)
+                    amount: inventory.getAmount({ priceKey: '5001;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Scrap Metal',
-                    amount: inventory.getAmount('5000;6', false)
+                    amount: inventory.getAmount({ priceKey: '5000;6', includeNonNormalized: false })
                 }
             ];
 
@@ -289,7 +289,7 @@ export default class MiscCommands {
 
         if (showOnlyExist) {
             weapons.forEach(sku => {
-                const amount = inventory.getAmount(sku, false);
+                const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 if (amount > 0) {
                     items.push({
                         name: schema.getName(SKU.fromString(sku), false),
@@ -299,7 +299,7 @@ export default class MiscCommands {
             });
         } else {
             weapons.forEach(sku => {
-                const amount = inventory.getAmount(sku, false);
+                const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 items.push({
                     name: schema.getName(SKU.fromString(sku), false),
                     amount: amount

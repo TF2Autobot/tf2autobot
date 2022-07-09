@@ -36,14 +36,24 @@ export default class Listings {
         };
     }
 
-    checkByPriceKey(priceKey: string, data?: Entry | null, generics = false, showLogs = false): void {
+    checkByPriceKey({
+        priceKey,
+        data,
+        checkGenerics = false,
+        showLogs = false
+    }: {
+        priceKey: string;
+        data?: Entry;
+        checkGenerics?: boolean;
+        showLogs?: boolean;
+    }): void {
         let sku: string | undefined = undefined;
         const isAssetId = Pricelist.isAssetId(priceKey);
         if (isAssetId) {
-            const entry = this.bot.pricelist.getPrice(priceKey, false, generics);
-            if (null !== entry) {
+            const entry = this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false, getGenericPrice: checkGenerics });
+            if (entry) {
                 sku = entry.sku;
-            } else if (data !== null) {
+            } else if (data) {
                 sku = data.sku;
             }
         } else {
@@ -59,7 +69,10 @@ export default class Listings {
 
         let doneSomething = false;
 
-        const match = data?.enabled === false ? null : this.bot.pricelist.getPrice(priceKey, true, generics);
+        const match =
+            data?.enabled === false
+                ? null
+                : this.bot.pricelist.getPrice({ priceKey, onlyEnabled: true, getGenericPrice: checkGenerics });
 
         let hasBuyListing = false;
         let hasSellListing = false;
@@ -67,15 +80,23 @@ export default class Listings {
         const invManager = this.bot.inventoryManager;
         const inventory = invManager.getInventory;
 
-        const amountCanBuy = invManager.amountCanTrade(priceKey, true, generics);
-        const amountCanSell = invManager.amountCanTrade(priceKey, false, generics);
+        const amountCanBuy = invManager.amountCanTrade({
+            priceKey,
+            tradeIntent: 'buying',
+            getGenericAmount: checkGenerics
+        });
+        const amountCanSell = invManager.amountCanTrade({
+            priceKey,
+            tradeIntent: 'selling',
+            getGenericAmount: checkGenerics
+        });
 
         const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable; // false by default
 
         let listings: ListingManager.Listing[];
         if (isAssetId) {
             const listing = this.bot.listingManager.findListing(priceKey);
-            if (null !== listing) {
+            if (listing) {
                 listings = [listing];
             } else {
                 listings = [];
@@ -85,7 +106,14 @@ export default class Listings {
         }
         listings.forEach(listing => {
             // Skip the listing if it belongs to an asset AND we are checking a SKU
-            if (!isAssetId && this.bot.pricelist.getPrice(listing.id.slice('440_'.length), true, generics)) {
+            if (
+                !isAssetId &&
+                this.bot.pricelist.getPrice({
+                    priceKey: listing.id.slice('440_'.length),
+                    onlyEnabled: true,
+                    getGenericPrice: checkGenerics
+                })
+            ) {
                 return;
             }
 
@@ -104,7 +132,7 @@ export default class Listings {
                 hasSellListing = true;
             }
 
-            if (match === null || (match.intent !== 2 && match.intent !== listing.intent)) {
+            if (!match || (match.intent !== 2 && match.intent !== listing.intent)) {
                 if (showLogs) {
                     log.debug('We are not trading the item, remove the listing.');
                 }
@@ -172,16 +200,25 @@ export default class Listings {
             }
         });
 
-        const matchNew = data?.enabled === false ? null : this.bot.pricelist.getPrice(priceKey, true, generics);
+        const matchNew =
+            data?.enabled === false
+                ? null
+                : this.bot.pricelist.getPrice({
+                      priceKey: priceKey,
+                      onlyEnabled: true,
+                      getGenericPrice: checkGenerics
+                  });
 
-        if (matchNew !== null && matchNew.enabled === true) {
+        if (matchNew && matchNew.enabled === true) {
             let assetids: string[] = [];
             if (isAssetId && null !== inventory.findByAssetid(priceKey)) {
                 assetids = [priceKey];
             } else {
                 assetids = inventory
                     .findBySKU(priceKey, true)
-                    .filter(assetId => this.bot.pricelist.hasPrice(assetId, false) === false);
+                    .filter(
+                        assetId => this.bot.pricelist.hasPrice({ priceKey: assetId, onlyEnabled: false }) === false
+                    );
             }
 
             const canAffordToBuy = isFilterCantAfford
@@ -274,7 +311,10 @@ export default class Listings {
                 let priceKeys = Object.keys(pricelist);
                 if (this.bot.options.pricelist.filterCantAfford.enable) {
                     priceKeys = priceKeys.filter(priceKey => {
-                        const amountCanBuy = inventoryManager.amountCanTrade(priceKey, true);
+                        const amountCanBuy = inventoryManager.amountCanTrade({
+                            priceKey: priceKey,
+                            tradeIntent: 'buying'
+                        });
 
                         if (
                             (amountCanBuy > 0 &&
@@ -283,7 +323,11 @@ export default class Listings {
                                 ? null === inventory.findByAssetid(priceKey)
                                     ? 0
                                     : 1
-                                : inventory.getAmount(priceKey, false, true) > 0
+                                : inventory.getAmount({
+                                      priceKey: priceKey,
+                                      includeNonNormalized: false,
+                                      tradableOnly: true
+                                  }) > 0
                         ) {
                             // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
@@ -346,13 +390,18 @@ export default class Listings {
                 }
 
                 if (withDelay) {
-                    this.checkByPriceKey(priceKeys[index], pricelist[priceKeys[index]], false, showLogs);
+                    this.checkByPriceKey({
+                        priceKey: priceKeys[index],
+                        data: pricelist[priceKeys[index]],
+                        checkGenerics: false,
+                        showLogs: showLogs
+                    });
                     index++;
                     await timersPromises.setTimeout(time ? time : 200);
                     void iteration();
                 } else {
                     setImmediate(() => {
-                        this.checkByPriceKey(priceKeys[index], pricelist[priceKeys[index]]);
+                        this.checkByPriceKey({ priceKey: priceKeys[index], data: pricelist[priceKeys[index]] });
                         index++;
                         void iteration();
                     });
@@ -572,7 +621,13 @@ export default class Listings {
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             const price = entry[key].toString();
             const maxStock = entry.max === -1 ? '∞' : entry.max.toString();
-            const currentStock = inventory.getAmount(entry.sku, false, true).toString();
+            const currentStock = inventory
+                .getAmount({
+                    priceKey: entry.sku,
+                    includeNonNormalized: false,
+                    tradableOnly: true
+                })
+                .toString();
             const amountTrade = amountCanTrade.toString();
 
             return details

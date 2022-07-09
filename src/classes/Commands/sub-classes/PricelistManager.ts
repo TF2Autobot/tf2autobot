@@ -179,7 +179,7 @@ export default class PricelistManagerCommands {
         }
         priceKey = priceKey ? priceKey : params.sku;
         return this.bot.pricelist
-            .addPrice(params as EntryData, true, PricelistChangedSource.Command)
+            .addPrice({ entryData: params as EntryData, emitChange: true, src: PricelistChangedSource.Command })
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
@@ -226,6 +226,8 @@ export default class PricelistManagerCommands {
             if (params.isPartialPriced !== undefined) {
                 return this.bot.sendMessage(steamID, `❌ Cannot set "isPartialPriced" parameter!`);
             }
+
+            params.isPartialPriced = false;
 
             if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
                 errorMessage.push(
@@ -366,9 +368,6 @@ export default class PricelistManagerCommands {
                 params.autoprice = true;
             }
 
-            if (params.isPartialPriced === undefined) {
-                params.isPartialPriced = false;
-            }
             let priceKey: string = undefined;
             if (params.id) {
                 priceKey = String(params.id);
@@ -436,7 +435,14 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .addPrice(entry.params, true, PricelistChangedSource.Command, true, items, isLast)
+                        .addPrice({
+                            entryData: entry.params,
+                            emitChange: true,
+                            src: PricelistChangedSource.Command,
+                            isBulk: true,
+                            pricerItems: items,
+                            isLast: isLast
+                        })
                         .then(() => added++)
                         .catch(err => {
                             errorMessage.push(
@@ -472,7 +478,12 @@ export default class PricelistManagerCommands {
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .addPrice(entry.params, true, PricelistChangedSource.Command, true)
+                    .addPrice({
+                        entryData: entry.params,
+                        emitChange: true,
+                        src: PricelistChangedSource.Command,
+                        isBulk: true
+                    })
                     .then(() => added++)
                     .catch(err => {
                         errorMessage.push(
@@ -1008,11 +1019,11 @@ export default class PricelistManagerCommands {
         }
         priceKey = priceKey ? priceKey : params.sku;
 
-        if (!this.bot.pricelist.hasPrice(priceKey)) {
+        if (!this.bot.pricelist.hasPrice({ priceKey })) {
             return this.bot.sendMessage(steamID, '❌ Item is not in the pricelist.');
         }
 
-        const itemEntry = this.bot.pricelist.getPrice(priceKey, false);
+        const itemEntry = this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false });
 
         if (typeof params.buy === 'object') {
             params.buy.keys = params.buy.keys || 0;
@@ -1100,7 +1111,7 @@ export default class PricelistManagerCommands {
             params.group = String(params.group);
         }
 
-        const entryData = this.bot.pricelist.getPrice(priceKey, false).getJSON(); //TODO: CONTINUE
+        const entryData = this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false }).getJSON(); //TODO: CONTINUE
         delete entryData.time;
         delete params.sku;
 
@@ -1118,7 +1129,12 @@ export default class PricelistManagerCommands {
         }
 
         this.bot.pricelist
-            .updatePrice(priceKey, entryData, true, PricelistChangedSource.Command)
+            .updatePrice({
+                priceKey,
+                entryData,
+                emitChange: true,
+                src: PricelistChangedSource.Command
+            })
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
@@ -1217,7 +1233,7 @@ export default class PricelistManagerCommands {
             }
             priceKey = priceKey ? priceKey : sku;
 
-            if (this.bot.pricelist.getPrice(priceKey) === null) {
+            if (this.bot.pricelist.getPrice({ priceKey }) === null) {
                 errorMessage.push(
                     `❌ Failed to update ${this.bot.schema.getName(
                         SKU.fromString(sku)
@@ -1227,7 +1243,7 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
-            if (!this.bot.pricelist.hasPrice(priceKey)) {
+            if (!this.bot.pricelist.hasPrice({ priceKey })) {
                 errorMessage.push(
                     `❌ Failed to update ${this.bot.schema.getName(
                         SKU.fromString(sku)
@@ -1293,7 +1309,7 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            const itemEntry = this.bot.pricelist.getPrice(priceKey, false);
+            const itemEntry = this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false });
 
             if (typeof params.buy === 'object') {
                 params.buy.keys = params.buy.keys || 0;
@@ -1381,7 +1397,7 @@ export default class PricelistManagerCommands {
                 params.group = String(params.group);
             }
 
-            const entryData = this.bot.pricelist.getPrice(priceKey, false).getJSON(); //TODO: CONTINUE
+            const entryData = this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false }).getJSON(); //TODO: CONTINUE
             delete entryData.time;
             delete params.sku;
 
@@ -1458,15 +1474,15 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .updatePrice(
-                            entry.priceKey,
-                            entry.params,
-                            true,
-                            PricelistChangedSource.Command,
-                            true,
-                            items,
+                        .updatePrice({
+                            priceKey: entry.priceKey,
+                            entryData: entry.params,
+                            emitChange: true,
+                            src: PricelistChangedSource.Command,
+                            isBulk: true,
+                            pricerItems: items,
                             isLast
-                        )
+                        })
                         .then(() => updated++)
                         .catch(err => {
                             if (Pricelist.isAssetId(entry.priceKey)) {
@@ -1508,7 +1524,13 @@ export default class PricelistManagerCommands {
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .updatePrice(entry.priceKey, entry.params, true, PricelistChangedSource.Command, true)
+                    .updatePrice({
+                        priceKey: entry.priceKey,
+                        entryData: entry.params,
+                        emitChange: true,
+                        src: PricelistChangedSource.Command,
+                        isBulk: true
+                    })
                     .then(() => updated++)
                     .catch(err => {
                         if (Pricelist.isAssetId(entry.priceKey)) {
@@ -1541,7 +1563,10 @@ export default class PricelistManagerCommands {
 
     private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
         const keyPrice = this.bot.pricelist.getKeyPrice;
-        const amount = this.bot.inventoryManager.getInventory.getAmount(oldEntry.sku, false);
+        const amount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: oldEntry.sku,
+            includeNonNormalized: false
+        });
 
         return (
             `\n💲 Buy: ${
@@ -1785,7 +1810,7 @@ export default class PricelistManagerCommands {
                 }
             }
 
-            if (this.bot.pricelist.getPrice(sku) === null) {
+            if (this.bot.pricelist.getPrice({ priceKey: sku }) === null) {
                 errorMessage.push(
                     `❌ Failed to remove ${this.bot.schema.getName(
                         SKU.fromString(sku)
@@ -1929,7 +1954,7 @@ export default class PricelistManagerCommands {
             params.id = String(params.id);
         }
         priceKey = priceKey ? priceKey : sku;
-        const match = this.bot.pricelist.getPrice(priceKey);
+        const match = this.bot.pricelist.getPrice({ priceKey });
         if (match === null) {
             this.bot.sendMessage(steamID, `❌ Could not find item "${priceKey}" in the pricelist`);
         } else {
@@ -1938,7 +1963,11 @@ export default class PricelistManagerCommands {
     }
 
     private generateOutput(filtered: Entry): string {
-        const currentStock = this.bot.inventoryManager.getInventory.getAmount(filtered.sku, false, true);
+        const currentStock = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: filtered.sku,
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
         filtered['stock'] = currentStock;
 
         return JSON.stringify(filtered, null, 4);
@@ -1961,7 +1990,11 @@ export default class PricelistManagerCommands {
         const list = Object.keys(pricelist).map((priceKey, i) => {
             const entry = pricelist[priceKey];
             const name = entry.name;
-            const stock = this.bot.inventoryManager.getInventory.getAmount(priceKey, false, true);
+            const stock = this.bot.inventoryManager.getInventory.getAmount({
+                priceKey,
+                includeNonNormalized: false,
+                tradableOnly: true
+            });
 
             return `${i + 1}. ${priceKey} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                 entry.max
@@ -2237,7 +2270,11 @@ export default class PricelistManagerCommands {
 
             const list = filter.map((entry, i) => {
                 const name = entry.name;
-                const stock = this.bot.inventoryManager.getInventory.getAmount(entry.sku, false, true);
+                const stock = this.bot.inventoryManager.getInventory.getAmount({
+                    priceKey: entry.sku,
+                    includeNonNormalized: false,
+                    tradableOnly: true
+                });
 
                 return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max
@@ -2287,7 +2324,7 @@ export default class PricelistManagerCommands {
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
-    const amount = bot.inventoryManager.getInventory.getAmount(entry.sku, false);
+    const amount = bot.inventoryManager.getInventory.getAmount({ priceKey: entry.sku, includeNonNormalized: false });
 
     return (
         `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
@@ -2367,10 +2404,10 @@ class AutoAddQueue {
 
             void this.executeAutoAdd();
         } else {
-            const ed = this.params as EntryData;
+            const entryData = this.params as EntryData;
             // todo should this be assetid to prevent profit loss?
             this.bot.pricelist
-                .addPrice(ed, true, PricelistChangedSource.Command)
+                .addPrice({ entryData, emitChange: true, src: PricelistChangedSource.Command })
                 .then(entry => {
                     this.added++;
                     const remaining = this.total - this.added - this.skipped - this.failed;

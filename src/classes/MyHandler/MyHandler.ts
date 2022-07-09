@@ -605,7 +605,7 @@ export default class MyHandler extends Handler {
 
                 for (const entry of items[which][sku]) {
                     const { id } = entry;
-                    const price = this.bot.pricelist.getPrice(id);
+                    const price = this.bot.pricelist.getPrice({ priceKey: id });
                     if (price) {
                         exchange[which].pricedAssetIds.add(id);
                         exchange[which].pricedAsset[id] = sku;
@@ -970,7 +970,7 @@ export default class MyHandler extends Handler {
         const checkExist = this.bot.pricelist;
 
         if (opt.miscSettings.checkUses.duel && isDuelingNotFullUses) {
-            if (checkExist.getPrice('241;6', true) !== null) {
+            if (checkExist.getPrice({ priceKey: '241;6', onlyEnabled: true }) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
                 offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses.');
                 return {
@@ -982,7 +982,9 @@ export default class MyHandler extends Handler {
         }
 
         if (opt.miscSettings.checkUses.noiseMaker && isNoiseMakerNotFullUses) {
-            const isHasNoiseMaker = noiseMakerNotFullSKUs.some(sku => checkExist.getPrice(sku, true) !== null);
+            const isHasNoiseMaker = noiseMakerNotFullSKUs.some(
+                sku => checkExist.getPrice({ priceKey: sku, onlyEnabled: true }) !== null
+            );
             if (isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
                 offer.log('info', 'contains Noise Maker that does not have 25 uses.');
@@ -999,7 +1001,7 @@ export default class MyHandler extends Handler {
         const isInPricelist =
             ourItemsHVCount > 0 // Only check if this not empty
                 ? Object.keys(getHighValue.our.items).some(sku => {
-                      return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
+                      return checkExist.getPrice({ priceKey: sku, onlyEnabled: false }) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
@@ -1075,7 +1077,7 @@ export default class MyHandler extends Handler {
 
             if (exchange[which].contains.pricedAssets) {
                 for (const id of exchange[which].pricedAssetIds) {
-                    const match = this.bot.pricelist.getPrice(id);
+                    const match = this.bot.pricelist.getPrice({ priceKey: id });
                     // Add value of items
                     exchange[which].value += match[intentString].toValue(keyPrice.metal);
                     exchange[which].keys += match[intentString].keys;
@@ -1120,7 +1122,7 @@ export default class MyHandler extends Handler {
                 } else if (
                     this.isWeaponsAsCurrency.enable &&
                     (craftAll.includes(sku) || (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
-                    this.bot.pricelist.getPrice(sku, true) === null
+                    this.bot.pricelist.getPrice({ priceKey: sku, onlyEnabled: true }) === null
                 ) {
                     const value = 0.5 * amount;
                     exchange[which].value += value;
@@ -1132,16 +1134,24 @@ export default class MyHandler extends Handler {
                         if (testPriceKey(sku)) {
                             match =
                                 which === 'our'
-                                    ? this.bot.pricelist.getPrice(sku)
-                                    : this.bot.pricelist.getPrice(sku, false, true);
+                                    ? this.bot.pricelist.getPrice({ priceKey: sku })
+                                    : this.bot.pricelist.getPrice({
+                                          priceKey: sku,
+                                          onlyEnabled: false,
+                                          getGenericPrice: true
+                                      });
                         } else {
                             isNonTF2Items = true;
                         }
                     } else {
                         match =
                             which === 'our'
-                                ? this.bot.pricelist.getPrice(sku)
-                                : this.bot.pricelist.getPrice(sku, false, true);
+                                ? this.bot.pricelist.getPrice({ priceKey: sku })
+                                : this.bot.pricelist.getPrice({
+                                      priceKey: sku,
+                                      onlyEnabled: false,
+                                      getGenericPrice: true
+                                  });
                     }
 
                     const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
@@ -1170,7 +1180,11 @@ export default class MyHandler extends Handler {
 
                         const isBuying = diff > 0; // is buying if true.
                         const inventoryManager = this.bot.inventoryManager;
-                        const amountCanTrade = inventoryManager.amountCanTrade(sku, isBuying, which === 'their'); // return a number
+                        const amountCanTrade = inventoryManager.amountCanTrade({
+                            priceKey: sku,
+                            tradeIntent: isBuying ? 'buying' : 'selling',
+                            getGenericAmount: which === 'their'
+                        }); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
                             if (match.enabled) {
@@ -1188,7 +1202,11 @@ export default class MyHandler extends Handler {
                                     amountOffered: amount
                                 });
 
-                                this.bot.listings.checkByPriceKey(match.sku, null, which === 'their', true);
+                                this.bot.listings.checkByPriceKey({
+                                    priceKey: match.sku,
+                                    checkGenerics: which === 'their',
+                                    showLogs: true
+                                });
                             } else {
                                 // Item was disabled
                                 wrongAboutOffer.push({
@@ -1217,7 +1235,10 @@ export default class MyHandler extends Handler {
                                 if (match.min !== 0 || match.intent === 0) {
                                     // If min is set to 0, how come it can be understocked right?
                                     // fix exploit found on August 4th, 2021
-                                    const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
+                                    const amountInInventory = inventoryManager.getInventory.getAmount({
+                                        priceKey: sku,
+                                        includeNonNormalized: false
+                                    });
 
                                     if (amountInInventory > 0) {
                                         wrongAboutOffer.push({
@@ -1229,7 +1250,11 @@ export default class MyHandler extends Handler {
                                             amountTaking: amount
                                         });
 
-                                        this.bot.listings.checkByPriceKey(match.sku, null, which === 'their', true);
+                                        this.bot.listings.checkByPriceKey({
+                                            priceKey: match.sku,
+                                            checkGenerics: which === 'their',
+                                            showLogs: true
+                                        });
                                     }
                                 }
                             } else {
@@ -1382,21 +1407,33 @@ export default class MyHandler extends Handler {
             return { action: 'decline', reason: 'ONLY_METAL' };
         } else if (exchange.contains.keys && !exchange.contains.items) {
             // Offer is for trading keys, check if we are trading them
-            const priceEntry = this.bot.pricelist.getPrice('5021;6', true);
+            const priceEntry = this.bot.pricelist.getPrice({ priceKey: '5021;6', onlyEnabled: true });
             if (priceEntry === null) {
                 // We are not trading keys
                 offer.log('info', 'we are not trading keys, declining...');
-                this.bot.listings.checkByPriceKey('5021;6', null, false, true);
+                this.bot.listings.checkByPriceKey({
+                    priceKey: '5021;6',
+                    checkGenerics: false,
+                    showLogs: true
+                });
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
-                this.bot.listings.checkByPriceKey('5021;6', null, false, true);
+                this.bot.listings.checkByPriceKey({
+                    priceKey: '5021;6',
+                    checkGenerics: false,
+                    showLogs: true
+                });
                 return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
-                this.bot.listings.checkByPriceKey('5021;6', null, false, true);
+                this.bot.listings.checkByPriceKey({
+                    priceKey: '5021;6',
+                    checkGenerics: false,
+                    showLogs: true
+                });
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
@@ -1405,7 +1442,10 @@ export default class MyHandler extends Handler {
                 this.isTradingKeys = true;
                 const isBuying = diff > 0;
                 const inventoryManager = this.bot.inventoryManager;
-                const amountCanTrade = inventoryManager.amountCanTrade('5021;6', isBuying);
+                const amountCanTrade = inventoryManager.amountCanTrade({
+                    priceKey: '5021;6',
+                    tradeIntent: isBuying ? 'buying' : 'selling'
+                });
 
                 if (diff !== 0 && amountCanTrade < diff) {
                     // User is offering too many
@@ -1418,7 +1458,11 @@ export default class MyHandler extends Handler {
                         amountOffered: itemsDict['their']['5021;6']
                     });
 
-                    this.bot.listings.checkByPriceKey('5021;6', null, false, true);
+                    this.bot.listings.checkByPriceKey({
+                        priceKey: '5021;6',
+                        checkGenerics: false,
+                        showLogs: true
+                    });
                 }
 
                 const acceptUnderstock = opt.autokeys.accept.understock;
@@ -1426,7 +1470,10 @@ export default class MyHandler extends Handler {
                     // User is taking too many
 
                     if (priceEntry.min !== 0) {
-                        const amountInInventory = inventoryManager.getInventory.getAmount('5021;6', false);
+                        const amountInInventory = inventoryManager.getInventory.getAmount({
+                            priceKey: '5021;6',
+                            includeNonNormalized: false
+                        });
 
                         if (amountInInventory > 0) {
                             wrongAboutOffer.push({
@@ -1438,7 +1485,11 @@ export default class MyHandler extends Handler {
                                 amountTaking: itemsDict['our']['5021;6']
                             });
 
-                            this.bot.listings.checkByPriceKey('5021;6', null, false, true);
+                            this.bot.listings.checkByPriceKey({
+                                priceKey: '5021;6',
+                                checkGenerics: false,
+                                showLogs: true
+                            });
                         }
                     }
                 }
@@ -1484,7 +1535,7 @@ export default class MyHandler extends Handler {
                 ourItems
                     .concat(theirItems)
                     .filter(sku => !['5000;6', '5001;6', '5002;6'].includes(sku))
-                    .forEach(sku => this.bot.listings.checkByPriceKey(sku));
+                    .forEach(sku => this.bot.listings.checkByPriceKey({ priceKey: sku }));
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
                     `Contains ${exceptionSKU.join(' or ')} and difference is ${Currencies.toRefined(
@@ -2060,7 +2111,7 @@ export default class MyHandler extends Handler {
 
                         if (Array.isArray(sentItems)) {
                             sentItems.forEach(item => {
-                                const entry = this.bot.pricelist.getPriceBySkuOrAsset(item.assetid);
+                                const entry = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey: item.assetid });
 
                                 if (entry !== null && entry.id && item.rollback_new_assetid) {
                                     const newEntry = Object.assign({}, entry);
@@ -2481,7 +2532,7 @@ export default class MyHandler extends Handler {
     }
 
     onPriceChange(priceKey: string, entry: Entry): void {
-        this.bot.listings.checkByPriceKey(priceKey, entry, false, true);
+        this.bot.listings.checkByPriceKey({ priceKey, data: entry, checkGenerics: false, showLogs: true });
     }
 
     saveBlockedUser(steamID: string, reason: string): void {

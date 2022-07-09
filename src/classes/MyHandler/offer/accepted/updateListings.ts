@@ -13,13 +13,6 @@ import { sendAlert } from '../../../../lib/DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';
 import { testPriceKey } from '../../../../lib/tools/export';
 
-let itemsFromPreviousTrades: string[] = [];
-
-const removeDuplicate = (skus: string[]): string[] => {
-    const fix = new Set(skus);
-    return [...fix];
-};
-
 let craftWeapons: string[] = [];
 
 export default function updateListings(
@@ -40,10 +33,9 @@ export default function updateListings(
 
     const isPricecheckRequestEnabled = opt.miscSettings.pricecheckAfterTrade.enable;
     const alwaysRemoveCustomTexture = opt.miscSettings.alwaysRemoveItemAttributes.customTexture.enable;
-    const skus: string[] = [];
 
     const inventory = bot.inventoryManager.getInventory;
-    const hv = highValue.items;
+    const highValueItems = highValue.items;
     const normalizePainted = opt.normalize.painted;
     const dwEnabled = opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '';
     const pure = ['5000;6', '5001;6', '5002;6'];
@@ -59,7 +51,7 @@ export default function updateListings(
             continue;
         }
 
-        if (bot.pricelist.getPriceBySkuOrAsset(priceKey)?.id) {
+        if (bot.pricelist.getPriceBySkuOrAsset({ priceKey })?.id) {
             bot.pricelist
                 .removePrice(priceKey, true)
                 .then(() => {
@@ -89,15 +81,16 @@ export default function updateListings(
         const isNotPure = !pure.includes(priceKey);
         const isNotPureOrWeapons = !pureWithWeapons.includes(priceKey);
 
-        const inPrice = bot.pricelist.getPrice(priceKey, false);
+        const priceListEntry = bot.pricelist.getPrice({ priceKey, onlyEnabled: false });
+        const existsInPricelist = null !== priceListEntry;
         const isAssetId = Pricelist.isAssetId(priceKey);
-        const amount = inventory.getAmount(priceKey, false, true);
-        const existInPricelist = inPrice !== null;
+        const amount = inventory.getAmount({ priceKey, includeNonNormalized: false, tradableOnly: true });
 
         const itemNoPaint = SKU.fromString(priceKey);
         itemNoPaint.paint = null;
         const skuNoPaint = SKU.fromObject(itemNoPaint);
-        const inPrice2 = bot.pricelist.getPrice(skuNoPaint, false);
+        const priceListEntryWithoutPaint = bot.pricelist.getPrice({ priceKey: skuNoPaint, onlyEnabled: false });
+        const inPriceListWithoutPaint = null !== priceListEntryWithoutPaint;
 
         const isDisabledHV = highValue.isDisableSKU.includes(priceKey);
 
@@ -109,28 +102,35 @@ export default function updateListings(
         const common1 =
             normalizePainted.our === false && // must meet this setting
             normalizePainted.their === true && // must meet this setting
-            hv && // this must be defined
-            hv[priceKey]?.p && // painted must be defined
-            hv[priceKey]?.s === undefined; // make sure spelled is undefined
+            highValueItems && // this must be defined
+            highValueItems[priceKey]?.p && // painted must be defined
+            highValueItems[priceKey]?.s === undefined; // make sure spelled is undefined
 
         const isAutoaddPainted = /;[p][0-9]+/.test(priceKey)
             ? false // sku must NOT include any painted partial sku
             : opt.pricelist.autoAddPaintedItems.enable && // autoAddPaintedItems must enabled
               common1 &&
-              inPrice !== null && // base items must already in pricelist
-              bot.pricelist.getPrice(`${priceKey};${Object.keys(hv[priceKey].p)[0]}`, false) === null && // painted items must not in pricelist
-              inventory.getAmount(`${priceKey};${Object.keys(hv[priceKey].p)[0]}`, false, true) > 0;
+              existsInPricelist && // base items must already in pricelist
+              !bot.pricelist.getPrice({
+                  priceKey: `${priceKey};${Object.keys(highValueItems[priceKey].p)[0]}`,
+                  onlyEnabled: false
+              }) && // painted items must not in pricelist
+              inventory.getAmount({
+                  priceKey: `${priceKey};${Object.keys(highValueItems[priceKey].p)[0]}`,
+                  includeNonNormalized: false,
+                  tradableOnly: true
+              }) > 0;
 
         const isAutoAddPaintedFromAdmin = !isAdmin
             ? false
             : /;[p][0-9]+/.test(priceKey) && // sku must include any painted partial sku
               common1 &&
-              inPrice === null && // painted items must not in pricelist
-              inPrice2 !== null && // base items must already in pricelist
+              !existsInPricelist && // painted items must not in pricelist
+              inPriceListWithoutPaint && // base items must already in pricelist
               amount > 0;
 
         const common2 =
-            !existInPricelist &&
+            !existsInPricelist &&
             isNotPureOrWeapons &&
             isNotSkinsOrWarPaint && // exclude War Paint (could be skins)
             !isAdmin;
@@ -148,7 +148,7 @@ export default function updateListings(
             opt.pricelist.autoAddInvalidUnusual.enable === false && common2 && item.quality === 5;
 
         const isAutoDisableHighValueItems =
-            opt.highValue.enableHold && existInPricelist && isDisabledHV && isNotPureOrWeapons;
+            opt.highValue.enableHold && existsInPricelist && isDisabledHV && isNotPureOrWeapons;
 
         const common3 =
             amount < 1 && // current stock
@@ -156,17 +156,18 @@ export default function updateListings(
 
         const isAutoRemoveIntentSell =
             opt.pricelist.autoRemoveIntentSell.enable &&
-            existInPricelist &&
-            inPrice.intent === 1 &&
+            existsInPricelist &&
+            priceListEntry.intent === 1 &&
             (opt.autokeys.enable ? priceKey !== '5021;6' : true) && // not Mann Co. Supply Crate Key if Autokeys enabled
             common3;
 
-        const isUpdatePartialPricedItem = inPrice !== null && inPrice.autoprice && inPrice.isPartialPriced && common3;
+        const isUpdatePartialPricedItem =
+            existsInPricelist && priceListEntry.autoprice && priceListEntry.isPartialPriced && common3;
 
         //
 
         if (isAutoaddPainted) {
-            const pSKU = Object.keys(hv[priceKey].p)[0];
+            const pSKU = Object.keys(highValueItems[priceKey].p)[0];
             const paintedSKU = `${priceKey};${pSKU}`;
 
             const priceFromOptions =
@@ -177,8 +178,8 @@ export default function updateListings(
             const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
             const keyPriceInScrap = Currencies.toScrap(keyPriceInRef);
 
-            let sellingKeyPrice = inPrice.sell.keys + priceFromOptions.keys;
-            let sellingMetalPriceInRef = inPrice.sell.metal + priceFromOptions.metal;
+            let sellingKeyPrice = priceListEntry.sell.keys + priceFromOptions.keys;
+            let sellingMetalPriceInRef = priceListEntry.sell.metal + priceFromOptions.metal;
             const sellingMetalPriceInScrap = Currencies.toScrap(sellingMetalPriceInRef);
 
             if (sellingMetalPriceInScrap >= keyPriceInScrap) {
@@ -207,12 +208,12 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice({ entryData: entry, emitChange: true })
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
                         ` (${paintedSKU}) to sell.` +
-                        `\nBase price: ${inPrice.buy.toString()}/${inPrice.sell.toString()}` +
+                        `\nBase price: ${priceListEntry.buy.toString()}/${priceListEntry.sell.toString()}` +
                         `\nSelling for: ${data.sell.toString()} ` +
                         `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
                             priceFromOptions.metal
@@ -229,7 +230,7 @@ export default function updateListings(
                         }
                     }
 
-                    if (isPricecheckRequestEnabled) addToQ(paintedSKU, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(paintedSKU, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
                     const msg =
@@ -246,7 +247,7 @@ export default function updateListings(
                         }
                     }
 
-                    if (isPricecheckRequestEnabled) addToQ(paintedSKU, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(paintedSKU, isNotPure, existsInPricelist);
                 });
             //
         } else if (isAutoAddPaintedFromAdmin) {
@@ -256,8 +257,8 @@ export default function updateListings(
             const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
             const keyPriceInScrap = Currencies.toScrap(keyPriceInRef);
 
-            let sellingKeyPrice = inPrice2.sell.keys + priceFromOptions.keys;
-            let sellingMetalPriceInRef = inPrice2.sell.metal + priceFromOptions.metal;
+            let sellingKeyPrice = priceListEntryWithoutPaint.sell.keys + priceFromOptions.keys;
+            let sellingMetalPriceInRef = priceListEntryWithoutPaint.sell.metal + priceFromOptions.metal;
             const sellingMetalPriceInScrap = Currencies.toScrap(sellingMetalPriceInRef);
 
             if (sellingMetalPriceInScrap >= keyPriceInScrap) {
@@ -286,11 +287,11 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice({ entryData: entry, emitChange: true })
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${name} (${priceKey}) to sell.` +
-                        `\nBase price: ${inPrice2.buy.toString()}/${inPrice2.sell.toString()}` +
+                        `\nBase price: ${priceListEntryWithoutPaint.buy.toString()}/${priceListEntryWithoutPaint.sell.toString()}` +
                         `\nSelling for: ${data.sell.toString()} ` +
                         `(+ ${priceFromOptions.keys > 0 ? `${pluralize('key', priceFromOptions.keys, true)}, ` : ''}${
                             priceFromOptions.metal
@@ -307,7 +308,7 @@ export default function updateListings(
                         }
                     }
 
-                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to add ${name} (${priceKey}) to sell automatically: ${
@@ -324,7 +325,7 @@ export default function updateListings(
                         }
                     }
 
-                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 });
             //
         } else if (isAutoaddInvalidItems) {
@@ -341,14 +342,14 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(entry, true)
+                .addPrice({ entryData: entry, emitChange: true })
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${priceKey}) to sell.`);
-                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
                     log.warn(`❌ Failed to add ${name} (${priceKey}) to sell automatically: ${(err as Error).message}`);
-                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 });
             //
         } else if (receivedHighValueNotInPricelist) {
@@ -373,7 +374,7 @@ export default function updateListings(
                 }
             }
 
-            if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
         } else if (receivedUnusualNotInPricelist) {
             // if the item sku is not in pricelist, not craftweapons or pure or skins AND it's a Unusual (bought with Generic Unusual), and not
             // from ADMINS, and opt.pricelist.autoAddInvalidUnusual is false, then notify admin.
@@ -389,36 +390,36 @@ export default function updateListings(
                 }
             }
 
-            if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
         } else if (isAutoDisableHighValueItems) {
             // If item received is high value, temporarily disable that item so it will not be sellable.
-            const oldGroup = inPrice.group;
+            const oldGroup = priceListEntry.group;
 
             const entry: EntryData = {
                 sku: priceKey, // required
                 enabled: false, // required
-                autoprice: inPrice.autoprice, // required
-                min: inPrice.min, // required
-                max: inPrice.max, // required
-                intent: inPrice.intent, // required
+                autoprice: priceListEntry.autoprice, // required
+                min: priceListEntry.min, // required
+                max: priceListEntry.max, // required
+                intent: priceListEntry.intent, // required
                 group: 'highValue'
             };
 
-            if (!inPrice.autoprice) {
+            if (!priceListEntry.autoprice) {
                 // if not autopriced, then explicitly set the buy/sell prices
                 // with the current buy/sell prices
                 entry.buy = {
-                    keys: inPrice.buy.keys,
-                    metal: inPrice.buy.metal
+                    keys: priceListEntry.buy.keys,
+                    metal: priceListEntry.buy.metal
                 };
                 entry.sell = {
-                    keys: inPrice.sell.keys,
-                    metal: inPrice.sell.metal
+                    keys: priceListEntry.sell.keys,
+                    metal: priceListEntry.sell.metal
                 };
             }
 
             bot.pricelist
-                .updatePrice(entry.sku, entry, true)
+                .updatePrice({ priceKey: entry.sku, entryData: entry, emitChange: true })
                 .then(() => {
                     log.debug(`✅ Automatically disabled ${priceKey}, which is a high value item.`);
 
@@ -442,11 +443,11 @@ export default function updateListings(
                         }
                     }
 
-                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
                     log.warn(`❌ Failed to disable high value ${priceKey}: `, err);
-                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 });
             //
         } else if (isAutoRemoveIntentSell) {
@@ -456,7 +457,7 @@ export default function updateListings(
                 .removePrice(priceKey, true)
                 .then(() => {
                     log.debug(`✅ Automatically removed ${name} (${priceKey}) from pricelist.`);
-                    if (isPricecheckRequestEnabled && !isAssetId) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled && !isAssetId) addToQ(priceKey, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to automatically remove ${name} (${priceKey}) from pricelist: ${
@@ -472,32 +473,32 @@ export default function updateListings(
                         }
                     }
 
-                    if (isPricecheckRequestEnabled && !isAssetId) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled && !isAssetId) addToQ(priceKey, isNotPure, existsInPricelist);
                 });
         } else if (isUpdatePartialPricedItem) {
             // If item exist in pricelist with "isPartialPriced" set to true and we no longer have that in stock,
             // then update entry with the latest prices.
 
             const oldPrice = {
-                buy: new Currencies(inPrice.buy),
-                sell: new Currencies(inPrice.sell)
+                buy: new Currencies(priceListEntry.buy),
+                sell: new Currencies(priceListEntry.sell)
             };
 
-            const oldTime = inPrice.time;
+            const oldTime = priceListEntry.time;
 
             const entry = {
                 sku: priceKey,
-                enabled: inPrice.enabled,
+                enabled: priceListEntry.enabled,
                 autoprice: true,
-                min: inPrice.min,
-                max: inPrice.max,
-                intent: inPrice.intent,
-                group: inPrice.group,
+                min: priceListEntry.min,
+                max: priceListEntry.max,
+                intent: priceListEntry.intent,
+                group: priceListEntry.group,
                 isPartialPriced: false
             } as EntryData;
 
             bot.pricelist
-                .updatePrice(entry.sku, entry, true)
+                .updatePrice({ priceKey: entry.sku, entryData: entry, emitChange: true })
                 .then(data => {
                     const msg =
                         `${dwEnabled ? `[${name}](https://autobot.tf/items/${priceKey})` : name} (${priceKey})\n▸ ` +
@@ -518,7 +519,7 @@ export default function updateListings(
                         }
                     }
 
-                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
                     const msg = `❌ Failed to automatically update prices for ${name} (${priceKey}): ${
@@ -534,10 +535,10 @@ export default function updateListings(
                         }
                     }
 
-                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 });
         } else {
-            if (isPricecheckRequestEnabled && !isAssetId) addToQ(priceKey, isNotPure, existInPricelist);
+            if (isPricecheckRequestEnabled && !isAssetId) addToQ(priceKey, isNotPure, existsInPricelist);
         }
 
         if (
@@ -566,21 +567,15 @@ export default function updateListings(
             // }
         }
     }
-
-    if (skus.length > 0) {
-        const itemsToCheck = removeDuplicate(skus.concat(itemsFromPreviousTrades));
-        checkPrevious(itemsToCheck);
-        itemsFromPreviousTrades = skus.slice(0);
-    }
 }
 
-function addToQ(sku: string, isNotPure: boolean, isExistInPricelist: boolean): void {
+function addToQ(sku: string, isNotPure: boolean, existsInPricelist: boolean): void {
     /**
-     * Request priceheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
+     * Request pricecheck on each sku involved in the trade, except craft weapons (if weaponsAsCurrency enabled) and pure.
      */
     if (isNotPure) {
         if (craftWeapons.includes(sku)) {
-            if (isExistInPricelist) {
+            if (existsInPricelist) {
                 // Only includes sku of weapons that are in the pricelist (enabled)
                 PriceCheckQueue.enqueue(sku);
             }
@@ -588,10 +583,4 @@ function addToQ(sku: string, isNotPure: boolean, isExistInPricelist: boolean): v
             PriceCheckQueue.enqueue(sku);
         }
     }
-}
-
-function checkPrevious(skus: string[]): void {
-    skus.forEach(sku => {
-        PriceCheckQueue.enqueue(sku);
-    });
 }

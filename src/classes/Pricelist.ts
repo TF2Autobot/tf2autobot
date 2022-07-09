@@ -265,7 +265,7 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    hasPrice(priceKey: string, onlyEnabled = false): boolean {
+    hasPrice({ priceKey, onlyEnabled = false }: { priceKey: string; onlyEnabled?: boolean }): boolean {
         if (!this.prices[priceKey]) {
             return false;
         }
@@ -273,35 +273,51 @@ export default class Pricelist extends EventEmitter {
         return this.prices[priceKey].enabled || !onlyEnabled;
     }
 
-    getPrice(priceKey: string, onlyEnabled = false, generics = false): Entry | null {
-        if (this.hasPrice(priceKey, onlyEnabled)) {
+    getPrice({
+        priceKey,
+        onlyEnabled = false,
+        getGenericPrice = false
+    }: {
+        priceKey: string;
+        onlyEnabled?: boolean;
+        getGenericPrice?: boolean;
+    }): Entry | null {
+        if (this.hasPrice({ priceKey, onlyEnabled: onlyEnabled })) {
             return this.prices[priceKey];
         }
 
-        if (generics && !Pricelist.isAssetId(priceKey)) {
-            const gSku = generics ? priceKey.replace(/;u\d+/, '') : null;
-            if (this.hasPrice(gSku, onlyEnabled)) {
-                return this.prices[gSku];
+        if (getGenericPrice && !Pricelist.isAssetId(priceKey)) {
+            const genericSku = getGenericPrice ? priceKey.replace(/;u\d+/, '') : null;
+            if (this.hasPrice({ priceKey: genericSku, onlyEnabled: onlyEnabled })) {
+                return this.prices[genericSku];
             }
         }
 
         return null;
     }
 
-    getPriceBySkuOrAsset(priceKey: string, onlyEnabled = false, generics = false): Entry | null {
-        let entry = this.getPrice(priceKey, onlyEnabled, generics);
+    getPriceBySkuOrAsset({
+        priceKey,
+        onlyEnabled = false,
+        getGenericPrice = false
+    }: {
+        priceKey: string;
+        onlyEnabled?: boolean;
+        getGenericPrice?: boolean;
+    }): Entry | null {
+        let entry = this.getPrice({ priceKey, onlyEnabled: onlyEnabled, getGenericPrice });
 
-        if (Pricelist.isAssetId(priceKey) && entry === null) {
-            if (this.hasPrice(priceKey, false) && onlyEnabled) {
+        if (Pricelist.isAssetId(priceKey) && !entry) {
+            if (this.hasPrice({ priceKey, onlyEnabled: false }) && onlyEnabled) {
                 // Is an asset, is priced, and is disabled
                 return null;
             }
 
-            entry = this.getPrice(
-                this.bot.inventoryManager.getInventory.findByAssetid(priceKey),
-                onlyEnabled,
-                generics
-            );
+            entry = this.getPrice({
+                priceKey: this.bot.inventoryManager.getInventory.findByAssetid(priceKey),
+                onlyEnabled: onlyEnabled,
+                getGenericPrice
+            });
         }
 
         return entry;
@@ -318,11 +334,11 @@ export default class Pricelist extends EventEmitter {
     searchByName(search: string, enabledOnly = true): Entry | string[] | null {
         // if this happens to be an id search, just try to get the price
         if (Pricelist.isAssetId(search)) {
-            return this.getPrice(search, enabledOnly);
+            return this.getPrice({ priceKey: search, onlyEnabled: enabledOnly });
         }
         const sku = this.schema.getSkuFromName(search);
 
-        if (this.hasPrice(sku, enabledOnly)) {
+        if (this.hasPrice({ priceKey: sku, onlyEnabled: enabledOnly })) {
             return this.prices[sku];
         }
 
@@ -400,40 +416,9 @@ export default class Pricelist extends EventEmitter {
 
         if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
+            let price: GetItemPriceResponse;
             try {
-                const price = await this.priceSource.getPrice(entry.sku);
-
-                const newPrices = {
-                    buy: new Currencies(price.buy),
-                    sell: new Currencies(price.sell)
-                };
-
-                if (entry.sku === '5021;6') {
-                    clearTimeout(this.retryGetKeyPrices);
-
-                    const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
-
-                    if (!canUseKeyPricesFromSource) {
-                        throw new Error(
-                            'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
-                                'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
-                        );
-                    }
-
-                    this.globalKeyPrices = {
-                        buy: newPrices.buy,
-                        sell: newPrices.sell,
-                        src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
-                        time: price.time
-                    };
-
-                    this.currentKeyPrices = newPrices;
-                }
-
-                entry.buy = newPrices.buy;
-                entry.sell = newPrices.sell;
-                entry.time = price.time;
-                //
+                price = await this.priceSource.getPrice(entry.sku);
             } catch (err) {
                 throw new Error(
                     `Unable to get current prices for ${entry.sku}: ${
@@ -443,6 +428,37 @@ export default class Pricelist extends EventEmitter {
                     }`
                 );
             }
+
+            const newPrices = {
+                buy: new Currencies(price.buy),
+                sell: new Currencies(price.sell)
+            };
+
+            if (entry.sku === '5021;6') {
+                clearTimeout(this.retryGetKeyPrices);
+
+                const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
+
+                if (!canUseKeyPricesFromSource) {
+                    throw new Error(
+                        'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
+                            'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                    );
+                }
+
+                this.globalKeyPrices = {
+                    buy: newPrices.buy,
+                    sell: newPrices.sell,
+                    src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
+                    time: price.time
+                };
+
+                this.currentKeyPrices = newPrices;
+            }
+
+            entry.buy = newPrices.buy;
+            entry.sell = newPrices.sell;
+            entry.time = price.time;
         } else if (isBulk) {
             if (entry.autoprice) {
                 const item = this.transformedPricelistForBulk[entry.sku];
@@ -516,20 +532,27 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    async addPrice(
-        entryData: EntryData,
-        emitChange: boolean,
-        src: PricelistChangedSource = PricelistChangedSource.Other,
+    async addPrice({
+        entryData,
+        emitChange,
+        src = PricelistChangedSource.Other,
         isBulk = false,
-        pricerItems: Item[] = null,
-        isLast: boolean = null
-    ): Promise<Entry> {
+        pricerItems = null,
+        isLast = null
+    }: {
+        entryData: EntryData;
+        emitChange: boolean;
+        src?: PricelistChangedSource;
+        isBulk?: boolean;
+        pricerItems?: Item[];
+        isLast?: boolean;
+    }): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
         if (errors !== null) {
             throw new Error(errors.join(', '));
         }
-        if (this.hasPrice(entryData.id ?? entryData.sku, false)) {
+        if (this.hasPrice({ priceKey: entryData.id ?? entryData.sku, onlyEnabled: false })) {
             throw new Error('Item is already priced');
         }
 
@@ -577,15 +600,23 @@ export default class Pricelist extends EventEmitter {
         return entry;
     }
 
-    async updatePrice(
-        priceKey: string,
-        entryData: EntryData,
-        emitChange: boolean,
-        src: PricelistChangedSource = PricelistChangedSource.Other,
+    async updatePrice({
+        priceKey,
+        entryData,
+        emitChange,
+        src = PricelistChangedSource.Other,
         isBulk = false,
-        pricerItems: Item[] = null,
-        isLast: boolean = null
-    ): Promise<Entry> {
+        pricerItems = null,
+        isLast = null
+    }: {
+        priceKey: string;
+        entryData: EntryData;
+        emitChange: boolean;
+        src?: PricelistChangedSource;
+        isBulk?: boolean;
+        pricerItems?: Item[];
+        isLast?: boolean;
+    }): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
         if (errors !== null) {
@@ -645,7 +676,7 @@ export default class Pricelist extends EventEmitter {
 
     removePrice(priceKey: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
-            if (!this.hasPrice(priceKey)) {
+            if (!this.hasPrice({ priceKey })) {
                 return reject(new Error('Item is not priced'));
             }
 
@@ -668,7 +699,7 @@ export default class Pricelist extends EventEmitter {
         this.removePrice(oldId, true)
             .then(() => {
                 this.bot.pricelist
-                    .addPrice(newEntry, true)
+                    .addPrice({ entryData: newEntry, emitChange: true })
                     .then(() => {
                         log.info(`Successfully replaced ${oldId} to ${newEntry.id}`);
                     })
@@ -762,7 +793,7 @@ export default class Pricelist extends EventEmitter {
 
     setupPricelist(): Promise<void> {
         log.debug('Getting key prices...');
-        const entryKey = this.getPrice('5021;6', false);
+        const entryKey = this.getPrice({ priceKey: '5021;6', onlyEnabled: false });
 
         return this.priceSource
             .getPrice('5021;6')
@@ -891,7 +922,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     private updateKeyPrices(): Promise<void> {
-        const entryKey = this.getPrice('5021;6', false);
+        const entryKey = this.getPrice({ priceKey: '5021;6', onlyEnabled: false });
         clearTimeout(this.retryGetKeyPrices);
 
         return this.priceSource
@@ -992,7 +1023,12 @@ export default class Pricelist extends EventEmitter {
                     const currBuyingValue = currPrice.buy.toValue(keyPrice);
                     const currSellingValue = currPrice.sell.toValue(keyPrice);
 
-                    const isInStock = inventory.getAmount(sku, false, true) > 0;
+                    const isInStock =
+                        inventory.getAmount({
+                            priceKey: sku,
+                            includeNonNormalized: false,
+                            tradableOnly: true
+                        }) > 0;
                     const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
                     const isNotExcluded = !excludedSKU.includes(sku);
                     const maxIsOne = currPrice.max === 1;
@@ -1085,7 +1121,7 @@ export default class Pricelist extends EventEmitter {
             return;
         }
 
-        const match = this.getPrice(data.sku);
+        const match = this.getPrice({ priceKey: data.sku });
         const opt = this.bot.options;
         const dw = opt.discordWebhook.priceUpdate;
         const isDwEnabled = dw.enable && dw.url !== '';
@@ -1175,7 +1211,11 @@ export default class Pricelist extends EventEmitter {
             }
 
             let pricesChanged = false;
-            const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true);
+            const currentStock = this.bot.inventoryManager.getInventory.getAmount({
+                priceKey: match.sku,
+                includeNonNormalized: false,
+                tradableOnly: true
+            });
 
             const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = currentStock > 0;

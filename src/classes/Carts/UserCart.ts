@@ -155,7 +155,10 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            const match = this.bot.pricelist[which === 'our' ? 'getPriceBySkuOrAsset' : 'getPrice'](priceKey, true);
+            const match = this.bot.pricelist[which === 'our' ? 'getPriceBySkuOrAsset' : 'getPrice']({
+                priceKey,
+                onlyEnabled: true
+            });
             if (match === null) {
                 // Ignore items that are no longer in the pricelist
                 continue;
@@ -402,15 +405,25 @@ export default class UserCart extends Cart {
             }
 
             const isAssetId = Pricelist.isAssetId(priceKey);
-            const isPricedAsset = isAssetId && this.bot.pricelist.hasPrice(priceKey, false);
-            const entry = this.bot.pricelist.getPriceBySkuOrAsset(priceKey, true, false);
+            const isPricedAsset = isAssetId && this.bot.pricelist.hasPrice({ priceKey, onlyEnabled: false });
+            const entry = this.bot.pricelist.getPriceBySkuOrAsset({
+                priceKey,
+                onlyEnabled: true,
+                getGenericPrice: false
+            });
             let alteredMessage: string;
 
             let ourAssetids = ourInventory.findBySKU(entry.sku, true);
             if (isAssetId) {
                 ourAssetids = ourAssetids.includes(priceKey) ? [priceKey] : [];
             } else {
-                ourAssetids = ourAssetids.filter(assetid => this.bot.pricelist.hasPrice(assetid, false) === false);
+                ourAssetids = ourAssetids.filter(
+                    assetid =>
+                        this.bot.pricelist.hasPrice({
+                            priceKey: assetid,
+                            onlyEnabled: false
+                        }) === false
+                );
             }
 
             const ourAssetidsCount = ourAssetids.length;
@@ -438,19 +451,27 @@ export default class UserCart extends Cart {
             let skuCount: { mostCanTrade: number; name: string };
             if (isPricedAsset) {
                 skuCount = {
-                    mostCanTrade: this.bot.inventoryManager.amountCanTrade(priceKey, false, false),
+                    mostCanTrade: this.bot.inventoryManager.amountCanTrade({
+                        priceKey,
+                        tradeIntent: 'selling',
+                        getGenericAmount: false
+                    }),
                     name: entry.name
                 };
             } else {
                 // selling order so buying is false
-                skuCount = getSkuAmountCanTrade(entry.sku, this.bot, false);
+                skuCount = getSkuAmountCanTrade(entry.sku, this.bot, 'selling');
             }
 
             if (amount > skuCount.mostCanTrade) {
                 this.removeOurItem(priceKey, Infinity);
                 if (skuCount.mostCanTrade === 0) {
                     alteredMessage = `I can't sell more ${entry.name}`;
-                    this.bot.listings.checkByPriceKey(isPricedAsset ? priceKey : entry.sku, null, false, true);
+                    this.bot.listings.checkByPriceKey({
+                        priceKey: isPricedAsset ? priceKey : entry.sku,
+                        checkGenerics: false,
+                        showLogs: true
+                    });
                 } else {
                     alteredMessage = `I can only sell ${skuCount.mostCanTrade} more ${pluralize(
                         skuCount.name,
@@ -526,7 +547,11 @@ export default class UserCart extends Cart {
                 this.removeTheirItem(sku, Infinity);
                 if (skuCount.mostCanTrade === 0) {
                     alteredMessage = "I can't buy more " + pluralize(skuCount.name);
-                    this.bot.listings.checkByPriceKey(sku, null, false, true);
+                    this.bot.listings.checkByPriceKey({
+                        priceKey: sku,
+                        checkGenerics: false,
+                        showLogs: true
+                    });
                 } else {
                     alteredMessage = `I can only buy ${skuCount.mostCanTrade} more ${pluralize(
                         skuCount.name,
@@ -637,14 +662,20 @@ export default class UserCart extends Cart {
             }
 
             const isAssetId = Pricelist.isAssetId(priceKey);
-            const entry = this.bot.pricelist.getPriceBySkuOrAsset(priceKey, true);
+            const entry = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: true });
             const amount = this.our[priceKey];
 
             let assetids = ourInventory.findBySKU(entry.sku, true);
             if (isAssetId) {
                 assetids = assetids.includes(priceKey) ? [priceKey] : [];
             } else {
-                assetids = assetids.filter(assetid => this.bot.pricelist.hasPrice(assetid, false) === false);
+                assetids = assetids.filter(
+                    assetid =>
+                        this.bot.pricelist.hasPrice({
+                            priceKey: assetid,
+                            onlyEnabled: false
+                        }) === false
+                );
             }
 
             const ourAssetidsCount = assetids.length;
@@ -717,7 +748,11 @@ export default class UserCart extends Cart {
 
             const addToDupeCheckList =
                 this.bot.pricelist
-                    .getPrice(sku, true, SKU.fromString(sku).effect !== null ? true : false)
+                    .getPrice({
+                        priceKey: sku,
+                        onlyEnabled: true,
+                        getGenericPrice: SKU.fromString(sku).effect !== null
+                    })
                     ?.buy.toValue(keyPrice.metal) >
                 this.bot.handler.minimumKeysDupeCheck * keyPrice.toValue();
 
@@ -885,7 +920,7 @@ export default class UserCart extends Cart {
                 } else if (
                     this.isWeaponsAsCurrencyEnabled &&
                     this.weapons.includes(sku) &&
-                    this.bot.pricelist.getPrice(sku, true) === null
+                    this.bot.pricelist.getPrice({ priceKey: sku, onlyEnabled: true }) === null
                 ) {
                     value = 0.5;
                 }
@@ -1012,8 +1047,8 @@ export default class UserCart extends Cart {
             }
 
             itemPrices[priceKey] = {
-                buy: this.bot.pricelist.getPriceBySkuOrAsset(priceKey, true).buy,
-                sell: this.bot.pricelist.getPriceBySkuOrAsset(priceKey, true).sell
+                buy: this.bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: true }).buy,
+                sell: this.bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: true }).sell
             };
         }
 
@@ -1027,8 +1062,8 @@ export default class UserCart extends Cart {
             }
 
             itemPrices[sku] = {
-                buy: this.bot.pricelist.getPrice(sku, true).buy,
-                sell: this.bot.pricelist.getPrice(sku, true).sell
+                buy: this.bot.pricelist.getPrice({ priceKey: sku, onlyEnabled: true }).buy,
+                sell: this.bot.pricelist.getPrice({ priceKey: sku, onlyEnabled: true }).sell
             };
         }
 
@@ -1088,7 +1123,7 @@ export default class UserCart extends Cart {
 
             str += `\n- ${this.our[priceKey]}x `;
             if (Pricelist.isAssetId(priceKey)) {
-                str += `${this.bot.pricelist.getPrice(priceKey, false).name} (${priceKey})`;
+                str += `${this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false }).name} (${priceKey})`;
             } else {
                 str += this.bot.schema.getName(SKU.fromString(priceKey), false);
             }

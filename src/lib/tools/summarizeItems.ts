@@ -121,7 +121,7 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
             continue;
         }
 
-        const entry = bot.pricelist.getPriceBySkuOrAsset(priceKey, false);
+        const entry = bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
         if (entry !== null) {
             buyPrice = entry.buy.toString();
             sellPrice = entry.sell.toString();

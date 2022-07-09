@@ -990,44 +990,47 @@ export default class Trades {
 
                     if (needToTakeWeapon) {
                         log.debug('needToTakeWeapon:', needToTakeWeapon);
-                        const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                        const weaponSkus = this.bot.handler.isWeaponsAsCurrency.withUncraft
                             ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
                             : this.bot.craftWeapons;
 
                         const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
 
                         // return filtered weapons
-                        let filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+                        let filteredWeaponSkus = weaponSkus.filter(weaponSku => !skusFromPricelist.includes(weaponSku));
 
-                        if (filtered.length === 0) {
+                        if (filteredWeaponSkus.length === 0) {
                             // but if nothing left, then just use all
-                            filtered = allWeapons;
+                            filteredWeaponSkus = weaponSkus;
                         }
 
-                        const chosenOne = filtered
-                            .filter(sku => theirItems[sku] === undefined) // filter weapons that are not in their offer
-                            .find(sku => theirInventoryItems[sku]); // find one that is in their inventory
+                        const chosenWeaponSku = filteredWeaponSkus
+                            .filter(weaponSku => theirItems[weaponSku] === undefined) // filter weapons that are not in their offer
+                            .find(weaponSku => theirInventoryItems[weaponSku]); // find one that is in their inventory
 
-                        log.debug('weaponOfChoice:', chosenOne);
+                        log.debug('weaponOfChoice:', chosenWeaponSku);
 
-                        const item = theirInventoryItems[chosenOne];
-                        log.debug('item:', item);
-                        if (item) {
+                        const weapon = theirInventoryItems[chosenWeaponSku];
+                        log.debug('item:', weapon);
+                        if (weapon) {
                             const isAdded = counter.addTheirItem({
                                 appid: 440,
                                 contextid: '2',
-                                assetid: item[0].id
+                                assetid: weapon[0].id
                             });
                             if (isAdded) {
                                 NonPureWorth -= 0.5;
                                 tradeValues['their'].scrap += 0.5;
-                                dataDict['their'][chosenOne] ??= 0;
-                                dataDict['their'][chosenOne] += 1;
+                                dataDict['their'][chosenWeaponSku] ??= 0;
+                                dataDict['their'][chosenWeaponSku] += 1;
 
-                                const isInPricelist = this.bot.pricelist.getPrice(chosenOne, false);
+                                const isInPricelist = this.bot.pricelist.getPrice({
+                                    priceKey: chosenWeaponSku,
+                                    onlyEnabled: false
+                                });
 
                                 if (isInPricelist !== null) {
-                                    prices[chosenOne] = {
+                                    prices[chosenWeaponSku] = {
                                         buy: isInPricelist.buy,
                                         sell: isInPricelist.sell
                                     };

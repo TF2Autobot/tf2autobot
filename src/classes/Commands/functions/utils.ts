@@ -59,7 +59,7 @@ export function getItemAndAmount(
 
     let priceKey: string;
     let match = testPriceKey(name)
-        ? bot.pricelist.getPriceBySkuOrAsset(name, true)
+        ? bot.pricelist.getPriceBySkuOrAsset({ priceKey: name, onlyEnabled: true })
         : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
@@ -240,8 +240,6 @@ export function getItemFromParams(
 
     let foundSomething = false;
     if (params.item !== undefined) {
-        foundSomething = true;
-
         const sku = bot.schema.getSkuFromName(params.item as string);
 
         if (sku.includes('null') || sku.includes('undefined')) {

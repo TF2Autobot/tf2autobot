@@ -181,7 +181,15 @@ export default class Inventory {
         return nonTradable.concat(tradable).slice(0);
     }
 
-    getAmount(priceKey: string, includeNonNormalized: boolean, tradableOnly?: boolean): number {
+    getAmount({
+        priceKey,
+        includeNonNormalized,
+        tradableOnly
+    }: {
+        priceKey: string;
+        includeNonNormalized: boolean;
+        tradableOnly?: boolean;
+    }): number {
         if (Pricelist.isAssetId(priceKey)) {
             return null !== this.findByAssetid(priceKey) ? 1 : 0;
         }
@@ -249,20 +257,35 @@ export default class Inventory {
         return this.findBySKU(sku, tradableOnly).length - amountToDeduct;
     }
 
-    getAmountOfGenerics(sku: string, tradableOnly?: boolean): number {
-        const s = SKU.fromString(sku);
+    getAmountOfGenerics({
+        genericSkuString,
+        tradableOnly
+    }: {
+        genericSkuString: string;
+        tradableOnly?: boolean;
+    }): number {
+        const genericSku = SKU.fromString(genericSkuString);
 
-        if (s.quality === 5) {
-            const all = tradableOnly
+        if (genericSku.quality === 5) {
+            const skus = tradableOnly
                 ? Object.keys(this.tradable)
                 : Object.keys(this.tradable).concat(Object.keys(this.nonTradable));
-            return all
-                .filter(e => e.startsWith(sku))
-                .reduce((sum, s) => {
-                    return sum + this.getAmount(s, false, tradableOnly);
+            return skus
+                .filter(sku => sku.startsWith(genericSkuString))
+                .reduce((sum, sku) => {
+                    const entryAmount = this.getAmount({
+                        priceKey: sku,
+                        includeNonNormalized: false,
+                        tradableOnly
+                    });
+                    return sum + entryAmount;
                 }, 0);
         } else {
-            return this.getAmount(sku, false, tradableOnly);
+            return this.getAmount({
+                priceKey: genericSkuString,
+                includeNonNormalized: false,
+                tradableOnly
+            });
         }
     }
 
@@ -611,15 +634,23 @@ export function genericNameAndMatch(name: string, effects: Effect[]): { name: st
  * name will be set to the specific SKU.
  * @param sku - string
  * @param bot - bot so we can look up amountCanTrade
- * @param buying - toggle tally only items that we are buying
+ * @param tradeIntent - trade intention is either 'buying' or 'selling'
  */
 export function getSkuAmountCanTrade(
     sku: string,
     bot: Bot,
-    buying = true
+    tradeIntent: 'buying' | 'selling' = 'buying'
 ): { amountCanTradeGeneric: number; mostCanTrade: number; amountCanTrade: number; name: string } {
-    const amountCanTrade = bot.inventoryManager.amountCanTrade(sku, buying, false);
-    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade(sku, buying, true);
+    const amountCanTrade = bot.inventoryManager.amountCanTrade({
+        priceKey: sku,
+        tradeIntent,
+        getGenericAmount: false
+    });
+    const amountCanTradeGeneric = bot.inventoryManager.amountCanTrade({
+        priceKey: sku,
+        tradeIntent,
+        getGenericAmount: true
+    });
 
     return {
         amountCanTradeGeneric: amountCanTradeGeneric,
