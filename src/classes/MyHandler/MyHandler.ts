@@ -2121,6 +2121,24 @@ export default class MyHandler extends Handler {
                                     delete newEntry.time;
 
                                     this.bot.pricelist.replacePriceEntry(oldId, newEntry);
+                                    const msg = `✅ Automatically replaced ${oldId} with ${newEntry.id} in pricelist due to rollback.`;
+                                    log.debug(msg);
+                                    const dwEnabled =
+                                        this.bot.options.discordWebhook.sendAlert.enable &&
+                                        this.bot.options.discordWebhook.sendAlert.url.main !== '';
+                                    if (
+                                        this.bot.options.sendAlert.enable &&
+                                        this.bot.options.sendAlert.autoUpdateAssetid
+                                    ) {
+                                        if (dwEnabled) {
+                                            sendAlert('autoUpdateAssetid', this.bot, msg, null, null, [
+                                                oldId,
+                                                newEntry.id
+                                            ]);
+                                        } else {
+                                            this.bot.messageAdmins(msg, []);
+                                        }
+                                    }
                                 }
                             });
                         }
