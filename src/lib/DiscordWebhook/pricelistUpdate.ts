@@ -1,12 +1,12 @@
 import SKU from '@tf2autobot/tf2-sku';
-import SchemaManager from '@tf2autobot/tf2-schema';
+import { Schema } from '@tf2autobot/tf2-schema';
 import Currencies from '@tf2autobot/tf2-currencies';
 import * as timersPromises from 'timers/promises';
 import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';
 
 import log from '../logger';
-import { Entry } from '../../classes/Pricelist';
+import { BuyAndSell } from '../../classes/Pricelist';
 import Options from '../../classes/Options';
 
 const australiumImageURL: { [defindex: number]: string } = {
@@ -1593,7 +1593,7 @@ const unusualifierImages: { [target: number]: string } = {
     31239: '3G9DJDbHyXxoWu1jLPTRyAD-reefI3j2ejDBYXSLGQY5S7teMj6PqzGks-vCEznISOp4QwhWKKtX9GQdNMyPakY_1dMVu2u_0U1wGUcXapUbIEHonyRVOLAimR4KdJZShyP1JoKA2AhjBw9qV7j5U7zCedj4xy5LFBtqH74TZIuD6WWsocP8bvOGO6FqM_xu_MqJxBkHQdQPS5wywplPvozNtwxRbI1zGg1IQukoZW6BXP_lkXidC-GzarUO4ckEUFEZHx7rz3xzCEgs6PCPYxMA7imVFQNbRQ'
 };
 
-const festivizedImages = {
+const festivizedImages: { [name: string]: string } = {
     // https://wiki.teamfortress.com/wiki/Festivizer#List_of_possible_Festivized_weapons
     // Image for Australium - Not available
     // Scattergun (Stock)
@@ -1744,7 +1744,7 @@ const festivizedImages = {
     1153: 'mMnvA-aHAfQ_ktk664Ma2gl_gwR1N-uyJTlYdAHRFalIWbttp1-8DHA3sMU6DIXn871Xe17ps9SUZbMkNYxETsHXDqfVNVv6ux0-nuEDeJNZsSHG'
 };
 
-const retiredKeys = {
+const retiredKeys: { [name: string]: string } = {
     5049: 'https://wiki.teamfortress.com/w/images/c/c7/Backpack_Festive_Winter_Crate_Key.png',
     5067: 'https://steamcdn-a.akamaihd.net/apps/440/icons/key_summer_large.f49710a191ae35c9f9b83df51c2a734cf143530d.png',
     5072: 'https://steamcdn-a.akamaihd.net/apps/440/icons/xmas_wicked_key_large.226fac08f92f09a21964f3680f3728bcda1165e6.png',
@@ -1778,20 +1778,21 @@ const qualityColor: { [name: string]: string } = {
 };
 
 export default function sendWebHookPriceUpdateV1(
-    sku: string,
-    itemName: string,
-    newPrice: Entry,
-    time: string,
-    schema: SchemaManager.Schema,
+    schema: Schema,
     options: Options,
+    sku: string,
+    time: string,
+    newPrices: BuyAndSell,
+    oldPrices: BuyAndSell,
     currentStock: number,
-    oldPrice: { buy: Currencies; sell: Currencies },
-    buyChangesValue: number,
-    sellChangesValue: number,
+    conversion: number,
+    buyChangesValue: number | null,
+    sellChangesValue: number | null,
     isCustomPricer: boolean
 ): void {
     const baseItemData = schema.getItemBySKU(sku);
     const item = SKU.fromString(sku);
+    const itemName = schema.getName(item, false);
     const parts = sku.split(';');
 
     let itemImageUrlPrint: string;
@@ -1799,7 +1800,7 @@ export default function sendWebHookPriceUpdateV1(
     if (!baseItemData || !item) {
         itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
     } else if (retiredKeys[item.defindex] !== undefined) {
-        itemImageUrlPrint = retiredKeys[item.defindex] as string;
+        itemImageUrlPrint = retiredKeys[item.defindex];
     } else if (
         itemName.includes('Non-Craftable') &&
         itemName.includes('Killstreak') &&
@@ -1817,7 +1818,7 @@ export default function sendWebHookPriceUpdateV1(
             : ks1Images[item.target];
 
         if (url) {
-            itemImageUrlPrint = `${front}${url}/520fx520f`;
+            itemImageUrlPrint = `${front}${url}/380fx380f`;
         }
 
         if (!itemImageUrlPrint) {
@@ -1834,7 +1835,7 @@ export default function sendWebHookPriceUpdateV1(
             : strangifierImages[item.target];
 
         if (url) {
-            itemImageUrlPrint = `${front}${url}/520fx520f`;
+            itemImageUrlPrint = `${front}${url}/380fx380f`;
         }
 
         if (!itemImageUrlPrint) {
@@ -1843,25 +1844,26 @@ export default function sendWebHookPriceUpdateV1(
     } else if (paintCans.includes(`${item.defindex}`)) {
         itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${
             paintCan[item.defindex]
-        }512fx512f`;
+        }380fx380f`;
     } else if (item.australium === true) {
         // No festivized image available for Australium
         itemImageUrlPrint = australiumImageURL[item.defindex]
             ? `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${
                   australiumImageURL[item.defindex]
-              }512fx512f`
+              }380fx380f`
             : itemImageUrlPrint;
     } else if (item.paintkit !== null) {
-        const newItem = SKU.fromString(`${item.defindex};6`);
-        itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(
-            schema.getName(newItem, false)
-        )}_${item.paintkit}_${item.wear}_${item.festive === true ? 1 : 0}.png`;
+        itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${item.defindex}_${item.paintkit}_${item.wear}_${
+            item.festive === true ? 1 : 0
+        }.png`;
     } else if (item.festive) {
         const front =
             'https://community.cloudflare.steamstatic.com/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEMaQkUTxr2vTx8';
-        itemImageUrlPrint = festivizedImages[item.defindex]
-            ? `${front}${festivizedImages[item.defindex] as string}/520fx520f`
-            : baseItemData.image_url_large;
+        if (festivizedImages[item.defindex]) {
+            itemImageUrlPrint = `${front}${festivizedImages[item.defindex]}/380fx380f`;
+        } else {
+            itemImageUrlPrint = baseItemData.image_url_large;
+        }
     } else {
         itemImageUrlPrint = baseItemData.image_url_large;
     }
@@ -1878,9 +1880,6 @@ export default function sendWebHookPriceUpdateV1(
 
     const qualityItem = parts[1];
     const qualityColorPrint = qualityColor[qualityItem];
-
-    const buyChanges = Currencies.toCurrencies(buyChangesValue).toString();
-    const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
 
     const opt = options.discordWebhook;
     const priceUpdate: Webhook = {
@@ -1908,16 +1907,26 @@ export default function sendWebHookPriceUpdateV1(
                 title: '',
                 fields: [
                     {
-                        name: 'Buying for',
-                        value: `${oldPrice.buy.toString()} → ${newPrice.buy.toString()} (${
-                            buyChangesValue > 0 ? `+${buyChanges}` : buyChangesValue === 0 ? `0 ref` : buyChanges
-                        })`
+                        name: `Buying for${buyChangesValue === 0 ? ' 🔄' : buyChangesValue > 0 ? ' 📈' : ' 📉'}`,
+                        value:
+                            buyChangesValue === 0
+                                ? newPrices.buy.toString()
+                                : `${oldPrices.buy.toString()} → ${newPrices.buy.toString()} (${
+                                      buyChangesValue > 0
+                                          ? `+${Currencies.toCurrencies(buyChangesValue, conversion).toString()}`
+                                          : Currencies.toCurrencies(buyChangesValue, conversion).toString()
+                                  })`
                     },
                     {
-                        name: 'Selling for',
-                        value: `${oldPrice.sell.toString()} → ${newPrice.sell.toString()} (${
-                            sellChangesValue > 0 ? `+${sellChanges}` : sellChangesValue === 0 ? `0 ref` : sellChanges
-                        })`
+                        name: `Selling for${sellChangesValue === 0 ? ' 🔄' : sellChangesValue > 0 ? ' 📈' : ' 📉'}`,
+                        value:
+                            sellChangesValue === 0
+                                ? newPrices.sell.toString()
+                                : `${oldPrices.sell.toString()} → ${newPrices.sell.toString()} (${
+                                      sellChangesValue > 0
+                                          ? `+${Currencies.toCurrencies(sellChangesValue, conversion).toString()}`
+                                          : Currencies.toCurrencies(sellChangesValue, conversion).toString()
+                                  })`
                     }
                 ],
                 description: `Stock: ${currentStock}${opt.priceUpdate.note ? `\n${opt.priceUpdate.note}` : ''}`,
