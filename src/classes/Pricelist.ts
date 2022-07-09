@@ -668,7 +668,7 @@ export default class Pricelist extends EventEmitter {
         this.removePrice(oldId, true)
             .then(() => {
                 this.bot.pricelist
-                    .addPrice(newEntry.id, newEntry, true)
+                    .addPrice(newEntry, true)
                     .then(() => {
                         log.info(`Successfully replaced ${oldId} to ${newEntry.id}`);
                     })
