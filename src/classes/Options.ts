@@ -79,6 +79,7 @@ export const DEFAULTS: JsonOptions = {
         },
         autoRemoveIntentSellFailed: true,
         autoRemoveAssetidFailed: true,
+        autoRemoveAssetidSuccess: true,
         autoAddPaintedItems: true,
         failedAccept: true,
         unableToProcessOffer: true,
@@ -1159,6 +1160,7 @@ interface SendAlert extends OnlyEnable {
     highValue?: HighValueAlert;
     autoRemoveIntentSellFailed?: boolean;
     autoRemoveAssetidFailed?: boolean;
+    autoRemoveAssetidSuccess?: boolean;
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;

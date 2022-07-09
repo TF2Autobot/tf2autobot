@@ -55,7 +55,15 @@ export default function updateListings(
             bot.pricelist
                 .removePrice(priceKey, true)
                 .then(() => {
-                    log.debug(`✅ Automatically removed ${priceKey} from pricelist.`);
+                    const msg = `✅ Automatically removed ${priceKey} from pricelist.`;
+                    log.debug(msg);
+                    if (opt.sendAlert.enable && opt.sendAlert.autoRemoveAssetidSuccess) {
+                        if (dwEnabled) {
+                            sendAlert('autoRemoveAssetidSuccess', bot, msg, null, null, [priceKey]);
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
+                    }
                 })
                 .catch(err => {
                     const msg = `❌ Failed to automatically remove ${priceKey} from pricelist: ${

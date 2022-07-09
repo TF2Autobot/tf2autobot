@@ -18,6 +18,7 @@ type AlertType =
     | 'highValuedInvalidItems'
     | 'autoRemoveIntentSellFailed'
     | 'autoRemoveAssetidFailed'
+    | 'autoRemoveAssetidSuccess'
     | 'autokeys-failedToDisable'
     | 'autokeys-failedToAdd-bank'
     | 'autokeys-failedToAdd-sell'
@@ -134,6 +135,10 @@ export default function sendAlert(
         title = `Failed to remove item with assetid ${items[0]}`;
         description = msg;
         color = '16711680'; // red
+    } else if (type === 'autoRemoveAssetidSuccess') {
+        title = `✅ Automatically removed assetid ${items[0]} from price list`;
+        description = msg;
+        color = '32768'; // green
     } else if (type === 'autoUpdatePartialPriceSuccess') {
         title = '✅ Automatically update partially priced item';
         description = msg;
@@ -229,6 +234,7 @@ export default function sendAlert(
                 'failedRestartError',
                 'autoRemoveIntentSellFailed',
                 'autoRemoveAssetidFailed',
+                'autoRemoveAssetidSuccess',
                 'autokeys-failedToDisable',
                 'autokeys-failedToAdd-bank',
                 'autokeys-failedToAdd-sell',
