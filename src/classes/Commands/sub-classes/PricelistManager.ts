@@ -179,7 +179,7 @@ export default class PricelistManagerCommands {
         }
         priceKey = priceKey ? priceKey : params.sku;
         return this.bot.pricelist
-            .addPrice(priceKey, params as EntryData, true, PricelistChangedSource.Command)
+            .addPrice(params as EntryData, true, PricelistChangedSource.Command)
             .then(entry => {
                 this.bot.sendMessage(
                     steamID,
@@ -436,15 +436,7 @@ export default class PricelistManagerCommands {
                     const isLast = count2 - i === 1;
 
                     this.bot.pricelist
-                        .addPrice(
-                            entry.priceKey,
-                            entry.params,
-                            true,
-                            PricelistChangedSource.Command,
-                            true,
-                            items,
-                            isLast
-                        )
+                        .addPrice(entry.params, true, PricelistChangedSource.Command, true, items, isLast)
                         .then(() => added++)
                         .catch(err => {
                             errorMessage.push(
@@ -480,7 +472,7 @@ export default class PricelistManagerCommands {
                 const isLast = count2 - i === 1;
 
                 this.bot.pricelist
-                    .addPrice(entry.priceKey, entry.params, true, PricelistChangedSource.Command, true)
+                    .addPrice(entry.params, true, PricelistChangedSource.Command, true)
                     .then(() => added++)
                     .catch(err => {
                         errorMessage.push(
@@ -2378,7 +2370,7 @@ class AutoAddQueue {
             const ed = this.params as EntryData;
             // todo should this be assetid to prevent profit loss?
             this.bot.pricelist
-                .addPrice(ed.sku, ed, true, PricelistChangedSource.Command)
+                .addPrice(ed, true, PricelistChangedSource.Command)
                 .then(entry => {
                     this.added++;
                     const remaining = this.total - this.added - this.skipped - this.failed;

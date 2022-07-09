@@ -207,7 +207,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(priceKey, entry, true)
+                .addPrice(entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${bot.schema.getName(SKU.fromString(paintedSKU), false)}` +
@@ -286,7 +286,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(priceKey, entry, true)
+                .addPrice(entry, true)
                 .then(data => {
                     const msg =
                         `✅ Automatically added ${name} (${priceKey}) to sell.` +
@@ -341,7 +341,7 @@ export default function updateListings(
             } as EntryData;
 
             bot.pricelist
-                .addPrice(priceKey, entry, true)
+                .addPrice(entry, true)
                 .then(() => {
                     log.debug(`✅ Automatically added ${name} (${priceKey}) to sell.`);
                     if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existInPricelist);
