@@ -2038,6 +2038,43 @@ export default class MyHandler extends Handler {
                     offer.data('isInvalid', true);
                     MyHandler.removePolldataKeys(offer);
                 }
+
+                // Update assetid in pricelist if needed
+                if (
+                    ((offer.state === TradeOfferManager.ETradeOfferState['Canceled'] &&
+                        offer.data('isCanceledUnknown') === true) ||
+                        offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) &&
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    offer.tradeID
+                ) {
+                    if (Object.keys(this.bot.pricelist.assetidInPricelist).length < 1) {
+                        // Check if cache is not empty
+                        return;
+                    }
+
+                    offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
+                        if (err) {
+                            return log.error(err);
+                        }
+
+                        if (Array.isArray(sentItems)) {
+                            sentItems.forEach(item => {
+                                const entry = this.bot.pricelist.getPriceBySkuOrAsset(item.assetid);
+
+                                if (entry !== null && entry.id && item.rollback_new_assetid) {
+                                    const newEntry = Object.assign({}, entry);
+                                    const oldId = entry.id;
+                                    newEntry.id = item.rollback_new_assetid;
+                                    delete newEntry.name;
+                                    delete newEntry.time;
+
+                                    this.bot.pricelist.replacePriceEntry(oldId, newEntry);
+                                }
+                            });
+                        }
+                    });
+                }
             }
 
             if (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] && !this.sentSummary[offer.id]) {
