@@ -18,14 +18,6 @@ export default class CustomPricerSocketManager {
         };
     }
 
-    private socketUnauthorized(): (err: Error) => void {
-        return err => {
-            log.warn('Failed to authenticate with socket server', {
-                error: err
-            });
-        };
-    }
-
     private socketAuthenticated(): () => void {
         return () => {
             log.debug('Authenticated with socket server');
@@ -35,7 +27,6 @@ export default class CustomPricerSocketManager {
     private socketConnect(): () => void {
         return () => {
             log.debug('Connected to socket server');
-            this.socket.emit('authentication', this.key);
         };
     }
 
@@ -44,13 +35,15 @@ export default class CustomPricerSocketManager {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment
         this.socket = io(this.url, {
             forceNew: true,
-            autoConnect: false
+            autoConnect: false,
+            auth: {
+                token: this.key
+            }
         });
+
         this.socket.on('connect', this.socketConnect());
 
         this.socket.on('authenticated', this.socketAuthenticated());
-
-        this.socket.on('unauthorized', this.socketUnauthorized());
 
         this.socket.on('disconnect', this.socketDisconnected());
 
