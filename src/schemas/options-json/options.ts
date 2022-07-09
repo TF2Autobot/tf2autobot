@@ -516,6 +516,9 @@ export const optionsSchema: jsonschema.Schema = {
                 autoRemoveAssetidFailed: {
                     type: 'boolean'
                 },
+                autoRemoveAssetidSuccess: {
+                    type: 'boolean'
+                },
                 autoAddPaintedItems: {
                     type: 'boolean'
                 },
