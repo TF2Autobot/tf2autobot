@@ -587,6 +587,10 @@ export default class Pricelist extends EventEmitter {
 
         if (emitChange) {
             this.priceChanged(priceKey, entry);
+            if (Pricelist.isAssetId(priceKey)) {
+                // make sure to also check for sku (amount might changed)
+                this.priceChanged(entry.sku, entry);
+            }
         }
 
         if (isBulk && isLast) {
