@@ -584,10 +584,11 @@ export default class Pricelist extends EventEmitter {
         // Add new price
         const priceKey = entry.id ?? entry.sku;
         this.prices[priceKey] = entry;
+        const isAssetid = Pricelist.isAssetId(priceKey);
 
         if (emitChange) {
             this.priceChanged(priceKey, entry);
-            if (Pricelist.isAssetId(priceKey)) {
+            if (isAssetid) {
                 // make sure to also check for sku (amount might changed)
                 this.priceChanged(entry.sku, entry);
             }
@@ -597,7 +598,7 @@ export default class Pricelist extends EventEmitter {
             this.transformedPricelistForBulk = undefined;
         }
 
-        if (Pricelist.isAssetId(priceKey)) {
+        if (isAssetid) {
             this.cacheAssetidInPricelist();
         }
 
