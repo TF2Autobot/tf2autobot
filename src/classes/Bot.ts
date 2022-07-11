@@ -811,11 +811,12 @@ export default class Bot {
                 if (this.options.discordApiToken) {
                     log.info(`Initializing Discord bot...`);
                     this.discordBot = new DiscordBot(this.options, this);
-                    await this.discordBot.start().catch(err => {
-                        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                    try {
+                        await this.discordBot.start();
+                    } catch (err) {
                         log.warn('Failed to start Discord bot: ', err);
                         throw err;
-                    });
+                    }
                 } else {
                     log.info('Discord api key is not set, ignoring.');
                 }
