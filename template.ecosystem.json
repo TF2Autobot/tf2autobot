@@ -26,7 +26,9 @@
                 "MPTF_API_KEY": "",
                 "DISCORD_BOT_TOKEN": "",
 
-                "ADMINS": ["<your steamid 64>"],
+                "ADMINS": [
+                    { "steam": "<your steamid 64>", "discord": null }
+                ],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
                 "ITEM_STATS_WHITELIST": [],
                 "GROUPS": ["103582791469033930"],
