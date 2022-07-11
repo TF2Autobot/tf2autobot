@@ -1302,7 +1302,7 @@ export default class Bot {
     }
 
     private onWebSession(sessionID: string, cookies: string[]): void {
-        log.debug(`New web session: ${sessionID}`);
+        log.debug(`New web session`);
 
         void this.setCookies(cookies);
     }
