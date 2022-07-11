@@ -39,7 +39,7 @@
         "body-parser": "^1.20.0",
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
-        "cheerio": "^1.0.0-rc.10",
+        "cheerio": "^1.0.0-rc.12",
         "dayjs": "^1.11.3",
         "death": "^1.1.0",
         "discord.js": "^13.6.0",
