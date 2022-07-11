@@ -47,10 +47,15 @@ test('Parsing Options', () => {
     delete process.env.BPTF_ACCESS_TOKEN;
     cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
 
-    // test loading an array of strings
-    result = Options.loadOptions({ steamAccountName: 'abc123', admins: ['STEAM_0:1:1234567'] });
-    expect(result.admins).toEqual(['STEAM_0:1:1234567']);
-    process.env.ADMINS = '["STEAM_0:1:7654321"]';
+    // test loading admins (an array of Objects)
+    result = Options.loadOptions({
+        steamAccountName: 'abc123',
+        admins: [{ steam: 'STEAM_0:1:1234567', discord: '987654321' }]
+    });
+    expect(result.admins).toEqual([{ steam: 'STEAM_0:1:1234567', discord: '987654321' }]);
+    result = Options.loadOptions({ steamAccountName: 'abc123', admins: [{ steam: 'STEAM_0:1:1234567' }] });
+    expect(result.admins).toEqual([{ steam: 'STEAM_0:1:1234567', discord: undefined }]);
+    process.env.ADMINS = '["STEAM_0:1:7654321"]'; // outdated?
     result = Options.loadOptions({ steamAccountName: 'abc123' });
     expect(result.admins).toEqual(['STEAM_0:1:7654321']);
     delete process.env.ADMINS;

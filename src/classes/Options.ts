@@ -2017,8 +2017,9 @@ export default interface Options extends JsonOptions {
     useragentHeaderCustom?: string;
 
     mptfApiKey?: string;
+    discordBotToken?: string;
 
-    admins?: string[];
+    admins?: adminData[];
     keep?: string[];
     itemStatsWhitelist?: string[];
     groups?: string[];
@@ -2044,6 +2045,11 @@ export default interface Options extends JsonOptions {
 
     enableHttpApi?: boolean;
     httpApiPort?: number;
+}
+
+export interface adminData {
+    steam: string;
+    discord?: string;
 }
 
 function getOption<T>(option: string, def: T, parseFn: (target: string) => T, options?: Options): T {
@@ -2286,6 +2292,7 @@ export function loadOptions(options?: Options): Options {
     const jsonParseArray = (jsonString: string): string[] => JSON.parse(jsonString) as unknown as string[];
     const jsonParseBoolean = (jsonString: string): boolean => JSON.parse(jsonString) as unknown as boolean;
     const jsonParseNumber = (jsonString: string): number => JSON.parse(jsonString) as unknown as number;
+    const jsonParseAdminData = (jsonString: string): adminData[] => JSON.parse(jsonString) as unknown as adminData[];
 
     const envOptions = {
         steamAccountName: steamAccountName,
@@ -2298,8 +2305,9 @@ export function loadOptions(options?: Options): Options {
         useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
 
         mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
+        discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
 
-        admins: getOption('admins', [], jsonParseArray, incomingOptions),
+        admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
         itemStatsWhitelist: getOption('itemStatsWhitelist', [], jsonParseArray, incomingOptions),
         groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),

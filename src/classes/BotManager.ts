@@ -178,6 +178,11 @@ export default class BotManager {
             // Stop polling offers
             this.bot.manager.pollInterval = -1;
 
+            // Stop reading Discord
+            if (this.bot.discordBot) {
+                this.bot.discordBot.stop();
+            }
+
             // Stop updating schema
             clearTimeout(this.schemaManager?._updateTimeout);
             clearInterval(this.schemaManager?._updateInterval);

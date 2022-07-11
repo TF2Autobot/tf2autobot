@@ -17,6 +17,9 @@ import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
 
+import DiscordBot from './DiscordBot';
+import { Message as DiscordMessage } from 'discord.js';
+
 import InventoryManager from './InventoryManager';
 import Pricelist, { Entry, EntryData, PricesDataObject } from './Pricelist';
 import Friends from './Friends';
@@ -64,6 +67,8 @@ export default class Bot {
     readonly tf2gc: TF2GC;
 
     readonly handler: MyHandler;
+
+    discordBot: DiscordBot; // should be readonly?
 
     inventoryManager: InventoryManager; // should be readonly
 
@@ -166,12 +171,17 @@ export default class Bot {
 
         this.handler = new MyHandler(this, this.priceSource);
 
-        this.admins = this.options.admins.map(steamID => new SteamID(steamID));
+        this.admins = [];
 
-        this.admins.forEach(steamID => {
-            if (!steamID.isValid()) {
+        this.options.admins.forEach(adminData => {
+            const admin = new SteamID(adminData.steam);
+            admin.discordID = adminData.discord;
+
+            if (!admin.isValid()) {
                 throw new Error('Invalid admin steamID');
             }
+
+            this.admins.push(admin);
         });
 
         this.itemStatsWhitelist =
@@ -224,7 +234,7 @@ export default class Bot {
             banned = banned ? true : result.isBanned;
         };
 
-        const steamids = this.options.admins;
+        const steamids = this.admins.map(steamID => steamID.getSteamID64());
         steamids.push(this.client.steamID.getSteamID64());
         for (const steamid of steamids) {
             // same as Array.some, but I want to use await
@@ -798,6 +808,20 @@ export default class Bot {
                 this.bptf.setCookies(cookies);
             },
             async () => {
+                if (this.options.discordBotToken) {
+                    log.info(`Initializing Discord bot...`);
+                    this.discordBot = new DiscordBot(this.options, this);
+                    try {
+                        await this.discordBot.start();
+                    } catch (err) {
+                        log.warn('Failed to start Discord bot: ', err);
+                        throw err;
+                    }
+                } else {
+                    log.info('Discord api key is not set, ignoring.');
+                }
+            },
+            async () => {
                 if (this.options.bptfApiKey && this.options.bptfAccessToken) return;
 
                 log.warn('You have not included the backpack.tf API key or access token in the environment variables');
@@ -1214,6 +1238,16 @@ export default class Bot {
     sendMessage(steamID: SteamID | string, message: string): void {
         const steamID64 = steamID.toString();
         const friend = this.friends.getFriend(steamID64);
+
+        if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
+            const origMessage = steamID.redirectAnswerTo;
+            if (origMessage instanceof DiscordMessage) {
+                this.discordBot.sendAnswer(origMessage, message);
+            } else {
+                log.error(`Failed to send message, broken redirect:`, origMessage);
+            }
+            return;
+        }
 
         if (!friend) {
             // If not friend, we send message with chatMessage
