@@ -11,26 +11,28 @@ export = function (): UnknownDictionary<number> | null {
 
     const diff: UnknownDictionary<number> = {};
 
-    for (const sku in dict.our) {
-        if (!Object.prototype.hasOwnProperty.call(dict.our, sku)) {
+    for (const priceKey in dict.our) {
+        if (!Object.prototype.hasOwnProperty.call(dict.our, priceKey)) {
             continue;
         }
 
-        diff[sku] =
-            (diff[sku] || 0) -
-            (typeof dict.our[sku] === 'object' ? (dict.our[sku]['amount'] as number) : dict.our[sku]);
-        // compatible with polldata from before v3.0.0^^^      before v2.2.0 and/or v3.0.0 or later^^
+        diff[priceKey] =
+            (diff[priceKey] || 0) -
+            (typeof dict.our[priceKey] === 'object'
+                ? (dict.our[priceKey]['amount'] as number) // compatible with polldata from before v3.0.0
+                : dict.our[priceKey]); // before v2.2.0 and/or v3.0.0 or later
     }
 
-    for (const sku in dict.their) {
-        if (!Object.prototype.hasOwnProperty.call(dict.their, sku)) {
+    for (const priceKey in dict.their) {
+        if (!Object.prototype.hasOwnProperty.call(dict.their, priceKey)) {
             continue;
         }
 
-        diff[sku] =
-            (diff[sku] || 0) +
-            (typeof dict.their[sku] === 'object' ? (dict.their[sku]['amount'] as number) : dict.their[sku]);
-        // compatible with polldata from before v3.0.0^^^      before v2.2.0 and/or v3.0.0 or later^^
+        diff[priceKey] =
+            (diff[priceKey] || 0) +
+            (typeof dict.their[priceKey] === 'object'
+                ? (dict.their[priceKey]['amount'] as number) // compatible with polldata from before v3.0.0
+                : dict.their[priceKey]); // before v2.2.0 and/or v3.0.0 or later
     }
 
     return diff;

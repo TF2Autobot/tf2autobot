@@ -1,4 +1,3 @@
-import async from 'async';
 import SchemaManager from '@tf2autobot/tf2-schema';
 import pm2 from 'pm2';
 import Bot from './Bot';
@@ -54,54 +53,35 @@ export default class BotManager {
         return this.bot !== null && this.bot.isReady;
     }
 
-    start(options: Options): Promise<void> {
-        return new Promise((resolve, reject) => {
-            REQUIRED_OPTS.forEach(optName => {
-                if (!process.env[optName] && !options[camelCase(optName)]) {
-                    return reject(new Error(`Missing required environment variable "${optName}"`));
-                }
-            });
-
-            async.eachSeries(
-                [
-                    (callback): void => {
-                        log.debug('Connecting to PM2...');
-                        void this.connectToPM2().asCallback(callback);
-                    },
-                    (callback): void => {
-                        log.info('Starting bot...');
-                        this.pricer.init(options.enableSocket);
-                        this.bot = new Bot(this, options, this.pricer);
-
-                        void this.bot.start().asCallback(callback);
-                    }
-                ],
-                (item, callback) => {
-                    if (this.isStopping) {
-                        // Shutdown is requested, stop the bot
-                        return this.stop(null, false, false);
-                    }
-
-                    item(callback);
-                },
-                err => {
-                    if (err) {
-                        return reject(err);
-                    }
-
-                    if (this.isStopping) {
-                        // Shutdown is requested, stop the bot
-                        return this.stop(null, false, false);
-                    }
-
-                    this.pricer.connect(this.bot?.options.enableSocket);
-
-                    this.schemaManager = this.bot.schemaManager;
-
-                    return resolve();
-                }
-            );
+    async start(options: Options): Promise<void> {
+        REQUIRED_OPTS.forEach(optName => {
+            if (!process.env[optName] && !options[camelCase(optName)]) {
+                throw new Error(`Missing required environment variable "${optName}"`);
+            }
         });
+
+        try {
+            log.debug('Connecting to PM2...');
+            await this.connectToPM2();
+
+            log.info('Starting bot...');
+            this.pricer.init(options.enableSocket);
+            this.bot = new Bot(this, options, this.pricer);
+
+            await this.bot.start();
+
+            this.pricer.connect(this.bot?.options.enableSocket);
+
+            this.schemaManager = this.bot.schemaManager;
+        } catch (err) {
+            if (this.isStopping) {
+                return Promise.resolve(this.stop(null, false, false));
+            }
+
+            if (err) {
+                throw err;
+            }
+        }
     }
 
     stop(err: Error | null, checkIfReady = true, rudely = false): void {
@@ -211,6 +191,9 @@ export default class BotManager {
             // Stop heartbeat and inventory timers
             clearInterval(this.bot.listingManager?._heartbeatInterval);
             clearInterval(this.bot.listingManager?._inventoryInterval);
+
+            // Stop check assetid pricelist cache
+            clearInterval(this.bot.pricelist?.checkAssetidInPricelistInterval);
         }
 
         // Disconnect from socket server to stop price updates

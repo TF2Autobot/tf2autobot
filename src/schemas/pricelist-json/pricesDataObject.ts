@@ -5,11 +5,14 @@ export const pricesDataObject: jsonschema.Schema = {
     type: 'object',
     patternProperties: {
         // eslint-disable-next-line prettier/prettier, no-useless-escape
-        '^(d+);([0-9]|[1][0-5])(;((uncraftable)|(untradable)|(australium)|(festive)|(strange)|((u|pk|td-|c|od-|oq-|p)d+)|(w[1-5])|(kt-[1-3])|(n((100)|[1-9]d?))))*?$':
+        '^(d+);([0-9]|[1][0-5])(;((uncraftable)|(untradable)|(australium)|(festive)|(strange)|((u|pk|td-|c|od-|oq-|p)d+)|(w[1-5])|(kt-[1-3])|(n((100)|[1-9]d?))))*?$|^d+$':
             {
                 type: 'object',
                 properties: {
                     sku: {
+                        type: 'string'
+                    },
+                    id: {
                         type: 'string'
                     },
                     enabled: {

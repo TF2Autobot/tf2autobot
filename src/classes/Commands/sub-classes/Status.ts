@@ -2,12 +2,12 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import SKU from '@tf2autobot/tf2-sku';
-import sleepasync from 'sleep-async';
-import { fixSKU } from '../functions/utils';
+import * as timersPromises from 'timers/promises';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { stats, profit, itemStats, testSKU } from '../../../lib/tools/export';
+import { stats, profit, itemStats, testPriceKey } from '../../../lib/tools/export';
 import { sendStats } from '../../../lib/DiscordWebhook/export';
+import loadPollData from '../../../lib/tools/polldata';
 
 // Bot status
 
@@ -18,8 +18,9 @@ export default class StatusCommands {
 
     async statsCommand(steamID: SteamID): Promise<void> {
         const tradesFromEnv = this.bot.options.statistics.lastTotalTrades;
-        const trades = stats(this.bot);
-        const profits = await profit(this.bot, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
+        const pollData = loadPollData(this.bot.handler.getPaths.files.dir);
+        const trades = stats(this.bot, pollData);
+        const profits = await profit(this.bot, pollData, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
 
         const keyPrices = this.bot.pricelist.getKeyPrices;
 
@@ -112,7 +113,7 @@ export default class StatusCommands {
     async itemStatsCommand(steamID: SteamID, message: string): Promise<void> {
         message = CommandParser.removeCommand(message).trim();
         let sku = '';
-        if (testSKU(message)) {
+        if (testPriceKey(message)) {
             sku = message;
         } else {
             sku = this.bot.schema.getSkuFromName(message);
@@ -125,7 +126,6 @@ export default class StatusCommands {
             }
         }
 
-        sku = fixSKU(sku);
         let isSendSeparately = false;
         let boughtMessage = '';
         let soldMessage = '';
@@ -351,13 +351,13 @@ export default class StatusCommands {
 
         if (isSendSeparately) {
             this.bot.sendMessage(steamID, reply);
-            await sleepasync().Promise.sleep(1000);
+            await timersPromises.setTimeout(1000);
             this.bot.sendMessage(steamID, boughtMessage);
-            await sleepasync().Promise.sleep(3000);
+            await timersPromises.setTimeout(3000);
             this.bot.sendMessage(steamID, soldMessage);
 
             if (adminOnlyMessage) {
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(steamID, adminOnlyMessage);
             }
         } else this.bot.sendMessage(steamID, reply);
@@ -380,7 +380,7 @@ export default class StatusCommands {
                             `\n\n📰 Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
                             (updateMessage ? `\n\n💬 Update message: ${updateMessage}` : '')
                     );
-                    await sleepasync().Promise.sleep(1000);
+                    await timersPromises.setTimeout(1000);
 
                     if (this.bot.isCloned() && process.env.pm_id !== undefined && canUpdateRepo) {
                         return this.bot.sendMessage(
@@ -415,7 +415,7 @@ export default class StatusCommands {
                     }
 
                     for (const message of messages) {
-                        await sleepasync().Promise.sleep(1000);
+                        await timersPromises.setTimeout(1000);
                         this.bot.sendMessage(steamID, message);
                     }
                 }

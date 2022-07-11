@@ -19,6 +19,7 @@ export enum PricelistChangedSource {
 
 export interface EntryData {
     sku: string;
+    id?: string;
     enabled: boolean;
     autoprice: boolean;
     min: number;
@@ -35,6 +36,8 @@ export interface EntryData {
 
 export class Entry implements EntryData {
     sku: string;
+
+    id?: string;
 
     name: string;
 
@@ -64,6 +67,11 @@ export class Entry implements EntryData {
 
     private constructor(entry: EntryData, name: string) {
         this.sku = entry.sku;
+
+        if (entry.id) {
+            this.id = entry.id;
+        }
+
         this.name = name;
         this.enabled = entry.enabled;
         this.autoprice = entry.autoprice;
@@ -135,7 +143,7 @@ export class Entry implements EntryData {
     }
 
     getJSON(): EntryData {
-        return {
+        const obj = {
             sku: this.sku,
             enabled: this.enabled,
             autoprice: this.autoprice,
@@ -150,15 +158,25 @@ export class Entry implements EntryData {
             isPartialPriced: this.isPartialPriced,
             time: this.time
         };
+
+        if (this.id) {
+            obj['id'] = this.id;
+        }
+
+        return obj;
     }
 }
 
 export interface PricesObject {
-    [id: string]: Entry;
+    [priceKey: string]: Entry;
 }
 
 export interface PricesDataObject {
-    [id: string]: EntryData;
+    [priceKey: string]: EntryData;
+}
+
+export interface AssetidInPricelist {
+    [sku: string]: { [assetid: string]: number };
 }
 
 export default class Pricelist extends EventEmitter {
@@ -206,6 +224,10 @@ export default class Pricelist extends EventEmitter {
 
     autoResetPartialPriceBulk: string[] = [];
 
+    assetidInPricelist: AssetidInPricelist = {};
+
+    checkAssetidInPricelistInterval: NodeJS.Timeout;
+
     set resetFailedUpdateOldPrices(value: number) {
         this.failedUpdateOldPrices.length = value;
     }
@@ -243,33 +265,80 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    hasPrice(sku: string, onlyEnabled = false): boolean {
-        if (!this.prices[sku]) {
+    hasPrice({ priceKey, onlyEnabled = false }: { priceKey: string; onlyEnabled?: boolean }): boolean {
+        if (!this.prices[priceKey]) {
             return false;
         }
 
-        return this.prices[sku].enabled || !onlyEnabled;
+        return this.prices[priceKey].enabled || !onlyEnabled;
     }
 
-    getPrice(sku: string, onlyEnabled = false, generics = false): Entry | null {
-        if (this.hasPrice(sku, onlyEnabled)) {
-            return this.prices[sku];
+    getPrice({
+        priceKey,
+        onlyEnabled = false,
+        getGenericPrice = false
+    }: {
+        priceKey: string;
+        onlyEnabled?: boolean;
+        getGenericPrice?: boolean;
+    }): Entry | null {
+        if (this.hasPrice({ priceKey, onlyEnabled: onlyEnabled })) {
+            return this.prices[priceKey];
         }
 
-        if (generics) {
-            const gSku = generics ? sku.replace(/;u\d+/, '') : null;
-            if (this.hasPrice(gSku, onlyEnabled)) {
-                return this.prices[gSku];
+        if (getGenericPrice && !Pricelist.isAssetId(priceKey)) {
+            const genericSku = getGenericPrice ? priceKey.replace(/;u\d+/, '') : null;
+            if (this.hasPrice({ priceKey: genericSku, onlyEnabled: onlyEnabled })) {
+                return this.prices[genericSku];
             }
         }
 
         return null;
     }
 
+    getPriceBySkuOrAsset({
+        priceKey,
+        onlyEnabled = false,
+        getGenericPrice = false
+    }: {
+        priceKey: string;
+        onlyEnabled?: boolean;
+        getGenericPrice?: boolean;
+    }): Entry | null {
+        let entry = this.getPrice({ priceKey, onlyEnabled: onlyEnabled, getGenericPrice });
+
+        if (Pricelist.isAssetId(priceKey) && !entry) {
+            if (this.hasPrice({ priceKey, onlyEnabled: false }) && onlyEnabled) {
+                // Is an asset, is priced, and is disabled
+                return null;
+            }
+
+            entry = this.getPrice({
+                priceKey: this.bot.inventoryManager.getInventory.findByAssetid(priceKey),
+                onlyEnabled: onlyEnabled,
+                getGenericPrice
+            });
+        }
+
+        return entry;
+    }
+
+    /**
+     * return true if the string matches all numbers
+     * @param search - potential match string
+     */
+    static isAssetId(search: string): boolean {
+        return /^[0-9]+$/.test(search);
+    }
+
     searchByName(search: string, enabledOnly = true): Entry | string[] | null {
+        // if this happens to be an id search, just try to get the price
+        if (Pricelist.isAssetId(search)) {
+            return this.getPrice({ priceKey: search, onlyEnabled: enabledOnly });
+        }
         const sku = this.schema.getSkuFromName(search);
 
-        if (this.hasPrice(sku, enabledOnly)) {
+        if (this.hasPrice({ priceKey: sku, onlyEnabled: enabledOnly })) {
             return this.prices[sku];
         }
 
@@ -282,6 +351,12 @@ export default class Pricelist extends EventEmitter {
         const pricesCount = ArraySKU.length;
 
         for (let i = 0; i < pricesCount; i++) {
+            // Filter out assets
+            // Note to myself: I only realized this is needed because disabled items were entering in UserCart:constructOffer() and throwing errors
+            if (Pricelist.isAssetId(ArraySKU[i])) {
+                continue;
+            }
+
             const entry = this.prices[ArraySKU[i]];
 
             if (enabledOnly && entry.enabled === false) {
@@ -341,40 +416,9 @@ export default class Pricelist extends EventEmitter {
 
         if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
+            let price: GetItemPriceResponse;
             try {
-                const price = await this.priceSource.getPrice(entry.sku);
-
-                const newPrices = {
-                    buy: new Currencies(price.buy),
-                    sell: new Currencies(price.sell)
-                };
-
-                if (entry.sku === '5021;6') {
-                    clearTimeout(this.retryGetKeyPrices);
-
-                    const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
-
-                    if (!canUseKeyPricesFromSource) {
-                        throw new Error(
-                            'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
-                                'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
-                        );
-                    }
-
-                    this.globalKeyPrices = {
-                        buy: newPrices.buy,
-                        sell: newPrices.sell,
-                        src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
-                        time: price.time
-                    };
-
-                    this.currentKeyPrices = newPrices;
-                }
-
-                entry.buy = newPrices.buy;
-                entry.sell = newPrices.sell;
-                entry.time = price.time;
-                //
+                price = await this.priceSource.getPrice(entry.sku);
             } catch (err) {
                 throw new Error(
                     `Unable to get current prices for ${entry.sku}: ${
@@ -384,6 +428,37 @@ export default class Pricelist extends EventEmitter {
                     }`
                 );
             }
+
+            const newPrices = {
+                buy: new Currencies(price.buy),
+                sell: new Currencies(price.sell)
+            };
+
+            if (entry.sku === '5021;6') {
+                clearTimeout(this.retryGetKeyPrices);
+
+                const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
+
+                if (!canUseKeyPricesFromSource) {
+                    throw new Error(
+                        'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
+                            'both buy and sell "keys" property must be 0 and value ("metal") must not 0'
+                    );
+                }
+
+                this.globalKeyPrices = {
+                    buy: newPrices.buy,
+                    sell: newPrices.sell,
+                    src: this.isUseCustomPricer ? 'customPricer' : 'ptf',
+                    time: price.time
+                };
+
+                this.currentKeyPrices = newPrices;
+            }
+
+            entry.buy = newPrices.buy;
+            entry.sell = newPrices.sell;
+            entry.time = price.time;
         } else if (isBulk) {
             if (entry.autoprice) {
                 const item = this.transformedPricelistForBulk[entry.sku];
@@ -457,20 +532,27 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    async addPrice(
-        entryData: EntryData,
-        emitChange: boolean,
-        src: PricelistChangedSource = PricelistChangedSource.Other,
+    async addPrice({
+        entryData,
+        emitChange,
+        src = PricelistChangedSource.Other,
         isBulk = false,
-        pricerItems: Item[] = null,
-        isLast: boolean = null
-    ): Promise<Entry> {
+        pricerItems = null,
+        isLast = null
+    }: {
+        entryData: EntryData;
+        emitChange: boolean;
+        src?: PricelistChangedSource;
+        isBulk?: boolean;
+        pricerItems?: Item[];
+        isLast?: boolean;
+    }): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
         if (errors !== null) {
-            return Promise.reject(new Error(errors.join(', ')));
+            throw new Error(errors.join(', '));
         }
-        if (this.hasPrice(entryData.sku, false)) {
+        if (this.hasPrice({ priceKey: entryData.id ?? entryData.sku, onlyEnabled: false })) {
             throw new Error('Item is already priced');
         }
 
@@ -500,27 +582,46 @@ export default class Pricelist extends EventEmitter {
 
         await this.validateEntry(entry, src, isBulk);
         // Add new price
-        this.prices[entry.sku] = entry;
+        const priceKey = entry.id ?? entry.sku;
+        this.prices[priceKey] = entry;
+        const isAssetid = Pricelist.isAssetId(priceKey);
 
         if (emitChange) {
-            this.priceChanged(entry.sku, entry);
+            this.priceChanged(priceKey, entry);
+            if (isAssetid) {
+                // make sure to also check for sku (amount might changed)
+                this.priceChanged(entry.sku, entry);
+            }
         }
 
         if (isBulk && isLast) {
             this.transformedPricelistForBulk = undefined;
         }
 
+        if (isAssetid) {
+            this.cacheAssetidInPricelist();
+        }
+
         return entry;
     }
 
-    async updatePrice(
-        entryData: EntryData,
-        emitChange: boolean,
-        src: PricelistChangedSource = PricelistChangedSource.Other,
+    async updatePrice({
+        priceKey,
+        entryData,
+        emitChange,
+        src = PricelistChangedSource.Other,
         isBulk = false,
-        pricerItems: Item[] = null,
-        isLast: boolean = null
-    ): Promise<Entry> {
+        pricerItems = null,
+        isLast = null
+    }: {
+        priceKey: string;
+        entryData: EntryData;
+        emitChange: boolean;
+        src?: PricelistChangedSource;
+        isBulk?: boolean;
+        pricerItems?: Item[];
+        isLast?: boolean;
+    }): Promise<Entry> {
         const errors = validator(entryData, 'pricelist-add');
 
         if (errors !== null) {
@@ -550,13 +651,13 @@ export default class Pricelist extends EventEmitter {
         await this.validateEntry(entry, src, isBulk);
 
         // Remove old price
-        await this.removePrice(entry.sku, false);
+        await this.removePrice(priceKey, false);
 
         // Add new price
-        this.prices[entry.sku] = entry;
+        this.prices[priceKey] = entry;
 
         if (emitChange) {
-            this.priceChanged(entry.sku, entry);
+            this.priceChanged(priceKey, entry);
         }
 
         if (isBulk && isLast) {
@@ -566,41 +667,100 @@ export default class Pricelist extends EventEmitter {
         return entry;
     }
 
-    setNewPricelist(newEntry: PricesObject): Promise<any> {
-        return new Promise(resolve => {
-            this.prices = newEntry;
-            this.emit('pricelist', newEntry);
-
-            return resolve();
-        });
+    setNewPricelist(newEntry: PricesObject): void {
+        this.prices = newEntry;
+        this.emit('pricelist', newEntry);
     }
 
-    removeAll(): Promise<any> {
-        return new Promise(resolve => {
-            if (this.getLength !== 0) {
-                this.prices = {};
-                this.emit('pricelist', []);
-            }
-
-            return resolve();
-        });
+    removeAll(): void {
+        if (this.getLength !== 0) {
+            this.prices = {};
+            this.emit('pricelist', []);
+        }
     }
 
-    removePrice(sku: string, emitChange: boolean): Promise<Entry> {
+    removePrice(priceKey: string, emitChange: boolean): Promise<Entry> {
         return new Promise((resolve, reject) => {
-            if (!this.hasPrice(sku)) {
+            if (!this.hasPrice({ priceKey })) {
                 return reject(new Error('Item is not priced'));
             }
 
-            const entry = Object.assign({}, this.prices[sku]); //TODO: do we need to copy it ?
-            delete this.prices[sku];
+            const entry = Object.assign({}, this.prices[priceKey]); //TODO: do we need to copy it ?
+            delete this.prices[priceKey];
 
             if (emitChange) {
-                this.priceChanged(sku, entry);
+                this.priceChanged(priceKey, entry);
+            }
+
+            if (Pricelist.isAssetId(priceKey)) {
+                this.removeCacheAssetidInPricelist(priceKey);
             }
 
             return resolve(entry);
         });
+    }
+
+    replacePriceEntry(oldId: string, newEntry: EntryData): void {
+        this.removePrice(oldId, true)
+            .then(() => {
+                this.bot.pricelist
+                    .addPrice({ entryData: newEntry, emitChange: true })
+                    .then(() => {
+                        log.info(`Successfully replaced ${oldId} to ${newEntry.id}`);
+                    })
+                    .catch(err => {
+                        log.error(`Error replacing ${oldId} to ${newEntry.id}: `, err);
+                    });
+            })
+            .catch(err => {
+                log.error(`Error removing ${oldId} while replacing to ${newEntry.id}: `, err);
+            });
+    }
+
+    private cacheAssetidInPricelist(): void {
+        Object.keys(this.prices).forEach(priceKey => {
+            if (Pricelist.isAssetId(priceKey)) {
+                if (this.assetidInPricelist[this.prices[priceKey].sku] === undefined) {
+                    this.assetidInPricelist[this.prices[priceKey].sku] = {};
+                }
+                this.assetidInPricelist[this.prices[priceKey].sku][priceKey] = 1;
+            }
+        });
+    }
+
+    private removeCacheAssetidInPricelist(assetid: string): void {
+        Object.keys(this.assetidInPricelist).forEach(sku => {
+            if (this.assetidInPricelist[sku] && this.assetidInPricelist[sku][assetid] !== undefined) {
+                delete this.assetidInPricelist[sku][assetid];
+            }
+
+            if (Object.keys(this.assetidInPricelist[sku]).length < 1) {
+                delete this.assetidInPricelist[sku];
+            }
+        });
+    }
+
+    private checkCacheAssetidInPricelist(): void {
+        const inv = this.bot.inventoryManager.getInventory;
+        Object.keys(this.prices).forEach(priceKey => {
+            if (Pricelist.isAssetId(priceKey) && inv.findByAssetid(priceKey) === null) {
+                // Make sure assetid in pricelist exists, if not, remove it.
+                this.removePrice(priceKey, true)
+                    .then(() => {
+                        this.removeCacheAssetidInPricelist(priceKey);
+                        log.info(`✅ Automatically removed ${priceKey} (no longer exists)`);
+                    })
+                    .catch(err => {
+                        log.error('❌ Failed to automatically remove assetid from pricelist (no longer exists):', err);
+                    });
+            }
+        });
+    }
+
+    private initCheckCache(): void {
+        this.checkAssetidInPricelistInterval = setInterval(() => {
+            this.checkCacheAssetidInPricelist();
+        }, 2.5 * 60 * 1000);
     }
 
     async setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
@@ -625,6 +785,10 @@ export default class Pricelist extends EventEmitter {
             throw new Error(errors.join(', '));
         }
 
+        this.cacheAssetidInPricelist();
+        this.checkCacheAssetidInPricelist();
+        this.initCheckCache();
+
         return this.setupPricelist();
     }
 
@@ -634,7 +798,7 @@ export default class Pricelist extends EventEmitter {
 
     setupPricelist(): Promise<void> {
         log.debug('Getting key prices...');
-        const entryKey = this.getPrice('5021;6', false);
+        const entryKey = this.getPrice({ priceKey: '5021;6', onlyEnabled: false });
 
         return this.priceSource
             .getPrice('5021;6')
@@ -763,7 +927,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     private updateKeyPrices(): Promise<void> {
-        const entryKey = this.getPrice('5021;6', false);
+        const entryKey = this.getPrice({ priceKey: '5021;6', onlyEnabled: false });
         clearTimeout(this.retryGetKeyPrices);
 
         return this.priceSource
@@ -864,7 +1028,12 @@ export default class Pricelist extends EventEmitter {
                     const currBuyingValue = currPrice.buy.toValue(keyPrice);
                     const currSellingValue = currPrice.sell.toValue(keyPrice);
 
-                    const isInStock = inventory.getAmount(sku, false, true) > 0;
+                    const isInStock =
+                        inventory.getAmount({
+                            priceKey: sku,
+                            includeNonNormalized: false,
+                            tradableOnly: true
+                        }) > 0;
                     const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
                     const isNotExcluded = !excludedSKU.includes(sku);
                     const maxIsOne = currPrice.max === 1;
@@ -957,7 +1126,7 @@ export default class Pricelist extends EventEmitter {
             return;
         }
 
-        const match = this.getPrice(data.sku);
+        const match = this.getPrice({ priceKey: data.sku });
         const opt = this.bot.options;
         const dw = opt.discordWebhook.priceUpdate;
         const isDwEnabled = dw.enable && dw.url !== '';
@@ -1047,7 +1216,11 @@ export default class Pricelist extends EventEmitter {
             }
 
             let pricesChanged = false;
-            const currentStock = this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true);
+            const currentStock = this.bot.inventoryManager.getInventory.getAmount({
+                priceKey: match.sku,
+                includeNonNormalized: false,
+                tradableOnly: true
+            });
 
             const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = currentStock > 0;
@@ -1149,14 +1322,14 @@ export default class Pricelist extends EventEmitter {
                         .format(format ? format : 'MMMM Do YYYY, HH:mm:ss ZZ');
 
                     sendWebHookPriceUpdateV1(
-                        data.sku,
-                        this.schema.getItemBySKU(data.sku).name,
-                        match,
-                        time,
                         this.schema,
                         opt,
-                        currentStock,
+                        match.sku,
+                        time,
+                        newPrices,
                         oldPrice,
+                        currentStock,
+                        match.sku === '5021;6' ? undefined : keyPrice,
                         buyChangesValue,
                         sellChangesValue,
                         this.isUseCustomPricer
@@ -1166,8 +1339,8 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
-    private priceChanged(sku: string, entry: Entry): void {
-        this.emit('price', sku, entry);
+    private priceChanged(priceKey: string | number, entry: Entry): void {
+        this.emit('price', priceKey, entry);
         this.emit('pricelist', this.prices);
     }
 
@@ -1207,7 +1380,7 @@ export interface KeyPrices {
     time: number;
 }
 
-interface BuyAndSell {
+export interface BuyAndSell {
     buy: Currencies;
     sell: Currencies;
 }

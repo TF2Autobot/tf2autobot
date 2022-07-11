@@ -240,7 +240,7 @@ export default class CartQueue {
                 log.debug('Sending offer...');
                 return cart.sendOffer();
             })
-            .then(status => {
+            .then(async status => {
                 log.debug('Sent offer');
                 if (status === 'pending') {
                     const sendNotification = isDonating
@@ -260,7 +260,10 @@ export default class CartQueue {
                     log.debug('Accepting mobile confirmation...');
 
                     // Wait for confirmation to be accepted
-                    return this.bot.trades.acceptConfirmation(cart.getOffer).reflect();
+                    await this.bot.trades.acceptConfirmation(cart.getOffer).catch(() => {
+                        return;
+                    });
+                    return;
                 }
             })
             .catch(err => {

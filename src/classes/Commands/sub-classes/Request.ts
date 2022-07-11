@@ -1,14 +1,14 @@
 import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Currencies from '@tf2autobot/tf2-currencies';
-import { removeLinkProtocol, getItemFromParams, fixSKU } from '../functions/utils';
+import { removeLinkProtocol, getItemFromParams } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { fixItem } from '../../../lib/items';
-import { testSKU } from '../../../lib/tools/export';
+import { testPriceKey } from '../../../lib/tools/export';
 import { UnknownDictionary } from '../../../types/common';
 import IPricer, { RequestCheckFn, RequestCheckResponse } from '../../IPricer';
 
@@ -24,7 +24,7 @@ export default class RequestCommands {
     pricecheckCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         let sku = params.sku as string;
-        if (sku !== undefined && !testSKU(sku)) {
+        if (sku !== undefined && !testPriceKey(sku)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
@@ -38,8 +38,6 @@ export default class RequestCommands {
         } else {
             sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
         }
-
-        sku = fixSKU(sku);
 
         void this.priceSource
             .requestCheck(sku)
@@ -100,7 +98,7 @@ export default class RequestCommands {
     async checkCommand(steamID: SteamID, message: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         let sku = params.sku as string;
-        if (sku !== undefined && !testSKU(sku)) {
+        if (sku !== undefined && !testPriceKey(sku)) {
             return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
         }
 
@@ -114,8 +112,6 @@ export default class RequestCommands {
         } else {
             sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
         }
-
-        sku = fixSKU(sku);
 
         const name = this.bot.schema.getName(SKU.fromString(sku));
         try {
@@ -171,7 +167,7 @@ class Pricecheck {
     }
 
     async executeCheck(): Promise<void> {
-        await sleepasync().Promise.sleep(2000);
+        await timersPromises.setTimeout(2000);
 
         void Pricecheck.requestCheck(this.sku)
             .then(() => {

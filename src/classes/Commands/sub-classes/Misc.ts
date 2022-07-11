@@ -1,12 +1,12 @@
 import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { removeLinkProtocol } from '../functions/utils';
 import CommandParser from '../../CommandParser';
 import Bot from '../../Bot';
 import { Discord, Stock } from '../../Options';
-import { pure, timeNow, uptime, testSKU } from '../../../lib/tools/export';
+import { pure, timeNow, uptime, testPriceKey } from '../../../lib/tools/export';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -100,7 +100,7 @@ export default class MiscCommands {
             let isWithSomething = false;
 
             if (itemNameOrSku !== '!sku') {
-                if (!testSKU(itemNameOrSku)) {
+                if (!testPriceKey(itemNameOrSku)) {
                     // Receive name
                     const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
                     if (itemNameOrSku !== '!stock') {
@@ -158,19 +158,19 @@ export default class MiscCommands {
             const pure = [
                 {
                     name: 'Mann Co. Supply Crate Key',
-                    amount: inventory.getAmount('5021;6', false)
+                    amount: inventory.getAmount({ priceKey: '5021;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Refined Metal',
-                    amount: inventory.getAmount('5002;6', false)
+                    amount: inventory.getAmount({ priceKey: '5002;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Reclaimed Metal',
-                    amount: inventory.getAmount('5001;6', false)
+                    amount: inventory.getAmount({ priceKey: '5001;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Scrap Metal',
-                    amount: inventory.getAmount('5000;6', false)
+                    amount: inventory.getAmount({ priceKey: '5000;6', includeNonNormalized: false })
                 }
             ];
 
@@ -244,7 +244,7 @@ export default class MiscCommands {
 
                 this.bot.sendMessage(steamID, weaponStock.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
             }
 
             return;
@@ -289,7 +289,7 @@ export default class MiscCommands {
 
         if (showOnlyExist) {
             weapons.forEach(sku => {
-                const amount = inventory.getAmount(sku, false);
+                const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 if (amount > 0) {
                     items.push({
                         name: schema.getName(SKU.fromString(sku), false),
@@ -299,7 +299,7 @@ export default class MiscCommands {
             });
         } else {
             weapons.forEach(sku => {
-                const amount = inventory.getAmount(sku, false);
+                const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 items.push({
                     name: schema.getName(SKU.fromString(sku), false),
                     amount: amount
