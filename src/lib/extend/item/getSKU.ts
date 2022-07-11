@@ -22,7 +22,6 @@ export = function (
     normalizeFestivizedItems: boolean,
     normalizeStrangeAsSecondQuality: boolean,
     normalizePainted: boolean,
-    paints: Paints,
     paintsInOptions: string[]
 ): { sku: string; isPainted: boolean } {
     const self = this as EconItem;
@@ -65,7 +64,7 @@ export = function (
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, normalizeStrangeAsSecondQuality),
             crateseries: getCrateSeries(self),
-            paint: getPainted(self, normalizePainted, paints, paintsInOptions)
+            paint: getPainted(self, schema.paints, normalizePainted, paintsInOptions)
         },
         getOutput(self, schema)
     ) as MinimumItem;
@@ -550,8 +549,8 @@ function getCrateSeries(item: EconItem): number | null {
 
 function getPainted(
     item: EconItem,
-    normalizePainted: boolean,
     paints: Paints,
+    normalizePainted: boolean,
     paintsInOptions: string[]
 ): number | null {
     if (normalizePainted) {

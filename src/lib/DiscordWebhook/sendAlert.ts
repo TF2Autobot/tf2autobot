@@ -1,9 +1,8 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import { uptime } from '../../lib/tools/export';
 import log from '../logger';
-import { timeNow } from '../tools/time';
+import { timeNow, uptime } from '../tools/time';
 import Bot from '../../classes/Bot';
 
 type AlertType =
@@ -17,6 +16,9 @@ type AlertType =
     | 'highValuedDisabled'
     | 'highValuedInvalidItems'
     | 'autoRemoveIntentSellFailed'
+    | 'autoRemoveAssetidFailed'
+    | 'autoRemoveAssetidSuccess'
+    | 'autoUpdateAssetid'
     | 'autokeys-failedToDisable'
     | 'autokeys-failedToAdd-bank'
     | 'autokeys-failedToAdd-sell'
@@ -129,6 +131,18 @@ export default function sendAlert(
         title = 'Failed to remove item(s) with intent sell';
         description = msg;
         color = '16711680'; // red
+    } else if (type === 'autoRemoveAssetidFailed') {
+        title = `Failed to remove item with assetid ${items[0]}`;
+        description = msg;
+        color = '16711680'; // red
+    } else if (type === 'autoRemoveAssetidSuccess') {
+        title = `✅ Automatically removed assetid ${items[0]} from price list`;
+        description = msg;
+        color = '32768'; // green
+    } else if (type === 'autoUpdateAssetid') {
+        title = `✅ Automatically updated ${items[0]} with ${items[1]} in price list due to rollback`;
+        description = msg;
+        color = '32768'; // green
     } else if (type === 'autoUpdatePartialPriceSuccess') {
         title = '✅ Automatically update partially priced item';
         description = msg;
@@ -223,6 +237,9 @@ export default function sendAlert(
                 'highValuedInvalidItems',
                 'failedRestartError',
                 'autoRemoveIntentSellFailed',
+                'autoRemoveAssetidFailed',
+                'autoRemoveAssetidSuccess',
+                'autoUpdateAssetid',
                 'autokeys-failedToDisable',
                 'autokeys-failedToAdd-bank',
                 'autokeys-failedToAdd-sell',

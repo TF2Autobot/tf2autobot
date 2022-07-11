@@ -12,7 +12,7 @@ export default function craftDuplicateWeapons(bot: Bot): Promise<void> {
         for (const sku of craftAll) {
             const weapon = currencies[sku].length;
 
-            if (weapon >= 2 && bot.pricelist.getPrice(sku, true) === null) {
+            if (weapon >= 2 && bot.pricelist.getPrice({ priceKey: sku, onlyEnabled: true }) === null) {
                 // Only craft if duplicated and not exist in pricelist
                 const combineWeapon = Math.trunc(weapon / 2);
 

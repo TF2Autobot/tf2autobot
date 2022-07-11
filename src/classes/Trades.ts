@@ -718,41 +718,23 @@ export default class Trades {
 
             const opt = this.bot.options;
 
-            const theirInventory = new Inventory(
-                offer.partner,
-                this.bot.manager,
-                this.bot.schema,
-                opt,
-                this.bot.strangeParts,
-                'their'
-            );
+            const ourItems = Inventory.fromItems(
+                this.bot.client.steamID || this.bot.community.steamID,
+                offer.itemsToGive,
+                this.bot,
+                'our'
+            ).getItems;
+
+            const theirItems = Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot, 'their').getItems;
 
             const ourInventoryItems = this.bot.inventoryManager.getInventory.getItems;
+
+            const theirInventory = new Inventory(offer.partner, this.bot, 'their');
 
             log.debug('Fetching their inventory...');
             void theirInventory
                 .fetch()
                 .then(() => {
-                    const ourItems = Inventory.fromItems(
-                        this.bot.client.steamID || this.bot.community.steamID,
-                        offer.itemsToGive,
-                        this.bot.manager,
-                        this.bot.schema,
-                        opt,
-                        this.bot.strangeParts,
-                        'our'
-                    ).getItems;
-
-                    const theirItems = Inventory.fromItems(
-                        offer.partner,
-                        offer.itemsToReceive,
-                        this.bot.manager,
-                        this.bot.schema,
-                        opt,
-                        this.bot.strangeParts,
-                        'their'
-                    ).getItems;
-
                     const theirInventoryItems = theirInventory.getItems;
 
                     log.debug('Set counteroffer...');
@@ -962,25 +944,26 @@ export default class Trades {
                             const buySell = index ? 'buy' : 'sell';
                             return (
                                 Object.keys(dataDict[side])
-                                    .map(sku => {
-                                        if (prices[sku] === undefined && !puresWithKeys.includes(sku)) {
+                                    .map(assetKey => {
+                                        if (prices[assetKey] === undefined && !puresWithKeys.includes(assetKey)) {
                                             hasMissingPrices = true;
                                             return 0;
                                         }
 
-                                        if (sku == '5021;6')
-                                            keyDifference += dataDict[side][sku] * (side == 'our' ? 1 : -1);
+                                        if (assetKey == '5021;6')
+                                            keyDifference += dataDict[side][assetKey] * (side == 'our' ? 1 : -1);
                                         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                                        if (!dataDict[side][sku] || getPureValue(sku as any) !== 0) return 0;
+                                        if (!dataDict[side][assetKey] || getPureValue(assetKey as any) !== 0) return 0;
 
                                         possibleKeyTrade = false; //Offer contains something other than pures
 
-                                        if (isWACEnabled && weapons.includes(sku)) return 0.5 * dataDict[side][sku];
+                                        if (isWACEnabled && weapons.includes(assetKey))
+                                            return 0.5 * dataDict[side][assetKey];
 
                                         return (
-                                            dataDict[side][sku] *
-                                            (prices[sku][buySell].keys * keyPriceScrap +
-                                                Currencies.toScrap(prices[sku][buySell].metal))
+                                            dataDict[side][assetKey] *
+                                            (prices[assetKey][buySell].keys * keyPriceScrap +
+                                                Currencies.toScrap(prices[assetKey][buySell].metal))
                                         );
                                     })
                                     .reduce((a, b) => a + b, 0) * (side == 'their' ? -1 : 1)
@@ -1007,44 +990,47 @@ export default class Trades {
 
                     if (needToTakeWeapon) {
                         log.debug('needToTakeWeapon:', needToTakeWeapon);
-                        const allWeapons = this.bot.handler.isWeaponsAsCurrency.withUncraft
+                        const weaponSkus = this.bot.handler.isWeaponsAsCurrency.withUncraft
                             ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
                             : this.bot.craftWeapons;
 
                         const skusFromPricelist = Object.keys(this.bot.pricelist.getPrices);
 
                         // return filtered weapons
-                        let filtered = allWeapons.filter(sku => !skusFromPricelist.includes(sku));
+                        let filteredWeaponSkus = weaponSkus.filter(weaponSku => !skusFromPricelist.includes(weaponSku));
 
-                        if (filtered.length === 0) {
+                        if (filteredWeaponSkus.length === 0) {
                             // but if nothing left, then just use all
-                            filtered = allWeapons;
+                            filteredWeaponSkus = weaponSkus;
                         }
 
-                        const chosenOne = filtered
-                            .filter(sku => theirItems[sku] === undefined) // filter weapons that are not in their offer
-                            .find(sku => theirInventoryItems[sku]); // find one that is in their inventory
+                        const chosenWeaponSku = filteredWeaponSkus
+                            .filter(weaponSku => theirItems[weaponSku] === undefined) // filter weapons that are not in their offer
+                            .find(weaponSku => theirInventoryItems[weaponSku]); // find one that is in their inventory
 
-                        log.debug('weaponOfChoice:', chosenOne);
+                        log.debug('weaponOfChoice:', chosenWeaponSku);
 
-                        const item = theirInventoryItems[chosenOne];
-                        log.debug('item:', item);
-                        if (item) {
+                        const weapon = theirInventoryItems[chosenWeaponSku];
+                        log.debug('item:', weapon);
+                        if (weapon) {
                             const isAdded = counter.addTheirItem({
                                 appid: 440,
                                 contextid: '2',
-                                assetid: item[0].id
+                                assetid: weapon[0].id
                             });
                             if (isAdded) {
                                 NonPureWorth -= 0.5;
                                 tradeValues['their'].scrap += 0.5;
-                                dataDict['their'][chosenOne] ??= 0;
-                                dataDict['their'][chosenOne] += 1;
+                                dataDict['their'][chosenWeaponSku] ??= 0;
+                                dataDict['their'][chosenWeaponSku] += 1;
 
-                                const isInPricelist = this.bot.pricelist.getPrice(chosenOne, false);
+                                const isInPricelist = this.bot.pricelist.getPrice({
+                                    priceKey: chosenWeaponSku,
+                                    onlyEnabled: false
+                                });
 
                                 if (isInPricelist !== null) {
-                                    prices[chosenOne] = {
+                                    prices[chosenWeaponSku] = {
                                         buy: isInPricelist.buy,
                                         sell: isInPricelist.sell
                                     };
@@ -1671,24 +1657,25 @@ export default class Trades {
         // Canceled offer, declined countered offer => new item assetid
         void this.bot.inventoryManager.getInventory
             .fetch()
+            .then(() => this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete))
             .catch(err => {
                 log.warn('Error fetching inventory: ', err);
                 log.debug('Retrying to fetch inventory in 30 seconds...');
                 clearTimeout(this.retryFetchInventoryTimeout);
-                this.retryFetchInventory();
-            })
-            .finally(() => {
-                this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
+                this.retryFetchInventory(offer, oldState, timeTakenToComplete);
             });
     }
 
-    private retryFetchInventory(): void {
+    private retryFetchInventory(offer: TradeOffer, oldState: number, timeTakenToComplete: number): void {
         this.retryFetchInventoryTimeout = setTimeout(() => {
-            this.bot.inventoryManager.getInventory.fetch().catch(err => {
-                log.warn('Error fetching inventory: ', err);
-                log.debug('Retrying to fetch inventory in 30 seconds...');
-                this.retryFetchInventory();
-            });
+            this.bot.inventoryManager.getInventory
+                .fetch()
+                .then(() => this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete))
+                .catch(err => {
+                    log.warn('Error fetching inventory: ', err);
+                    log.debug('Retrying to fetch inventory in 30 seconds...');
+                    this.retryFetchInventory(offer, oldState, timeTakenToComplete);
+                });
         }, 30 * 1000);
     }
 

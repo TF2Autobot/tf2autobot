@@ -18,7 +18,7 @@ import fs from 'fs';
 import path from 'path';
 
 import InventoryManager from './InventoryManager';
-import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
+import Pricelist, { Entry, EntryData, PricesDataObject } from './Pricelist';
 import Friends from './Friends';
 import Trades from './Trades';
 import Listings from './Listings';
@@ -412,23 +412,23 @@ export default class Bot {
                     this.messageAdmins('version', `⚠️ The bot local repository is not cloned from Github.`, []);
                 }
 
-                const messages: string[] = [];
+                let messages: string[];
 
                 if (process.platform === 'win32') {
-                    messages.concat([
+                    messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
                         '/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js'
-                    ]);
+                    ];
                 } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
-                    messages.concat([
+                    messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory:\n',
                         '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
-                    ]);
+                    ];
                 } else {
-                    messages.concat([
+                    messages = [
                         '❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n',
                         '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
-                    ]);
+                    ];
                 }
 
                 for (const message of messages) {
@@ -534,7 +534,13 @@ export default class Bot {
                             }
                         }
 
-                        const match = this.pricelist.getPrice(listingSKU);
+                        let match: Entry | null;
+                        const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
+                        if (null !== assetIdPrice) {
+                            match = assetIdPrice;
+                        } else {
+                            match = this.pricelist.getPrice({ priceKey: listingSKU });
+                        }
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
                             const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
@@ -557,16 +563,20 @@ export default class Bot {
                     const pricelist = Object.assign({}, this.pricelist.getPrices);
                     const keyPrice = this.pricelist.getKeyPrice.metal;
 
-                    for (const sku in pricelist) {
-                        if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                    for (const priceKey in pricelist) {
+                        if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey)) {
                             continue;
                         }
 
-                        const entry = pricelist[sku];
-                        const _listings = listings[sku];
+                        const entry = pricelist[priceKey];
+                        const _listings = listings[priceKey];
 
-                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
-                        const amountAvailable = inventory.getAmount(sku, false, true);
+                        const amountCanBuy = inventoryManager.amountCanTrade({ priceKey, tradeIntent: 'buying' });
+                        const amountAvailable = inventory.getAmount({
+                            priceKey,
+                            includeNonNormalized: false,
+                            tradableOnly: true
+                        });
 
                         if (_listings) {
                             _listings.forEach(listing => {
@@ -578,21 +588,21 @@ export default class Bot {
                                     amountAvailable > entry.min
                                 ) {
                                     // here we only check if the bot already have that item
-                                    log.debug(`Missing sell order listings: ${sku}`);
+                                    log.debug(`Missing sell order listings: ${priceKey}`);
                                 } else if (
                                     listing.intent === 0 &&
                                     listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
                                 ) {
                                     // if intent is buy, we check if the buying price is not same
-                                    log.debug(`Buying price for ${sku} not updated`);
+                                    log.debug(`Buying price for ${priceKey} not updated`);
                                 } else if (
                                     listing.intent === 1 &&
                                     listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
                                 ) {
                                     // if intent is sell, we check if the selling price is not same
-                                    log.debug(`Selling price for ${sku} not updated`);
+                                    log.debug(`Selling price for ${priceKey} not updated`);
                                 } else {
-                                    delete pricelist[sku];
+                                    delete pricelist[priceKey];
                                 }
                             });
 
@@ -602,8 +612,8 @@ export default class Bot {
                         // listing not exist
 
                         if (!entry.enabled) {
-                            delete pricelist[sku];
-                            log.debug(`${sku} disabled, skipping...`);
+                            delete pricelist[priceKey];
+                            log.debug(`${priceKey} disabled, skipping...`);
                             continue;
                         }
 
@@ -613,24 +623,26 @@ export default class Bot {
                         ) {
                             // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
                             // return this entry
-                            log.debug(`Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${sku}`);
+                            log.debug(
+                                `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${priceKey}`
+                            );
                         } else {
-                            delete pricelist[sku];
+                            delete pricelist[priceKey];
                         }
                     }
 
-                    const skusToCheck = Object.keys(pricelist);
-                    const pricelistCount = skusToCheck.length;
+                    const priceKeysToCheck = Object.keys(pricelist);
+                    const pricelistCount = priceKeysToCheck.length;
 
                     if (pricelistCount > 0) {
                         log.debug(
                             'Checking listings for ' +
                                 pluralize('item', pricelistCount, true) +
-                                ` [${skusToCheck.join(', ')}]...`
+                                ` [${priceKeysToCheck.join(', ')}]...`
                         );
 
                         await this.listings.recursiveCheckPricelist(
-                            skusToCheck,
+                            priceKeysToCheck,
                             pricelist,
                             true,
                             pricelistCount > 4000 ? 400 : 200,
@@ -835,14 +847,7 @@ export default class Bot {
                 // only call this here, and in Commands/Options
                 Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
 
-                this.inventoryManager.setInventory = new Inventory(
-                    this.client.steamID,
-                    this.manager,
-                    this.schema,
-                    this.options,
-                    this.strangeParts,
-                    'our'
-                );
+                this.inventoryManager.setInventory = new Inventory(this.client.steamID, this, 'our');
                 await this.inventoryManager.getInventory.fetch();
             },
             async () => {
@@ -1263,7 +1268,7 @@ export default class Bot {
     }
 
     private onWebSession(sessionID: string, cookies: string[]): void {
-        log.debug('New web session');
+        log.debug(`New web session: ${sessionID}`);
 
         void this.setCookies(cookies);
     }
@@ -1288,7 +1293,7 @@ export default class Bot {
     }
 
     private onSteamGuard(domain: string, callback: (authCode: string) => void, lastCodeWrong: boolean): void {
-        log.debug('Steam guard code requested');
+        log.debug(`Steam guard code requested for ${domain}`);
 
         if (lastCodeWrong === false) {
             this.consecutiveSteamGuardCodesWrong = 0;

@@ -156,7 +156,9 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             switch (reason) {
                 case '🟨_INVALID_ITEMS':
                     (meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(el => {
-                        const name = t.testSKU(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
+                        const name = t.testPriceKey(el.sku)
+                            ? bot.schema.getName(SKU.fromString(el.sku), false)
+                            : el.sku;
 
                         declined.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
                     });

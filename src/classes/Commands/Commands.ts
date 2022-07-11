@@ -21,7 +21,7 @@ import IPricer from '../IPricer';
 import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
-import { testSKU } from '../../lib/tools/export';
+import { testPriceKey } from '../../lib/tools/export';
 import axios from 'axios';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
@@ -328,7 +328,7 @@ export default class Commands {
             return this.bot.sendMessage(steamID, `❌ Missing item name or item sku!`);
         }
 
-        if (!testSKU(itemNameOrSku)) {
+        if (!testPriceKey(itemNameOrSku)) {
             // Receive name
             const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
 
@@ -413,14 +413,21 @@ export default class Commands {
             }
         }
 
-        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount(match.sku, false, true)}`;
+        reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: match.sku,
+            includeNonNormalized: false,
+            tradableOnly: true
+        })}`;
 
         if (match.max !== -1 && isBuying) {
             reply += ` / ${match.max}`;
         }
 
         if (isSelling && match.min !== 0) {
-            reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade(match.sku, false)}`;
+            reply += ` and I can sell ${this.bot.inventoryManager.amountCanTrade({
+                priceKey: match.sku,
+                tradeIntent: 'selling'
+            })}`;
         }
 
         reply += '. ';
@@ -463,7 +470,11 @@ export default class Commands {
         );
 
         cart.setNotify = true;
-        cart[['b', 'buy'].includes(command) ? 'addOurItem' : 'addTheirItem'](info.match.sku, info.amount);
+        if (['b', 'buy'].includes(command)) {
+            cart.addOurItem(info.priceKey, info.amount);
+        } else {
+            cart.addTheirItem(info.match.sku, info.amount);
+        }
 
         this.addCartToQueue(cart, false, false);
     }
@@ -505,9 +516,14 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
 
-        const cartAmount = cart.getOurCount(info.match.sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(info.match.sku, false, true);
-        const amountCanTrade = this.bot.inventoryManager.amountCanTrade(info.match.sku, false) - cartAmount;
+        const cartAmount = cart.getOurCount(info.priceKey);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: info.priceKey,
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
+        const amountCanTrade =
+            this.bot.inventoryManager.amountCanTrade({ priceKey: info.priceKey, tradeIntent: 'selling' }) - cartAmount;
 
         const name = info.match.name;
 
@@ -544,7 +560,7 @@ export default class Commands {
                     ' has been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
             );
 
-        cart.addOurItem(info.match.sku, amount);
+        cart.addOurItem(info.priceKey, amount);
         Cart.addCart(cart);
     }
 
@@ -871,9 +887,7 @@ export default class Commands {
 
         const steamid = steamID.getSteamID64();
 
-        const adminInventory =
-            this.adminInventory[steamid] ||
-            new Inventory(steamID, this.bot.manager, this.bot.schema, this.bot.options, this.bot.strangeParts, 'their');
+        const adminInventory = this.adminInventory[steamid] || new Inventory(steamID, this.bot, 'their');
 
         if (this.adminInventory[steamid] === undefined) {
             try {
@@ -979,7 +993,11 @@ export default class Commands {
                 this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
             );
         const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: sku,
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
         const amountCanTrade = ourAmount - cartAmount;
         const name = this.bot.schema.getName(SKU.fromString(sku), false);
 
@@ -1076,7 +1094,7 @@ export default class Commands {
                 let isWithinGroup = false;
 
                 if (withGroup) {
-                    if (withGroup !== this.bot.pricelist.getPrice(sku)?.group) {
+                    if (withGroup !== this.bot.pricelist.getPrice({ priceKey: sku })?.group) {
                         delete clonedDict[sku];
                         continue;
                     }
@@ -1185,7 +1203,11 @@ export default class Commands {
             );
 
         const cartAmount = cart.getOurCount(sku);
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount(sku, false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: sku,
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
         const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
         const name = this.bot.schema.getName(SKU.fromString(sku), false);
@@ -1295,7 +1317,11 @@ export default class Commands {
         const numEvens = numMonths - numOdds;
         const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
 
-        const ourAmount = this.bot.inventoryManager.getInventory.getAmount('5021;6', false, true);
+        const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
+            priceKey: '5021;6',
+            includeNonNormalized: false,
+            tradableOnly: true
+        });
 
         if (ourAmount < amountKeys) {
             return this.bot.sendMessage(
@@ -1405,7 +1431,7 @@ function getMptfDashboardItems(mptfApiKey: string, ignorePainted = false): Promi
                             amount: item.num_for_sale
                         };
                     })
-                    .filter(item => testSKU(item.sku));
+                    .filter(item => testPriceKey(item.sku));
 
                 const itemsSize = items.length;
                 const toReturn = {};

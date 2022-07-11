@@ -113,14 +113,7 @@ export default class AdminCart extends Cart {
 
             // Load their inventory
 
-            const theirInventory = new Inventory(
-                this.partner,
-                this.bot.manager,
-                this.bot.schema,
-                this.bot.options,
-                this.bot.strangeParts,
-                'admin'
-            );
+            const theirInventory = new Inventory(this.partner, this.bot, 'admin');
 
             void theirInventory
                 .fetch()

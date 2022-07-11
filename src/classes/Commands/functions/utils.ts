@@ -6,23 +6,27 @@ import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { MinimumItem } from '../../../types/TeamFortress2';
 import Bot from '../../Bot';
-import { Entry } from '../../Pricelist';
+import Pricelist, { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
-import { testSKU } from '../../../lib/tools/export';
+import { testPriceKey } from '../../../lib/tools/export';
 
 export function getItemAndAmount(
     steamID: SteamID,
     message: string,
     bot: Bot,
     from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
-): { match: Entry; amount: number } | null {
+): { match: Entry; priceKey: string; amount: number } | null {
     let name = removeLinkProtocol(message);
     let amount = 1;
-    if (/^[-]?\d+$/.test(name.split(' ')[0])) {
+    const args = name.split(' ');
+    if (/^[-]?\d+$/.test(args[0]) && args.length > 2) {
         // Check if the first part of the name is a number, if so, then that is the amount the user wants to trade
-        amount = parseInt(name.split(' ')[0]);
+        amount = parseInt(args[0]);
         name = name.replace(amount.toString(), '').trim();
+    } else if (Pricelist.isAssetId(args[0]) && args.length === 1) {
+        // Check if the only parameter is an assetid
+        name = args[0];
     }
 
     if (1 > amount) {
@@ -53,7 +57,10 @@ export function getItemAndAmount(
         return null;
     }
 
-    let match = testSKU(name) ? bot.pricelist.getPrice(name, true) : bot.pricelist.searchByName(name, true);
+    let priceKey: string;
+    let match = testPriceKey(name)
+        ? bot.pricelist.getPriceBySkuOrAsset({ priceKey: name, onlyEnabled: true })
+        : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 
@@ -66,6 +73,13 @@ export function getItemAndAmount(
 
             return null;
         }
+
+        if (Pricelist.isAssetId(name)) {
+            priceKey = name;
+            amount = 1;
+        } else {
+            priceKey = match.sku;
+        }
     }
 
     if (match === null) {
@@ -77,12 +91,12 @@ export function getItemAndAmount(
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
         const genericEffect = genericNameAndMatch(name, bot.effects);
         const pricelist = bot.pricelist.getPrices;
-        for (const sku in pricelist) {
-            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+        for (const priceKey in pricelist) {
+            if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey) || Pricelist.isAssetId(priceKey)) {
                 continue;
             }
 
-            const pricedItem = pricelist[sku];
+            const pricedItem = pricelist[priceKey];
             if (pricedItem.name === null) {
                 // This looks impossible, but can occur I guess.
                 // https://github.com/TF2Autobot/tf2autobot/issues/882
@@ -160,6 +174,7 @@ export function getItemAndAmount(
 
             return {
                 amount: amount,
+                priceKey: closestMatch.sku,
                 match: closestMatch
             };
         } else {
@@ -202,6 +217,7 @@ export function getItemAndAmount(
 
     return {
         amount: amount,
+        priceKey: priceKey,
         match: match
     };
 }
@@ -211,13 +227,19 @@ export function getItemFromParams(
     params: UnknownDictionaryKnownValues,
     bot: Bot
 ): MinimumItem | null {
+    if (params.id) {
+        const item = bot.inventoryManager.getInventory.findByAssetid(String(params.id));
+        if (null !== item) {
+            return SKU.fromString(item);
+        } else {
+            return null;
+        }
+    }
     const item = SKU.fromString('');
     delete item.craftnumber;
 
     let foundSomething = false;
     if (params.item !== undefined) {
-        foundSomething = true;
-
         const sku = bot.schema.getSkuFromName(params.item as string);
 
         if (sku.includes('null') || sku.includes('undefined')) {

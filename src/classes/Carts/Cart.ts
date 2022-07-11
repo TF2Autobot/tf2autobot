@@ -6,6 +6,7 @@ import pluralize from 'pluralize';
 import axios from 'axios';
 import { UnknownDictionary } from '../../types/common';
 import Bot from '../Bot';
+import Pricelist from '../Pricelist';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
@@ -175,11 +176,11 @@ export default abstract class Cart {
         return this.getGenericCount(sku, s => this.getTheirCount(s));
     }
 
-    addOurItem(sku: string, amount = 1): void {
-        this.our[sku] = this.getOurCount(sku) + amount;
+    addOurItem(priceKey: string, amount = 1): void {
+        this.our[priceKey] = this.getOurCount(priceKey) + amount;
 
-        if (this.our[sku] < 1) {
-            delete this.our[sku];
+        if (this.our[priceKey] < 1) {
+            delete this.our[priceKey];
         }
     }
 
@@ -250,12 +251,19 @@ export default abstract class Cart {
     summarizeOur(): string[] {
         const items: { name: string; amount: number }[] = [];
 
-        for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+        for (const priceKey in this.our) {
+            if (!Object.prototype.hasOwnProperty.call(this.our, priceKey)) {
                 continue;
             }
 
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku] });
+            let itemName: string;
+            if (Pricelist.isAssetId(priceKey)) {
+                itemName = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey }).name + ` (${priceKey})`;
+            } else {
+                itemName = this.bot.schema.getName(SKU.fromString(priceKey), false);
+            }
+
+            items.push({ name: itemName, amount: this.our[priceKey] });
         }
 
         let summary: string[];
@@ -486,12 +494,17 @@ export default abstract class Cart {
         let str = isDonating ? '💰 == DONATION CART == 💰' : customTitle ? customTitle : '🛒== YOUR CART ==🛒';
 
         str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
-        for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+        for (const priceKey in this.our) {
+            if (!Object.prototype.hasOwnProperty.call(this.our, priceKey)) {
                 continue;
             }
 
-            str += `\n- ${this.our[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
+            str += `\n- ${this.our[priceKey]}x `;
+            if (Pricelist.isAssetId(priceKey)) {
+                str += `${this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false }).name} (${priceKey})`;
+            } else {
+                str += this.bot.schema.getName(SKU.fromString(priceKey), false);
+            }
         }
 
         if (!isDonating) {
