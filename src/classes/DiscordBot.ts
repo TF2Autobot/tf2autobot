@@ -80,7 +80,7 @@ export default class DiscordBot {
 
     private static reformat(message: string): string {
         if (message.startsWith('/code')) {
-            return '```\n' + message.slice(6) + '\n```';
+            return '```json\n' + message.slice(6) + '\n```';
         } else if (message.startsWith('/pre')) {
             return '>>> ' + message.slice(5);
         } else {
