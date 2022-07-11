@@ -698,7 +698,8 @@ export default class Listings {
             }
 
             if (!entry.id && details.includes(entry.name)) {
-                details = details.replace(entry.name, entry.sku);
+                const regex = new RegExp(entry.name, 'g');
+                details = details.replace(regex, entry.sku);
 
                 if (details.length < 200) {
                     // if details < 200 after replacing name with sku, use this.
