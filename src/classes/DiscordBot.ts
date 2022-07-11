@@ -66,9 +66,16 @@ export default class DiscordBot {
             return;
         }
 
-        const adminID = this.getAdminBy(message.author.id);
-        adminID.redirectAnswerTo = message;
-        await this.bot.handler.onMessage(adminID, message.content);
+        try {
+            const adminID = this.getAdminBy(message.author.id);
+            adminID.redirectAnswerTo = message;
+            await this.bot.handler.onMessage(adminID, message.content);
+        } catch (err) {
+            log.error(err);
+            message.channel
+                .send(`❌ Error:\n${JSON.stringify(err)}`)
+                .catch(err => log.error('Failed to send error message to Discord:', err));
+        }
     }
 
     private static reformat(message: string): string {
