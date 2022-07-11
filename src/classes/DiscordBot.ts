@@ -23,7 +23,7 @@ export default class DiscordBot {
         // TODO: check for discord IDs not being repeated in ADMINS
 
         try {
-            await this.client.login(this.options.discordApiToken);
+            await this.client.login(this.options.discordBotToken);
         } catch (err) {
             const error = err as DiscordAPIError;
 

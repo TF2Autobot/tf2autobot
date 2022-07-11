@@ -2017,7 +2017,7 @@ export default interface Options extends JsonOptions {
     useragentHeaderCustom?: string;
 
     mptfApiKey?: string;
-    discordApiToken?: string;
+    discordBotToken?: string;
 
     admins?: adminData[];
     keep?: string[];
@@ -2305,7 +2305,7 @@ export function loadOptions(options?: Options): Options {
         useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
 
         mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
-        discordApiToken: getOption('discordApiToken', '', String, incomingOptions),
+        discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),

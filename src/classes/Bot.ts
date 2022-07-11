@@ -808,7 +808,7 @@ export default class Bot {
                 this.bptf.setCookies(cookies);
             },
             async () => {
-                if (this.options.discordApiToken) {
+                if (this.options.discordBotToken) {
                     log.info(`Initializing Discord bot...`);
                     this.discordBot = new DiscordBot(this.options, this);
                     try {

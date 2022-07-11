@@ -24,6 +24,7 @@
                 "USERAGENT_HEADER_CUSTOM": "",
 
                 "MPTF_API_KEY": "",
+                "DISCORD_BOT_TOKEN": "",
 
                 "ADMINS": ["<your steamid 64>"],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
