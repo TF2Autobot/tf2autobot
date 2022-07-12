@@ -123,6 +123,7 @@ export default class Commands {
                 'You',
                 '/quote',
                 '/pre',
+                '/pre2',
                 '/me',
                 '/code',
                 'Oh',

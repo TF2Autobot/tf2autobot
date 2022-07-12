@@ -2,6 +2,7 @@ import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
+import { Message as DiscordMessage } from 'discord.js';
 import { removeLinkProtocol } from '../functions/utils';
 import CommandParser from '../../CommandParser';
 import Bot from '../../Bot';
@@ -195,7 +196,7 @@ export default class MiscCommands {
             reply += custom
                 ? custom.replace(/%stocklist%/g, stock.join(', \n'))
                 : `${
-                      isWithSomething ? '\n\n' : '/pre '
+                      isWithSomething ? '\n\n' : steamID.redirectAnswerTo instanceof DiscordMessage ? '/pre2' : '/pre '
                   }📜 Here's a list of all the items that I have in my inventory:\n${stock.join(', \n')}`;
 
             if (left > 0) {
