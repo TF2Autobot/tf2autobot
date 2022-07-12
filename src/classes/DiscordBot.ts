@@ -54,6 +54,10 @@ export default class DiscordBot {
             return; // don't talk to myself
         }
 
+        if (message.webhookId) {
+            return; // Ignore webhook messages
+        }
+
         log.info(
             `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
         );
