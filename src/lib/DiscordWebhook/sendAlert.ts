@@ -30,6 +30,7 @@ type AlertType =
     | 'escrow-check-failed-not-restart-bptf-down'
     | 'escrow-check-failed-not-restart-steam-maintenance'
     | 'tryingToTake'
+    | 'autoResetToAutopriceOnceSold'
     | 'autoAddPaintedItems'
     | 'autoAddPaintedItemsFailed'
     | 'failed-accept'
@@ -136,11 +137,15 @@ export default function sendAlert(
         description = msg;
         color = '16711680'; // red
     } else if (type === 'autoRemoveAssetidSuccess') {
-        title = `✅ Automatically removed assetid ${items[0]} from price list`;
+        title = `Automatically removed assetid ${items[0]} from price list`;
+        description = msg;
+        color = '32768'; // green
+    } else if (type === 'autoResetToAutopriceOnceSold') {
+        title = `Automatically reset ${items[0]} to autoprice`;
         description = msg;
         color = '32768'; // green
     } else if (type === 'autoUpdateAssetid') {
-        title = `✅ Automatically updated ${items[0]} with ${items[1]} in price list due to rollback`;
+        title = `Automatically updated ${items[0]} with ${items[1]} in price list due to rollback`;
         description = msg;
         color = '32768'; // green
     } else if (type === 'autoUpdatePartialPriceSuccess') {

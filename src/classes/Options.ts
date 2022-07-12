@@ -81,6 +81,7 @@ export const DEFAULTS: JsonOptions = {
         autoRemoveAssetidFailed: true,
         autoRemoveAssetidSuccess: true,
         autoUpdateAssetid: true,
+        autoResetToAutopriceOnceSold: true,
         autoAddPaintedItems: true,
         failedAccept: true,
         unableToProcessOffer: true,
@@ -102,6 +103,9 @@ export const DEFAULTS: JsonOptions = {
             excludeSKU: []
         },
         filterCantAfford: {
+            enable: false
+        },
+        autoResetToAutopriceOnceSold: {
             enable: false
         },
         autoRemoveIntentSell: {
@@ -1163,6 +1167,7 @@ interface SendAlert extends OnlyEnable {
     autoRemoveAssetidFailed?: boolean;
     autoRemoveAssetidSuccess?: boolean;
     autoUpdateAssetid?: boolean;
+    autoResetToAutopriceOnceSold?: boolean;
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
@@ -1197,6 +1202,7 @@ interface HighValueAlert {
 interface Pricelist {
     partialPriceUpdate?: PartialPriceUpdate;
     filterCantAfford?: OnlyEnable;
+    autoResetToAutopriceOnceSold?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
     autoAddInvalidUnusual?: OnlyEnable;
