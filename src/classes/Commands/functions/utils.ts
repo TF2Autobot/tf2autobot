@@ -257,11 +257,10 @@ export function getItemFromParams(
 
         const match: SchemaManager.SchemaItem[] = [];
 
-        const items = bot.schema.raw.schema.items;
-        const itemsCount = items.length;
+        const itemsCount = bot.schema.raw.schema.items.length;
 
         for (let i = 0; i < itemsCount; i++) {
-            const item = items[i];
+            const item = bot.schema.raw.schema.items[i];
 
             if (item.item_name === 'Name Tag' && item.defindex === 2093) {
                 // skip and let it find Name Tag with defindex 5020
@@ -622,13 +621,11 @@ export function getItemFromParams(
     } else if (item.output !== null) {
         // Look for all items that have the same name
         const match: SchemaManager.SchemaItem[] = [];
-
-        const items = bot.schema.raw.schema.items;
         const itemsCount = bot.schema.raw.schema.items.length;
 
         for (let i = 0; i < itemsCount; i++) {
-            if (items[i].item_name === params.name) {
-                match.push(items[i]);
+            if (bot.schema.raw.schema.items[i].item_name === params.name) {
+                match.push(bot.schema.raw.schema.items[i]);
             }
         }
 

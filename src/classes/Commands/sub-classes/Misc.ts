@@ -285,14 +285,13 @@ export default class MiscCommands {
     private getWeaponsStock(showOnlyExist: boolean, weapons: string[]): string[] {
         const items: { amount: number; name: string }[] = [];
         const inventory = this.bot.inventoryManager.getInventory;
-        const schema = this.bot.schema;
 
         if (showOnlyExist) {
             weapons.forEach(sku => {
                 const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 if (amount > 0) {
                     items.push({
-                        name: schema.getName(SKU.fromString(sku), false),
+                        name: this.bot.schema.getName(SKU.fromString(sku), false),
                         amount: amount
                     });
                 }
@@ -301,7 +300,7 @@ export default class MiscCommands {
             weapons.forEach(sku => {
                 const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 items.push({
-                    name: schema.getName(SKU.fromString(sku), false),
+                    name: this.bot.schema.getName(SKU.fromString(sku), false),
                     amount: amount
                 });
             });
