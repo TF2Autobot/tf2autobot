@@ -431,8 +431,8 @@ export default abstract class Cart {
                     if (
                         theirTotalSlots === 0 ||
                         !(
-                            (ourUsedSlots + theirNumItems) / ourTotalSlots > 1 ||
-                            (theirUsedSlots + ourNumItems) / theirTotalSlots > 1
+                            (ourUsedSlots + theirNumItems) / ourTotalSlots >= 1 ||
+                            (theirUsedSlots + ourNumItems) / theirTotalSlots >= 1
                         )
                     ) {
                         // Error 15 but failed to get their total slot, or not because inventory was full
