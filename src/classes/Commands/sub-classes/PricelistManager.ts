@@ -1895,9 +1895,13 @@ export default class PricelistManagerCommands {
 
     getSlotsCommand(steamID: SteamID): void {
         const listingsCap = this.bot.listingManager.cap;
-        const currentUsedSlots = this.bot.listingManager.listings.length;
+        const active = this.bot.listingManager.listings.filter(listing => listing.archived !== true).length;
+        const archived = this.bot.listingManager.listings.filter(listing => listing.archived === true).length;
 
-        return this.bot.sendMessage(steamID, `🏷️ Current listings slots: ${currentUsedSlots}/${listingsCap}`);
+        return this.bot.sendMessage(
+            steamID,
+            `🏷️ Current Backpack.tf listings slots:\n- Active: ${active}/${listingsCap}\n- Archived: ${archived}`
+        );
     }
 
     getCommand(steamID: SteamID, message: string): void {
