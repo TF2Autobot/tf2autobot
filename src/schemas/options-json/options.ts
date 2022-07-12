@@ -522,6 +522,9 @@ export const optionsSchema: jsonschema.Schema = {
                 autoUpdateAssetid: {
                     type: 'boolean'
                 },
+                autoResetToAutopriceOnceSold: {
+                    type: 'boolean'
+                },
                 autoAddPaintedItems: {
                     type: 'boolean'
                 },
@@ -575,6 +578,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoRemoveAssetidFailed',
                 'autoRemoveAssetidSuccess',
                 'autoUpdateAssetid',
+                'autoResetToAutopriceOnceSold',
                 'autoAddPaintedItems',
                 'failedAccept',
                 'unableToProcessOffer',
@@ -607,6 +611,9 @@ export const optionsSchema: jsonschema.Schema = {
                 filterCantAfford: {
                     $ref: '#/definitions/only-enable'
                 },
+                autoResetToAutopriceOnceSold: {
+                    $ref: '#/definitions/only-enable'
+                },
                 autoRemoveIntentSell: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -634,6 +641,7 @@ export const optionsSchema: jsonschema.Schema = {
             required: [
                 'partialPriceUpdate',
                 'filterCantAfford',
+                'autoResetToAutopriceOnceSold',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',
                 'autoAddInvalidUnusual',

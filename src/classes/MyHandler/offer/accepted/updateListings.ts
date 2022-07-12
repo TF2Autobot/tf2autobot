@@ -107,6 +107,13 @@ export default function updateListings(
         // If the item is not an unusual sku, we "allow" still (no-op)
         const addInvalidUnusual = item.quality === 5 ? opt.pricelist.autoAddInvalidUnusual.enable : true;
 
+        const isAutopriceManuallyPricedItem =
+            opt.pricelist.autoResetToAutopriceOnceSold.enable &&
+            existsInPricelist &&
+            priceListEntry.autoprice === false &&
+            priceListEntry.intent === 2 && // Only if intent is set to bank
+            amount === 0; // No longer exist
+
         const common1 =
             normalizePainted.our === false && // must meet this setting
             normalizePainted.their === true && // must meet this setting
@@ -174,6 +181,40 @@ export default function updateListings(
 
         //
 
+        if (isAutopriceManuallyPricedItem) {
+            const entry: EntryData = {
+                sku: priceListEntry.sku,
+                intent: priceListEntry.intent,
+                enabled: priceListEntry.enabled,
+                min: priceListEntry.min,
+                max: priceListEntry.max,
+                autoprice: true
+            };
+
+            bot.pricelist
+                .updatePrice({ priceKey, entryData: entry, emitChange: true })
+                .then(updatedEntry => {
+                    const msg =
+                        `✅ Automatically reset ${entry.sku} to autoprice (item sold).` +
+                        `\nPrevious: ${priceListEntry.buy.toString()}/${priceListEntry.sell.toString()}` +
+                        `\nNew: ${updatedEntry.buy.toString()}/${updatedEntry.sell.toString()}`;
+                    log.debug(msg);
+
+                    if (opt.sendAlert.enable && opt.sendAlert.autoResetToAutopriceOnceSold) {
+                        if (dwEnabled) {
+                            sendAlert('autoResetToAutopriceOnceSold', bot, msg, null, null, [entry.sku]);
+                        } else {
+                            bot.messageAdmins(msg, []);
+                        }
+                    }
+
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
+                })
+                .catch(err => {
+                    log.warn(`❌ Failed to automatically reset ${entry.sku} to autoprice: `, err);
+                    if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
+                });
+        }
         if (isAutoaddPainted) {
             const pSKU = Object.keys(highValueItems[priceKey].p)[0];
             const paintedSKU = `${priceKey};${pSKU}`;
