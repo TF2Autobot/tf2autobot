@@ -38,6 +38,8 @@
                 "CUSTOM_PRICER_URL": "",
                 "CUSTOM_PRICER_API_TOKEN": "",
 
+                "RUN_ON_ANDROID": false,
+
                 "SKIP_BPTF_TRADEOFFERURL": true,
                 "SKIP_UPDATE_PROFILE_SETTINGS": true,
 
