@@ -25,7 +25,7 @@ export function stock(bot: Bot): string[] {
                       }${pure.rec > 0 ? `${pure.ref > 0 ? ' ' : ''}${pure.rec} rec${pure.scrap > 0 ? ',' : ''}` : ''}${
                           pure.scrap > 0 ? `${pure.ref > 0 || pure.rec > 0 ? ' ' : ''}${pure.scrap} scrap` : ''
                       })`
-                    : ''
+                    : ' ref'
             }`
         }
     ];
