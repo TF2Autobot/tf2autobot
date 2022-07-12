@@ -428,6 +428,17 @@ export default abstract class Cart {
                     const ourNumItems = this.ourItemsCount;
                     const theirNumItems = this.theirItemsCount;
 
+                    if (
+                        theirTotalSlots === 0 ||
+                        !(
+                            (ourUsedSlots + theirNumItems) / ourTotalSlots > 1 ||
+                            (theirUsedSlots + ourNumItems) / theirTotalSlots > 1
+                        )
+                    ) {
+                        // Error 15 but failed to get their total slot, or not because inventory was full
+                        return Promise.reject(`An error with code 15 (https://steamerrors.com/15) has occured`);
+                    }
+
                     const dwEnabled =
                         opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '';
 
