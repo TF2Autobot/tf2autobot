@@ -123,24 +123,27 @@ export function getItemAndAmount(
             }
         }
 
-        if (closestMatch === null) {
-            bot.sendMessage(
-                steamID,
+        const notFound = (name: string) => {
+            return (
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
-                    '\n\nAlternatively, please try to:\n• ' +
-                    [
-                        'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
-                        'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
-                        'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
-                        `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
-                        'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
-                        'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
-                        `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
-                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
-                        `If you're entering the sku, make sure it's correct`,
-                        `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
-                    ].join('\n• ')
+                '\n\nAlternatively, please try to:\n• ' +
+                [
+                    'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
+                    'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
+                    'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
+                    `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
+                    'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
+                    'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
+                    `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
+                    `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                    `If you're entering the sku, make sure it's correct`,
+                    `Last but not least, if you're trading Skins/War Paint, make sure to put the correct item full name or sku, i.e. Strange Cool Totally Boned Pistol (Minimal Wear)`
+                ].join('\n• ')
             );
+        };
+
+        if (closestMatch === null) {
+            bot.sendMessage(steamID, notFound(name));
 
             return null;
         }
@@ -178,23 +181,7 @@ export function getItemAndAmount(
                 match: closestMatch
             };
         } else {
-            bot.sendMessage(
-                steamID,
-                `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
-                    '\n\nAlternatively, please try to:\n• ' +
-                    [
-                        'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
-                        'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
-                        'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
-                        `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
-                        'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
-                        'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
-                        `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
-                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
-                        `If you're entering the sku, make sure it's correct`,
-                        `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
-                    ].join('\n• ')
-            );
+            bot.sendMessage(steamID, notFound(name));
 
             return null;
         }
