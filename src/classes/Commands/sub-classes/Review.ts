@@ -4,7 +4,6 @@ import TradeOfferManager, { Meta, OfferData, OurTheirItemsDict } from '@tf2autob
 import Currencies from '@tf2autobot/tf2-currencies';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from '@tf2autobot/tf2-sku';
-import SchemaManager from '@tf2autobot/tf2-schema';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { generateLinks, testPriceKey } from '../../../lib/tools/export';
@@ -133,7 +132,7 @@ export default class ReviewCommands {
         const keyPrice = this.bot.pricelist.getKeyPrice;
         const value = offerData.value;
         const items = offerData.dict || { our: null, their: null };
-        const summarizeItems = (dict: OurTheirItemsDict, schema: SchemaManager.Schema) => {
+        const summarizeItems = (dict: OurTheirItemsDict) => {
             if (dict === null) {
                 return 'unknown items';
             }
@@ -145,7 +144,7 @@ export default class ReviewCommands {
                     continue;
                 }
 
-                const name = testPriceKey(sku) ? schema.getName(SKU.fromString(sku), false) : sku;
+                const name = testPriceKey(sku) ? this.bot.schema.getName(SKU.fromString(sku), false) : sku;
 
                 summary.push(name + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
             }
@@ -158,11 +157,7 @@ export default class ReviewCommands {
         };
 
         if (!value) {
-            reply +=
-                'Asked: ' +
-                summarizeItems(items.our, this.bot.schema) +
-                '\nOffered: ' +
-                summarizeItems(items.their, this.bot.schema);
+            reply += 'Asked: ' + summarizeItems(items.our) + '\nOffered: ' + summarizeItems(items.their);
         } else {
             const valueDiff =
                 new Currencies(value.their).toValue(keyPrice.metal) - new Currencies(value.our).toValue(keyPrice.metal);
@@ -171,11 +166,11 @@ export default class ReviewCommands {
                 'Asked: ' +
                 new Currencies(value.our).toString() +
                 ' (' +
-                summarizeItems(items.our, this.bot.schema) +
+                summarizeItems(items.our) +
                 ')\nOffered: ' +
                 new Currencies(value.their).toString() +
                 ' (' +
-                summarizeItems(items.their, this.bot.schema) +
+                summarizeItems(items.their) +
                 (valueDiff > 0
                     ? `)\n📈 Profit from overpay: ${valueDiffRef} ref`
                     : valueDiff < 0
