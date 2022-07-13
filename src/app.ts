@@ -152,6 +152,7 @@ botManager
     })
     .catch(err => {
         if (err) {
-            throw err;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            throw err instanceof Error ? err : new Error(err);
         }
     });
