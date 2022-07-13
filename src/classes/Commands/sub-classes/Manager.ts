@@ -8,6 +8,7 @@ import * as timersPromises from 'timers/promises';
 import path from 'path';
 import child from 'child_process';
 import dayjs from 'dayjs';
+import { Message as DiscordMessage } from 'discord.js';
 import { EPersonaState } from 'steam-user';
 import { EFriendRelationship } from 'steam-user';
 import { removeLinkProtocol } from '../functions/utils';
@@ -528,7 +529,11 @@ export default class ManagerCommands {
             }
         }
 
-        this.bot.sendMessage(steamID, '/pre ' + ManagerCommands.generateAutokeysReply(steamID, this.bot));
+        this.bot.sendMessage(
+            steamID,
+            (steamID.redirectAnswerTo instanceof DiscordMessage ? '/pre2' : '/pre ') +
+                ManagerCommands.generateAutokeysReply(steamID, this.bot)
+        );
     }
 
     refreshAutokeysCommand(steamID: SteamID): void {
