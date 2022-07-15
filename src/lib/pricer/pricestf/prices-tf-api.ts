@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, Method, AxiosError } from 'axios';
-import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
+import filterAxiosErr from '../../tools/filterAxiosErr';
 import { PricerOptions } from '../../../classes/IPricer';
 import log from '../../logger';
 

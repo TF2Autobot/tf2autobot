@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import TradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import axios, { AxiosError } from 'axios';
 import cheerio from 'cheerio';
-import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
+import filterAxiosErr from '../lib/tools/filterAxiosErr';
 // import { uid } from 'rand-token';
 
 type TF2Attribute = {

@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
-import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
+import filterAxiosErr from '../../tools/filterAxiosErr';
 import { PricerOptions } from '../../../classes/IPricer';
 
 export interface PricesCurrency {

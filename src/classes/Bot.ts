@@ -39,7 +39,7 @@ import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
-import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
+import filterAxiosErr from '../lib/tools/filterAxiosErr';
 
 export default class Bot {
     // Modules and classes

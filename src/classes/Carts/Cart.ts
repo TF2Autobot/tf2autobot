@@ -10,7 +10,7 @@ import Pricelist from '../Pricelist';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
+import filterAxiosErr from '../../lib/tools/filterAxiosErr';
 
 /**
  * An abstract class used for sending offers

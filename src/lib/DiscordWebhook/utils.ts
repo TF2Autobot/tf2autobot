@@ -66,7 +66,7 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
                 resolve();
             })
             .catch((err: AxiosError) => {
-                reject({ err: err.response.statusText, webhook });
+                reject({ err: err.response.data, webhook });
             });
     });
 }
