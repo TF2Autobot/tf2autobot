@@ -1,4 +1,5 @@
-import axios, { AxiosRequestConfig, Method } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
+import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
 import { PricerOptions } from '../../../classes/IPricer';
 
 export interface PricesCurrency {
@@ -104,9 +105,9 @@ export default class CustomPricerApi {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     resolve(response.data);
                 })
-                .catch(err => {
+                .catch((err: AxiosError) => {
                     if (err) {
-                        reject(err);
+                        reject(filterAxiosErr(err));
                     }
                 });
         });

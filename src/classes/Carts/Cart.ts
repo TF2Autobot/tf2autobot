@@ -3,13 +3,14 @@ import dayjs from 'dayjs';
 import SKU from '@tf2autobot/tf2-sku';
 import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { UnknownDictionary } from '../../types/common';
 import Bot from '../Bot';
 import Pricelist from '../Pricelist';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
+import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
 
 /**
  * An abstract class used for sending offers
@@ -588,9 +589,9 @@ export default abstract class Cart {
 
                     return resolve(totalBackpackSlots);
                 })
-                .catch(err => {
+                .catch((err: AxiosError) => {
                     if (err) {
-                        log.error('Failed requesting user info from backpack.tf: ', err);
+                        log.error('Failed requesting user info from backpack.tf: ', filterAxiosErr(err));
                         return resolve(0);
                     }
                 });

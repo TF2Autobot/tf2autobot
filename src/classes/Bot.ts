@@ -39,6 +39,7 @@ import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
+import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
 
 export default class Bot {
     // Modules and classes
@@ -471,9 +472,9 @@ export default class Bot {
                     });
                     /*eslint-enable */
                 })
-                .catch(err => {
+                .catch((err: AxiosError) => {
                     if (err) {
-                        return reject(err);
+                        return reject(filterAxiosErr(err));
                     }
                 });
         });

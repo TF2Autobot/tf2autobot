@@ -22,7 +22,8 @@ import { fixItem } from '../../lib/items';
 import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
 import { testPriceKey } from '../../lib/tools/export';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+import filterAxiosErr from 'src/lib/tools/filterAxiosErr';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -1443,8 +1444,8 @@ function getMptfDashboardItems(mptfApiKey: string, ignorePainted = false): Promi
 
                 return resolve(toReturn);
             })
-            .catch(err => {
-                reject(err);
+            .catch((err: AxiosError) => {
+                reject(filterAxiosErr(err));
             });
     });
 }

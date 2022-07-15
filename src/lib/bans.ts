@@ -1,7 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import SteamID from 'steamid';
 import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
 import log from '../lib/logger';
+import filterAxiosErr from './tools/filterAxiosErr';
 
 let isReptfFailed = false;
 
@@ -147,9 +148,9 @@ async function getFromReptf(
                         return reject(err);
                     });
             })
-            .catch(err => {
+            .catch((err: AxiosError) => {
                 if (err) {
-                    if (showLog) log.warn('Failed to obtain data from Rep.tf: ', err);
+                    if (showLog) log.warn('Failed to obtain data from Rep.tf');
                     if (reptfAsPrimarySource) {
                         if (showLog) {
                             log.debug(
@@ -162,7 +163,7 @@ async function getFromReptf(
                         return resolve({ isBanned: false });
                     }
 
-                    return reject(err);
+                    return reject(filterAxiosErr(err));
                 }
             });
     });
@@ -192,10 +193,10 @@ export function isBptfBanned(steamID: string, bptfApiKey: string, userID: string
 
                 return resolve({ isBanned: isBptfBanned, content: banReason });
             })
-            .catch(err => {
+            .catch((err: AxiosError) => {
                 if (err) {
-                    if (showLog) log.warn('Failed to get data from backpack.tf: ', err);
-                    return reject(err);
+                    if (showLog) log.warn('Failed to get data from backpack.tf');
+                    return reject(filterAxiosErr(err));
                 }
             });
     });
@@ -216,13 +217,13 @@ function isSteamRepMarked(steamID: string, showLog = true): Promise<SiteResult> 
 
                 return resolve({ isBanned: isSteamRepBanned, content: fullRepInfo });
             })
-            .catch(err => {
+            .catch((err: AxiosError) => {
                 if (err) {
-                    if (showLog) log.warn('Failed to get data from SteamRep: ', err);
+                    if (showLog) log.warn('Failed to get data from SteamRep');
                     if (_isBptfSteamRepBanned !== null) {
                         return resolve({ isBanned: _isBptfSteamRepBanned });
                     } else {
-                        return reject(err);
+                        return reject(filterAxiosErr(err));
                     }
                 }
             });
@@ -271,10 +272,10 @@ function isMptfBanned(
 
                 return resolve({ isBanned: false });
             })
-            .catch(err => {
+            .catch((err: AxiosError) => {
                 if (err) {
-                    if (showLog) log.warn('Failed to get data from Marketplace.tf: ', err);
-                    return reject(err);
+                    if (showLog) log.warn('Failed to get data from Marketplace.tf');
+                    return reject(filterAxiosErr(err));
                 }
             });
     });
@@ -295,10 +296,10 @@ function isListedUntrusted(steamID: string, showLog = true): Promise<SiteResult>
 
                 return resolve({ isBanned: true, content: `Reason: ${results.reason} - Source: ${results.source}` });
             })
-            .catch(err => {
+            .catch((err: AxiosError) => {
                 if (err) {
-                    if (showLog) log.warn('Failed to get data from Github: ', err);
-                    return reject(err);
+                    if (showLog) log.warn('Failed to get data from Github');
+                    return reject(filterAxiosErr(err));
                 }
             });
     });
