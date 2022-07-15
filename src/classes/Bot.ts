@@ -39,7 +39,7 @@ import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
-import filterAxiosErr from '../lib/tools/filterAxiosErr';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 
 export default class Bot {
     // Modules and classes

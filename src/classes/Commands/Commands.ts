@@ -23,7 +23,7 @@ import { UnknownDictionary } from '../../types/common';
 import log from '../../lib/logger';
 import { testPriceKey } from '../../lib/tools/export';
 import axios, { AxiosError } from 'axios';
-import filterAxiosErr from '../../lib/tools/filterAxiosErr';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';

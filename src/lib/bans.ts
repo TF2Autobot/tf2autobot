@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import SteamID from 'steamid';
 import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
 import log from '../lib/logger';
-import filterAxiosErr from './tools/filterAxiosErr';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 
 let isReptfFailed = false;
 

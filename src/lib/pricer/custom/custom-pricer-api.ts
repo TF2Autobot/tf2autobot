@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
-import filterAxiosErr from '../../tools/filterAxiosErr';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 import { PricerOptions } from '../../../classes/IPricer';
 
 export interface PricesCurrency {

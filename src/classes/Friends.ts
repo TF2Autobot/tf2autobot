@@ -2,7 +2,7 @@ import { EFriendRelationship } from 'steam-user';
 import SteamID from 'steamid';
 import axios, { AxiosError } from 'axios';
 import Bot from './Bot';
-import filterAxiosErr from '../lib/tools/filterAxiosErr';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 
 export default class Friends {
     maxFriends: number | undefined;

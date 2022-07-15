@@ -59,7 +59,7 @@ import * as inspect from 'util';
 import { Webhook } from './lib/DiscordWebhook/interfaces';
 import axios, { AxiosError } from 'axios';
 import { uptime } from './lib/tools/time';
-import filterAxiosErr from './lib/tools/filterAxiosErr';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = !['SIGINT', 'SIGTERM'].includes(signalOrErr as 'SIGINT' | 'SIGTERM' | 'SIGQUIT');

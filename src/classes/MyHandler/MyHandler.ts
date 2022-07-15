@@ -47,7 +47,7 @@ import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
-import filterAxiosErr from '../../lib/tools/filterAxiosErr';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);

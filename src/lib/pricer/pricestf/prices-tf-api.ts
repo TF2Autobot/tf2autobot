@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, Method, AxiosError } from 'axios';
-import filterAxiosErr from '../../tools/filterAxiosErr';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 import { PricerOptions } from '../../../classes/IPricer';
 import log from '../../logger';
 
