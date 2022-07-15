@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig, Method, AxiosError } from 'axios';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 import { PricerOptions } from '../../../classes/IPricer';
 import log from '../../logger';
 
@@ -109,9 +110,9 @@ export default class PricesTfApi {
                     const body = response.data as B;
                     resolve(body);
                 })
-                .catch(err => {
+                .catch((err: AxiosError) => {
                     if (err) {
-                        reject(err);
+                        reject(filterAxiosErr(err));
                     }
                 });
         });

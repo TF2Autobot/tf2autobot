@@ -1,5 +1,5 @@
 import SKU from '@tf2autobot/tf2-sku';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
 import TradeOfferManager, {
     TradeOffer,
@@ -47,6 +47,7 @@ import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
+import filterAxiosErr from '@tf2autobot/filter-axios-error';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -2469,9 +2470,12 @@ export default class MyHandler extends Handler {
                     this.isPremium = user.premium ? user.premium === 1 : false;
                     return resolve();
                 })
-                .catch(err => {
+                .catch((err: AxiosError) => {
                     if (err) {
-                        log.error('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
+                        log.error(
+                            'Failed requesting bot info from backpack.tf, retrying in 5 minutes: ',
+                            filterAxiosErr(err)
+                        );
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
