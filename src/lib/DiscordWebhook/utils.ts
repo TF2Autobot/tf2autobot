@@ -3,7 +3,7 @@ import axios, { AxiosError } from 'axios';
 import { Webhook } from './interfaces';
 import Bot from '../../classes/Bot';
 import log from '../logger';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
+import filterAxiosError, { ErrorFiltered } from '@tf2autobot/filter-axios-error';
 
 export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ personaName: string; avatarFull: any }> {
     return new Promise(resolve => {
@@ -73,10 +73,6 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
 }
 
 export interface WebhookError {
-    err: {
-        message: string;
-        status: number;
-        data: Record<string, any>;
-    };
+    err: ErrorFiltered;
     webhook: Webhook;
 }
