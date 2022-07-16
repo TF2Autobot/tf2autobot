@@ -470,92 +470,90 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
     return null;
 }
 
+const is5022 = new Map<string, number>();
+is5022
+    .set('Mann Co. Supply Crate Series #1', 1)
+    .set('Mann Co. Supply Crate Series #3', 3)
+    .set('Mann Co. Supply Crate Series #7', 7)
+    .set('Mann Co. Supply Crate Series #12', 12)
+    .set('Mann Co. Supply Crate Series #13', 13)
+    .set('Mann Co. Supply Crate Series #18', 18)
+    .set('Mann Co. Supply Crate Series #19', 19)
+    .set('Mann Co. Supply Crate Series #23', 23)
+    .set('Mann Co. Supply Crate Series #26', 26)
+    .set('Mann Co. Supply Crate Series #31', 31)
+    .set('Mann Co. Supply Crate Series #34', 34)
+    .set('Mann Co. Supply Crate Series #39', 39)
+    .set('Mann Co. Supply Crate Series #43', 43)
+    .set('Mann Co. Supply Crate Series #47', 47)
+    .set('Mann Co. Supply Crate Series #54', 54)
+    .set('Mann Co. Supply Crate Series #57', 57)
+    .set('Mann Co. Supply Crate Series #75', 75);
+
+const is5041 = new Map<string, number>();
+is5041
+    .set('Mann Co. Supply Crate Series #2', 2)
+    .set('Mann Co. Supply Crate Series #4', 4)
+    .set('Mann Co. Supply Crate Series #8', 8)
+    .set('Mann Co. Supply Crate Series #11', 11)
+    .set('Mann Co. Supply Crate Series #14', 14)
+    .set('Mann Co. Supply Crate Series #17', 17)
+    .set('Mann Co. Supply Crate Series #20', 20)
+    .set('Mann Co. Supply Crate Series #24', 24)
+    .set('Mann Co. Supply Crate Series #27', 27)
+    .set('Mann Co. Supply Crate Series #32', 32)
+    .set('Mann Co. Supply Crate Series #37', 37)
+    .set('Mann Co. Supply Crate Series #42', 42)
+    .set('Mann Co. Supply Crate Series #44', 44)
+    .set('Mann Co. Supply Crate Series #49', 49)
+    .set('Mann Co. Supply Crate Series #56', 56)
+    .set('Mann Co. Supply Crate Series #71', 71)
+    .set('Mann Co. Supply Crate Series #76', 76);
+
+const is5045 = new Map<string, number>();
+is5045
+    .set('Mann Co. Supply Crate Series #5', 5)
+    .set('Mann Co. Supply Crate Series #9', 9)
+    .set('Mann Co. Supply Crate Series #10', 10)
+    .set('Mann Co. Supply Crate Series #15', 15)
+    .set('Mann Co. Supply Crate Series #16', 16)
+    .set('Mann Co. Supply Crate Series #21', 21)
+    .set('Mann Co. Supply Crate Series #25', 25)
+    .set('Mann Co. Supply Crate Series #28', 28)
+    .set('Mann Co. Supply Crate Series #29', 29)
+    .set('Mann Co. Supply Crate Series #33', 33)
+    .set('Mann Co. Supply Crate Series #38', 38)
+    .set('Mann Co. Supply Crate Series #41', 41)
+    .set('Mann Co. Supply Crate Series #45', 45)
+    .set('Mann Co. Supply Crate Series #55', 55)
+    .set('Mann Co. Supply Crate Series #59', 59)
+    .set('Mann Co. Supply Crate Series #77', 77);
+
+const is5068 = new Map<string, number>();
+is5068
+    .set('Salvaged Mann Co. Supply Crate Series #30', 30)
+    .set('Salvaged Mann Co. Supply Crate Series #40', 40)
+    .set('Salvaged Mann Co. Supply Crate Series #50', 50);
+
 /**
  * Gets crate series of Mann Co. Supply Crate
  * @param item - Item object
  */
 function getCrateSeries(item: EconItem): number | null {
-    if (defindex === null) {
-        throw new Error('Could not get defindex of item "' + item.market_hash_name + '"');
+    if (!item.market_hash_name.includes('Mann Co. Supply Crate Series #')) {
+        return null;
     }
 
-    let series: number | null = null;
-
-    const crates: { [type: string]: { [name: string]: number } } = {
-        is5022: {
-            'Mann Co. Supply Crate Series #1': 1,
-            'Mann Co. Supply Crate Series #3': 3,
-            'Mann Co. Supply Crate Series #7': 7,
-            'Mann Co. Supply Crate Series #12': 12,
-            'Mann Co. Supply Crate Series #13': 13,
-            'Mann Co. Supply Crate Series #18': 18,
-            'Mann Co. Supply Crate Series #19': 19,
-            'Mann Co. Supply Crate Series #23': 23,
-            'Mann Co. Supply Crate Series #26': 26,
-            'Mann Co. Supply Crate Series #31': 31,
-            'Mann Co. Supply Crate Series #34': 34,
-            'Mann Co. Supply Crate Series #39': 39,
-            'Mann Co. Supply Crate Series #43': 43,
-            'Mann Co. Supply Crate Series #47': 47,
-            'Mann Co. Supply Crate Series #54': 54,
-            'Mann Co. Supply Crate Series #57': 57,
-            'Mann Co. Supply Crate Series #75': 75
-        },
-        is5041: {
-            'Mann Co. Supply Crate Series #2': 2,
-            'Mann Co. Supply Crate Series #4': 4,
-            'Mann Co. Supply Crate Series #8': 8,
-            'Mann Co. Supply Crate Series #11': 11,
-            'Mann Co. Supply Crate Series #14': 14,
-            'Mann Co. Supply Crate Series #17': 17,
-            'Mann Co. Supply Crate Series #20': 20,
-            'Mann Co. Supply Crate Series #24': 24,
-            'Mann Co. Supply Crate Series #27': 27,
-            'Mann Co. Supply Crate Series #32': 32,
-            'Mann Co. Supply Crate Series #37': 37,
-            'Mann Co. Supply Crate Series #42': 42,
-            'Mann Co. Supply Crate Series #44': 44,
-            'Mann Co. Supply Crate Series #49': 49,
-            'Mann Co. Supply Crate Series #56': 56,
-            'Mann Co. Supply Crate Series #71': 71,
-            'Mann Co. Supply Crate Series #76': 76
-        },
-        is5045: {
-            'Mann Co. Supply Crate Series #5': 5,
-            'Mann Co. Supply Crate Series #9': 9,
-            'Mann Co. Supply Crate Series #10': 10,
-            'Mann Co. Supply Crate Series #15': 15,
-            'Mann Co. Supply Crate Series #16': 16,
-            'Mann Co. Supply Crate Series #21': 21,
-            'Mann Co. Supply Crate Series #25': 25,
-            'Mann Co. Supply Crate Series #28': 28,
-            'Mann Co. Supply Crate Series #29': 29,
-            'Mann Co. Supply Crate Series #33': 33,
-            'Mann Co. Supply Crate Series #38': 38,
-            'Mann Co. Supply Crate Series #41': 41,
-            'Mann Co. Supply Crate Series #45': 45,
-            'Mann Co. Supply Crate Series #55': 55,
-            'Mann Co. Supply Crate Series #59': 59,
-            'Mann Co. Supply Crate Series #77': 77
-        },
-        is5068: {
-            'Salvaged Mann Co. Supply Crate Series #30': 30,
-            'Salvaged Mann Co. Supply Crate Series #40': 40,
-            'Salvaged Mann Co. Supply Crate Series #50': 50
-        }
-    };
-
-    const itemHashMarketName = item.market_hash_name;
-
-    if (defindex === 5022 && Object.keys(crates.is5022).includes(itemHashMarketName)) {
-        series = crates.is5022[itemHashMarketName];
-    } else if (defindex === 5041 && Object.keys(crates.is5041).includes(itemHashMarketName)) {
-        series = crates.is5041[itemHashMarketName];
-    } else if (defindex === 5045 && Object.keys(crates.is5045).includes(itemHashMarketName)) {
-        series = crates.is5045[itemHashMarketName];
-    } else if (defindex === 5068 && Object.keys(crates.is5068).includes(itemHashMarketName)) {
-        series = crates.is5068[itemHashMarketName];
-    }
+    const series =
+        defindex === 5022 && is5022.has(item.market_hash_name)
+            ? is5022.get(item.market_hash_name)
+            : defindex === 5041 && is5041.has(item.market_hash_name)
+            ? is5041.get(item.market_hash_name)
+            : defindex === 5045 && is5045.has(item.market_hash_name)
+            ? is5045.get(item.market_hash_name)
+            : defindex === 5068 && is5068.has(item.market_hash_name)
+            ? is5068.get(item.market_hash_name)
+            : null;
 
     if (series !== null) {
         isCrate = true;
