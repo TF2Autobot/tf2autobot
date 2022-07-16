@@ -32,7 +32,7 @@ export default class BotManager {
     }
 
     private extendTradeOfferApis() {
-        ['hasDescription', 'getAction', 'getItemTag', 'getSKU'].forEach(v => {
+        ['getAction', 'getItemTag', 'getSKU'].forEach(v => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
             EconItem.prototype[v] = require('../lib/extend/item/' + v);
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access

@@ -360,9 +360,6 @@ declare module '@tf2autobot/tradeoffer-manager' {
             app_data?: { def_index: string; quality?: string; quantity?: string; limited?: number };
 
             // Custom function added to prototype
-            hasDescription(description: string): boolean;
-
-            // Custom function added to prototype
             getAction(action: string): string | null;
 
             // Custom function added to prototype
