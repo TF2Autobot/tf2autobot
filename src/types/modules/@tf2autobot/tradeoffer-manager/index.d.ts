@@ -374,6 +374,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
                 normalizeFestivizedItems: boolean,
                 normalizeStrangeAsSecondQuality: boolean,
                 normalizePainted: boolean,
+                normalizeCraftNumber: boolean,
                 paintsInOptions: string[]
             ): { sku: string; isPainted: boolean } | null;
         }

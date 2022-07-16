@@ -255,6 +255,10 @@ export const DEFAULTS: JsonOptions = {
             our: true,
             their: true,
             amountIncludeNonPainted: false
+        },
+        craftNumber: {
+            our: false,
+            their: false
         }
     },
 
@@ -1318,6 +1322,7 @@ interface Normalize {
     festivized?: NormalizeFestivized;
     strangeAsSecondQuality?: NormalizeStrange;
     painted?: NormalizePainted;
+    craftNumber?: NormalizeOurOrTheir;
 }
 
 interface NormalizeOurOrTheir {
