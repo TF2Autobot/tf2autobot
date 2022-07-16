@@ -540,7 +540,7 @@ export const DEFAULTS: JsonOptions = {
         sendOffer: '',
         counterOffer: '',
         welcome: '',
-        iDontKnowWhatYouMean: '',
+        commandNotFound: '',
         success: '',
         successEscrow: '',
         halted: '',
@@ -1604,7 +1604,7 @@ interface CustomMessage {
     sendOffer?: string;
     counterOffer?: string;
     welcome?: string;
-    iDontKnowWhatYouMean?: string;
+    commandNotFound?: string;
     success?: string;
     successEscrow?: string;
     halted?: string;
@@ -2292,6 +2292,17 @@ function replaceOldProperties(options: Options): boolean {
         isChanged = true;
     }
     /*eslint-enable */
+
+    // <=v4.16.2 -> v5.0.0
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.customMessage?.iDontKnowWhatYouMean !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.customMessage.iDontKnowWhatYouMean;
+        options.customMessage['commandNotFound'] = '';
+        isChanged = true;
+    }
 
     return isChanged;
 }
