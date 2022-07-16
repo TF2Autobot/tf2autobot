@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
-import SchemaManager, { Paints } from '@tf2autobot/tf2-schema';
+import SchemaManager, { Paints, Schema } from '@tf2autobot/tf2-schema';
 import SKU from '@tf2autobot/tf2-sku';
 import url from 'url';
 import { MinimumItem } from '../../../types/TeamFortress2';
@@ -22,6 +22,7 @@ export = function (
     normalizeFestivizedItems: boolean,
     normalizeStrangeAsSecondQuality: boolean,
     normalizePainted: boolean,
+    normalizeCraftNumber: boolean,
     paintsInOptions: string[]
 ): { sku: string; isPainted: boolean } {
     const self = this as EconItem;
@@ -64,7 +65,8 @@ export = function (
             paintkit: getPaintKit(self, schema),
             quality2: getElevatedQuality(self, normalizeStrangeAsSecondQuality),
             crateseries: getCrateSeries(self),
-            paint: getPainted(self, schema.paints, normalizePainted, paintsInOptions)
+            paint: getPainted(self, schema.paints, normalizePainted, paintsInOptions),
+            craftnumber: getCraftNumber(self, schema, normalizeCraftNumber)
         },
         getOutput(self, schema)
     ) as MinimumItem;
@@ -586,4 +588,35 @@ function getPainted(
     }
 
     return null;
+}
+
+function getCraftNumber(item: EconItem, schema: Schema, normalizeCraftNumber: boolean): number {
+    if (normalizeCraftNumber) {
+        return null;
+    }
+
+    if (isCrate) {
+        return null;
+    }
+
+    const schemaItem = schema.getItemByDefindex(defindex);
+    if (schemaItem.item_class === 'supply_crate') {
+        return null;
+    }
+
+    if (defindex === 121) {
+        // ignore Gentle Manne's Service Medal, because craft number (229) !== Medal number (133)
+        return null;
+    }
+
+    const name = item.market_hash_name;
+    const withoutNumber = name.replace(/#\d+/, '');
+    if (name === withoutNumber) {
+        // no change
+        return null;
+    }
+
+    const number = name.substring(withoutNumber.length + 1).trim();
+
+    return parseInt(number);
 }

@@ -411,6 +411,8 @@ export default class Inventory {
         const isNormalizeStrangeAsSecondQuality = isAdmin ? false : bot.options.normalize.strangeAsSecondQuality[which];
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const isNormalizePainted = isAdmin ? false : bot.options.normalize.painted[which];
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const isNormalizeCraftNumber = isAdmin ? false : bot.options.normalize.craftNumber[which];
 
         for (let i = 0; i < itemsCount; i++) {
             const getSku = items[i].getSKU(
@@ -418,6 +420,7 @@ export default class Inventory {
                 isNormalizeFestivized,
                 isNormalizeStrangeAsSecondQuality,
                 isNormalizePainted,
+                isNormalizeCraftNumber,
                 this.paintedOptions
             );
 
