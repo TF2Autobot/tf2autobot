@@ -2021,6 +2021,7 @@ export default interface Options extends JsonOptions {
     bptfAccessToken?: string;
     bptfApiKey?: string;
     useragentHeaderCustom?: string;
+    useragentHeaderShowVersion?: boolean;
 
     mptfApiKey?: string;
     discordBotToken?: string;
@@ -2309,6 +2310,7 @@ export function loadOptions(options?: Options): Options {
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
         bptfApiKey: getOption('bptfApiKey', '', String, incomingOptions),
         useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
+        useragentHeaderShowVersion: getOption('useragentHeaderShowVersion', false, jsonParseBoolean, incomingOptions),
 
         mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
         discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
