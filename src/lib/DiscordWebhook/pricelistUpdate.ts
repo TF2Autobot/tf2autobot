@@ -8,6 +8,7 @@ import { Webhook, sendWebhook } from './export';
 import log from '../logger';
 import { BuyAndSell } from '../../classes/Pricelist';
 import Options from '../../classes/Options';
+import { WebhookError } from './utils';
 
 const australiumImageURL: { [defindex: number]: string } = {
     // Australium Ambassador
@@ -1989,14 +1990,13 @@ class PriceUpdateQueue {
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
-            .catch(err => {
-                log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
+            .catch((e: WebhookError) => {
+                log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, e);
 
                 /*eslint-disable */
-                if (err.text) {
-                    const errContent = JSON.parse(err.text);
-                    if (errContent.message === 'The resource is being rate limited.') {
-                        this.sleepTime = errContent.retry_after;
+                if (e.err?.data) {
+                    if (e.err.data.message === 'The resource is being rate limited.') {
+                        this.sleepTime = e.err.data.retry_after;
                         this.isRateLimited = true;
                     }
                 }
