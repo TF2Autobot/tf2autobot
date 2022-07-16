@@ -59,7 +59,7 @@
         "retry": "^0.13.1",
         "socket.io-client": "^4.5.1",
         "steam-totp": "^2.1.2",
-        "steam-user": "^4.24.3",
+        "steam-user": "^4.24.5",
         "steamid": "^2.0.0",
         "url": "^0.11.0",
         "valid-url": "^1.0.9",
