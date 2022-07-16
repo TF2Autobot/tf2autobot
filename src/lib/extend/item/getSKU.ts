@@ -1,10 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
-import SchemaManager, { Paints, Schema } from '@tf2autobot/tf2-schema';
+import SchemaManager, { Item, Paints, Schema } from '@tf2autobot/tf2-schema';
 import SKU from '@tf2autobot/tf2-sku';
 import url from 'url';
-import { MinimumItem } from '../../../types/TeamFortress2';
 import { fixItem } from '../../items';
+
+interface ParsedDescriptions {
+    craftable: boolean;
+    effect: number;
+    paintkit: number;
+    target: number;
+    output: number;
+    outputQuality: number;
+    paint: number;
+}
 
 let isCrate = false;
 let isPainted = false;
@@ -16,6 +25,8 @@ let quality: number = null;
 let killstreak: number = null;
 let wear: number = null;
 let paintkit: number = null;
+let hasStatClock = false;
+let parsedDescription: ParsedDescriptions = null;
 
 export = function (
     schema: SchemaManager.Schema,
@@ -32,12 +43,6 @@ export = function (
     replaceQualityTo11 = false;
     replaceQualityTo15 = false;
 
-    defindex = null;
-    quality = null;
-    killstreak = null;
-    wear = null;
-    paintkit = null;
-
     if (self.appid != 440) {
         if (self.type && self.market_name) {
             return { sku: `${self.type}: ${self.market_name}`, isPainted: false };
@@ -52,24 +57,33 @@ export = function (
         );
     }
 
-    let item = Object.assign(
-        {
-            defindex: getDefindex(self),
-            quality: getQuality(self, schema),
-            craftable: isCraftable(self),
-            killstreak: getKillstreak(self),
-            australium: isAustralium(self),
-            festive: isFestive(self, normalizeFestivizedItems),
-            effect: getEffect(self, schema),
-            wear: getWear(self),
-            paintkit: getPaintKit(self, schema),
-            quality2: getElevatedQuality(self, normalizeStrangeAsSecondQuality),
-            crateseries: getCrateSeries(self),
-            paint: getPainted(self, schema.paints, normalizePainted, paintsInOptions),
-            craftnumber: getCraftNumber(self, schema, normalizeCraftNumber)
-        },
-        getOutput(self, schema)
-    ) as MinimumItem;
+    defindex = getDefindex(self);
+    quality = getQuality(self, schema);
+    killstreak = getKillstreak(self);
+    wear = getWear(self);
+    paintkit = null;
+    hasStatClock = false;
+
+    parsedDescription = parseDescriptions(self, schema, schema.paints, normalizePainted, paintsInOptions);
+
+    let item: Item = {
+        defindex,
+        quality,
+        craftable: parsedDescription.craftable,
+        killstreak,
+        australium: isAustralium(self),
+        festive: isFestive(self, normalizeFestivizedItems),
+        effect: parsedDescription.effect,
+        wear,
+        paintkit: parsedDescription.paintkit,
+        quality2: getElevatedQuality(self, normalizeStrangeAsSecondQuality),
+        crateseries: getCrateSeries(self),
+        target: parsedDescription.target,
+        output: parsedDescription.output,
+        outputQuality: parsedDescription.outputQuality,
+        paint: parsedDescription.paint,
+        craftnumber: getCraftNumber(self, schema, normalizeCraftNumber)
+    };
 
     if (item.target === null) {
         item.target = getTarget(self, schema);
@@ -88,6 +102,7 @@ export = function (
         item = fixItem(SKU.fromString(SKU.fromObject(item)), schema);
     }
 
+    parsedDescription = null;
     if (item === null) {
         throw new Error('Unknown sku for item "' + self.market_hash_name + '"');
     }
@@ -101,14 +116,12 @@ export = function (
  */
 function getDefindex(item: EconItem): number | null {
     if (item.app_data !== undefined) {
-        defindex = parseInt(item.app_data.def_index, 10);
-        return defindex;
+        return parseInt(item.app_data.def_index, 10);
     }
 
     const link = item.getAction('Item Wiki Page...');
     if (link !== null) {
-        defindex = parseInt(url.parse(link, true).query.id.toString(), 10);
-        return defindex;
+        return parseInt(url.parse(link, true).query.id.toString(), 10);
     }
 
     // Last option is to get the name of the item and try and get the defindex that way
@@ -122,25 +135,15 @@ function getDefindex(item: EconItem): number | null {
  */
 function getQuality(item: EconItem, schema: SchemaManager.Schema): number | null {
     if (item.app_data !== undefined) {
-        quality = parseInt(item.app_data.quality, 10);
-        return quality;
+        return parseInt(item.app_data.quality, 10);
     }
 
     const qualityFromTag = item.getItemTag('Quality');
     if (qualityFromTag !== null) {
-        quality = schema.getQualityIdByName(qualityFromTag);
-        return quality;
+        return schema.getQualityIdByName(qualityFromTag);
     }
 
     return null;
-}
-
-/**
- * Determines if the item is craftable
- * @param item - Item object
- */
-function isCraftable(item: EconItem): boolean {
-    return !item.hasDescription('( Not Usable in Crafting )');
 }
 
 /**
@@ -152,8 +155,183 @@ function getKillstreak(item: EconItem): number {
 
     const index = killstreaks.findIndex(killstreak => item.market_hash_name.includes(killstreak + 'Killstreak '));
 
-    killstreak = index === -1 ? 0 : 3 - index;
-    return killstreak;
+    return index === -1 ? 0 : 3 - index;
+}
+
+/**
+ * Gets the wear of an item
+ * @param item - Item object
+ */
+function getWear(item: EconItem): number | null {
+    const itemWear = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle Scarred'].indexOf(
+        item.getItemTag('Exterior')
+    );
+
+    return itemWear === -1 ? null : itemWear + 1;
+}
+
+function parseDescriptions(
+    item: EconItem,
+    schema: Schema,
+    paints: Paints,
+    normalizePainted: boolean,
+    paintsInOptions: string[]
+): ParsedDescriptions {
+    const obj = {
+        craftable: true,
+        effect: null,
+        paintkit: null,
+        target: null,
+        output: null,
+        outputQuality: null,
+        paint: null
+    };
+
+    if (!Array.isArray(item.descriptions)) {
+        return obj;
+    }
+
+    let foundUncraftable = false;
+
+    let containsCaseGlobal = false;
+    let foundUnusual = false;
+
+    let hasCaseCollection = false;
+    let skin: string | null = null;
+    let foundSkin = false;
+
+    let outputIndex = -1;
+
+    let foundPaint = false;
+
+    const descCount = item.descriptions.length;
+
+    for (let i = 1; i < descCount; i++) {
+        if (!foundUncraftable && item.descriptions[i].value === '( Not Usable in Crafting )') {
+            foundUncraftable = true;
+            obj.craftable = false;
+            continue;
+        }
+
+        if (!hasStatClock && item.descriptions[i].value === 'Strange Stat Clock Attached') {
+            hasStatClock = true;
+            continue;
+        }
+
+        if (!containsCaseGlobal && item.descriptions[i].value === 'Case Global Unusual Effect(s)') {
+            containsCaseGlobal = true;
+            continue;
+        }
+
+        if (!foundUnusual && !containsCaseGlobal && item.descriptions[i].value.startsWith('★ Unusual Effect: ')) {
+            foundUnusual = true;
+            obj.effect = schema.getEffectIdByName(item.descriptions[i].value.substring(18));
+            continue;
+        }
+
+        if (!foundSkin && wear !== null) {
+            if (!hasCaseCollection && item.descriptions[i].value.endsWith('Collection')) {
+                hasCaseCollection = true;
+                continue;
+            } else if (
+                hasCaseCollection &&
+                (item.descriptions[i].value.startsWith('✔') || item.descriptions[i].value.startsWith('★'))
+            ) {
+                foundSkin = true;
+                skin = item.descriptions[i].value.substring(1).replace(' War Paint', '').trim();
+                continue;
+            }
+        }
+
+        if (
+            item.descriptions[i].value ==
+            'You will receive all of the following outputs once all of the inputs are fulfilled.'
+        ) {
+            outputIndex = i;
+            continue;
+        }
+
+        if (
+            !normalizePainted &&
+            !foundPaint &&
+            item.descriptions[i].value.startsWith('Paint Color: ') &&
+            item.descriptions[i].color === '756b5e'
+        ) {
+            foundPaint = true;
+            const name = item.descriptions[i].value.replace('Paint Color: ', '').trim();
+
+            if (paintsInOptions.includes(name.toLowerCase())) {
+                isPainted = true;
+                obj.paint = paints[name];
+            }
+            continue;
+        }
+    }
+
+    if (skin === null) {
+        if (hasCaseCollection && item.market_hash_name?.includes('Red Rock Roscoe Pistol')) {
+            paintkit = 0;
+            obj.paintkit = 0;
+        }
+    } else if (foundSkin) {
+        const schemaItem = schema.getItemByDefindex(defindex);
+
+        if (skin.includes('Mk.I')) {
+            paintkit = schema.getSkinIdByName(skin);
+        } else if (schemaItem !== null) {
+            // Remove weapon from skin name
+            paintkit = schema.getSkinIdByName(skin.replace(schemaItem.item_type_name, '').trim());
+        } else {
+            paintkit = schema.getSkinIdByName(skin);
+        }
+
+        obj.paintkit = paintkit;
+    }
+
+    if (outputIndex !== -1) {
+        const output = item.descriptions[outputIndex + 1].value;
+
+        if (killstreak !== 0) {
+            // Killstreak Kit Fabricator
+
+            const name = output
+                .replace(['Killstreak', 'Specialized Killstreak', 'Professional Killstreak'][killstreak - 1], '')
+                .replace('Kit', '')
+                .trim();
+
+            obj.target = schema.getItemByItemName(name).defindex;
+            obj.outputQuality = 6;
+            obj.output = [6527, 6523, 6526][killstreak - 1];
+        } else if (output.includes(' Strangifier')) {
+            // Strangifier Chemistry Set
+
+            const name = output.replace('Strangifier', '').trim();
+
+            obj.target = schema.getItemByItemName(name).defindex;
+            obj.outputQuality = 6;
+            obj.output = 6522;
+        } else if (output.includes("Collector's")) {
+            // Collector's Chemistry Set
+
+            const name = output.replace("Collector's", '').trim();
+
+            obj.outputQuality = 14;
+            obj.output = schema.getItemByItemName(name).defindex;
+        }
+    }
+
+    if (!foundPaint) {
+        if (
+            !item.type?.includes('Tool') &&
+            paintsInOptions.includes('legacy paint') &&
+            item.icon_url?.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
+        ) {
+            isPainted = true;
+            obj.paint = 5801378;
+        }
+    }
+
+    return obj;
 }
 
 /**
@@ -179,94 +357,6 @@ function isFestive(item: EconItem, normalizeFestivizedItems: boolean): boolean {
 }
 
 /**
- * Gets the effect of an item
- * @param item - Item object
- */
-function getEffect(item: EconItem, schema: SchemaManager.Schema): number | null {
-    if (!Array.isArray(item.descriptions)) {
-        return null;
-    }
-
-    if (item.descriptions.some(description => description.value === 'Case Global Unusual Effect(s)')) {
-        return null;
-    }
-
-    const effects = item.descriptions.filter(description => description.value.startsWith('★ Unusual Effect: '));
-    if (effects.length !== 1) {
-        return null;
-    }
-
-    return schema.getEffectIdByName(effects[0].value.substring(18));
-}
-
-/**
- * Gets the wear of an item
- * @param item - Item object
- */
-function getWear(item: EconItem): number | null {
-    const itemWear = ['Factory New', 'Minimal Wear', 'Field-Tested', 'Well-Worn', 'Battle Scarred'].indexOf(
-        item.getItemTag('Exterior')
-    );
-
-    wear = itemWear === -1 ? null : itemWear + 1;
-    return wear;
-}
-
-/**
- * Get skin from item
- * @param item - Item object
- */
-function getPaintKit(item: EconItem, schema: SchemaManager.Schema): number | null {
-    if (wear === null) {
-        return null;
-    }
-
-    if (!Array.isArray(item.descriptions)) {
-        return null;
-    }
-
-    let hasCaseCollection = false;
-    let skin: string | null = null;
-
-    const descriptionsCount = item.descriptions.length;
-
-    for (let i = 0; i < descriptionsCount; i++) {
-        if (!hasCaseCollection && item.descriptions[i].value.endsWith('Collection')) {
-            hasCaseCollection = true;
-        } else if (
-            hasCaseCollection &&
-            (item.descriptions[i].value.startsWith('✔') || item.descriptions[i].value.startsWith('★'))
-        ) {
-            skin = item.descriptions[i].value.substring(1).replace(' War Paint', '').trim();
-            break;
-        }
-    }
-
-    if (skin === null) {
-        if (hasCaseCollection && item.market_hash_name?.includes('Red Rock Roscoe Pistol')) {
-            paintkit = 0;
-            return paintkit;
-        }
-
-        return null;
-    }
-
-    if (skin.includes('Mk.I')) {
-        paintkit = schema.getSkinIdByName(skin);
-        return paintkit;
-    }
-
-    const schemaItem = schema.getItemByDefindex(defindex);
-    // Remove weapon from skin name
-    if (schemaItem !== null) {
-        skin = skin.replace(schemaItem.item_type_name, '').trim();
-    }
-
-    paintkit = schema.getSkinIdByName(skin);
-    return paintkit;
-}
-
-/**
  * Gets the elevated quality of an item
  * @param item - Item object
  * @param normalizeStrangeAsSecondQuality - toggle strange unusual normalization
@@ -280,10 +370,7 @@ function getElevatedQuality(item: EconItem, normalizeStrangeAsSecondQuality: boo
         item.type?.includes('Points Scored');
     const isOtherItemsNotStrangeQuality = item.type?.startsWith('Strange') && quality !== 11;
 
-    if (
-        item.hasDescription('Strange Stat Clock Attached') ||
-        ((isUnusualHat || isOtherItemsNotStrangeQuality) && isNotNormalized)
-    ) {
+    if (hasStatClock || ((isUnusualHat || isOtherItemsNotStrangeQuality) && isNotNormalized)) {
         if (typeof paintkit === 'number') {
             const hasRarityGradeTag = item.tags?.some(
                 tag => tag.category === 'Rarity' && tag.category_name === 'Grade'
@@ -302,77 +389,6 @@ function getElevatedQuality(item: EconItem, normalizeStrangeAsSecondQuality: boo
     } else {
         return null;
     }
-}
-
-function getOutput(
-    item: EconItem,
-    schema: SchemaManager.Schema
-): { target: number | null; output: number | null; outputQuality: number | null } {
-    if (!Array.isArray(item.descriptions)) {
-        return null;
-    }
-
-    let index = -1;
-
-    const descriptionsCount = item.descriptions.length;
-
-    for (let i = 0; i < descriptionsCount; i++) {
-        if (
-            item.descriptions[i].value ==
-            'You will receive all of the following outputs once all of the inputs are fulfilled.'
-        ) {
-            index = i;
-            break;
-        }
-    }
-
-    if (index === -1) {
-        return {
-            target: null,
-            output: null,
-            outputQuality: null
-        };
-    }
-
-    const output = item.descriptions[index + 1].value;
-
-    let target: number | null = null;
-    let outputQuality: number | null = null;
-    let outputDefindex: number | null = null;
-
-    if (killstreak !== 0) {
-        // Killstreak Kit Fabricator
-
-        const name = output
-            .replace(['Killstreak', 'Specialized Killstreak', 'Professional Killstreak'][killstreak - 1], '')
-            .replace('Kit', '')
-            .trim();
-
-        target = schema.getItemByItemName(name).defindex;
-        outputQuality = 6;
-        outputDefindex = [6527, 6523, 6526][killstreak - 1];
-    } else if (output.includes(' Strangifier')) {
-        // Strangifier Chemistry Set
-
-        const name = output.replace('Strangifier', '').trim();
-
-        target = schema.getItemByItemName(name).defindex;
-        outputQuality = 6;
-        outputDefindex = 6522;
-    } else if (output.includes("Collector's")) {
-        // Collector's Chemistry Set
-
-        const name = output.replace("Collector's", '').trim();
-
-        outputQuality = 14;
-        outputDefindex = schema.getItemByItemName(name).defindex;
-    }
-
-    return {
-        target: target,
-        output: outputDefindex,
-        outputQuality: outputQuality
-    };
 }
 
 function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null {
@@ -547,47 +563,6 @@ function getCrateSeries(item: EconItem): number | null {
     } else {
         return null;
     }
-}
-
-function getPainted(
-    item: EconItem,
-    paints: Paints,
-    normalizePainted: boolean,
-    paintsInOptions: string[]
-): number | null {
-    if (normalizePainted) {
-        return null;
-    }
-
-    if (!Array.isArray(item.descriptions)) {
-        return null;
-    }
-
-    const descriptions = item.descriptions;
-    const descriptionCount = descriptions.length;
-
-    for (let i = 0; i < descriptionCount; i++) {
-        if (descriptions[i].value.startsWith('Paint Color: ') && descriptions[i].color === '756b5e') {
-            const name = descriptions[i].value.replace('Paint Color: ', '').trim();
-
-            if (paintsInOptions.includes(name.toLowerCase())) {
-                const paintDecimal = paints[name];
-                isPainted = true;
-                return paintDecimal;
-            }
-        }
-    }
-
-    if (
-        !item.type?.includes('Tool') &&
-        paintsInOptions.includes('legacy paint') &&
-        item.icon_url?.includes('SLcfMQEs5nqWSMU5OD2NwHzHZdmi')
-    ) {
-        isPainted = true;
-        return 5801378;
-    }
-
-    return null;
 }
 
 function getCraftNumber(item: EconItem, schema: Schema, normalizeCraftNumber: boolean): number {
