@@ -16,6 +16,8 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { pure, testPriceKey } from '../../../lib/tools/export';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { AxiosError } from 'axios';
 
 // Bot manager commands
 
@@ -567,12 +569,13 @@ export default class ManagerCommands {
             );
         } else {
             const listings: { [sku: string]: Listing[] } = {};
-            this.bot.listingManager.getListings(false, async err => {
+            this.bot.listingManager.getListings(false, async (err: AxiosError) => {
                 if (err) {
-                    log.error('Unable to refresh listings: ', err);
+                    const e = filterAxiosError(err);
+                    log.error('Unable to refresh listings: ', e);
 
-                    const errStringify = JSON.stringify(err);
-                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                    const errStringify = JSON.stringify(e);
+                    const errMessage = errStringify === '' ? e?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
                         '❌ Unable to refresh listings, please try again later: ' + errMessage

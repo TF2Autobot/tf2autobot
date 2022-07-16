@@ -246,8 +246,9 @@ export default class Bot {
                 if (error?.response?.status === 429) {
                     await new Promise(resolve => setTimeout(resolve, 10000));
                     await check(steamid);
+                } else {
+                    throw err;
                 }
-                throw err;
             }
         }
 
@@ -511,9 +512,9 @@ export default class Bot {
                 log.debug('Running automatic check for missing/mismatch listings...');
 
                 const listings: { [sku: string]: Listing[] } = {};
-                this.listingManager.getListings(false, async err => {
+                this.listingManager.getListings(false, async (err: AxiosError) => {
                     if (err) {
-                        log.warn('Error getting listings on auto-refresh listings operation:', err);
+                        log.warn('Error getting listings on auto-refresh listings operation:', filterAxiosErr(err));
                         setTimeout(() => {
                             this.startAutoRefreshListings();
                         }, 30 * 60 * 1000);
