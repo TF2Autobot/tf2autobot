@@ -10,7 +10,7 @@ import Pricelist from '../Pricelist';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-import filterAxiosErr from '@tf2autobot/filter-axios-error';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 /**
  * An abstract class used for sending offers
@@ -591,7 +591,7 @@ export default abstract class Cart {
                 })
                 .catch((err: AxiosError) => {
                     if (err) {
-                        log.error('Failed requesting user info from backpack.tf: ', filterAxiosErr(err));
+                        log.error('Failed requesting user info from backpack.tf: ', filterAxiosError(err));
                         return resolve(0);
                     }
                 });

@@ -59,7 +59,7 @@ import * as inspect from 'util';
 import { Webhook } from './lib/DiscordWebhook/interfaces';
 import axios, { AxiosError } from 'axios';
 import { uptime } from './lib/tools/time';
-import filterAxiosErr from '@tf2autobot/filter-axios-error';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = !['SIGINT', 'SIGTERM'].includes(signalOrErr as 'SIGINT' | 'SIGTERM' | 'SIGQUIT');
@@ -115,7 +115,7 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                 url: optDW.sendAlert.url.main,
                 data: sendAlertWebhook // axios should automatically set Content-Type header to application/json
             }).catch((err: AxiosError) => {
-                log.error('Error sending webhook on crash', filterAxiosErr(err));
+                log.error('Error sending webhook on crash', filterAxiosError(err));
             });
         }
 

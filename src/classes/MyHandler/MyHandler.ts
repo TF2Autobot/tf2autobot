@@ -47,7 +47,7 @@ import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
-import filterAxiosErr from '@tf2autobot/filter-axios-error';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -2474,7 +2474,7 @@ export default class MyHandler extends Handler {
                     if (err) {
                         log.error(
                             'Failed requesting bot info from backpack.tf, retrying in 5 minutes: ',
-                            filterAxiosErr(err)
+                            filterAxiosError(err)
                         );
                         clearTimeout(this.retryRequest);
 

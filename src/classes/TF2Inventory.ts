@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import TradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import axios, { AxiosError } from 'axios';
 import cheerio from 'cheerio';
-import filterAxiosErr from '@tf2autobot/filter-axios-error';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 // import { uid } from 'rand-token';
 
 type TF2Attribute = {
@@ -123,7 +123,7 @@ export default class TF2Inventory {
                 })
                 .catch((err: AxiosError) => {
                     if (err) {
-                        return reject(filterAxiosErr(err));
+                        return reject(filterAxiosError(err));
                     }
                 });
         });
@@ -169,7 +169,7 @@ export default class TF2Inventory {
                 })
                 .catch((err: AxiosError) => {
                     if (err) {
-                        return reject(filterAxiosErr(err));
+                        return reject(filterAxiosError(err));
                     }
                 });
         });

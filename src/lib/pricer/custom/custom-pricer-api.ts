@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
-import filterAxiosErr from '@tf2autobot/filter-axios-error';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { PricerOptions } from '../../../classes/IPricer';
 
 export interface PricesCurrency {
@@ -107,7 +107,7 @@ export default class CustomPricerApi {
                 })
                 .catch((err: AxiosError) => {
                     if (err) {
-                        reject(filterAxiosErr(err));
+                        reject(filterAxiosError(err));
                     }
                 });
         });

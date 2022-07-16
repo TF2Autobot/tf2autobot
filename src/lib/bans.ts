@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import SteamID from 'steamid';
 import { BPTFGetUserInfo } from '../classes/MyHandler/interfaces';
 import log from '../lib/logger';
-import filterAxiosErr from '@tf2autobot/filter-axios-error';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 let isReptfFailed = false;
 
@@ -163,7 +163,7 @@ async function getFromReptf(
                         return resolve({ isBanned: false });
                     }
 
-                    return reject(filterAxiosErr(err));
+                    return reject(filterAxiosError(err));
                 }
             });
     });
@@ -196,7 +196,7 @@ export function isBptfBanned(steamID: string, bptfApiKey: string, userID: string
             .catch((err: AxiosError) => {
                 if (err) {
                     if (showLog) log.warn('Failed to get data from backpack.tf');
-                    return reject(filterAxiosErr(err));
+                    return reject(filterAxiosError(err));
                 }
             });
     });
@@ -223,7 +223,7 @@ function isSteamRepMarked(steamID: string, showLog = true): Promise<SiteResult> 
                     if (_isBptfSteamRepBanned !== null) {
                         return resolve({ isBanned: _isBptfSteamRepBanned });
                     } else {
-                        return reject(filterAxiosErr(err));
+                        return reject(filterAxiosError(err));
                     }
                 }
             });
@@ -275,7 +275,7 @@ function isMptfBanned(
             .catch((err: AxiosError) => {
                 if (err) {
                     if (showLog) log.warn('Failed to get data from Marketplace.tf');
-                    return reject(filterAxiosErr(err));
+                    return reject(filterAxiosError(err));
                 }
             });
     });
@@ -299,7 +299,7 @@ function isListedUntrusted(steamID: string, showLog = true): Promise<SiteResult>
             .catch((err: AxiosError) => {
                 if (err) {
                     if (showLog) log.warn('Failed to get data from Github');
-                    return reject(filterAxiosErr(err));
+                    return reject(filterAxiosError(err));
                 }
             });
     });

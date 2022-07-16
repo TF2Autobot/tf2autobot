@@ -39,7 +39,7 @@ import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
-import filterAxiosErr from '@tf2autobot/filter-axios-error';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 export default class Bot {
     // Modules and classes
@@ -475,7 +475,7 @@ export default class Bot {
                 })
                 .catch((err: AxiosError) => {
                     if (err) {
-                        return reject(filterAxiosErr(err));
+                        return reject(filterAxiosError(err));
                     }
                 });
         });
@@ -514,7 +514,7 @@ export default class Bot {
                 const listings: { [sku: string]: Listing[] } = {};
                 this.listingManager.getListings(false, async (err: AxiosError) => {
                     if (err) {
-                        log.warn('Error getting listings on auto-refresh listings operation:', filterAxiosErr(err));
+                        log.warn('Error getting listings on auto-refresh listings operation:', filterAxiosError(err));
                         setTimeout(() => {
                             this.startAutoRefreshListings();
                         }, 30 * 60 * 1000);
