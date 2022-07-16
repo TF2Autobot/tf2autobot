@@ -886,7 +886,7 @@ export default class Bot {
                     token: this.options.bptfAccessToken,
                     userID: this.userID,
                     userAgent:
-                        'TF2Autobot' +
+                        `TF2Autobot${this.options.useragentHeaderShowVersion ? `@v${process.env.VERSION}` : ''}` +
                         (this.options.useragentHeaderCustom !== ''
                             ? ` - ${this.options.useragentHeaderCustom}`
                             : ' - Run your own bot for free'),

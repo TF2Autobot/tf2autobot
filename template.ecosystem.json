@@ -20,8 +20,8 @@
 
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
-
                 "USERAGENT_HEADER_CUSTOM": "",
+                "USERAGENT_HEADER_SHOW_VERSION": false,
 
                 "MPTF_API_KEY": "",
                 "DISCORD_BOT_TOKEN": "",
