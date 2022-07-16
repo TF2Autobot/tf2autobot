@@ -959,9 +959,22 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['our', 'their', 'amountIncludeNonPainted'],
                     additionalProperties: false
+                },
+                craftNumber: {
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their'],
+                    additionalProperties: false
                 }
             },
-            required: ['festivized', 'strangeAsSecondQuality', 'painted'],
+            required: ['festivized', 'strangeAsSecondQuality', 'painted', 'craftNumber'],
             additionalProperties: false
         },
         details: {
