@@ -48,6 +48,10 @@ export default class Trades {
 
     private retryFetchInventoryTimeout: NodeJS.Timeout;
 
+    private calledRetryFetchFreq = 0;
+
+    private offerChangedAcc: { offer: TradeOffer; oldState: number; timeTakenToComplete: number }[] = [];
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
     }
@@ -1654,27 +1658,79 @@ export default class Trades {
         // https://github.com/TF2Autobot/tf2autobot/issues/527
         this.bot.client.gamesPlayed([]);
 
-        // Canceled offer, declined countered offer => new item assetid
-        void this.bot.inventoryManager.getInventory
-            .fetch()
-            .then(() => this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete))
-            .catch(err => {
-                log.warn('Error fetching inventory: ', err);
-                log.debug('Retrying to fetch inventory in 30 seconds...');
-                clearTimeout(this.retryFetchInventoryTimeout);
-                this.retryFetchInventory(offer, oldState, timeTakenToComplete);
-            });
-    }
+        this.offerChangedAcc.push({ offer, oldState, timeTakenToComplete });
 
-    private retryFetchInventory(offer: TradeOffer, oldState: number, timeTakenToComplete: number): void {
-        this.retryFetchInventoryTimeout = setTimeout(() => {
-            this.bot.inventoryManager.getInventory
+        if (this.offerChangedAcc.length <= 1) {
+            // Only call `fetch` if accumulated offerChanged is less than or equal to 1
+            // Prevent never ending "The request is a duplicate and the action has already occurred in the pass, ignored this time"
+
+            // Canceled offer, declined countered offer => new item assetid
+            void this.bot.inventoryManager.getInventory
                 .fetch()
-                .then(() => this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete))
+                .then(() => {
+                    if (this.offerChangedAcc.length > 0) {
+                        this.offerChangedAcc.forEach(el => {
+                            this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
+                        });
+
+                        // Reset to empty array
+                        this.offerChangedAcc.length = 0;
+                    }
+                })
                 .catch(err => {
                     log.warn('Error fetching inventory: ', err);
                     log.debug('Retrying to fetch inventory in 30 seconds...');
-                    this.retryFetchInventory(offer, oldState, timeTakenToComplete);
+                    this.calledRetryFetchFreq++;
+
+                    if (this.calledRetryFetchFreq === 1) {
+                        // Only call this once (before reset)
+                        this.retryFetchInventory();
+                    }
+                });
+        }
+    }
+
+    private retryFetchInventory(): void {
+        clearTimeout(this.retryFetchInventoryTimeout);
+        this.retryFetchInventoryTimeout = setTimeout(() => {
+            this.bot.inventoryManager.getInventory
+                .fetch()
+                .then(() => {
+                    if (this.offerChangedAcc.length > 0) {
+                        this.offerChangedAcc.forEach(el => {
+                            this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
+                        });
+
+                        // Reset to empty array
+                        this.offerChangedAcc.length = 0;
+                    }
+
+                    // Reset to 0
+                    this.calledRetryFetchFreq = 0;
+                })
+                .catch(err => {
+                    log.warn('Error fetching inventory: ', err);
+                    log.debug('Retrying to fetch inventory in 30 seconds...');
+                    this.calledRetryFetchFreq++;
+
+                    if (this.calledRetryFetchFreq > 3) {
+                        // If more than 3 times failed, then just proceed with an outdated inventory
+                        if (this.offerChangedAcc.length > 0) {
+                            this.offerChangedAcc.forEach(el => {
+                                this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
+                            });
+
+                            // Reset to empty array
+                            this.offerChangedAcc.length = 0;
+                        }
+
+                        // Reset to 0
+                        this.calledRetryFetchFreq = 0;
+
+                        return;
+                    }
+
+                    this.retryFetchInventory();
                 });
         }, 30 * 1000);
     }
