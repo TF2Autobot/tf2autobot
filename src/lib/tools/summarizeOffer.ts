@@ -152,7 +152,7 @@ export default function summarize(
 }
 
 import SKU from '@tf2autobot/tf2-sku';
-import { replace, testSKU } from '../tools/export';
+import { replace, testPriceKey } from '../tools/export';
 
 function getSummary(
     dict: OurTheirItemsDict,
@@ -170,24 +170,31 @@ function getSummary(
     const summary: string[] = [];
     const properName = bot.options.tradeSummary.showProperName;
 
-    for (const sku in dict) {
-        if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
+    for (const priceKey in dict) {
+        if (!Object.prototype.hasOwnProperty.call(dict, priceKey)) {
             continue;
         }
 
-        const isTF2Items = testSKU(sku);
+        const entry = bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
+        const isTF2Items = testPriceKey(priceKey);
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
-        const amount = typeof dict[sku] === 'object' ? (dict[sku]['amount'] as number) : dict[sku];
+        const amount = typeof dict[priceKey] === 'object' ? (dict[priceKey]['amount'] as number) : dict[priceKey];
+        const sku =
+            type === 'summary-accepted' ? (entry?.sku ?? priceKey).replace(/;p\d+/, '') : entry?.sku ?? priceKey;
+
         const generateName = isTF2Items
-            ? bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')), properName)
-            : sku; // Non-TF2 items
+            ? `${bot.schema.getName(SKU.fromString(sku), properName)}${entry?.id ? ` - ${entry.id}` : ''}`
+            : priceKey; // Non-TF2 items
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
             let oldStock: number | null = 0;
-            const currentStock = bot.inventoryManager.getInventory.getAmount(sku, true, true);
-            const maxStock = bot.pricelist.getPrice(sku, false);
+            const currentStock = bot.inventoryManager.getInventory.getAmount({
+                priceKey,
+                includeNonNormalized: true,
+                tradableOnly: true
+            });
 
             const summaryAccepted = ['summary-accepted'].includes(type);
             const summaryInProcess = ['review-admin', 'summary-accepting', 'summary-countering'].includes(type);
@@ -223,7 +230,7 @@ function getSummary(
                             : summaryInProcess
                             ? currentStock + amount
                             : currentStock
-                    }${maxStock ? `/${maxStock.max}` : ''})`
+                    }${entry ? `/${entry.max}` : ''})`
                 );
             } else {
                 summary.push(
@@ -238,7 +245,7 @@ function getSummary(
                                       : summaryInProcess
                                       ? currentStock + amount
                                       : currentStock
-                              }${maxStock ? `/${maxStock.max}` : ''})`
+                              }${entry ? `/${entry.max}` : ''})`
                     }`
                 );
             }

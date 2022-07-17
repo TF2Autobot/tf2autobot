@@ -6,23 +6,27 @@ import levenshtein from 'js-levenshtein';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import { MinimumItem } from '../../../types/TeamFortress2';
 import Bot from '../../Bot';
-import { Entry } from '../../Pricelist';
+import Pricelist, { Entry } from '../../Pricelist';
 import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
-import { testSKU } from '../../../lib/tools/export';
+import { testPriceKey } from '../../../lib/tools/export';
 
 export function getItemAndAmount(
     steamID: SteamID,
     message: string,
     bot: Bot,
     from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
-): { match: Entry; amount: number } | null {
+): { match: Entry; priceKey: string; amount: number } | null {
     let name = removeLinkProtocol(message);
     let amount = 1;
-    if (/^[-]?\d+$/.test(name.split(' ')[0])) {
+    const args = name.split(' ');
+    if (/^[-]?\d+$/.test(args[0]) && args.length > 2) {
         // Check if the first part of the name is a number, if so, then that is the amount the user wants to trade
-        amount = parseInt(name.split(' ')[0]);
+        amount = parseInt(args[0]);
         name = name.replace(amount.toString(), '').trim();
+    } else if (Pricelist.isAssetId(args[0]) && args.length === 1) {
+        // Check if the only parameter is an assetid
+        name = args[0];
     }
 
     if (1 > amount) {
@@ -53,7 +57,10 @@ export function getItemAndAmount(
         return null;
     }
 
-    let match = testSKU(name) ? bot.pricelist.getPrice(name, true) : bot.pricelist.searchByName(name, true);
+    let priceKey: string;
+    let match = testPriceKey(name)
+        ? bot.pricelist.getPriceBySkuOrAsset({ priceKey: name, onlyEnabled: true })
+        : bot.pricelist.searchByName(name, true);
     if (match !== null && match instanceof Entry && typeof from !== 'undefined') {
         const opt = bot.options.commands;
 
@@ -66,6 +73,13 @@ export function getItemAndAmount(
 
             return null;
         }
+
+        if (Pricelist.isAssetId(name)) {
+            priceKey = name;
+            amount = 1;
+        } else {
+            priceKey = match.sku;
+        }
     }
 
     if (match === null) {
@@ -77,12 +91,12 @@ export function getItemAndAmount(
         // Alternative match search for generic 'Unusual Hat Name' vs 'Sunbeams Hat Name'
         const genericEffect = genericNameAndMatch(name, bot.effects);
         const pricelist = bot.pricelist.getPrices;
-        for (const sku in pricelist) {
-            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+        for (const priceKey in pricelist) {
+            if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey) || Pricelist.isAssetId(priceKey)) {
                 continue;
             }
 
-            const pricedItem = pricelist[sku];
+            const pricedItem = pricelist[priceKey];
             if (pricedItem.name === null) {
                 // This looks impossible, but can occur I guess.
                 // https://github.com/TF2Autobot/tf2autobot/issues/882
@@ -109,24 +123,27 @@ export function getItemAndAmount(
             }
         }
 
-        if (closestMatch === null) {
-            bot.sendMessage(
-                steamID,
+        const notFound = (name: string) => {
+            return (
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
-                    '\n\nAlternatively, please try to:\n• ' +
-                    [
-                        'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
-                        'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
-                        'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
-                        `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
-                        'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
-                        'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
-                        `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
-                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
-                        `If you're entering the sku, make sure it's correct`,
-                        `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
-                    ].join('\n• ')
+                '\n\nAlternatively, please try to:\n• ' +
+                [
+                    'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
+                    'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
+                    'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
+                    `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
+                    'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
+                    'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
+                    `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
+                    `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
+                    `If you're entering the sku, make sure it's correct`,
+                    `Last but not least, if you're trading Skins/War Paint, make sure to put the correct item full name or sku, i.e. Strange Cool Totally Boned Pistol (Minimal Wear)`
+                ].join('\n• ')
             );
+        };
+
+        if (closestMatch === null) {
+            bot.sendMessage(steamID, notFound(name));
 
             return null;
         }
@@ -160,26 +177,11 @@ export function getItemAndAmount(
 
             return {
                 amount: amount,
+                priceKey: closestMatch.sku,
                 match: closestMatch
             };
         } else {
-            bot.sendMessage(
-                steamID,
-                `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
-                    '\n\nAlternatively, please try to:\n• ' +
-                    [
-                        'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
-                        'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
-                        'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
-                        `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
-                        'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
-                        'Check for an exclamation mark (!) i.e. "Bonk! Atomic Punch".',
-                        `If you're trading for uncraftable items, type it i.e. "Non-Craftable Crit-a-Cola".`,
-                        `If you're trading painted items, then includes paint name, such as "Anger (Paint: Australium Gold)".`,
-                        `If you're entering the sku, make sure it's correct`,
-                        `Last but not least, make sure to include pipe character " | " if you're trading Skins/War Paint i.e. Strange Cool Totally Boned | Pistol (Minimal Wear)`
-                    ].join('\n• ')
-            );
+            bot.sendMessage(steamID, notFound(name));
 
             return null;
         }
@@ -202,6 +204,7 @@ export function getItemAndAmount(
 
     return {
         amount: amount,
+        priceKey: priceKey,
         match: match
     };
 }
@@ -211,13 +214,19 @@ export function getItemFromParams(
     params: UnknownDictionaryKnownValues,
     bot: Bot
 ): MinimumItem | null {
+    if (params.id) {
+        const item = bot.inventoryManager.getInventory.findByAssetid(String(params.id));
+        if (null !== item) {
+            return SKU.fromString(item);
+        } else {
+            return null;
+        }
+    }
     const item = SKU.fromString('');
     delete item.craftnumber;
 
     let foundSomething = false;
     if (params.item !== undefined) {
-        foundSomething = true;
-
         const sku = bot.schema.getSkuFromName(params.item as string);
 
         if (sku.includes('null') || sku.includes('undefined')) {
@@ -235,11 +244,10 @@ export function getItemFromParams(
 
         const match: SchemaManager.SchemaItem[] = [];
 
-        const items = bot.schema.raw.schema.items;
-        const itemsCount = items.length;
+        const itemsCount = bot.schema.raw.schema.items.length;
 
         for (let i = 0; i < itemsCount; i++) {
-            const item = items[i];
+            const item = bot.schema.raw.schema.items[i];
 
             if (item.item_name === 'Name Tag' && item.defindex === 2093) {
                 // skip and let it find Name Tag with defindex 5020
@@ -600,13 +608,11 @@ export function getItemFromParams(
     } else if (item.output !== null) {
         // Look for all items that have the same name
         const match: SchemaManager.SchemaItem[] = [];
-
-        const items = bot.schema.raw.schema.items;
         const itemsCount = bot.schema.raw.schema.items.length;
 
         for (let i = 0; i < itemsCount; i++) {
-            if (items[i].item_name === params.name) {
-                match.push(items[i]);
+            if (bot.schema.raw.schema.items[i].item_name === params.name) {
+                match.push(bot.schema.raw.schema.items[i]);
             }
         }
 

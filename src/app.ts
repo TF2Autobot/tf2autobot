@@ -24,8 +24,6 @@ if (process.env.BOT_VERSION !== pjson.version) {
     process.exit(1);
 }
 
-import 'bluebird-global';
-
 import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -59,8 +57,9 @@ const botManager = new BotManager(
 import ON_DEATH from 'death';
 import * as inspect from 'util';
 import { Webhook } from './lib/DiscordWebhook/interfaces';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { uptime } from './lib/tools/time';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = !['SIGINT', 'SIGTERM'].includes(signalOrErr as 'SIGINT' | 'SIGTERM' | 'SIGQUIT');
@@ -115,8 +114,8 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                 method: 'POST',
                 url: optDW.sendAlert.url.main,
                 data: sendAlertWebhook // axios should automatically set Content-Type header to application/json
-            }).catch(err => {
-                log.error('Error sending webhook on crash', err);
+            }).catch((err: AxiosError) => {
+                log.error('Error sending webhook on crash', filterAxiosError(err));
             });
         }
 
@@ -143,20 +142,18 @@ process.on('message', message => {
     }
 });
 
-void botManager.start(options).asCallback(err => {
-    if (err) {
-        throw err;
-    }
-
-    if (options.enableHttpApi) {
-        void import('./classes/HttpManager').then(({ default: HttpManager }) => {
+botManager
+    .start(options)
+    .then(async () => {
+        if (options.enableHttpApi) {
+            const { default: HttpManager } = await import('./classes/HttpManager');
             const httpManager = new HttpManager(options);
-
-            void httpManager.start().asCallback(err => {
-                if (err) {
-                    throw err;
-                }
-            });
-        });
-    }
-});
+            await httpManager.start();
+        }
+    })
+    .catch(err => {
+        if (err) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            throw err instanceof Error ? err : new Error(err);
+        }
+    });

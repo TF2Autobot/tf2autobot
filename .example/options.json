@@ -66,6 +66,10 @@
             "tryingToTake": true
         },
         "autoRemoveIntentSellFailed": true,
+        "autoRemoveAssetidFailed": true,
+        "autoRemoveAssetidSuccess": true,
+        "autoUpdateAssetid": true,
+        "autoResetToAutopriceOnceSold": true,
         "autoAddPaintedItems": true,
         "failedAccept": true,
         "unableToProcessOffer": true,
@@ -86,6 +90,9 @@
             "excludeSKU": []
         },
         "filterCantAfford": {
+            "enable": false
+        },
+        "autoResetToAutopriceOnceSold": {
             "enable": false
         },
         "autoRemoveIntentSell": {
@@ -231,6 +238,10 @@
             "our": true,
             "their": true,
             "amountIncludeNonPainted": false
+        },
+        "craftNumber": {
+            "our": false,
+            "their": false
         }
     },
     "details": {
@@ -484,7 +495,7 @@
         "sendOffer": "",
         "counterOffer": "",
         "welcome": "",
-        "iDontKnowWhatYouMean": "",
+        "commandNotFound": "",
         "success": "",
         "successEscrow": "",
         "halted": "",

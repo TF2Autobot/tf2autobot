@@ -33,37 +33,48 @@ export default class InventoryManager {
     //     return this.amountCanTrade(sku, buying) + (buying ? -diff : diff) < 0;
     // }
 
-    amountCanTrade(sku: string, buying: boolean, generics = false): number {
+    amountCanTrade({
+        priceKey,
+        tradeIntent,
+        getGenericAmount = false
+    }: {
+        priceKey: string;
+        tradeIntent: 'buying' | 'selling';
+        getGenericAmount?: boolean;
+    }): number {
         if (this.inventory === undefined) {
             throw new Error('Inventory has not been set yet');
         }
 
         // Pricelist entry
-        let match = this.pricelist.getPrice(sku, true, false);
-        const matchGeneric = !match && generics ? this.pricelist.getPrice(sku, true, true) : null;
-        match = matchGeneric || match;
+        let match = this.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: true, getGenericPrice: false });
+        const genericMatch =
+            !match && getGenericAmount
+                ? this.pricelist.getPrice({ priceKey, onlyEnabled: true, getGenericPrice: true })
+                : null;
+        match = genericMatch || match;
         // Amount in inventory should only use generic amount if there is a generic sku
-        const amount = matchGeneric
-            ? this.inventory.getAmountOfGenerics(sku, true)
-            : this.inventory.getAmount(sku, true, true);
+        const amount = genericMatch
+            ? this.inventory.getAmountOfGenerics({ genericSkuString: priceKey, tradableOnly: true })
+            : this.inventory.getAmount({ priceKey, includeNonNormalized: true, tradableOnly: true });
 
         if (match === null) {
             // No price for item
             return 0;
         }
 
-        if (buying && match.max === -1) {
+        if ('buying' === tradeIntent && match.max === -1) {
             // We are buying, and we don't have a limit
             return Infinity;
         }
 
-        if (match.intent !== 2 && match.intent !== (buying ? 0 : 1)) {
+        if (match.intent !== 2 && match.intent !== ('buying' === tradeIntent ? 0 : 1)) {
             // We are not buying / selling the item
             return 0;
         }
 
-        let canTrade = match[buying ? 'max' : 'min'] - amount;
-        if (!buying) {
+        let canTrade = match['buying' === tradeIntent ? 'max' : 'min'] - amount;
+        if ('selling' === tradeIntent) {
             canTrade *= -1;
         }
 

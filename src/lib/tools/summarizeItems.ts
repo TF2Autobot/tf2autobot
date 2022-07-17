@@ -2,7 +2,7 @@ import { TradeOffer, Prices } from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
 import Currencies from '@tf2autobot/tf2-currencies';
 import Bot from '../../classes/Bot';
-import { replace, testSKU } from '../tools/export';
+import { replace, testPriceKey } from '../tools/export';
 
 interface Items {
     invalid: string[];
@@ -114,24 +114,26 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
     let buyPrice: string;
     let sellPrice: string;
 
-    for (const sku in prices) {
+    for (const priceKey in prices) {
         let autoprice = 'removed/not listed';
 
-        if (!Object.prototype.hasOwnProperty.call(prices, sku)) {
+        if (!Object.prototype.hasOwnProperty.call(prices, priceKey)) {
             continue;
         }
 
-        const pricelist = bot.pricelist.getPrice(sku, false);
-        if (pricelist !== null) {
-            buyPrice = pricelist.buy.toString();
-            sellPrice = pricelist.sell.toString();
-            autoprice = pricelist.autoprice ? `autopriced${pricelist.isPartialPriced ? ' - ppu' : ''}` : 'manual';
+        const entry = bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
+        if (entry !== null) {
+            buyPrice = entry.buy.toString();
+            sellPrice = entry.sell.toString();
+            autoprice = entry.autoprice ? `autopriced${entry.isPartialPriced ? ' - ppu' : ''}` : 'manual';
         } else {
-            buyPrice = new Currencies(prices[sku].buy).toString();
-            sellPrice = new Currencies(prices[sku].sell).toString();
+            buyPrice = new Currencies(prices[priceKey].buy).toString();
+            sellPrice = new Currencies(prices[priceKey].sell).toString();
         }
 
-        const name = testSKU(sku) ? bot.schema.getName(SKU.fromString(sku), properName) : sku;
+        const name = testPriceKey(priceKey)
+            ? bot.schema.getName(SKU.fromString(entry?.sku ?? priceKey), properName)
+            : priceKey;
 
         toJoin.push(
             `${
