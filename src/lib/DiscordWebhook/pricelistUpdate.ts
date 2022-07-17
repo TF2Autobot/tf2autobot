@@ -1994,7 +1994,7 @@ class PriceUpdateQueue {
                 log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, e);
 
                 /*eslint-disable */
-                if (e.err?.data) {
+                if (typeof e.err?.data !== 'string') {
                     if (e.err.data.message === 'The resource is being rate limited.') {
                         this.sleepTime = e.err.data.retry_after;
                         this.isRateLimited = true;
