@@ -1659,7 +1659,7 @@ export const optionsSchema: jsonschema.Schema = {
                 welcome: {
                     type: 'string'
                 },
-                iDontKnowWhatYouMean: {
+                commandNotFound: {
                     type: 'string'
                 },
                 success: {
@@ -1783,7 +1783,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'sendOffer',
                 'counterOffer',
                 'welcome',
-                'iDontKnowWhatYouMean',
+                'commandNotFound',
                 'success',
                 'successEscrow',
                 'decline',

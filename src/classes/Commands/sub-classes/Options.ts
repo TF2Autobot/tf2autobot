@@ -395,7 +395,7 @@ export default class OptionsCommands {
                             customMessage: {
                                 sendOffer: webhook.sendOffer,
                                 welcome: webhook.welcome,
-                                iDontKnowWhatYouMean: webhook.iDontKnowWhatYouMean,
+                                commandNotFound: webhook.commandNotFound,
                                 success: webhook.success,
                                 successEscrow: webhook.successEscrow
                             }
