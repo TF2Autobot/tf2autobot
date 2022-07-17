@@ -320,7 +320,7 @@ function parseDescriptions(
         }
     }
 
-    if (!foundPaint) {
+    if (!normalizePainted && !foundPaint) {
         if (
             !item.type?.includes('Tool') &&
             paintsInOptions.includes('legacy paint') &&
