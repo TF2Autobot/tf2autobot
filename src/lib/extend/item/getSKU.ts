@@ -206,7 +206,7 @@ function parseDescriptions(
 
     const descCount = item.descriptions.length;
 
-    for (let i = 1; i < descCount; i++) {
+    for (let i = 0; i < descCount; i++) {
         if (!foundUncraftable && item.descriptions[i].value === '( Not Usable in Crafting )') {
             foundUncraftable = true;
             obj.craftable = false;
@@ -320,7 +320,7 @@ function parseDescriptions(
         }
     }
 
-    if (!foundPaint) {
+    if (!normalizePainted && !foundPaint) {
         if (
             !item.type?.includes('Tool') &&
             paintsInOptions.includes('legacy paint') &&
