@@ -1660,9 +1660,12 @@ export default class Trades {
 
         if (
             offer.state === TradeOfferManager.ETradeOfferState['Active'] ||
-            offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
+            offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation'] ||
+            offer.state === TradeOfferManager.ETradeOfferState['Countered'] ||
+            (oldState === TradeOfferManager.ETradeOfferState['Countered'] &&
+                offer.state === TradeOfferManager.ETradeOfferState['Declined'])
         ) {
-            // Offer is active, no need to fetch
+            // Offer is active, or countered, or declined countered, no need to fetch
             // Do nothing
         } else {
             this.offerChangedAcc.push({ offer, oldState, timeTakenToComplete });
@@ -1672,7 +1675,7 @@ export default class Trades {
                 // Only call `fetch` if accumulated offerChanged is less than or equal to 1
                 // Prevent never ending "The request is a duplicate and the action has already occurred in the past, ignored this time"
 
-                // Canceled offer, declined countered offer => new item assetid
+                // Accepted, Invalid trade (possible) => new item assetid
                 log.debug('Fetching our inventory...');
                 return void this.bot.inventoryManager.getInventory
                     .fetch()
