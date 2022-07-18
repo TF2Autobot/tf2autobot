@@ -108,7 +108,7 @@ async function getFromReptf(
 
                 const v = ['bptfBans', 'srBans', 'mpBans'];
                 for (let i = 0; i < v.length; i++) {
-                    if (bans[v[i] as 'bptfBans' | 'srBans' | 'mpBans'].message.includes('Failed to get data')) {
+                    if (bans[v[i] as 'bptfBans' | 'srBans' | 'mpBans']?.message?.includes('Failed to get data')) {
                         throw `Failed to get data (${v[i]})`;
                     }
                 }
