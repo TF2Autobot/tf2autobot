@@ -1714,8 +1714,6 @@ export default class Trades {
                 })
                 .catch(err => {
                     log.warn('Error fetching inventory: ', err);
-                    log.debug('Retrying to fetch inventory in 30 seconds...');
-                    this.calledRetryFetchFreq++;
 
                     if (this.calledRetryFetchFreq > 3) {
                         // If more than 3 times failed, then just proceed with an outdated inventory
@@ -1734,6 +1732,8 @@ export default class Trades {
                         return;
                     }
 
+                    log.debug('Retrying to fetch inventory in 30 seconds...');
+                    this.calledRetryFetchFreq++;
                     this.retryFetchInventory();
                 });
         }, 30 * 1000);
