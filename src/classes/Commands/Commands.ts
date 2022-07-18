@@ -97,12 +97,15 @@ export default class Commands {
         const command = CommandParser.getCommand(message.toLowerCase());
         const isAdmin = this.bot.isAdmin(steamID);
         const isWhitelisted = this.bot.isWhitelisted(steamID);
+        const isInvalidType = steamID.type === 0;
 
         const checkMessage = message.split(' ').filter(word => word.includes(`!${command}`)).length;
 
         if (checkMessage > 1 && !isAdmin) {
             return this.bot.sendMessage(steamID, "⛔ Don't spam");
         }
+
+        log.debug('Read processMessage');
 
         if (message.startsWith('!')) {
             if (command === 'help') {
@@ -112,34 +115,63 @@ export default class Commands {
             } else if (['price', 'pc'].includes(command)) {
                 this.priceCommand(steamID, message);
             } else if (['buy', 'b', 'sell', 's'].includes(command)) {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
                 this.buyOrSellCommand(steamID, message, command as Instant);
             } else if (command === 'buycart') {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
                 this.buyCartCommand(steamID, message);
             } else if (command === 'sellcart') {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
                 this.sellCartCommand(steamID, message);
             } else if (command === 'cart') {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
                 this.cartCommand(steamID);
             } else if (command === 'clearcart') {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
                 this.clearCartCommand(steamID);
             } else if (command === 'checkout') {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
                 this.checkoutCommand(steamID);
             } else if (command === 'cancel') {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
                 this.cancelCommand(steamID);
             } else if (command === 'queue') {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
                 this.queueCommand(steamID);
             } else if (['time', 'uptime', 'pure', 'rate', 'owner', 'discord', 'stock'].includes(command)) {
                 if (command === 'stock') {
                     return this.misc.miscCommand(steamID, command as Misc, message);
                 }
                 this.misc.miscCommand(steamID, command as Misc);
+            } else if (command === 'sku') {
+                this.getSKU(steamID, message);
+            } else if (command === 'message') {
+                if (isInvalidType) {
+                    return this.bot.sendMessage(steamID, '❌ Command not available.');
+                }
+                this.message.message(steamID, message);
             } else if (command === 'paints' && isAdmin) {
                 this.misc.paintsCommand(steamID);
             } else if (command === 'more') {
                 this.help.moreCommand(steamID);
             } else if (command === 'autokeys') {
                 this.manager.autokeysCommand(steamID);
-            } else if (command === 'message') {
-                this.message.message(steamID, message);
             } else if (['craftweapon', 'craftweapons', 'uncraftweapon', 'uncraftweapons'].includes(command)) {
                 void this.misc.weaponCommand(
                     steamID,
@@ -247,8 +279,6 @@ export default class Commands {
                 this.donateCartCommand(steamID);
             } else if (command === 'premium' && isAdmin) {
                 this.buyBPTFPremiumCommand(steamID, message);
-            } else if (command === 'sku' && isAdmin) {
-                this.getSKU(steamID, message);
             } else if (command === 'refreshschema' && isAdmin) {
                 this.manager.refreshSchema(steamID);
             } else if (command === 'crafttoken' && isAdmin) {

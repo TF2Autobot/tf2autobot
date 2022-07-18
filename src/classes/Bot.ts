@@ -1239,9 +1239,6 @@ export default class Bot {
     }
 
     sendMessage(steamID: SteamID | string, message: string): void {
-        const steamID64 = steamID.toString();
-        const friend = this.friends.getFriend(steamID64);
-
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
             if (origMessage instanceof DiscordMessage) {
@@ -1251,6 +1248,9 @@ export default class Bot {
             }
             return;
         }
+
+        const steamID64 = steamID.toString();
+        const friend = this.friends.getFriend(steamID64);
 
         if (!friend) {
             // If not friend, we send message with chatMessage
