@@ -1658,40 +1658,48 @@ export default class Trades {
         // https://github.com/TF2Autobot/tf2autobot/issues/527
         this.bot.client.gamesPlayed([]);
 
-        this.offerChangedAcc.push({ offer, oldState, timeTakenToComplete });
-        log.debug('Accumulated offerChanged: ', this.offerChangedAcc.length);
+        if (
+            offer.state === TradeOfferManager.ETradeOfferState['Active'] ||
+            offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
+        ) {
+            // Offer is active, no need to fetch
+            // Do nothing
+        } else {
+            this.offerChangedAcc.push({ offer, oldState, timeTakenToComplete });
+            log.debug('Accumulated offerChanged: ', this.offerChangedAcc.length);
 
-        if (this.offerChangedAcc.length <= 1) {
-            // Only call `fetch` if accumulated offerChanged is less than or equal to 1
-            // Prevent never ending "The request is a duplicate and the action has already occurred in the past, ignored this time"
+            if (this.offerChangedAcc.length <= 1) {
+                // Only call `fetch` if accumulated offerChanged is less than or equal to 1
+                // Prevent never ending "The request is a duplicate and the action has already occurred in the past, ignored this time"
 
-            // Canceled offer, declined countered offer => new item assetid
-            log.debug('Fetching our inventory...');
-            return void this.bot.inventoryManager.getInventory
-                .fetch()
-                .then(() => {
-                    if (this.offerChangedAcc.length > 0) {
-                        this.offerChangedAcc.forEach(el => {
-                            this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
-                        });
+                // Canceled offer, declined countered offer => new item assetid
+                log.debug('Fetching our inventory...');
+                return void this.bot.inventoryManager.getInventory
+                    .fetch()
+                    .then(() => {
+                        if (this.offerChangedAcc.length > 0) {
+                            this.offerChangedAcc.forEach(el => {
+                                this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
+                            });
 
-                        // Reset to empty array
-                        this.offerChangedAcc.length = 0;
-                    }
-                })
-                .catch(err => {
-                    log.warn('Error fetching inventory: ', err);
-                    log.debug('Retrying to fetch inventory in 30 seconds...');
-                    this.calledRetryFetchFreq++;
+                            // Reset to empty array
+                            this.offerChangedAcc.length = 0;
+                        }
+                    })
+                    .catch(err => {
+                        log.warn('Error fetching inventory: ', err);
+                        log.debug('Retrying to fetch inventory in 30 seconds...');
+                        this.calledRetryFetchFreq++;
 
-                    if (this.calledRetryFetchFreq === 1) {
-                        // Only call this once (before reset)
-                        this.retryFetchInventory();
-                    }
-                });
+                        if (this.calledRetryFetchFreq === 1) {
+                            // Only call this once (before reset)
+                            this.retryFetchInventory();
+                        }
+                    });
+            }
+
+            log.debug('Not fetching inventory this time...');
         }
-
-        log.debug('Not fetching inventory this time...');
     }
 
     private retryFetchInventory(): void {
