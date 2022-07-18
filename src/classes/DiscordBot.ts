@@ -61,12 +61,25 @@ export default class DiscordBot {
         log.info(
             `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
         );
-        if (!this.isDiscordAdmin(message.author.id)) {
-            return; // obey only admins
-        }
 
         if (!this.bot.isReady) {
             this.sendAnswer(message, '🛑 The bot is still booting up, please wait');
+            return;
+        }
+
+        if (!this.isDiscordAdmin(message.author.id)) {
+            try {
+                // Will return default invalid value
+                const dummySteamID = new SteamID(null);
+                dummySteamID.redirectAnswerTo = message;
+                await this.bot.handler.onMessage(dummySteamID, message.content);
+            } catch (err) {
+                log.error(err);
+                message.channel
+                    .send(`❌ Error:\n${JSON.stringify(err)}`)
+                    .catch(err => log.error('Failed to send error message to Discord:', err));
+            }
+
             return;
         }
 
