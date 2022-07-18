@@ -58,6 +58,10 @@ export default class DiscordBot {
             return; // Ignore webhook messages
         }
 
+        if (!message.content.startsWith('!')) {
+            return; // Ignore message that not start with !
+        }
+
         log.info(
             `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
         );
