@@ -17,6 +17,17 @@ export default class MiscCommands {
         this.bot = bot;
     }
 
+    links(SteamID: SteamID): void {
+        const botSteamID = this.bot.client.steamID.getSteamID64();
+
+        this.bot.sendMessage(
+            SteamID,
+            `Steam: <https://steamcommunity.com/profiles/${botSteamID}>` +
+                `\nBackpack.tf: <https://backpack.tf/u/${botSteamID}>` +
+                `\nRep.tf: <https://rep.tf/${botSteamID}>`
+        );
+    }
+
     miscCommand(steamID: SteamID, command: Misc, message?: string): void {
         const opt = this.bot.options.commands[command];
         if (!opt.enable) {

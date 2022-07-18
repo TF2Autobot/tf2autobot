@@ -159,6 +159,8 @@ export default class Commands {
                     return this.misc.miscCommand(steamID, command as Misc, message);
                 }
                 this.misc.miscCommand(steamID, command as Misc);
+            } else if (['link', 'links'].includes(command)) {
+                this.misc.links(steamID);
             } else if (command === 'sku') {
                 this.getSKU(steamID, message);
             } else if (command === 'message') {
