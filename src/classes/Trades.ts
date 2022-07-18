@@ -1659,13 +1659,15 @@ export default class Trades {
         this.bot.client.gamesPlayed([]);
 
         this.offerChangedAcc.push({ offer, oldState, timeTakenToComplete });
+        log.debug('Accumulated offerChanged: ', this.offerChangedAcc.length);
 
         if (this.offerChangedAcc.length <= 1) {
             // Only call `fetch` if accumulated offerChanged is less than or equal to 1
             // Prevent never ending "The request is a duplicate and the action has already occurred in the pass, ignored this time"
 
             // Canceled offer, declined countered offer => new item assetid
-            void this.bot.inventoryManager.getInventory
+            log.debug('Fetching our inventory...');
+            return void this.bot.inventoryManager.getInventory
                 .fetch()
                 .then(() => {
                     if (this.offerChangedAcc.length > 0) {
@@ -1688,6 +1690,8 @@ export default class Trades {
                     }
                 });
         }
+
+        log.debug('Not fetching inventory this time...');
     }
 
     private retryFetchInventory(): void {
