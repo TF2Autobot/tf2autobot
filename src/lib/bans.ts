@@ -106,6 +106,13 @@ async function getFromReptf(
             .then(response => {
                 const bans = response.data as RepTF;
 
+                const v = ['bptfBans', 'srBans', 'mpBans'];
+                for (let i = 0; i < v.length; i++) {
+                    if (bans[v[i] as 'bptfBans' | 'srBans' | 'mpBans'].message.includes('Failed to get data')) {
+                        throw `Failed to get data (${v[i]})`;
+                    }
+                }
+
                 const isBptfBanned = bans.bptfBans ? bans.bptfBans.banned === 'bad' : false;
                 const isSteamRepBanned = bans.srBans ? bans.srBans.banned === 'bad' : false;
                 const isMptfBanned = bans.mpBans ? bans.mpBans.banned === 'bad' : false;
