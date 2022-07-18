@@ -1663,7 +1663,7 @@ export default class Trades {
 
         if (this.offerChangedAcc.length <= 1) {
             // Only call `fetch` if accumulated offerChanged is less than or equal to 1
-            // Prevent never ending "The request is a duplicate and the action has already occurred in the pass, ignored this time"
+            // Prevent never ending "The request is a duplicate and the action has already occurred in the past, ignored this time"
 
             // Canceled offer, declined countered offer => new item assetid
             log.debug('Fetching our inventory...');
