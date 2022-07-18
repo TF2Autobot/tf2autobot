@@ -106,7 +106,7 @@ async function getFromReptf(
             .then(response => {
                 const bans = response.data as RepTF;
 
-                const v = ['bptfBans', 'srBans', 'mpBans'];
+                const v = ['bptfBans', 'srBans'];
                 for (let i = 0; i < v.length; i++) {
                     if (bans[v[i] as 'bptfBans' | 'srBans' | 'mpBans']?.message?.includes('Failed to get data')) {
                         throw `Failed to get data (${v[i]})`;
@@ -123,6 +123,10 @@ async function getFromReptf(
                 };
 
                 if (checkMptf) {
+                    if (bans.mpBans.message === 'Failed to get data') {
+                        throw `Failed to get data (mpBans)`;
+                    }
+
                     bansResult['Marketplace.tf'] = isMptfBanned
                         ? `banned - ${removeHTMLTags(bans.mpBans.message)}`
                         : 'clean';
