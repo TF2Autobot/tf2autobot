@@ -24,7 +24,6 @@ export default class HelpCommands {
                         '!price [amount] <name> - Get the price and stock of an item.',
                         "!sku <Full Item Name|Item's sku> - Get the sku of an item.",
                         "!owner - Get the owner's Steam profile and Backpack.tf links.",
-                        '!message <your message> - Send a message to the owner of the bot.',
                         "!discord - Get a link to join TF2Autobot and/or the owner's discord server.",
                         '!more - Show more available commands list.'
                     ].join('\n- ')
