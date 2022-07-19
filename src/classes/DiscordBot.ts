@@ -71,23 +71,14 @@ export default class DiscordBot {
             return;
         }
 
-        if (!this.isDiscordAdmin(message.author.id)) {
-            try {
+        try {
+            if (!this.isDiscordAdmin(message.author.id)) {
                 // Will return default invalid value
                 const dummySteamID = new SteamID(null);
                 dummySteamID.redirectAnswerTo = message;
-                await this.bot.handler.onMessage(dummySteamID, message.content);
-            } catch (err) {
-                log.error(err);
-                message.channel
-                    .send(`❌ Error:\n${JSON.stringify(err)}`)
-                    .catch(err => log.error('Failed to send error message to Discord:', err));
+                return await this.bot.handler.onMessage(dummySteamID, message.content);
             }
 
-            return;
-        }
-
-        try {
             const adminID = this.getAdminBy(message.author.id);
             adminID.redirectAnswerTo = message;
             await this.bot.handler.onMessage(adminID, message.content);
