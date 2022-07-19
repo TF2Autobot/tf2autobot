@@ -58,12 +58,13 @@ export default class DiscordBot {
             return; // Ignore webhook messages
         }
 
+        if (!message.content.startsWith('!')) {
+            return; // Ignore message that not start with !
+        }
+
         log.info(
             `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
         );
-        if (!this.isDiscordAdmin(message.author.id)) {
-            return; // obey only admins
-        }
 
         if (!this.bot.isReady) {
             this.sendAnswer(message, '🛑 The bot is still booting up, please wait');
@@ -71,6 +72,13 @@ export default class DiscordBot {
         }
 
         try {
+            if (!this.isDiscordAdmin(message.author.id)) {
+                // Will return default invalid value
+                const dummySteamID = new SteamID(null);
+                dummySteamID.redirectAnswerTo = message;
+                return await this.bot.handler.onMessage(dummySteamID, message.content);
+            }
+
             const adminID = this.getAdminBy(message.author.id);
             adminID.redirectAnswerTo = message;
             await this.bot.handler.onMessage(adminID, message.content);

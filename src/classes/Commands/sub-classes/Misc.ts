@@ -8,6 +8,8 @@ import CommandParser from '../../CommandParser';
 import Bot from '../../Bot';
 import { Discord, Stock } from '../../Options';
 import { pure, timeNow, uptime, testPriceKey } from '../../../lib/tools/export';
+import { killstreakersData, sheensData, spellsData } from '../../../lib/data';
+import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -15,6 +17,17 @@ type CraftUncraft = 'craftweapon' | 'uncraftweapon';
 export default class MiscCommands {
     constructor(private readonly bot: Bot) {
         this.bot = bot;
+    }
+
+    links(SteamID: SteamID): void {
+        const botSteamID = this.bot.client.steamID.getSteamID64();
+
+        this.bot.sendMessage(
+            SteamID,
+            `Steam: <https://steamcommunity.com/profiles/${botSteamID}>` +
+                `\nBackpack.tf: <https://backpack.tf/u/${botSteamID}>` +
+                `\nRep.tf: <https://rep.tf/${botSteamID}>`
+        );
     }
 
     miscCommand(steamID: SteamID, command: Misc, message?: string): void {
@@ -98,31 +111,60 @@ export default class MiscCommands {
         } else {
             const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
             let reply = '';
-            let isWithSomething = false;
 
             if (itemNameOrSku !== '!sku') {
-                if (!testPriceKey(itemNameOrSku)) {
-                    // Receive name
-                    const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
-                    if (itemNameOrSku !== '!stock') {
+                // I don't remember why not `!sku` here.
+                let sku: string = itemNameOrSku;
+                if (itemNameOrSku !== '!stock') {
+                    if (!testPriceKey(itemNameOrSku)) {
+                        // Receive name
+                        sku = this.bot.schema.getSkuFromName(itemNameOrSku);
+
                         if (sku.includes('null') || sku.includes('undefined')) {
-                            reply = `/pre Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`;
-                            isWithSomething = true;
-                        } else {
-                            const assetids = this.bot.inventoryManager.getInventory.findBySKU(sku);
-                            reply = `/pre I currently have ${assetids.length} of ${itemNameOrSku} (${sku}).`;
-                            isWithSomething = true;
+                            return this.bot.sendMessage(
+                                steamID,
+                                `/pre ❌ Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`
+                            );
                         }
                     }
-                } else {
-                    // Receive sku
-                    const assetids = this.bot.inventoryManager.getInventory.findBySKU(itemNameOrSku);
-                    const name = this.bot.schema.getName(SKU.fromString(itemNameOrSku), false);
 
-                    reply = `/pre I currently have ${assetids.length} of ${name} (${itemNameOrSku}).`;
-                    isWithSomething = true;
+                    const itemDicts = this.bot.inventoryManager.getInventory.getItems[sku] ?? [];
+                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
+
+                    reply = `/pre I currently have ${itemDicts.length} of ${name} (${sku}).`;
+
+                    const assetids: string[] = [];
+                    if (itemDicts.length > 0) {
+                        const hv: string[] = [];
+                        itemDicts.forEach(item => {
+                            if (item.hv) {
+                                Object.keys(item.hv).forEach(attachment => {
+                                    for (const pSku in item.hv[attachment]) {
+                                        if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
+                                            continue;
+                                        }
+
+                                        const hvName = getAttachmentName(
+                                            attachment,
+                                            pSku,
+                                            this.bot.schema.paints,
+                                            this.bot.strangeParts
+                                        );
+
+                                        hv.push(hvName);
+                                    }
+                                });
+                            }
+
+                            assetids.push(`${item.id}${hv.length > 0 ? ` (${hv.join(', ')})` : ''}`);
+                        });
+                    }
+
+                    reply += assetids.length > 0 ? '\n\nAssetids:\n- ' + assetids.join('\n- ') : '';
+                    return this.bot.sendMessage(steamID, reply);
                 }
             }
+
             const inventory = this.bot.inventoryManager.getInventory;
             const dict = inventory.getItems;
             const items: { amount: number; name: string }[] = [];
@@ -196,7 +238,7 @@ export default class MiscCommands {
             reply += custom
                 ? custom.replace(/%stocklist%/g, stock.join(', \n'))
                 : `${
-                      isWithSomething ? '\n\n' : steamID.redirectAnswerTo instanceof DiscordMessage ? '/pre2' : '/pre '
+                      steamID.redirectAnswerTo instanceof DiscordMessage ? '/pre2' : '/pre '
                   }📜 Here's a list of all the items that I have in my inventory:\n${stock.join(', \n')}`;
 
             if (left > 0) {
@@ -331,4 +373,16 @@ export default class MiscCommands {
         }
         return stock;
     }
+}
+
+function getKeyByValue(object: { [key: string]: any }, value: any): string {
+    return Object.keys(object).find(key => object[key] === value);
+}
+
+function getAttachmentName(attachment: string, pSku: string, paints: Paints, parts: StrangeParts): string {
+    if (attachment === 's') return getKeyByValue(spellsData, pSku);
+    else if (attachment === 'sp') return getKeyByValue(parts, pSku);
+    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSku);
+    else if (attachment === 'ks') return getKeyByValue(sheensData, pSku);
+    else if (attachment === 'p') return getKeyByValue(paints, parseInt(pSku.replace('p', '')));
 }

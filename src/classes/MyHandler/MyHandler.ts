@@ -459,25 +459,39 @@ export default class MyHandler extends Handler {
             return this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
         }
 
-        const steamID64 = steamID.toString();
-        if (!this.bot.friends.isFriend(steamID64)) {
-            return;
+        if (steamID.type !== 0) {
+            const steamID64 = steamID.toString();
+            if (!this.bot.friends.isFriend(steamID64)) {
+                return;
+            }
+
+            const friend = this.bot.friends.getFriend(steamID64);
+
+            if (friend === null) {
+                log.info(`Message from ${steamID64}: ${message}`);
+            } else {
+                log.info(`Message from ${friend.player_name} (${steamID64}): ${message}`);
+            }
+
+            if (this.recentlySentMessage[steamID64] !== undefined && this.recentlySentMessage[steamID64] >= 1) {
+                return;
+            }
+
+            this.recentlySentMessage[steamID64] =
+                (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
+        } else if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
+            if (
+                this.recentlySentMessage[steamID.redirectAnswerTo.author.id] !== undefined &&
+                this.recentlySentMessage[steamID.redirectAnswerTo.author.id] >= 1
+            ) {
+                return;
+            }
+
+            this.recentlySentMessage[steamID.redirectAnswerTo.author.id] =
+                (this.recentlySentMessage[steamID.redirectAnswerTo.author.id] === undefined
+                    ? 0
+                    : this.recentlySentMessage[steamID.redirectAnswerTo.author.id]) + 1;
         }
-
-        const friend = this.bot.friends.getFriend(steamID64);
-
-        if (friend === null) {
-            log.info(`Message from ${steamID64}: ${message}`);
-        } else {
-            log.info(`Message from ${friend.player_name} (${steamID64}): ${message}`);
-        }
-
-        if (this.recentlySentMessage[steamID64] !== undefined && this.recentlySentMessage[steamID64] >= 1) {
-            return;
-        }
-
-        this.recentlySentMessage[steamID64] =
-            (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
 
         await this.commands.processMessage(steamID, message);
     }

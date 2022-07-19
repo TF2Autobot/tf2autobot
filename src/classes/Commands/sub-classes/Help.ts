@@ -11,6 +11,25 @@ export default class HelpCommands {
         const isAdmin = this.bot.isAdmin(steamID);
         const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
 
+        if (steamID instanceof SteamID && steamID.redirectAnswerTo && steamID.type === 0) {
+            return this.bot.sendMessage(
+                steamID,
+                `\nDo not include characters <> nor [ ] - <> means required and [] means optional.` +
+                    "\n\n📜 Here's a list of my commands:" +
+                    '\n- ' +
+                    [
+                        '!help - Get a list of commands.',
+                        '!how2trade - Guide on how to trade with the bot.',
+                        "!links - Links to the bot's Steam, Backpack.tf, and Rep.tf.",
+                        '!price [amount] <name> - Get the price and stock of an item.',
+                        "!sku <Full Item Name|Item's sku> - Get the sku of an item.",
+                        "!owner - Get the owner's Steam profile and Backpack.tf links.",
+                        "!discord - Get a link to join TF2Autobot and/or the owner's discord server.",
+                        '!more - Show more available commands list.'
+                    ].join('\n- ')
+            );
+        }
+
         this.bot.sendMessage(
             steamID,
             `📌 Note 📌${
