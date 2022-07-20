@@ -153,17 +153,20 @@ botManager
     })
     .catch(err => {
         if (err) {
-            if (err instanceof AxiosError) {
-                // if it's Axios error, filter the error
+            // https://stackoverflow.com/questions/30715367/why-can-i-not-throw-inside-a-promise-catch-handler
+            setTimeout(() => {
+                if (err instanceof AxiosError) {
+                    // if it's Axios error, filter the error
 
-                const e = new Error(err.message);
-                e['status'] = err.response?.status;
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                e['data'] = err.response?.data;
+                    const e = new Error(err.message);
+                    e['status'] = err.response?.status;
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    e['data'] = err.response?.data;
 
-                throw e;
-            }
+                    throw e;
+                }
 
-            throw err;
+                throw err;
+            });
         }
     });
