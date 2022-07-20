@@ -153,7 +153,17 @@ botManager
     })
     .catch(err => {
         if (err) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            throw err instanceof Error ? err : new Error(err);
+            if (err instanceof AxiosError) {
+                // if it's Axios error, filter the error
+
+                const e = new Error(err.message);
+                e['status'] = err.response?.status;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                e['data'] = err.response?.data;
+
+                throw e;
+            }
+
+            throw err;
         }
     });
