@@ -314,8 +314,9 @@ export default class Bot {
         return this.halted;
     }
 
-    async halt(): Promise<void> {
+    async halt(): Promise<boolean> {
         this.halted = true;
+        let removeAllListingsFailed = false;
 
         // If we want to show another game here, probably needed new functions like Bot.useMainGame() and Bot.useHaltGame()
         // (and refactor to use everywhere these functions instead of gamesPlayed)
@@ -329,18 +330,23 @@ export default class Bot {
         clearInterval(this.autoRefreshListingsInterval);
 
         log.debug('Removing all listings due to halt mode turned on');
-        await this.listings
-            .removeAll()
-            .catch((err: Error) => log.warn('Failed to remove all listings on enabling halt mode: ', err));
+        await this.listings.removeAll().catch((err: Error) => {
+            log.warn('Failed to remove all listings on enabling halt mode: ', err);
+            removeAllListingsFailed = true;
+        });
+
+        return removeAllListingsFailed;
     }
 
-    async unhalt(): Promise<void> {
+    async unhalt(): Promise<boolean> {
         this.halted = false;
+        let recrateListingsFailed = false;
 
         log.debug('Recreating all listings due to halt mode turned off');
-        await this.listings
-            .redoListings()
-            .catch((err: Error) => log.warn('Failed to recreate all listings on disabling halt mode: ', err));
+        await this.listings.redoListings().catch((err: Error) => {
+            log.warn('Failed to recreate all listings on disabling halt mode: ', err);
+            recrateListingsFailed = true;
+        });
 
         log.debug('Setting status in Steam to "Online"');
         this.client.setPersona(EPersonaState.Online);
@@ -350,6 +356,7 @@ export default class Bot {
 
         // Re-initialize auto-check for missing/mismatching listings
         this.startAutoRefreshListings();
+        return recrateListingsFailed;
     }
 
     private addListener(
