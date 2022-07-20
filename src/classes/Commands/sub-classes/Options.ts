@@ -900,7 +900,7 @@ export default class OptionsCommands {
                     }
                 }
 
-                if (knownParams.discordChat.halt !== undefined) {
+                if (knownParams.discordChat?.halt !== undefined) {
                     if (this.bot.isHalted) {
                         this.bot.discordBot.setPresence('halt');
                     }
