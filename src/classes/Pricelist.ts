@@ -420,6 +420,16 @@ export default class Pricelist extends EventEmitter {
             try {
                 price = await this.priceSource.getPrice(entry.sku);
             } catch (err) {
+                const message =
+                    (err as ErrorRequest).body && (err as ErrorRequest).body.message
+                        ? (err as ErrorRequest).body.message
+                        : (err as ErrorRequest).message;
+
+                if (message.includes('status code 401')) {
+                    // If message include 401 (Unauthorized), let it try again
+                    return this.validateEntry(entry, src, isBulk);
+                }
+
                 throw new Error(
                     `Unable to get current prices for ${entry.sku}: ${
                         (err as ErrorRequest).body && (err as ErrorRequest).body.message
