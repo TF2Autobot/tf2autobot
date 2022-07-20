@@ -508,6 +508,11 @@ export default class Bot {
             () => {
                 const createListingsEnabled = this.options.miscSettings.createListings.enable;
 
+                if (this.halted) {
+                    // Make sure not to run if halted
+                    return;
+                }
+
                 if (this.alreadyExecutedRefreshlist || !createListingsEnabled) {
                     log.debug(
                         `❌ ${
