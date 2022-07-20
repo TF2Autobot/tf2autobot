@@ -488,8 +488,8 @@ export default class ManagerCommands {
         this.bot.sendMessage(
             steamID,
             `✅ The bot is now in halt mode${
-                removeAllListingsFailed ? '(but an error has occur during removing all listings).' : '.'
-            }.`
+                removeAllListingsFailed ? ' (but an error has occur during removing all listings).' : '.'
+            }`
         );
     }
 
