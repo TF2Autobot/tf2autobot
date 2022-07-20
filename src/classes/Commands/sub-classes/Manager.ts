@@ -479,11 +479,18 @@ export default class ManagerCommands {
 
     async haltCommand(steamID: SteamID): Promise<void> {
         if (this.bot.isHalted) {
-            this.bot.sendMessage(steamID, 'Already halted, nothing to halt');
+            this.bot.sendMessage(steamID, 'Already halted, nothing to halt.');
             return;
         }
         this.bot.sendMessage(steamID, '⌛ Halting...');
-        await this.bot.halt();
+
+        const removeAllListingsFailed = await this.bot.halt();
+        this.bot.sendMessage(
+            steamID,
+            `✅ The bot is now in halt mode${
+                removeAllListingsFailed ? '(but an error has occur during removing all listings).' : '.'
+            }.`
+        );
     }
 
     async unhaltCommand(steamID: SteamID): Promise<void> {
@@ -492,7 +499,13 @@ export default class ManagerCommands {
             return;
         }
         this.bot.sendMessage(steamID, '⌛ Unhalting...');
-        await this.bot.unhalt();
+        const recreatedListingsFailed = await this.bot.unhalt();
+        this.bot.sendMessage(
+            steamID,
+            `✅ The bot is no longer in halt mode${
+                recreatedListingsFailed ? ' (but an error has occur during creating listings).' : '.'
+            }`
+        );
     }
 
     haltStatusCommand(steamID: SteamID): void {
