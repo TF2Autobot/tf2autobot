@@ -91,7 +91,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string'
                 }
             },
-            required: ['type', 'name', 'url', 'status'],
+            required: ['type', 'name', 'status'],
             additionalProperties: false
         },
         'discord-webhook-misc': {
