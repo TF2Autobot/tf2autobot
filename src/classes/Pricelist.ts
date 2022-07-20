@@ -416,20 +416,7 @@ export default class Pricelist extends EventEmitter {
 
         if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
-            let price: GetItemPriceResponse;
-            try {
-                price = await this.priceSource.getPrice(entry.sku);
-            } catch (err) {
-                const message =
-                    (err as ErrorRequest).body && (err as ErrorRequest).body.message
-                        ? (err as ErrorRequest).body.message
-                        : (err as ErrorRequest).message;
-
-                if (message.includes('status code 401')) {
-                    // If message include 401 (Unauthorized), let it try again
-                    return this.validateEntry(entry, src, isBulk);
-                }
-
+            const price: GetItemPriceResponse = await this.priceSource.getPrice(entry.sku).catch(err => {
                 throw new Error(
                     `Unable to get current prices for ${entry.sku}: ${
                         (err as ErrorRequest).body && (err as ErrorRequest).body.message
@@ -437,7 +424,7 @@ export default class Pricelist extends EventEmitter {
                             : (err as ErrorRequest).message
                     }`
                 );
-            }
+            });
 
             const newPrices = {
                 buy: new Currencies(price.buy),
