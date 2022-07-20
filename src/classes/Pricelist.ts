@@ -650,10 +650,7 @@ export default class Pricelist extends EventEmitter {
 
         await this.validateEntry(entry, src, isBulk);
 
-        // Remove old price
-        await this.removePrice(priceKey, false);
-
-        // Add new price
+        // Update to new price
         this.prices[priceKey] = entry;
 
         if (emitChange) {
