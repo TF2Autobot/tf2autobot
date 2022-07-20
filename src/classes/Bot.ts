@@ -322,6 +322,9 @@ export default class Bot {
         log.debug('Setting status in Steam to "Snooze"');
         this.client.setPersona(EPersonaState.Snooze);
 
+        log.debug('Settings status in Discord to "idle"');
+        this.discordBot.halt();
+
         log.debug('Removing all listings due to halt mode turned on');
         await this.listings
             .removeAll()
@@ -338,6 +341,9 @@ export default class Bot {
 
         log.debug('Setting status in Steam to "Online"');
         this.client.setPersona(EPersonaState.Online);
+
+        log.debug('Settings status in Discord to "online"');
+        this.discordBot.unhalt();
     }
 
     private addListener(
@@ -991,6 +997,8 @@ export default class Bot {
 
             promise
                 .then(() => {
+                    this.discordBot.setPresence('online');
+
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();

@@ -78,6 +78,22 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['note'],
             additionalProperties: false
         },
+        'discord-chat': {
+            type: 'object',
+            properties: {
+                type: {
+                    type: 'string'
+                },
+                name: {
+                    type: 'string'
+                },
+                status: {
+                    type: 'string'
+                }
+            },
+            required: ['type', 'name', 'status'],
+            additionalProperties: false
+        },
         'discord-webhook-misc': {
             type: 'object',
             properties: {
@@ -1411,6 +1427,17 @@ export const optionsSchema: jsonschema.Schema = {
                 'additionalNotes'
             ],
             additionalProperties: false
+        },
+        discordChat: {
+            type: 'object',
+            properties: {
+                online: {
+                    $ref: '#/definitions/discord-chat'
+                },
+                halt: {
+                    $ref: '#/definitions/discord-chat'
+                }
+            }
         },
         discordWebhook: {
             type: 'object',
