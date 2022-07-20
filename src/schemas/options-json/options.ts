@@ -82,13 +82,15 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 type: {
-                    type: 'string'
+                    type: ['string', 'number'],
+                    enum: ['PLAYING', 0, 'STREAMING', 1, 'LISTENING', 2, 'WATCHING', 3, 'COMPETING', 5]
                 },
                 name: {
                     type: 'string'
                 },
                 status: {
-                    type: 'string'
+                    type: 'string',
+                    enum: ['online', 'idle', 'dnd', 'invisible']
                 }
             },
             required: ['type', 'name', 'status'],
