@@ -325,6 +325,9 @@ export default class Bot {
         log.debug('Settings status in Discord to "idle"');
         this.discordBot.halt();
 
+        // disable auto-check for missing/mismatching listings
+        clearInterval(this.autoRefreshListingsInterval);
+
         log.debug('Removing all listings due to halt mode turned on');
         await this.listings
             .removeAll()
@@ -344,6 +347,9 @@ export default class Bot {
 
         log.debug('Settings status in Discord to "online"');
         this.discordBot.unhalt();
+
+        // Re-initialize auto-check for missing/mismatching listings
+        this.startAutoRefreshListings();
     }
 
     private addListener(
