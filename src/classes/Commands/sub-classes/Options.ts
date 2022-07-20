@@ -894,6 +894,18 @@ export default class OptionsCommands {
                     this.bot.handler.autokeys.check();
                 }
 
+                if (knownParams.discordChat?.online !== undefined) {
+                    if (!this.bot.isHalted) {
+                        this.bot.discordBot.setPresence('online');
+                    }
+                }
+
+                if (knownParams.discordChat.halt !== undefined) {
+                    if (this.bot.isHalted) {
+                        this.bot.discordBot.setPresence('halt');
+                    }
+                }
+
                 if (steamID) {
                     return this.bot.sendMessage(steamID, msg);
                 } else {
