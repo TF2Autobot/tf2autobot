@@ -114,6 +114,7 @@ export default class DiscordBot {
 
     private onClientReady() {
         log.info(`Logged in to Discord as ` + String(this.client.user.tag));
+        this.client.user.setStatus('idle');
 
         // DM chats are not giving messageCreate until first usage. This thing fetches required DM chats.
         this.admins.forEach(admin => {
