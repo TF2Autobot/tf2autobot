@@ -123,6 +123,28 @@ export default class DiscordBot {
         });
     }
 
+    setPresence(type: 'online' | 'halt'): void {
+        const opt = this.bot.options.discordChat[type];
+
+        this.client.user.setPresence({
+            activities: [
+                {
+                    name: opt.name,
+                    type: opt.type
+                }
+            ],
+            status: opt.status
+        });
+    }
+
+    halt(): void {
+        this.setPresence('halt');
+    }
+
+    unhalt(): void {
+        this.setPresence('online');
+    }
+
     isDiscordAdmin(discordID: Snowflake): boolean {
         return this.bot.getAdmins.some(admin => admin.discordID === discordID);
     }
