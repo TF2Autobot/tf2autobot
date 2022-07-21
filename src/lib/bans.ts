@@ -16,8 +16,6 @@ interface SiteResult {
 }
 
 export default class Bans {
-    private readonly repOpt: ReputationCheck;
-
     private _isBptfBanned: boolean = null;
 
     private _isBptfSteamRepBanned: boolean = null;
@@ -34,7 +32,11 @@ export default class Bans {
         private readonly steamID: string,
         private readonly showLog = true
     ) {
-        this.repOpt = this.bot.options.miscSettings.reputationCheck;
+        //
+    }
+
+    private get repOpt(): ReputationCheck {
+        return this.bot.options.miscSettings.reputationCheck;
     }
 
     async isBanned(): Promise<IsBanned> {
