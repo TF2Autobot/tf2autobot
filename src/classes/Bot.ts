@@ -223,7 +223,7 @@ export default class Bot {
     private async checkAdminBanned(): Promise<boolean> {
         let banned = false;
         const check = async (steamid: string) => {
-            const v = new Bans(this, this.userID, steamid);
+            const v = new Bans(this, this.userID, steamid, false);
             const result = await v.isBanned();
             banned = banned ? true : result.isBanned;
         };
