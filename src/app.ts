@@ -160,6 +160,11 @@ botManager
 
                     const e = new Error(err.message);
                     e['status'] = err.response?.status;
+
+                    if (typeof err.response?.data === 'string' && err.response?.data.includes('<html>')) {
+                        throw e;
+                    }
+
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     e['data'] = err.response?.data;
 
