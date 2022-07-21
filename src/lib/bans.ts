@@ -18,8 +18,6 @@ interface SiteResult {
 export default class Bans {
     private readonly repOpt: ReputationCheck;
 
-    private isReptfFailed = false;
-
     private _isBptfBanned: boolean = null;
 
     private _isBptfSteamRepBanned: boolean = null;
@@ -73,45 +71,63 @@ export default class Bans {
         };
 
         if (this.repOpt.reptfAsPrimarySource) {
-            const isBanned = await this.getFromReptf();
+            // If rep.tf as primary, get from reptf first
+            return await this.getFromReptf()
+                .catch(async () => {
+                    // If error, get from each website
+                    const [untrusted, mptf, steamrep, bptf] = await Promise.all([
+                        this.isListedUntrusted(),
+                        this.isMptfBanned(),
+                        this.isSteamRepMarked(),
+                        this.isBptfBanned()
+                    ]);
 
-            if (this.isReptfFailed) {
-                const [bptf, mptf, steamrep, untrusted] = await Promise.all([
-                    this.isBptfBanned(),
-                    this.isMptfBanned(),
-                    this.isSteamRepMarked(),
-                    this.isListedUntrusted()
-                ]);
-                this.isReptfFailed = false;
-
-                return finalize(bptf, mptf, steamrep, untrusted);
-            }
-
-            return isBanned;
-        } else {
-            try {
-                const [bptf, mptf, steamrep, untrusted] = await Promise.all([
-                    this.isBptfBanned(),
-                    this.isMptfBanned(),
-                    this.isSteamRepMarked(),
-                    this.isListedUntrusted()
-                ]);
-
-                return finalize(bptf, mptf, steamrep, untrusted);
-            } catch (err) {
-                if (
-                    (this._isBptfBanned ||
+                    return finalize(bptf, mptf, steamrep, untrusted);
+                })
+                .catch(err => {
+                    // but if still got an error, try check if any cached is true
+                    if (
+                        this._isBptfBanned ||
                         this._isBptfSteamRepBanned ||
                         this._isSteamRepBanned ||
                         this._isCommunityBanned ||
-                        (this.repOpt.checkMptfBanned && this._isMptfBanned)) === true
+                        (this.repOpt.checkMptfBanned && this._isMptfBanned)
+                    ) {
+                        return { isBanned: true };
+                    }
+
+                    // if non is true, we are unsure so then throw error
+                    throw err;
+                });
+        }
+
+        // Else if rep.tf is not as primary, check from each website first
+        return await Promise.all([
+            this.isListedUntrusted(),
+            this.isMptfBanned(),
+            this.isSteamRepMarked(),
+            this.isBptfBanned()
+        ])
+            .then(([untrusted, mptf, steamrep, bptf]) => {
+                // If all success, proceed
+                return finalize(bptf, mptf, steamrep, untrusted);
+            })
+            .catch(async () => {
+                // Else if an error occured, check if any cached is true
+                if (
+                    this._isBptfBanned ||
+                    this._isBptfSteamRepBanned ||
+                    this._isSteamRepBanned ||
+                    this._isCommunityBanned ||
+                    (this.repOpt.checkMptfBanned && this._isMptfBanned)
                 ) {
                     return { isBanned: true };
                 }
 
+                // Else, try get data from Rep.tf, if still error, this will automatically be throw
+                // and should be catch by other
                 return await this.getFromReptf();
-            }
-        }
+            });
     }
 
     private async getFromReptf(): Promise<IsBanned> {
@@ -133,8 +149,17 @@ export default class Bans {
                         }
                     }
 
+                    if (this.repOpt.checkMptfBanned) {
+                        if (bans.mpBans.message === 'Failed to get data') {
+                            throw `Failed to get data (mpBans)`;
+                        }
+                    }
+
                     const isBptfBanned = bans.bptfBans ? bans.bptfBans.banned === 'bad' : false;
+                    this._isBptfBanned = isBptfBanned;
                     const isSteamRepBanned = bans.srBans ? bans.srBans.banned === 'bad' : false;
+                    this._isBptfSteamRepBanned = isSteamRepBanned;
+
                     const isMptfBanned = bans.mpBans ? bans.mpBans.banned === 'bad' : false;
 
                     const bansResult = {
@@ -143,10 +168,7 @@ export default class Bans {
                     };
 
                     if (this.repOpt.checkMptfBanned) {
-                        if (bans.mpBans.message === 'Failed to get data') {
-                            throw `Failed to get data (mpBans)`;
-                        }
-
+                        this._isMptfBanned = isMptfBanned;
                         bansResult['Marketplace.tf'] = isMptfBanned
                             ? `banned - ${removeHTMLTags(bans.mpBans.message)}`
                             : 'clean';
@@ -193,8 +215,6 @@ export default class Bans {
                                     } Steamrep.com...`
                                 );
                             }
-                            this.isReptfFailed = true;
-                            return resolve({ isBanned: false });
                         }
 
                         return reject(filterAxiosError(err));
@@ -259,9 +279,9 @@ export default class Bans {
                         if (this.showLog) log.warn('Failed to get data from SteamRep');
                         if (this._isBptfSteamRepBanned !== null) {
                             return resolve({ isBanned: this._isBptfSteamRepBanned });
-                        } else {
-                            return reject(filterAxiosError(err));
                         }
+
+                        return reject(filterAxiosError(err));
                     }
                 });
         });
