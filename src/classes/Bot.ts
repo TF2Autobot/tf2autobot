@@ -119,6 +119,10 @@ export default class Bot {
 
     public blockedList: Blocked = {};
 
+    private repCache: { [steamid: string]: IsBanned } = {};
+
+    public resetRepCache: NodeJS.Timeout;
+
     private itemStatsWhitelist: SteamID[] = [];
 
     private ready = false;
@@ -216,8 +220,26 @@ export default class Bot {
     }
 
     async checkBanned(steamID: SteamID | string): Promise<IsBanned> {
-        const v = new Bans(this, this.userID, steamID.toString());
-        return await v.isBanned();
+        const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
+        if (this.repCache[steamID64] !== undefined) {
+            // Temporary internal caching
+            log.debug('Got rep from cached data.');
+            return this.repCache[steamID64];
+        }
+
+        const v = new Bans(this, this.userID, steamID64);
+        const isBanned = await v.isBanned();
+
+        this.repCache[steamID64] = isBanned;
+        return isBanned;
+    }
+
+    private initResetCacheInterval(): void {
+        clearInterval(this.resetRepCache);
+        this.resetRepCache = setInterval(() => {
+            // Reset repCache every 12 hours (well, will always reset on restart)
+            this.repCache = {};
+        }, 12 * 60 * 60 * 1000);
     }
 
     private async checkAdminBanned(): Promise<boolean> {
@@ -259,7 +281,7 @@ export default class Bot {
                 .catch(() => {
                     // ignore error
                 });
-        }, 30 * 60 * 1000);
+        }, 12 * 60 * 60 * 1000);
     }
 
     get alertTypes(): string[] {
@@ -1015,6 +1037,7 @@ export default class Bot {
                     this.handler.onReady();
                     this.manager.doPoll();
                     this.startVersionChecker();
+                    this.initResetCacheInterval();
 
                     resolve();
                 })
