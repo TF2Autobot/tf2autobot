@@ -1166,7 +1166,7 @@ interface MiscSettings {
     pricecheckAfterTrade?: OnlyEnable;
 }
 
-interface ReputationCheck {
+export interface ReputationCheck {
     checkMptfBanned?: boolean;
     reptfAsPrimarySource?: boolean;
 }
