@@ -1,9 +1,9 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
-import { sendWebhook } from './utils';
+import { sendWebhook, WebhookError } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
 import { timeNow, uptime } from '../tools/time';
 import Bot from '../../classes/Bot';
+import * as timersPromises from 'timers/promises';
 
 type AlertType =
     | 'lowPure'
@@ -276,6 +276,7 @@ export default function sendAlert(
     };
 
     let url = optDW.sendAlert.url.main;
+    let urlType: UrlType = 'main';
     if (
         [
             'autoUpdatePartialPriceSuccess',
@@ -284,17 +285,20 @@ export default function sendAlert(
             'autoResetPartialPriceBulk',
             'onBulkUpdatePartialPriced',
             'isPartialPriced'
-        ].includes(type)
+        ].includes(type) &&
+        optDW.sendAlert.url.partialPriceUpdate !== ''
     ) {
-        url =
-            optDW.sendAlert.url.partialPriceUpdate !== ''
-                ? optDW.sendAlert.url.partialPriceUpdate
-                : optDW.sendAlert.url.main;
+        urlType = 'ppu';
+        url = optDW.sendAlert.url.partialPriceUpdate;
     }
 
-    sendWebhook(url, sendAlertWebhook, 'alert').catch(err =>
-        log.warn(`❌ Failed to send alert webhook (${type}) to Discord: `, err)
-    );
+    if (urlType === 'main') {
+        AlertQueue.enqueue(url, sendAlertWebhook);
+        return;
+    }
+
+    // I am expecting different url
+    AlertPpuQueue.enqueue(url, sendAlertWebhook);
 }
 
 function generateError(err: any): string {
@@ -305,4 +309,119 @@ function generateError(err: any): string {
               })`
             : (err as Error).message
     }`;
+}
+
+type UrlType = 'main' | 'ppu';
+
+interface Alert {
+    url: string;
+    webhook: Webhook;
+}
+
+// Duplicate Static classes 😣
+
+class AlertQueue {
+    private static alerts: Alert[] = [];
+
+    private static sleepTime = 1000;
+
+    private static isRateLimited = false;
+
+    private static isProcessing = false;
+
+    static enqueue(url: string, webhook: Webhook): void {
+        this.alerts.push({ url, webhook });
+
+        void this.process();
+    }
+
+    private static dequeue(): void {
+        this.alerts.shift();
+    }
+
+    private static async process(): Promise<void> {
+        const alert = this.alerts[0];
+
+        if (alert === undefined || this.isProcessing) {
+            return;
+        }
+
+        this.isProcessing = true;
+
+        if (this.isRateLimited) {
+            this.sleepTime = 1000;
+            this.isRateLimited = false;
+        }
+
+        await timersPromises.setTimeout(this.sleepTime);
+
+        sendWebhook(alert.url, alert.webhook, 'alert')
+            .catch((e: WebhookError) => {
+                if (typeof e.err?.data !== 'string') {
+                    if (e.err.data.message === 'The resource is being rate limited.') {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        this.sleepTime = e.err.data.retry_after;
+                        this.isRateLimited = true;
+                    }
+                }
+            })
+            .finally(() => {
+                this.isProcessing = false;
+                this.dequeue();
+                void this.process();
+            });
+    }
+}
+
+class AlertPpuQueue {
+    private static alerts: Alert[] = [];
+
+    private static sleepTime = 1000;
+
+    private static isRateLimited = false;
+
+    private static isProcessing = false;
+
+    static enqueue(url: string, webhook: Webhook): void {
+        this.alerts.push({ url, webhook });
+
+        void this.process();
+    }
+
+    private static dequeue(): void {
+        this.alerts.shift();
+    }
+
+    private static async process(): Promise<void> {
+        const alert = this.alerts[0];
+
+        if (alert === undefined || this.isProcessing) {
+            return;
+        }
+
+        this.isProcessing = true;
+
+        if (this.isRateLimited) {
+            this.sleepTime = 1000;
+            this.isRateLimited = false;
+        }
+
+        await timersPromises.setTimeout(this.sleepTime);
+
+        sendWebhook(alert.url, alert.webhook, 'alert')
+            .catch((e: WebhookError) => {
+                if (typeof e.err?.data !== 'string') {
+                    if (e.err.data.message === 'The resource is being rate limited.') {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        this.sleepTime = e.err.data.retry_after;
+                        this.isRateLimited = true;
+                    }
+                }
+            })
+            .finally(() => {
+                this.isProcessing = false;
+                this.dequeue();
+                void this.process();
+            });
+    }
 }

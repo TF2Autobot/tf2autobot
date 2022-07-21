@@ -114,6 +114,7 @@ export default class DiscordBot {
 
     private onClientReady() {
         log.info(`Logged in to Discord as ` + String(this.client.user.tag));
+        this.client.user.setStatus('idle');
 
         // DM chats are not giving messageCreate until first usage. This thing fetches required DM chats.
         this.admins.forEach(admin => {
@@ -121,6 +122,28 @@ export default class DiscordBot {
                 log.error('Failed to fetch DM channel with admin:', err);
             });
         });
+    }
+
+    setPresence(type: 'online' | 'halt'): void {
+        const opt = this.bot.options.discordChat[type];
+
+        this.client.user.setPresence({
+            activities: [
+                {
+                    name: opt.name,
+                    type: opt.type
+                }
+            ],
+            status: opt.status
+        });
+    }
+
+    halt(): void {
+        this.setPresence('halt');
+    }
+
+    unhalt(): void {
+        this.setPresence('online');
     }
 
     isDiscordAdmin(discordID: Snowflake): boolean {

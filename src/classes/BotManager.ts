@@ -194,6 +194,9 @@ export default class BotManager {
 
             // Stop check assetid pricelist cache
             clearInterval(this.bot.pricelist?.checkAssetidInPricelistInterval);
+
+            // Stop reset Reputation cache
+            clearInterval(this.bot.resetRepCache);
         }
 
         // Disconnect from socket server to stop price updates

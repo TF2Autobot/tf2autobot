@@ -421,6 +421,18 @@
         },
         "additionalNotes": ""
     },
+    "discordChat": {
+        "online": {
+            "type": "LISTENING",
+            "name": "incoming offers",
+            "status": "online"
+        },
+        "halt": {
+            "type": "PLAYING",
+            "name": "? No, Halted ⛔",
+            "status": "idle"
+        }
+    },
     "discordWebhook": {
         "ownerID": [],
         "displayName": "",

@@ -416,10 +416,7 @@ export default class Pricelist extends EventEmitter {
 
         if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
-            let price: GetItemPriceResponse;
-            try {
-                price = await this.priceSource.getPrice(entry.sku);
-            } catch (err) {
+            const price: GetItemPriceResponse = await this.priceSource.getPrice(entry.sku).catch(err => {
                 throw new Error(
                     `Unable to get current prices for ${entry.sku}: ${
                         (err as ErrorRequest).body && (err as ErrorRequest).body.message
@@ -427,7 +424,7 @@ export default class Pricelist extends EventEmitter {
                             : (err as ErrorRequest).message
                     }`
                 );
-            }
+            });
 
             const newPrices = {
                 buy: new Currencies(price.buy),
@@ -650,10 +647,7 @@ export default class Pricelist extends EventEmitter {
 
         await this.validateEntry(entry, src, isBulk);
 
-        // Remove old price
-        await this.removePrice(priceKey, false);
-
-        // Add new price
+        // Update to new price
         this.prices[priceKey] = entry;
 
         if (emitChange) {

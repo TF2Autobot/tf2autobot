@@ -32,7 +32,7 @@ import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
 
 import log from '../lib/logger';
-import { IsBanned, isBanned } from '../lib/bans';
+import Bans, { IsBanned } from '../lib/bans';
 import { sendStats } from '../lib/DiscordWebhook/export';
 
 import Options from './Options';
@@ -118,6 +118,10 @@ export default class Bot {
     private admins: SteamID[] = [];
 
     public blockedList: Blocked = {};
+
+    private repCache: { [steamid: string]: IsBanned } = {};
+
+    public resetRepCache: NodeJS.Timeout;
 
     private itemStatsWhitelist: SteamID[] = [];
 
@@ -215,23 +219,34 @@ export default class Bot {
         return this.itemStatsWhitelist;
     }
 
-    checkBanned(steamID: SteamID | string): Promise<IsBanned> {
-        return Promise.resolve(
-            isBanned(
-                steamID,
-                this.options.bptfApiKey,
-                this.options.mptfApiKey,
-                this.userID,
-                this.options.miscSettings.reputationCheck.checkMptfBanned,
-                this.options.miscSettings.reputationCheck.reptfAsPrimarySource
-            )
-        );
+    async checkBanned(steamID: SteamID | string): Promise<IsBanned> {
+        const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
+        if (this.repCache[steamID64] !== undefined) {
+            // Temporary internal caching
+            log.debug('Got rep from cached data.');
+            return this.repCache[steamID64];
+        }
+
+        const v = new Bans(this, this.userID, steamID64);
+        const isBanned = await v.isBanned();
+
+        this.repCache[steamID64] = isBanned;
+        return isBanned;
+    }
+
+    private initResetCacheInterval(): void {
+        clearInterval(this.resetRepCache);
+        this.resetRepCache = setInterval(() => {
+            // Reset repCache every 12 hours (well, will always reset on restart)
+            this.repCache = {};
+        }, 12 * 60 * 60 * 1000);
     }
 
     private async checkAdminBanned(): Promise<boolean> {
         let banned = false;
         const check = async (steamid: string) => {
-            const result = await isBanned(steamid, this.options.bptfApiKey, '', null, false, false, false);
+            const v = new Bans(this, this.userID, steamid, false);
+            const result = await v.isBanned();
             banned = banned ? true : result.isBanned;
         };
 
@@ -266,7 +281,7 @@ export default class Bot {
                 .catch(() => {
                     // ignore error
                 });
-        }, 30 * 60 * 1000);
+        }, 12 * 60 * 60 * 1000);
     }
 
     get alertTypes(): string[] {
@@ -314,30 +329,49 @@ export default class Bot {
         return this.halted;
     }
 
-    async halt(): Promise<void> {
+    async halt(): Promise<boolean> {
         this.halted = true;
+        let removeAllListingsFailed = false;
 
         // If we want to show another game here, probably needed new functions like Bot.useMainGame() and Bot.useHaltGame()
         // (and refactor to use everywhere these functions instead of gamesPlayed)
         log.debug('Setting status in Steam to "Snooze"');
         this.client.setPersona(EPersonaState.Snooze);
 
+        log.debug('Settings status in Discord to "idle"');
+        this.discordBot.halt();
+
+        // disable auto-check for missing/mismatching listings
+        clearInterval(this.autoRefreshListingsInterval);
+
         log.debug('Removing all listings due to halt mode turned on');
-        await this.listings
-            .removeAll()
-            .catch((err: Error) => log.warn('Failed to remove all listings on enabling halt mode: ', err));
+        await this.listings.removeAll().catch((err: Error) => {
+            log.warn('Failed to remove all listings on enabling halt mode: ', err);
+            removeAllListingsFailed = true;
+        });
+
+        return removeAllListingsFailed;
     }
 
-    async unhalt(): Promise<void> {
+    async unhalt(): Promise<boolean> {
         this.halted = false;
+        let recrateListingsFailed = false;
 
         log.debug('Recreating all listings due to halt mode turned off');
-        await this.listings
-            .redoListings()
-            .catch((err: Error) => log.warn('Failed to recreate all listings on disabling halt mode: ', err));
+        await this.listings.redoListings().catch((err: Error) => {
+            log.warn('Failed to recreate all listings on disabling halt mode: ', err);
+            recrateListingsFailed = true;
+        });
 
         log.debug('Setting status in Steam to "Online"');
         this.client.setPersona(EPersonaState.Online);
+
+        log.debug('Settings status in Discord to "online"');
+        this.discordBot.unhalt();
+
+        // Re-initialize auto-check for missing/mismatching listings
+        this.startAutoRefreshListings();
+        return recrateListingsFailed;
     }
 
     private addListener(
@@ -488,6 +522,11 @@ export default class Bot {
         this.autoRefreshListingsInterval = setInterval(
             () => {
                 const createListingsEnabled = this.options.miscSettings.createListings.enable;
+
+                if (this.halted) {
+                    // Make sure not to run if halted
+                    return;
+                }
 
                 if (this.alreadyExecutedRefreshlist || !createListingsEnabled) {
                     log.debug(
@@ -991,11 +1030,14 @@ export default class Bot {
 
             promise
                 .then(() => {
+                    this.discordBot.setPresence('online');
+
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
                     this.manager.doPoll();
                     this.startVersionChecker();
+                    this.initResetCacheInterval();
 
                     resolve();
                 })

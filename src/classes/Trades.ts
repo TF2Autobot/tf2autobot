@@ -1680,14 +1680,7 @@ export default class Trades {
                 return void this.bot.inventoryManager.getInventory
                     .fetch()
                     .then(() => {
-                        if (this.offerChangedAcc.length > 0) {
-                            this.offerChangedAcc.forEach(el => {
-                                this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
-                            });
-
-                            // Reset to empty array
-                            this.offerChangedAcc.length = 0;
-                        }
+                        this.onSuccessfulFetch();
                     })
                     .catch(err => {
                         log.warn('Error fetching inventory: ', err);
@@ -1705,20 +1698,24 @@ export default class Trades {
         }
     }
 
+    private onSuccessfulFetch(): void {
+        if (this.offerChangedAcc.length > 0) {
+            this.offerChangedAcc.forEach(el => {
+                this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
+            });
+
+            // Reset to empty array
+            this.offerChangedAcc.length = 0;
+        }
+    }
+
     private retryFetchInventory(): void {
         clearTimeout(this.retryFetchInventoryTimeout);
         this.retryFetchInventoryTimeout = setTimeout(() => {
             this.bot.inventoryManager.getInventory
                 .fetch()
                 .then(() => {
-                    if (this.offerChangedAcc.length > 0) {
-                        this.offerChangedAcc.forEach(el => {
-                            this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
-                        });
-
-                        // Reset to empty array
-                        this.offerChangedAcc.length = 0;
-                    }
+                    this.onSuccessfulFetch();
 
                     // Reset to 0
                     this.calledRetryFetchFreq = 0;
@@ -1728,14 +1725,7 @@ export default class Trades {
 
                     if (this.calledRetryFetchFreq > 3) {
                         // If more than 3 times failed, then just proceed with an outdated inventory
-                        if (this.offerChangedAcc.length > 0) {
-                            this.offerChangedAcc.forEach(el => {
-                                this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
-                            });
-
-                            // Reset to empty array
-                            this.offerChangedAcc.length = 0;
-                        }
+                        this.onSuccessfulFetch();
 
                         // Reset to 0
                         this.calledRetryFetchFreq = 0;

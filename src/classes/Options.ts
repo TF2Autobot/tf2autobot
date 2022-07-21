@@ -465,6 +465,21 @@ export const DEFAULTS: JsonOptions = {
         additionalNotes: ''
     },
 
+    discordChat: {
+        online: {
+            // Default: "Listening to incoming offers"
+            type: 'LISTENING', // LISTENING | PLAYING | COMPETING | WATCHING
+            name: 'incoming offers',
+            status: 'online' // online | idle | dnd | invisible
+        },
+        halt: {
+            // Default: "Playing ? No, Halted ⛔"
+            type: 'PLAYING',
+            name: '? No, Halted ⛔',
+            status: 'idle'
+        }
+    },
+
     discordWebhook: {
         ownerID: [],
         displayName: '',
@@ -1151,7 +1166,7 @@ interface MiscSettings {
     pricecheckAfterTrade?: OnlyEnable;
 }
 
-interface ReputationCheck {
+export interface ReputationCheck {
     checkMptfBanned?: boolean;
     reptfAsPrimarySource?: boolean;
 }
@@ -1515,6 +1530,19 @@ interface ManualReview extends OnlyEnable {
     bannedCheckFailed?: OnlyNote;
     halted: OnlyNote;
     additionalNotes?: string;
+}
+
+// ------------ Discord Chat ---------------
+
+interface DiscordChat {
+    online?: DiscordChatStatus;
+    halt?: DiscordChatStatus;
+}
+
+interface DiscordChatStatus {
+    name: string;
+    type?: 'PLAYING' | 'LISTENING' | 'COMPETING' | 'WATCHING' | 'STREAMING';
+    status?: 'online' | 'idle' | 'dnd' | 'invisible';
 }
 
 // ------------ Discord Webhook ------------
@@ -2011,6 +2039,7 @@ export interface JsonOptions {
     crafting?: Crafting;
     offerReceived?: OfferReceived;
     manualReview?: ManualReview;
+    discordChat?: DiscordChat;
     discordWebhook?: DiscordWebhook;
     customMessage?: CustomMessage;
     commands?: Commands;
