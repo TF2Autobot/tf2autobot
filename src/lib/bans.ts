@@ -138,7 +138,8 @@ export default class Bans {
                 method: 'POST',
                 url: 'https://rep.tf/api/bans?str=' + this.steamID,
                 headers: {
-                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
+                    'User-Agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
                 }
             })
                 .then(response => {
