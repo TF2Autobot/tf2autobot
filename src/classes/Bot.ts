@@ -32,7 +32,7 @@ import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
 
 import log from '../lib/logger';
-import { IsBanned, isBanned } from '../lib/bans';
+import Bans, { IsBanned } from '../lib/bans';
 import { sendStats } from '../lib/DiscordWebhook/export';
 
 import Options from './Options';
@@ -216,22 +216,15 @@ export default class Bot {
     }
 
     checkBanned(steamID: SteamID | string): Promise<IsBanned> {
-        return Promise.resolve(
-            isBanned(
-                steamID,
-                this.options.bptfApiKey,
-                this.options.mptfApiKey,
-                this.userID,
-                this.options.miscSettings.reputationCheck.checkMptfBanned,
-                this.options.miscSettings.reputationCheck.reptfAsPrimarySource
-            )
-        );
+        const v = new Bans(this, this.userID, steamID.toString());
+        return Promise.resolve(v.isBanned());
     }
 
     private async checkAdminBanned(): Promise<boolean> {
         let banned = false;
         const check = async (steamid: string) => {
-            const result = await isBanned(steamid, this.options.bptfApiKey, '', null, false, false, false);
+            const v = new Bans(this, this.userID, steamid);
+            const result = await v.isBanned();
             banned = banned ? true : result.isBanned;
         };
 
