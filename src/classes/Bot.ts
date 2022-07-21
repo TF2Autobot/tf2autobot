@@ -1030,7 +1030,9 @@ export default class Bot {
 
             promise
                 .then(() => {
-                    this.discordBot.setPresence('online');
+                    if (this.options.discordBotToken) {
+                        this.discordBot.setPresence('online');
+                    }
 
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
