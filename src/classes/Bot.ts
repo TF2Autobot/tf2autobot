@@ -215,17 +215,20 @@ export default class Bot {
         return this.itemStatsWhitelist;
     }
 
-    checkBanned(steamID: SteamID | string): Promise<IsBanned> {
-        const v = new Bans(this, this.userID, steamID.toString());
-        return Promise.resolve(v.isBanned());
+    async checkBanned(steamID: SteamID | string): Promise<IsBanned> {
+        let v = new Bans(this, this.userID, steamID.toString());
+        return await v.isBanned().finally(() => {
+            v = undefined;
+        });
     }
 
     private async checkAdminBanned(): Promise<boolean> {
         let banned = false;
         const check = async (steamid: string) => {
-            const v = new Bans(this, this.userID, steamid, false);
+            let v = new Bans(this, this.userID, steamid, false);
             const result = await v.isBanned();
             banned = banned ? true : result.isBanned;
+            v = undefined;
         };
 
         const steamids = this.admins.map(steamID => steamID.getSteamID64());
