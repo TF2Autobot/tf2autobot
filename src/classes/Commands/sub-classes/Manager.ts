@@ -952,13 +952,6 @@ export default class ManagerCommands {
                     });
                 };
 
-                const abort = (): void => {
-                    // Bring back online
-                    this.bot.client.setPersona(EPersonaState.Online);
-                    this.bot.handler.isUpdatingStatus = false;
-                    this.bot.manager.pollInterval = 5 * 1000;
-                };
-
                 try {
                     // git reset HEAD --hard
                     await exec('git reset HEAD --hard');
@@ -981,7 +974,11 @@ export default class ManagerCommands {
                     await exec('pm2 restart ecosystem.json');
                 } catch (err) {
                     this.bot.sendMessage(steamID, `❌ Error while updating the bot: ${JSON.stringify(err)}`);
-                    return abort();
+                    // Bring back to online
+                    this.bot.client.setPersona(EPersonaState.Online);
+                    this.bot.handler.isUpdatingStatus = false;
+                    this.bot.manager.pollInterval = 5 * 1000;
+                    return;
                 }
             })
             .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));

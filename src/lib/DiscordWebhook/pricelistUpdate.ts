@@ -1982,12 +1982,12 @@ class PriceUpdateQueue {
 
         this.isProcessing = true;
 
+        await timersPromises.setTimeout(this.sleepTime);
+
         if (this.isRateLimited) {
             this.sleepTime = 1000;
             this.isRateLimited = false;
         }
-
-        await timersPromises.setTimeout(this.sleepTime);
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
             .catch((e: WebhookError) => {
