@@ -249,7 +249,9 @@ export default class MyHandler extends Handler {
         this.botSteamID = this.bot.client.steamID;
 
         // Get Premium info from backpack.tf
-        void this.getBPTFAccountInfo();
+        this.getBPTFAccountInfo().catch(() => {
+            // Ignore error
+        });
 
         if (this.isCraftingManual === false) {
             // Smelt / combine metal if needed
@@ -2493,7 +2495,9 @@ export default class MyHandler extends Handler {
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
-                            void this.getBPTFAccountInfo();
+                            void this.getBPTFAccountInfo().catch(() => {
+                                // ignore error
+                            });
                         }, 5 * 60 * 1000);
                         return reject();
                     }

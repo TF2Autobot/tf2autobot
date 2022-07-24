@@ -348,12 +348,12 @@ class AlertQueue {
 
         this.isProcessing = true;
 
+        await timersPromises.setTimeout(this.sleepTime);
+
         if (this.isRateLimited) {
             this.sleepTime = 1000;
             this.isRateLimited = false;
         }
-
-        await timersPromises.setTimeout(this.sleepTime);
 
         sendWebhook(alert.url, alert.webhook, 'alert')
             .catch((e: WebhookError) => {
@@ -401,12 +401,12 @@ class AlertPpuQueue {
 
         this.isProcessing = true;
 
+        await timersPromises.setTimeout(this.sleepTime);
+
         if (this.isRateLimited) {
             this.sleepTime = 1000;
             this.isRateLimited = false;
         }
-
-        await timersPromises.setTimeout(this.sleepTime);
 
         sendWebhook(alert.url, alert.webhook, 'alert')
             .catch((e: WebhookError) => {
