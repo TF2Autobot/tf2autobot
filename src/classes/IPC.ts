@@ -46,8 +46,11 @@ export default class ipcHandler extends IPC {
             this.config.networkHost = this.options.tlsHost;
             this.config.networkPort = this.options.tlsPort;
             if (!fs.existsSync(this.publicKey) || !fs.existsSync(this.privateKey)) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const { certificate, privateKey } = generateCert();
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 fs.writeFileSync(this.publicKey, certificate);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 fs.writeFileSync(this.privateKey, privateKey);
             }
 
@@ -102,7 +105,7 @@ export default class ipcHandler extends IPC {
         }
         priceKey = priceKey ? priceKey : (item.sku as string);
         this.bot.pricelist
-            .addPrice(priceKey, item as EntryData, true)
+            .addPrice({ entryData: item as EntryData, emitChange: true })
             .then(item => {
                 this.ourServer.emit('itemAdded', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
@@ -120,7 +123,7 @@ export default class ipcHandler extends IPC {
         }
         priceKey = priceKey ? priceKey : (item.sku as string);
         this.bot.pricelist
-            .updatePrice(priceKey, item as EntryData, true)
+            .updatePrice({ priceKey, entryData: item as EntryData, emitChange: true })
             .then(item => {
                 this.ourServer.emit('itemUpdated', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
@@ -133,10 +136,7 @@ export default class ipcHandler extends IPC {
         this.bot.pricelist
             .removePrice(priceKey, true)
             .then(item => {
-                this.ourServer.emit(
-                    'itemRemoved',
-                    Object.assign(item, priceKey === item.sku ? {} : { id: priceKey })
-                );
+                this.ourServer.emit('itemRemoved', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
             .catch((e: string) => {
                 this.ourServer.emit('itemRemoved', e);
@@ -160,7 +160,7 @@ export default class ipcHandler extends IPC {
 
     sendPricelist(): void {
         const pricelist = this.bot.pricelist.getPrices;
-        if(pricelist) {
+        if (pricelist) {
             const pricelistMapped = Object.keys(pricelist).map(key => {
                 const item = pricelist[key];
                 if (item.sku !== key) {
