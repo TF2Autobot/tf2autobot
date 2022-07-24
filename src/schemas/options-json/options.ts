@@ -78,6 +78,24 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['note'],
             additionalProperties: false
         },
+        'discord-chat': {
+            type: 'object',
+            properties: {
+                type: {
+                    type: ['string', 'number'],
+                    enum: ['PLAYING', 0, 'STREAMING', 1, 'LISTENING', 2, 'WATCHING', 3, 'COMPETING', 5]
+                },
+                name: {
+                    type: 'string'
+                },
+                status: {
+                    type: 'string',
+                    enum: ['online', 'idle', 'dnd', 'invisible']
+                }
+            },
+            required: ['type', 'name', 'status'],
+            additionalProperties: false
+        },
         'discord-webhook-misc': {
             type: 'object',
             properties: {
@@ -513,6 +531,18 @@ export const optionsSchema: jsonschema.Schema = {
                 autoRemoveIntentSellFailed: {
                     type: 'boolean'
                 },
+                autoRemoveAssetidFailed: {
+                    type: 'boolean'
+                },
+                autoRemoveAssetidSuccess: {
+                    type: 'boolean'
+                },
+                autoUpdateAssetid: {
+                    type: 'boolean'
+                },
+                autoResetToAutopriceOnceSold: {
+                    type: 'boolean'
+                },
                 autoAddPaintedItems: {
                     type: 'boolean'
                 },
@@ -563,6 +593,10 @@ export const optionsSchema: jsonschema.Schema = {
                 'backpackFull',
                 'highValue',
                 'autoRemoveIntentSellFailed',
+                'autoRemoveAssetidFailed',
+                'autoRemoveAssetidSuccess',
+                'autoUpdateAssetid',
+                'autoResetToAutopriceOnceSold',
                 'autoAddPaintedItems',
                 'failedAccept',
                 'unableToProcessOffer',
@@ -595,6 +629,9 @@ export const optionsSchema: jsonschema.Schema = {
                 filterCantAfford: {
                     $ref: '#/definitions/only-enable'
                 },
+                autoResetToAutopriceOnceSold: {
+                    $ref: '#/definitions/only-enable'
+                },
                 autoRemoveIntentSell: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -622,6 +659,7 @@ export const optionsSchema: jsonschema.Schema = {
             required: [
                 'partialPriceUpdate',
                 'filterCantAfford',
+                'autoResetToAutopriceOnceSold',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',
                 'autoAddInvalidUnusual',
@@ -939,9 +977,22 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['our', 'their', 'amountIncludeNonPainted'],
                     additionalProperties: false
+                },
+                craftNumber: {
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their'],
+                    additionalProperties: false
                 }
             },
-            required: ['festivized', 'strangeAsSecondQuality', 'painted'],
+            required: ['festivized', 'strangeAsSecondQuality', 'painted', 'craftNumber'],
             additionalProperties: false
         },
         details: {
@@ -1379,6 +1430,17 @@ export const optionsSchema: jsonschema.Schema = {
             ],
             additionalProperties: false
         },
+        discordChat: {
+            type: 'object',
+            properties: {
+                online: {
+                    $ref: '#/definitions/discord-chat'
+                },
+                halt: {
+                    $ref: '#/definitions/discord-chat'
+                }
+            }
+        },
         discordWebhook: {
             type: 'object',
             properties: {
@@ -1626,7 +1688,7 @@ export const optionsSchema: jsonschema.Schema = {
                 welcome: {
                     type: 'string'
                 },
-                iDontKnowWhatYouMean: {
+                commandNotFound: {
                     type: 'string'
                 },
                 success: {
@@ -1750,7 +1812,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'sendOffer',
                 'counterOffer',
                 'welcome',
-                'iDontKnowWhatYouMean',
+                'commandNotFound',
                 'success',
                 'successEscrow',
                 'decline',

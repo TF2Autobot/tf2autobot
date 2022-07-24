@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from '../../Bot';
 
 export default class HelpCommands {
@@ -10,6 +10,25 @@ export default class HelpCommands {
     async helpCommand(steamID: SteamID): Promise<void> {
         const isAdmin = this.bot.isAdmin(steamID);
         const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
+
+        if (steamID instanceof SteamID && steamID.redirectAnswerTo && steamID.type === 0) {
+            return this.bot.sendMessage(
+                steamID,
+                `\nDo not include characters <> nor [ ] - <> means required and [] means optional.` +
+                    "\n\n📜 Here's a list of my commands:" +
+                    '\n- ' +
+                    [
+                        '!help - Get a list of commands.',
+                        '!how2trade - Guide on how to trade with the bot.',
+                        "!links - Links to the bot's Steam, Backpack.tf, and Rep.tf.",
+                        '!price [amount] <name> - Get the price and stock of an item.',
+                        "!sku <Full Item Name|Item's sku> - Get the sku of an item.",
+                        "!owner - Get the owner's Steam profile and Backpack.tf links.",
+                        "!discord - Get a link to join TF2Autobot and/or the owner's discord server.",
+                        '!more - Show more available commands list.'
+                    ].join('\n- ')
+            );
+        }
 
         this.bot.sendMessage(
             steamID,
@@ -48,22 +67,22 @@ export default class HelpCommands {
         );
 
         if (isAdmin) {
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Pricelist manager ===✨\n- ' +
                     [
                         "!sku <Full Item Name|Item's sku> - Get the sku of an item.",
-                        '!add (sku|item|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+                        '!add (sku|name|defindex|item|id)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
                         '!addbulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk add pricelist entries ➕➕➕',
                         '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently' +
                             ' available in your bot inventory (about 2 seconds every item) 🤖',
                         '!stopautoadd - Stop automatic add items operation 🛑',
-                        '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry 🔄',
+                        '!update (sku|name|defindex|item|id)=<a>&[Listing-parameters] - Update a pricelist entry 🔄',
                         '!updatebulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk update pricelist entries 🔄🔄🔄',
-                        '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry 🔥',
+                        '!remove (sku|name|defindex|item|id)=<a> - Remove a pricelist entry 🔥',
                         '!removebulk (sku|item)=<a><Enter (new line)><second and so on>... - Bulk remove pricelist entries 🔥🔥🔥',
-                        '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
+                        '!get (sku|name|defindex|item|id)=<a> - Get raw information about a pricelist entry',
                         '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
                         '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
                         '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
@@ -71,7 +90,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Bot manager ===✨\n- ' +
@@ -103,7 +122,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Crafting ===✨\n- ' +
@@ -113,7 +132,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Bot status ===✨\n- ' +
@@ -126,7 +145,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Manual review ===✨\n- ' +
@@ -141,7 +160,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Request ===✨\n- ' +
@@ -158,7 +177,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Configuration manager (options.json) ===✨\n- ' +
@@ -169,7 +188,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Misc ===✨\n- ' +

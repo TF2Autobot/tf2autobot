@@ -3,12 +3,14 @@ import dayjs from 'dayjs';
 import SKU from '@tf2autobot/tf2-sku';
 import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { UnknownDictionary } from '../../types/common';
 import Bot from '../Bot';
+import Pricelist from '../Pricelist';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 /**
  * An abstract class used for sending offers
@@ -175,11 +177,11 @@ export default abstract class Cart {
         return this.getGenericCount(sku, s => this.getTheirCount(s));
     }
 
-    addOurItem(sku: string, amount = 1): void {
-        this.our[sku] = this.getOurCount(sku) + amount;
+    addOurItem(priceKey: string, amount = 1): void {
+        this.our[priceKey] = this.getOurCount(priceKey) + amount;
 
-        if (this.our[sku] < 1) {
-            delete this.our[sku];
+        if (this.our[priceKey] < 1) {
+            delete this.our[priceKey];
         }
     }
 
@@ -250,12 +252,19 @@ export default abstract class Cart {
     summarizeOur(): string[] {
         const items: { name: string; amount: number }[] = [];
 
-        for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+        for (const priceKey in this.our) {
+            if (!Object.prototype.hasOwnProperty.call(this.our, priceKey)) {
                 continue;
             }
 
-            items.push({ name: this.bot.schema.getName(SKU.fromString(sku), false), amount: this.our[sku] });
+            let itemName: string;
+            if (Pricelist.isAssetId(priceKey)) {
+                itemName = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey }).name + ` (${priceKey})`;
+            } else {
+                itemName = this.bot.schema.getName(SKU.fromString(priceKey), false);
+            }
+
+            items.push({ name: itemName, amount: this.our[priceKey] });
         }
 
         let summary: string[];
@@ -420,6 +429,17 @@ export default abstract class Cart {
                     const ourNumItems = this.ourItemsCount;
                     const theirNumItems = this.theirItemsCount;
 
+                    if (
+                        theirTotalSlots === 0 ||
+                        !(
+                            (ourUsedSlots + theirNumItems) / ourTotalSlots >= 1 ||
+                            (theirUsedSlots + ourNumItems) / theirTotalSlots >= 1
+                        )
+                    ) {
+                        // Error 15 but failed to get their total slot, or not because inventory was full
+                        return Promise.reject(`An error with code 15 (https://steamerrors.com/15) has occured`);
+                    }
+
                     const dwEnabled =
                         opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '';
 
@@ -486,12 +506,17 @@ export default abstract class Cart {
         let str = isDonating ? '💰 == DONATION CART == 💰' : customTitle ? customTitle : '🛒== YOUR CART ==🛒';
 
         str += `\n\nMy side (items ${isDonating ? 'I will donate' : 'you will receive'}):`;
-        for (const sku in this.our) {
-            if (!Object.prototype.hasOwnProperty.call(this.our, sku)) {
+        for (const priceKey in this.our) {
+            if (!Object.prototype.hasOwnProperty.call(this.our, priceKey)) {
                 continue;
             }
 
-            str += `\n- ${this.our[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
+            str += `\n- ${this.our[priceKey]}x `;
+            if (Pricelist.isAssetId(priceKey)) {
+                str += `${this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false }).name} (${priceKey})`;
+            } else {
+                str += this.bot.schema.getName(SKU.fromString(priceKey), false);
+            }
         }
 
         if (!isDonating) {
@@ -564,9 +589,9 @@ export default abstract class Cart {
 
                     return resolve(totalBackpackSlots);
                 })
-                .catch(err => {
+                .catch((err: AxiosError) => {
                     if (err) {
-                        log.error('Failed requesting user info from backpack.tf: ', err);
+                        log.error('Failed requesting user info from backpack.tf: ', filterAxiosError(err));
                         return resolve(0);
                     }
                 });

@@ -1,10 +1,9 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
-import { sendWebhook } from './utils';
+import { sendWebhook, WebhookError } from './utils';
 import { Webhook } from './interfaces';
-import { uptime } from '../../lib/tools/export';
-import log from '../logger';
-import { timeNow } from '../tools/time';
+import { timeNow, uptime } from '../tools/time';
 import Bot from '../../classes/Bot';
+import * as timersPromises from 'timers/promises';
 
 type AlertType =
     | 'lowPure'
@@ -17,6 +16,9 @@ type AlertType =
     | 'highValuedDisabled'
     | 'highValuedInvalidItems'
     | 'autoRemoveIntentSellFailed'
+    | 'autoRemoveAssetidFailed'
+    | 'autoRemoveAssetidSuccess'
+    | 'autoUpdateAssetid'
     | 'autokeys-failedToDisable'
     | 'autokeys-failedToAdd-bank'
     | 'autokeys-failedToAdd-sell'
@@ -28,6 +30,7 @@ type AlertType =
     | 'escrow-check-failed-not-restart-bptf-down'
     | 'escrow-check-failed-not-restart-steam-maintenance'
     | 'tryingToTake'
+    | 'autoResetToAutopriceOnceSold'
     | 'autoAddPaintedItems'
     | 'autoAddPaintedItemsFailed'
     | 'failed-accept'
@@ -129,6 +132,22 @@ export default function sendAlert(
         title = 'Failed to remove item(s) with intent sell';
         description = msg;
         color = '16711680'; // red
+    } else if (type === 'autoRemoveAssetidFailed') {
+        title = `Failed to remove item with assetid ${items[0]}`;
+        description = msg;
+        color = '16711680'; // red
+    } else if (type === 'autoRemoveAssetidSuccess') {
+        title = `Automatically removed assetid ${items[0]} from price list`;
+        description = msg;
+        color = '32768'; // green
+    } else if (type === 'autoResetToAutopriceOnceSold') {
+        title = `Automatically reset ${items[0]} to autoprice`;
+        description = msg;
+        color = '32768'; // green
+    } else if (type === 'autoUpdateAssetid') {
+        title = `Automatically updated ${items[0]} with ${items[1]} in price list due to rollback`;
+        description = msg;
+        color = '32768'; // green
     } else if (type === 'autoUpdatePartialPriceSuccess') {
         title = '✅ Automatically update partially priced item';
         description = msg;
@@ -223,6 +242,9 @@ export default function sendAlert(
                 'highValuedInvalidItems',
                 'failedRestartError',
                 'autoRemoveIntentSellFailed',
+                'autoRemoveAssetidFailed',
+                'autoRemoveAssetidSuccess',
+                'autoUpdateAssetid',
                 'autokeys-failedToDisable',
                 'autokeys-failedToAdd-bank',
                 'autokeys-failedToAdd-sell',
@@ -254,6 +276,7 @@ export default function sendAlert(
     };
 
     let url = optDW.sendAlert.url.main;
+    let urlType: UrlType = 'main';
     if (
         [
             'autoUpdatePartialPriceSuccess',
@@ -262,17 +285,20 @@ export default function sendAlert(
             'autoResetPartialPriceBulk',
             'onBulkUpdatePartialPriced',
             'isPartialPriced'
-        ].includes(type)
+        ].includes(type) &&
+        optDW.sendAlert.url.partialPriceUpdate !== ''
     ) {
-        url =
-            optDW.sendAlert.url.partialPriceUpdate !== ''
-                ? optDW.sendAlert.url.partialPriceUpdate
-                : optDW.sendAlert.url.main;
+        urlType = 'ppu';
+        url = optDW.sendAlert.url.partialPriceUpdate;
     }
 
-    sendWebhook(url, sendAlertWebhook, 'alert').catch(err =>
-        log.warn(`❌ Failed to send alert webhook (${type}) to Discord: `, err)
-    );
+    if (urlType === 'main') {
+        AlertQueue.enqueue(url, sendAlertWebhook);
+        return;
+    }
+
+    // I am expecting different url
+    AlertPpuQueue.enqueue(url, sendAlertWebhook);
 }
 
 function generateError(err: any): string {
@@ -283,4 +309,119 @@ function generateError(err: any): string {
               })`
             : (err as Error).message
     }`;
+}
+
+type UrlType = 'main' | 'ppu';
+
+interface Alert {
+    url: string;
+    webhook: Webhook;
+}
+
+// Duplicate Static classes 😣
+
+class AlertQueue {
+    private static alerts: Alert[] = [];
+
+    private static sleepTime = 1000;
+
+    private static isRateLimited = false;
+
+    private static isProcessing = false;
+
+    static enqueue(url: string, webhook: Webhook): void {
+        this.alerts.push({ url, webhook });
+
+        void this.process();
+    }
+
+    private static dequeue(): void {
+        this.alerts.shift();
+    }
+
+    private static async process(): Promise<void> {
+        const alert = this.alerts[0];
+
+        if (alert === undefined || this.isProcessing) {
+            return;
+        }
+
+        this.isProcessing = true;
+
+        await timersPromises.setTimeout(this.sleepTime);
+
+        if (this.isRateLimited) {
+            this.sleepTime = 1000;
+            this.isRateLimited = false;
+        }
+
+        sendWebhook(alert.url, alert.webhook, 'alert')
+            .catch((e: WebhookError) => {
+                if (typeof e.err?.data !== 'string') {
+                    if (e.err.data.message === 'The resource is being rate limited.') {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        this.sleepTime = e.err.data.retry_after;
+                        this.isRateLimited = true;
+                    }
+                }
+            })
+            .finally(() => {
+                this.isProcessing = false;
+                this.dequeue();
+                void this.process();
+            });
+    }
+}
+
+class AlertPpuQueue {
+    private static alerts: Alert[] = [];
+
+    private static sleepTime = 1000;
+
+    private static isRateLimited = false;
+
+    private static isProcessing = false;
+
+    static enqueue(url: string, webhook: Webhook): void {
+        this.alerts.push({ url, webhook });
+
+        void this.process();
+    }
+
+    private static dequeue(): void {
+        this.alerts.shift();
+    }
+
+    private static async process(): Promise<void> {
+        const alert = this.alerts[0];
+
+        if (alert === undefined || this.isProcessing) {
+            return;
+        }
+
+        this.isProcessing = true;
+
+        await timersPromises.setTimeout(this.sleepTime);
+
+        if (this.isRateLimited) {
+            this.sleepTime = 1000;
+            this.isRateLimited = false;
+        }
+
+        sendWebhook(alert.url, alert.webhook, 'alert')
+            .catch((e: WebhookError) => {
+                if (typeof e.err?.data !== 'string') {
+                    if (e.err.data.message === 'The resource is being rate limited.') {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        this.sleepTime = e.err.data.retry_after;
+                        this.isRateLimited = true;
+                    }
+                }
+            })
+            .finally(() => {
+                this.isProcessing = false;
+                this.dequeue();
+                void this.process();
+            });
+    }
 }

@@ -78,6 +78,10 @@ export const DEFAULTS: JsonOptions = {
             tryingToTake: true
         },
         autoRemoveIntentSellFailed: true,
+        autoRemoveAssetidFailed: true,
+        autoRemoveAssetidSuccess: true,
+        autoUpdateAssetid: true,
+        autoResetToAutopriceOnceSold: true,
         autoAddPaintedItems: true,
         failedAccept: true,
         unableToProcessOffer: true,
@@ -99,6 +103,9 @@ export const DEFAULTS: JsonOptions = {
             excludeSKU: []
         },
         filterCantAfford: {
+            enable: false
+        },
+        autoResetToAutopriceOnceSold: {
             enable: false
         },
         autoRemoveIntentSell: {
@@ -248,6 +255,10 @@ export const DEFAULTS: JsonOptions = {
             our: true,
             their: true,
             amountIncludeNonPainted: false
+        },
+        craftNumber: {
+            our: false,
+            their: false
         }
     },
 
@@ -454,6 +465,21 @@ export const DEFAULTS: JsonOptions = {
         additionalNotes: ''
     },
 
+    discordChat: {
+        online: {
+            // Default: "Listening to incoming offers"
+            type: 'LISTENING', // LISTENING | PLAYING | COMPETING | WATCHING
+            name: 'incoming offers',
+            status: 'online' // online | idle | dnd | invisible
+        },
+        halt: {
+            // Default: "Playing ? No, Halted ⛔"
+            type: 'PLAYING',
+            name: '? No, Halted ⛔',
+            status: 'idle'
+        }
+    },
+
     discordWebhook: {
         ownerID: [],
         displayName: '',
@@ -529,7 +555,7 @@ export const DEFAULTS: JsonOptions = {
         sendOffer: '',
         counterOffer: '',
         welcome: '',
-        iDontKnowWhatYouMean: '',
+        commandNotFound: '',
         success: '',
         successEscrow: '',
         halted: '',
@@ -1140,7 +1166,7 @@ interface MiscSettings {
     pricecheckAfterTrade?: OnlyEnable;
 }
 
-interface ReputationCheck {
+export interface ReputationCheck {
     checkMptfBanned?: boolean;
     reptfAsPrimarySource?: boolean;
 }
@@ -1157,6 +1183,10 @@ interface SendAlert extends OnlyEnable {
     backpackFull?: boolean;
     highValue?: HighValueAlert;
     autoRemoveIntentSellFailed?: boolean;
+    autoRemoveAssetidFailed?: boolean;
+    autoRemoveAssetidSuccess?: boolean;
+    autoUpdateAssetid?: boolean;
+    autoResetToAutopriceOnceSold?: boolean;
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
@@ -1191,6 +1221,7 @@ interface HighValueAlert {
 interface Pricelist {
     partialPriceUpdate?: PartialPriceUpdate;
     filterCantAfford?: OnlyEnable;
+    autoResetToAutopriceOnceSold?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
     autoAddInvalidUnusual?: OnlyEnable;
@@ -1306,6 +1337,7 @@ interface Normalize {
     festivized?: NormalizeFestivized;
     strangeAsSecondQuality?: NormalizeStrange;
     painted?: NormalizePainted;
+    craftNumber?: NormalizeOurOrTheir;
 }
 
 interface NormalizeOurOrTheir {
@@ -1500,6 +1532,19 @@ interface ManualReview extends OnlyEnable {
     additionalNotes?: string;
 }
 
+// ------------ Discord Chat ---------------
+
+interface DiscordChat {
+    online?: DiscordChatStatus;
+    halt?: DiscordChatStatus;
+}
+
+interface DiscordChatStatus {
+    name: string;
+    type?: 'PLAYING' | 'LISTENING' | 'COMPETING' | 'WATCHING' | 'STREAMING';
+    status?: 'online' | 'idle' | 'dnd' | 'invisible';
+}
+
 // ------------ Discord Webhook ------------
 
 interface DiscordWebhook {
@@ -1587,7 +1632,7 @@ interface CustomMessage {
     sendOffer?: string;
     counterOffer?: string;
     welcome?: string;
-    iDontKnowWhatYouMean?: string;
+    commandNotFound?: string;
     success?: string;
     successEscrow?: string;
     halted?: string;
@@ -1994,6 +2039,7 @@ export interface JsonOptions {
     crafting?: Crafting;
     offerReceived?: OfferReceived;
     manualReview?: ManualReview;
+    discordChat?: DiscordChat;
     discordWebhook?: DiscordWebhook;
     customMessage?: CustomMessage;
     commands?: Commands;
@@ -2009,10 +2055,12 @@ export default interface Options extends JsonOptions {
     bptfAccessToken?: string;
     bptfApiKey?: string;
     useragentHeaderCustom?: string;
+    useragentHeaderShowVersion?: boolean;
 
     mptfApiKey?: string;
+    discordBotToken?: string;
 
-    admins?: string[];
+    admins?: adminData[];
     keep?: string[];
     itemStatsWhitelist?: string[];
     groups?: string[];
@@ -2043,6 +2091,11 @@ export default interface Options extends JsonOptions {
     tls?: boolean;
     tlsHost?: string;
     tlsPort?: number;
+}
+
+export interface adminData {
+    steam: string;
+    discord?: string;
 }
 
 function getOption<T>(option: string, def: T, parseFn: (target: string) => T, options?: Options): T {
@@ -2274,6 +2327,17 @@ function replaceOldProperties(options: Options): boolean {
     }
     /*eslint-enable */
 
+    // <=v4.16.2 -> v5.0.0
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.customMessage?.iDontKnowWhatYouMean !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.customMessage.iDontKnowWhatYouMean;
+        options.customMessage['commandNotFound'] = '';
+        isChanged = true;
+    }
+
     return isChanged;
 }
 
@@ -2285,6 +2349,7 @@ export function loadOptions(options?: Options): Options {
     const jsonParseArray = (jsonString: string): string[] => JSON.parse(jsonString) as unknown as string[];
     const jsonParseBoolean = (jsonString: string): boolean => JSON.parse(jsonString) as unknown as boolean;
     const jsonParseNumber = (jsonString: string): number => JSON.parse(jsonString) as unknown as number;
+    const jsonParseAdminData = (jsonString: string): adminData[] => JSON.parse(jsonString) as unknown as adminData[];
 
     const envOptions = {
         steamAccountName: steamAccountName,
@@ -2295,10 +2360,12 @@ export function loadOptions(options?: Options): Options {
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
         bptfApiKey: getOption('bptfApiKey', '', String, incomingOptions),
         useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
+        useragentHeaderShowVersion: getOption('useragentHeaderShowVersion', false, jsonParseBoolean, incomingOptions),
 
         mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
+        discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
 
-        admins: getOption('admins', [], jsonParseArray, incomingOptions),
+        admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
         itemStatsWhitelist: getOption('itemStatsWhitelist', [], jsonParseArray, incomingOptions),
         groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),

@@ -66,6 +66,10 @@
             "tryingToTake": true
         },
         "autoRemoveIntentSellFailed": true,
+        "autoRemoveAssetidFailed": true,
+        "autoRemoveAssetidSuccess": true,
+        "autoUpdateAssetid": true,
+        "autoResetToAutopriceOnceSold": true,
         "autoAddPaintedItems": true,
         "failedAccept": true,
         "unableToProcessOffer": true,
@@ -86,6 +90,9 @@
             "excludeSKU": []
         },
         "filterCantAfford": {
+            "enable": false
+        },
+        "autoResetToAutopriceOnceSold": {
             "enable": false
         },
         "autoRemoveIntentSell": {
@@ -231,6 +238,10 @@
             "our": true,
             "their": true,
             "amountIncludeNonPainted": false
+        },
+        "craftNumber": {
+            "our": false,
+            "their": false
         }
     },
     "details": {
@@ -410,6 +421,18 @@
         },
         "additionalNotes": ""
     },
+    "discordChat": {
+        "online": {
+            "type": "LISTENING",
+            "name": "incoming offers",
+            "status": "online"
+        },
+        "halt": {
+            "type": "PLAYING",
+            "name": "? No, Halted ⛔",
+            "status": "idle"
+        }
+    },
     "discordWebhook": {
         "ownerID": [],
         "displayName": "",
@@ -484,7 +507,7 @@
         "sendOffer": "",
         "counterOffer": "",
         "welcome": "",
-        "iDontKnowWhatYouMean": "",
+        "commandNotFound": "",
         "success": "",
         "successEscrow": "",
         "halted": "",

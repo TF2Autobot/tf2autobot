@@ -1,5 +1,5 @@
 import SKU from '@tf2autobot/tf2-sku';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
 import TradeOfferManager, {
     TradeOffer,
@@ -15,7 +15,6 @@ import TradeOfferManager, {
 import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import Currencies from '@tf2autobot/tf2-currencies';
-import async from 'async';
 import { UnknownDictionary } from '../../types/common';
 
 import { accepted, declined, cancelled, acceptEscrow, invalid } from './offer/notify/export-notify';
@@ -28,7 +27,7 @@ import { Blocked, BPTFGetUserInfo } from './interfaces';
 
 import Handler, { OnRun } from '../Handler';
 import Bot from '../Bot';
-import { Entry, PricesDataObject, PricesObject } from '../Pricelist';
+import Pricelist, { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
 import Inventory from '../Inventory';
@@ -42,11 +41,13 @@ import { exponentialBackoff } from '../../lib/helpers';
 
 import { noiseMakers } from '../../lib/data';
 import { sendAlert } from '../../lib/DiscordWebhook/export';
-import { summarize, uptime, getHighValueItems, testSKU } from '../../lib/tools/export';
+import { summarize, uptime, getHighValueItems, testPriceKey } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
+import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -174,6 +175,10 @@ export default class MyHandler extends Handler {
 
     private paths: Paths;
 
+    get getPaths(): Paths {
+        return this.paths;
+    }
+
     private isUpdating = false;
 
     set isUpdatingStatus(setStatus: boolean) {
@@ -187,6 +192,8 @@ export default class MyHandler extends Handler {
     private refreshTimeout: NodeJS.Timeout;
 
     private classWeaponsTimeout: NodeJS.Timeout;
+
+    private pollDataInterval: NodeJS.Timeout;
 
     constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
@@ -242,7 +249,9 @@ export default class MyHandler extends Handler {
         this.botSteamID = this.bot.client.steamID;
 
         // Get Premium info from backpack.tf
-        void this.getBPTFAccountInfo();
+        this.getBPTFAccountInfo().catch(() => {
+            // Ignore error
+        });
 
         if (this.isCraftingManual === false) {
             // Smelt / combine metal if needed
@@ -282,6 +291,8 @@ export default class MyHandler extends Handler {
         this.refreshTimeout = setTimeout(() => {
             this.bot.startAutoRefreshListings();
         }, 5 * 60 * 1000);
+
+        this.pollDataInterval = setInterval(this.refreshPollDataPath.bind(this), 24 * 60 * 60 * 1000);
 
         // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
         const failedToUpdateOldPrices = this.bot.pricelist.failedUpdateOldPrices;
@@ -384,6 +395,10 @@ export default class MyHandler extends Handler {
             clearInterval(this.bot.periodicCheckAdmin);
         }
 
+        if (this.pollDataInterval) {
+            clearInterval(this.pollDataInterval);
+        }
+
         return new Promise(resolve => {
             if (this.opt.autokeys.enable) {
                 log.debug('Disabling Autokeys and disabling key entry in the pricelist...');
@@ -398,13 +413,12 @@ export default class MyHandler extends Handler {
                             return resolve();
                         }
 
-                        void this.bot.listings.removeAll().asCallback(err => {
-                            if (err) {
-                                log.warn('Failed to remove all listings on shutdown (autokeys was enabled): ', err);
-                            }
-
-                            resolve();
-                        });
+                        void this.bot.listings
+                            .removeAll()
+                            .catch((err: Error) =>
+                                log.warn('Failed to remove all listings on shutdown (autokeys was enabled): ', err)
+                            )
+                            .finally(() => resolve());
                     });
             } else {
                 if (this.bot.listingManager.ready !== true) {
@@ -412,13 +426,10 @@ export default class MyHandler extends Handler {
                     return resolve();
                 }
 
-                void this.bot.listings.removeAll().asCallback(err => {
-                    if (err) {
-                        log.warn('Failed to remove all listings on shutdown: ', err);
-                    }
-
-                    resolve();
-                });
+                void this.bot.listings
+                    .removeAll()
+                    .catch((err: Error) => log.warn('Failed to remove all listings on shutdown: ', err))
+                    .finally(() => resolve());
             }
         });
     }
@@ -457,7 +468,7 @@ export default class MyHandler extends Handler {
                     return this.bot.sendMessage(steamID, '⚠️ The bot is updating, please wait until I am back online.');
                 }
 
-                const steamID64 = steamID.toString();
+                if (steamID.type !== 0) {const steamID64 = steamID.toString();
                 if (respondChat && !this.bot.friends.isFriend(steamID64)) {
                     return;
                 }
@@ -476,7 +487,19 @@ export default class MyHandler extends Handler {
                 }
 
                 this.recentlySentMessage[steamID64] =
-                    (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;
+                    (this.recentlySentMessage[steamID64] === undefined ? 0 : this.recentlySentMessage[steamID64]) + 1;} else if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
+            if (
+                this.recentlySentMessage[steamID.redirectAnswerTo.author.id] !== undefined &&
+                this.recentlySentMessage[steamID.redirectAnswerTo.author.id] >= 1
+            ) {
+                return;
+            }
+
+            this.recentlySentMessage[steamID.redirectAnswerTo.author.id] =
+                (this.recentlySentMessage[steamID.redirectAnswerTo.author.id] === undefined
+                    ? 0
+                    : this.recentlySentMessage[steamID.redirectAnswerTo.author.id]) + 1;
+        }
 
                 await this.commands.processMessage(steamID, message);
             });
@@ -552,27 +575,35 @@ export default class MyHandler extends Handler {
             our: Inventory.fromItems(
                 this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
                 offer.itemsToGive,
-                this.bot.manager,
-                this.bot.schema,
-                opt,
-                this.bot.strangeParts,
+                this.bot,
                 'our'
             ).getItems,
-            their: Inventory.fromItems(
-                offer.partner,
-                offer.itemsToReceive,
-                this.bot.manager,
-                this.bot.schema,
-                opt,
-                this.bot.strangeParts,
-                isAdmin ? 'admin' : 'their'
-            ).getItems
+            their: Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot, isAdmin ? 'admin' : 'their')
+                .getItems
         };
 
         const exchange = {
-            contains: { items: false, metal: false, keys: false },
-            our: { value: 0, keys: 0, scrap: 0, contains: { items: false, metal: false, keys: false } },
-            their: { value: 0, keys: 0, scrap: 0, contains: { items: false, metal: false, keys: false } }
+            contains: { items: false, metal: false, keys: false, pricedAssets: false },
+            our: {
+                value: 0,
+                keys: 0,
+                scrap: 0,
+                contains: { items: false, metal: false, keys: false, pricedAssets: false },
+                pricedAssetSkus: new Set<string>(),
+                pricedAssetIds: new Set<string>(),
+                pricedAsset: new Map<string, string>(),
+                pricedAssetSkuTotals: {}
+            },
+            their: {
+                value: 0,
+                keys: 0,
+                scrap: 0,
+                contains: { items: false, metal: false, keys: false, pricedAssets: false },
+                pricedAssetSkus: new Set<string>(),
+                pricedAssetIds: new Set<string>(),
+                pricedAsset: new Map<string, string>(),
+                pricedAssetSkuTotals: {}
+            }
         };
 
         const itemsDict: ItemsDict = { our: {}, their: {} };
@@ -590,43 +621,72 @@ export default class MyHandler extends Handler {
         let isDuelingNotFullUses = false;
         let isNoiseMakerNotFullUses = false;
         const noiseMakerNotFullSKUs: string[] = [];
-
         let hasNonTF2Items = false;
 
         const states = [false, true];
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
-
             for (const sku in items[which]) {
                 if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
                     continue;
                 }
 
-                if (!testSKU(sku)) {
+                for (const entry of items[which][sku]) {
+                    const { id } = entry;
+                    const price = this.bot.pricelist.getPrice({ priceKey: id });
+                    if (price) {
+                        exchange[which].pricedAssetIds.add(id);
+                        exchange[which].pricedAsset[id] = sku;
+                        itemsDict[which][id] = 1;
+                        exchange.contains.pricedAssets = true;
+                        exchange[which].contains.pricedAssets = true;
+                        exchange.contains.items = true; // we consider pricedAssets as items
+                        exchange[which].contains.items = true;
+                        if (exchange[which].pricedAssetSkus.has(sku)) {
+                            exchange[which].pricedAssetSkuTotals[sku] += 1;
+                        } else {
+                            exchange[which].pricedAssetSkus.add(sku);
+                            exchange[which].pricedAssetSkuTotals[sku] = 1;
+                        }
+                    }
+                }
+
+                let totalGeneric = 0;
+                // assign amount for sku
+                if (exchange[which].pricedAssetSkus.has(sku)) {
+                    totalGeneric = items[which][sku].length - exchange[which].pricedAssetSkuTotals[sku];
+                    if (totalGeneric > 0) {
+                        itemsDict[which][sku] = totalGeneric;
+                    }
+                } else {
+                    totalGeneric = items[which][sku].length;
+                    itemsDict[which][sku] = totalGeneric;
+                }
+
+                if (!testPriceKey(sku)) {
                     // Offer contains an item that is not from TF2
                     hasNonTF2Items = true;
                 }
 
-                if (sku === '5000;6') {
-                    exchange.contains.metal = true;
-                    exchange[which].contains.metal = true;
-                } else if (sku === '5001;6') {
-                    exchange.contains.metal = true;
-                    exchange[which].contains.metal = true;
-                } else if (sku === '5002;6') {
-                    exchange.contains.metal = true;
-                    exchange[which].contains.metal = true;
-                } else if (sku === '5021;6') {
-                    exchange.contains.keys = true;
-                    exchange[which].contains.keys = true;
-                } else {
-                    exchange.contains.items = true;
-                    exchange[which].contains.items = true;
+                if (totalGeneric > 0) {
+                    if (sku === '5000;6') {
+                        exchange.contains.metal = true;
+                        exchange[which].contains.metal = true;
+                    } else if (sku === '5001;6') {
+                        exchange.contains.metal = true;
+                        exchange[which].contains.metal = true;
+                    } else if (sku === '5002;6') {
+                        exchange.contains.metal = true;
+                        exchange[which].contains.metal = true;
+                    } else if (sku === '5021;6') {
+                        exchange.contains.keys = true;
+                        exchange[which].contains.keys = true;
+                    } else {
+                        exchange.contains.items = true;
+                        exchange[which].contains.items = true;
+                    }
                 }
-
-                // assign amount for sku
-                itemsDict[which][sku] = items[which][sku].length;
 
                 // Get High-value items
                 items[which][sku].forEach(item => {
@@ -939,7 +999,7 @@ export default class MyHandler extends Handler {
         const checkExist = this.bot.pricelist;
 
         if (opt.miscSettings.checkUses.duel && isDuelingNotFullUses) {
-            if (checkExist.getPrice('241;6', true) !== null) {
+            if (checkExist.getPrice({ priceKey: '241;6', onlyEnabled: true }) !== null) {
                 // Dueling Mini-Game: Only decline if exist in pricelist
                 offer.log('info', 'contains Dueling Mini-Game that does not have 5 uses.');
                 return {
@@ -951,7 +1011,9 @@ export default class MyHandler extends Handler {
         }
 
         if (opt.miscSettings.checkUses.noiseMaker && isNoiseMakerNotFullUses) {
-            const isHasNoiseMaker = noiseMakerNotFullSKUs.some(sku => checkExist.getPrice(sku, true) !== null);
+            const isHasNoiseMaker = noiseMakerNotFullSKUs.some(
+                sku => checkExist.getPrice({ priceKey: sku, onlyEnabled: true }) !== null
+            );
             if (isHasNoiseMaker) {
                 // Noise Maker: Only decline if exist in pricelist
                 offer.log('info', 'contains Noise Maker that does not have 25 uses.');
@@ -968,7 +1030,7 @@ export default class MyHandler extends Handler {
         const isInPricelist =
             ourItemsHVCount > 0 // Only check if this not empty
                 ? Object.keys(getHighValue.our.items).some(sku => {
-                      return checkExist.getPrice(sku, false) !== null; // Return true if exist in pricelist, enabled or not.
+                      return checkExist.getPrice({ priceKey: sku, onlyEnabled: false }) !== null; // Return true if exist in pricelist, enabled or not.
                   })
                 : null;
 
@@ -1033,18 +1095,45 @@ export default class MyHandler extends Handler {
         const uncraftAll = this.bot.uncraftWeapons;
 
         const itemsDiff = offer.getDiff();
-        //?
+        /* this loop goes through the following
+        buying = false; which = 'our';   intent = 'sell';
+        buying = true;  which = 'their'; intent = 'buy';
+         */
         for (let i = 0; i < states.length; i++) {
             const buying = states[i];
             const which = buying ? 'their' : 'our';
             const intentString = buying ? 'buy' : 'sell';
 
-            for (const sku in items[which]) {
-                if (!Object.prototype.hasOwnProperty.call(items[which], sku)) {
+            if (exchange[which].contains.pricedAssets) {
+                for (const id of exchange[which].pricedAssetIds) {
+                    const match = this.bot.pricelist.getPrice({ priceKey: id });
+                    // Add value of items
+                    exchange[which].value += match[intentString].toValue(keyPrice.metal);
+                    exchange[which].keys += match[intentString].keys;
+                    exchange[which].scrap += Currencies.toScrap(match[intentString].metal);
+                    itemPrices[id] = {
+                        buy: match.buy,
+                        sell: match.sell
+                    };
+                    // Check if asset is disabled
+                    if (!match.enabled) {
+                        wrongAboutOffer.push({
+                            reason: '🟧_DISABLED_ITEMS',
+                            sku: exchange[which].pricedAsset[id] as string
+                        });
+                    }
+                }
+            }
+            for (const sku in itemsDict[which]) {
+                if (!Object.prototype.hasOwnProperty.call(itemsDict[which], sku) || Pricelist.isAssetId(sku)) {
                     continue;
                 }
 
-                const amount = items[which][sku].length;
+                const amount = itemsDict[which][sku];
+
+                if (amount === 0) {
+                    continue;
+                }
 
                 let isNonTF2Items = false;
 
@@ -1062,7 +1151,7 @@ export default class MyHandler extends Handler {
                 } else if (
                     this.isWeaponsAsCurrency.enable &&
                     (craftAll.includes(sku) || (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))) &&
-                    this.bot.pricelist.getPrice(sku, true) === null
+                    this.bot.pricelist.getPrice({ priceKey: sku, onlyEnabled: true }) === null
                 ) {
                     const value = 0.5 * amount;
                     exchange[which].value += value;
@@ -1071,19 +1160,27 @@ export default class MyHandler extends Handler {
                     let match: Entry | null = null;
 
                     if (hasNonTF2Items) {
-                        if (testSKU(sku)) {
+                        if (testPriceKey(sku)) {
                             match =
                                 which === 'our'
-                                    ? this.bot.pricelist.getPrice(sku)
-                                    : this.bot.pricelist.getPrice(sku, false, true);
+                                    ? this.bot.pricelist.getPrice({ priceKey: sku })
+                                    : this.bot.pricelist.getPrice({
+                                          priceKey: sku,
+                                          onlyEnabled: false,
+                                          getGenericPrice: true
+                                      });
                         } else {
                             isNonTF2Items = true;
                         }
                     } else {
                         match =
                             which === 'our'
-                                ? this.bot.pricelist.getPrice(sku)
-                                : this.bot.pricelist.getPrice(sku, false, true);
+                                ? this.bot.pricelist.getPrice({ priceKey: sku })
+                                : this.bot.pricelist.getPrice({
+                                      priceKey: sku,
+                                      onlyEnabled: false,
+                                      getGenericPrice: true
+                                  });
                     }
 
                     const notIncludeCraftweapons = this.isWeaponsAsCurrency.enable
@@ -1092,8 +1189,6 @@ export default class MyHandler extends Handler {
                               (this.isWeaponsAsCurrency.withUncraft && uncraftAll.includes(sku))
                           )
                         : true;
-
-                    // TODO: Go through all assetids and check if the item is being sold for a specific price
 
                     if (match !== null && (sku !== '5021;6' || !exchange.contains.items)) {
                         // If we found a matching price and the item is not a key, or the we are not trading items
@@ -1114,7 +1209,11 @@ export default class MyHandler extends Handler {
 
                         const isBuying = diff > 0; // is buying if true.
                         const inventoryManager = this.bot.inventoryManager;
-                        const amountCanTrade = inventoryManager.amountCanTrade(sku, isBuying, which === 'their'); // return a number
+                        const amountCanTrade = inventoryManager.amountCanTrade({
+                            priceKey: sku,
+                            tradeIntent: isBuying ? 'buying' : 'selling',
+                            getGenericAmount: which === 'their'
+                        }); // return a number
 
                         if (diff !== 0 && sku !== '5021;6' && amountCanTrade < diff && notIncludeCraftweapons) {
                             if (match.enabled) {
@@ -1132,7 +1231,11 @@ export default class MyHandler extends Handler {
                                     amountOffered: amount
                                 });
 
-                                this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
+                                this.bot.listings.checkByPriceKey({
+                                    priceKey: match.sku,
+                                    checkGenerics: which === 'their',
+                                    showLogs: true
+                                });
                             } else {
                                 // Item was disabled
                                 wrongAboutOffer.push({
@@ -1161,7 +1264,10 @@ export default class MyHandler extends Handler {
                                 if (match.min !== 0 || match.intent === 0) {
                                     // If min is set to 0, how come it can be understocked right?
                                     // fix exploit found on August 4th, 2021
-                                    const amountInInventory = inventoryManager.getInventory.getAmount(sku, false);
+                                    const amountInInventory = inventoryManager.getInventory.getAmount({
+                                        priceKey: sku,
+                                        includeNonNormalized: false
+                                    });
 
                                     if (amountInInventory > 0) {
                                         wrongAboutOffer.push({
@@ -1173,7 +1279,11 @@ export default class MyHandler extends Handler {
                                             amountTaking: amount
                                         });
 
-                                        this.bot.listings.checkBySKU(match.sku, null, which === 'their', true);
+                                        this.bot.listings.checkByPriceKey({
+                                            priceKey: match.sku,
+                                            checkGenerics: which === 'their',
+                                            showLogs: true
+                                        });
                                     }
                                 }
                             } else {
@@ -1217,7 +1327,7 @@ export default class MyHandler extends Handler {
                         let itemSuggestedValue = 'No price';
 
                         if (!isNonTF2Items) {
-                            // await sleepasync().Promise.sleep(1 * 1000);
+                            // await timersPromises.setTimeout(1 * 1000);
                             const price = await this.bot.pricelist.getItemPrices(sku);
                             const item = SKU.fromString(sku);
 
@@ -1326,21 +1436,33 @@ export default class MyHandler extends Handler {
             return { action: 'decline', reason: 'ONLY_METAL' };
         } else if (exchange.contains.keys && !exchange.contains.items) {
             // Offer is for trading keys, check if we are trading them
-            const priceEntry = this.bot.pricelist.getPrice('5021;6', true);
+            const priceEntry = this.bot.pricelist.getPrice({ priceKey: '5021;6', onlyEnabled: true });
             if (priceEntry === null) {
                 // We are not trading keys
                 offer.log('info', 'we are not trading keys, declining...');
-                this.bot.listings.checkBySKU('5021;6', null, false, true);
+                this.bot.listings.checkByPriceKey({
+                    priceKey: '5021;6',
+                    checkGenerics: false,
+                    showLogs: true
+                });
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
             } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
-                this.bot.listings.checkBySKU('5021;6', null, false, true);
+                this.bot.listings.checkByPriceKey({
+                    priceKey: '5021;6',
+                    checkGenerics: false,
+                    showLogs: true
+                });
                 return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
             } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
-                this.bot.listings.checkBySKU('5021;6', null, false, true);
+                this.bot.listings.checkByPriceKey({
+                    priceKey: '5021;6',
+                    checkGenerics: false,
+                    showLogs: true
+                });
                 return { action: 'decline', reason: 'NOT_BUYING_KEYS' };
             } else {
                 // Check overstock / understock on keys
@@ -1349,7 +1471,10 @@ export default class MyHandler extends Handler {
                 this.isTradingKeys = true;
                 const isBuying = diff > 0;
                 const inventoryManager = this.bot.inventoryManager;
-                const amountCanTrade = inventoryManager.amountCanTrade('5021;6', isBuying);
+                const amountCanTrade = inventoryManager.amountCanTrade({
+                    priceKey: '5021;6',
+                    tradeIntent: isBuying ? 'buying' : 'selling'
+                });
 
                 if (diff !== 0 && amountCanTrade < diff) {
                     // User is offering too many
@@ -1362,7 +1487,11 @@ export default class MyHandler extends Handler {
                         amountOffered: itemsDict['their']['5021;6']
                     });
 
-                    this.bot.listings.checkBySKU('5021;6', null, false, true);
+                    this.bot.listings.checkByPriceKey({
+                        priceKey: '5021;6',
+                        checkGenerics: false,
+                        showLogs: true
+                    });
                 }
 
                 const acceptUnderstock = opt.autokeys.accept.understock;
@@ -1370,7 +1499,10 @@ export default class MyHandler extends Handler {
                     // User is taking too many
 
                     if (priceEntry.min !== 0) {
-                        const amountInInventory = inventoryManager.getInventory.getAmount('5021;6', false);
+                        const amountInInventory = inventoryManager.getInventory.getAmount({
+                            priceKey: '5021;6',
+                            includeNonNormalized: false
+                        });
 
                         if (amountInInventory > 0) {
                             wrongAboutOffer.push({
@@ -1382,7 +1514,11 @@ export default class MyHandler extends Handler {
                                 amountTaking: itemsDict['our']['5021;6']
                             });
 
-                            this.bot.listings.checkBySKU('5021;6', null, false, true);
+                            this.bot.listings.checkByPriceKey({
+                                priceKey: '5021;6',
+                                checkGenerics: false,
+                                showLogs: true
+                            });
                         }
                     }
                 }
@@ -1428,7 +1564,7 @@ export default class MyHandler extends Handler {
                 ourItems
                     .concat(theirItems)
                     .filter(sku => !['5000;6', '5001;6', '5002;6'].includes(sku))
-                    .forEach(sku => this.bot.listings.checkBySKU(sku));
+                    .forEach(sku => this.bot.listings.checkByPriceKey({ priceKey: sku }));
             } else if (isExcept && exchange.our.value - exchange.their.value < exceptionValue) {
                 log.info(
                     `Contains ${exceptionSKU.join(' or ')} and difference is ${Currencies.toRefined(
@@ -1456,21 +1592,16 @@ export default class MyHandler extends Handler {
             offer.log('info', 'checking ' + pluralize('item', assetidsToCheckCount, true) + ' for dupes...');
             const inventory = new TF2Inventory(offer.partner, this.bot.manager);
 
-            const requests = assetidsToCheck.map(assetid => {
-                return (callback: (err: Error | null, result: boolean | null) => void): void => {
-                    log.debug('Dupe checking ' + assetid + '...');
-                    void Promise.resolve(inventory.isDuped(assetid, this.bot.userID)).asCallback((err, result) => {
-                        log.debug('Dupe check for ' + assetid + ' done');
-                        callback(err as Error, result);
-                    });
-                };
+            const requests = assetidsToCheck.map(async (assetid): Promise<boolean | null> => {
+                log.debug(`Dupe checking ${assetid}...`);
+                const result = await inventory.isDuped(assetid, this.bot.userID);
+                log.debug(`Dupe check for ${assetid}... done`);
+                return result;
             });
 
             try {
-                const result: (boolean | null)[] = await Promise.fromCallback(callback => {
-                    async.series(requests, callback);
-                });
-                log.info('Got result from dupe checks on ' + assetidsToCheck.join(', '), { result: result });
+                const result: (boolean | null)[] = await Promise.all(requests);
+                log.info(`Got result from dupe checks on ${assetidsToCheck.join(', ')}`, { result: result });
 
                 const resultCount = result.length;
 
@@ -1987,6 +2118,61 @@ export default class MyHandler extends Handler {
                     offer.data('isInvalid', true);
                     MyHandler.removePolldataKeys(offer);
                 }
+
+                // Update assetid in pricelist if needed
+                if (
+                    ((offer.state === TradeOfferManager.ETradeOfferState['Canceled'] &&
+                        offer.data('isCanceledUnknown') === true) ||
+                        offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) &&
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    offer.tradeID
+                ) {
+                    if (Object.keys(this.bot.pricelist.assetidInPricelist).length < 1) {
+                        // Check if cache is not empty
+                        return;
+                    }
+
+                    offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
+                        if (err) {
+                            return log.error(err);
+                        }
+
+                        if (Array.isArray(sentItems)) {
+                            sentItems.forEach(item => {
+                                const entry = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey: item.assetid });
+
+                                if (entry !== null && entry.id && item.rollback_new_assetid) {
+                                    const newEntry = Object.assign({}, entry);
+                                    const oldId = entry.id;
+                                    newEntry.id = item.rollback_new_assetid;
+                                    delete newEntry.name;
+                                    delete newEntry.time;
+
+                                    this.bot.pricelist.replacePriceEntry(oldId, newEntry);
+                                    const msg = `✅ Automatically replaced ${oldId} with ${newEntry.id} in pricelist due to rollback.`;
+                                    log.debug(msg);
+                                    const dwEnabled =
+                                        this.bot.options.discordWebhook.sendAlert.enable &&
+                                        this.bot.options.discordWebhook.sendAlert.url.main !== '';
+                                    if (
+                                        this.bot.options.sendAlert.enable &&
+                                        this.bot.options.sendAlert.autoUpdateAssetid
+                                    ) {
+                                        if (dwEnabled) {
+                                            sendAlert('autoUpdateAssetid', this.bot, msg, null, null, [
+                                                oldId,
+                                                newEntry.id
+                                            ]);
+                                        } else {
+                                            this.bot.messageAdmins(msg, []);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
             }
 
             if (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] && !this.sentSummary[offer.id]) {
@@ -2312,13 +2498,18 @@ export default class MyHandler extends Handler {
                     this.isPremium = user.premium ? user.premium === 1 : false;
                     return resolve();
                 })
-                .catch(err => {
+                .catch((err: AxiosError) => {
                     if (err) {
-                        log.error('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
+                        log.error(
+                            'Failed requesting bot info from backpack.tf, retrying in 5 minutes: ',
+                            filterAxiosError(err)
+                        );
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
-                            void this.getBPTFAccountInfo();
+                            void this.getBPTFAccountInfo().catch(() => {
+                                // ignore error
+                            });
                         }, 5 * 60 * 1000);
                         return reject();
                     }
@@ -2392,8 +2583,8 @@ export default class MyHandler extends Handler {
         });
     }
 
-    onPriceChange(sku: string, entry: Entry): void {
-        this.bot.listings.checkBySKU(sku, entry, false, true);
+    onPriceChange(priceKey: string, entry: Entry): void {
+        this.bot.listings.checkByPriceKey({ priceKey, data: entry, checkGenerics: false, showLogs: true });
     }
 
     saveBlockedUser(steamID: string, reason: string): void {
@@ -2461,6 +2652,42 @@ export default class MyHandler extends Handler {
 
     onDeleteArchivedListingError(err: Error): void {
         log.error('Error on delete archived listings:', err);
+    }
+
+    refreshPollDataPath() {
+        const newPaths = genPaths(this.opt.steamAccountName);
+        const pathChanged = newPaths.files.pollData !== this.paths.files.pollData;
+        this.paths = newPaths;
+
+        if (!pathChanged) {
+            return;
+        }
+
+        files
+            .readFile(this.paths.files.pollData, true)
+            .then((pollDataFile: SteamTradeOfferManager.PollData | null) => {
+                const currentPollData = this.bot.manager.pollData;
+                const activeOffers = this.bot.trades.getActiveOffers(currentPollData);
+                const newPollData = pollDataFile
+                    ? pollDataFile
+                    : ({ sent: {}, received: {}, offerData: {} } as SteamTradeOfferManager.PollData);
+                Object.keys(activeOffers).forEach(intent => {
+                    (activeOffers[intent] as string[]).forEach(id => {
+                        (newPollData[intent] as Record<string, number>)[id] = (
+                            currentPollData[intent] as Record<string, number>
+                        )[id];
+
+                        newPollData.offerData[id] = currentPollData.offerData[id];
+                    });
+                });
+                this.bot.manager.pollData = newPollData;
+                // TODO: Remove duplicate entries
+                // Duplicates are already handled in src/lib/tools/polldata
+                // so this is only for optimizing storage
+            })
+            .catch(err => {
+                log.error('Failed to update polldata path:', err);
+            });
     }
 }
 

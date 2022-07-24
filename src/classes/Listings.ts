@@ -2,15 +2,16 @@ import callbackQueue from 'callback-queue';
 import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import Currencies from '@tf2autobot/tf2-currencies';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from './Bot';
-import { Entry, PricesObject } from './Pricelist';
+import Pricelist, { Entry, PricesObject } from './Pricelist';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
 import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import ListingManager from '@tf2autobot/bptf-listings';
 
 export default class Listings {
     private checkingAllListings = false;
@@ -35,18 +36,43 @@ export default class Listings {
         };
     }
 
-    checkBySKU(sku: string, data?: Entry | null, generics = false, showLogs = false): void {
+    checkByPriceKey({
+        priceKey,
+        data,
+        checkGenerics = false,
+        showLogs = false
+    }: {
+        priceKey: string;
+        data?: Entry;
+        checkGenerics?: boolean;
+        showLogs?: boolean;
+    }): void {
+        let sku: string | undefined = undefined;
+        const isAssetId = Pricelist.isAssetId(priceKey);
+        if (isAssetId) {
+            const entry = this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false, getGenericPrice: checkGenerics });
+            if (entry) {
+                sku = entry.sku;
+            } else if (data) {
+                sku = data.sku;
+            }
+        } else {
+            sku = priceKey;
+        }
         if (!this.isCreateListing) {
             return;
         }
 
         if (showLogs) {
-            log.debug(`Checking ${sku}...`);
+            log.debug(`Checking ${priceKey}...`);
         }
 
         let doneSomething = false;
 
-        const match = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const match =
+            data?.enabled === false
+                ? null
+                : this.bot.pricelist.getPrice({ priceKey, onlyEnabled: true, getGenericPrice: checkGenerics });
 
         let hasBuyListing = false;
         let hasSellListing = false;
@@ -54,12 +80,43 @@ export default class Listings {
         const invManager = this.bot.inventoryManager;
         const inventory = invManager.getInventory;
 
-        const amountCanBuy = invManager.amountCanTrade(sku, true, generics);
-        const amountCanSell = invManager.amountCanTrade(sku, false, generics);
+        const amountCanBuy = invManager.amountCanTrade({
+            priceKey,
+            tradeIntent: 'buying',
+            getGenericAmount: checkGenerics
+        });
+        const amountCanSell = invManager.amountCanTrade({
+            priceKey,
+            tradeIntent: 'selling',
+            getGenericAmount: checkGenerics
+        });
 
         const isFilterCantAfford = this.bot.options.pricelist.filterCantAfford.enable; // false by default
 
-        this.bot.listingManager.findListings(sku).forEach(listing => {
+        let listings: ListingManager.Listing[];
+        if (isAssetId) {
+            const listing = this.bot.listingManager.findListing(priceKey);
+            if (listing) {
+                listings = [listing];
+            } else {
+                listings = [];
+            }
+        } else {
+            listings = this.bot.listingManager.findListings(sku);
+        }
+        listings.forEach(listing => {
+            // Skip the listing if it belongs to an asset AND we are checking a SKU
+            if (
+                !isAssetId &&
+                this.bot.pricelist.getPrice({
+                    priceKey: listing.id.slice('440_'.length),
+                    onlyEnabled: true,
+                    getGenericPrice: checkGenerics
+                })
+            ) {
+                return;
+            }
+
             if (listing.intent === 1 && hasSellListing) {
                 if (showLogs) {
                     log.debug('Already have a sell listing, remove the listing.');
@@ -75,7 +132,7 @@ export default class Listings {
                 hasSellListing = true;
             }
 
-            if (match === null || (match.intent !== 2 && match.intent !== listing.intent)) {
+            if (!match || (match.intent !== 2 && match.intent !== listing.intent)) {
                 if (showLogs) {
                     log.debug('We are not trading the item, remove the listing.');
                 }
@@ -118,7 +175,7 @@ export default class Listings {
                 if (isCurrenciesChanged || isListingDetailsChanged) {
                     if (showLogs) {
                         log.debug(`Listing details don't match, update listing`, {
-                            sku: sku,
+                            priceKey,
                             intent: listing.intent
                         });
                     }
@@ -143,10 +200,26 @@ export default class Listings {
             }
         });
 
-        const matchNew = data?.enabled === false ? null : this.bot.pricelist.getPrice(sku, true, generics);
+        const matchNew =
+            data?.enabled === false
+                ? null
+                : this.bot.pricelist.getPrice({
+                      priceKey: priceKey,
+                      onlyEnabled: true,
+                      getGenericPrice: checkGenerics
+                  });
 
-        if (matchNew !== null && matchNew.enabled === true) {
-            const assetids = inventory.findBySKU(sku, true);
+        if (matchNew && matchNew.enabled === true) {
+            let assetids: string[] = [];
+            if (isAssetId && null !== inventory.findByAssetid(priceKey)) {
+                assetids = [priceKey];
+            } else {
+                assetids = inventory
+                    .findBySKU(priceKey, true)
+                    .filter(
+                        assetId => this.bot.pricelist.hasPrice({ priceKey: assetId, onlyEnabled: false }) === false
+                    );
+            }
 
             const canAffordToBuy = isFilterCantAfford
                 ? invManager.isCanAffordToBuy(matchNew.buy, invManager.getInventory)
@@ -159,14 +232,18 @@ export default class Listings {
 
                 doneSomething = true;
 
-                this.bot.listingManager.createListing({
+                const listing = {
                     time: matchNew.time || dayjs().unix(),
-                    sku: sku,
-                    intent: 0,
-                    // quantity: amountCanBuy,
+                    intent: 0 as 0 | 1,
                     details: this.getDetails(0, amountCanBuy, matchNew),
                     currencies: matchNew.buy
-                });
+                };
+                if (isAssetId) {
+                    listing['id'] = priceKey;
+                } else {
+                    listing['sku'] = sku;
+                }
+                this.bot.listingManager.createListing(listing);
             }
 
             const assetid = assetids[assetids.length - 1];
@@ -231,14 +308,26 @@ export default class Listings {
                 const keyPrice = this.bot.pricelist.getKeyPrice;
 
                 const pricelist = this.bot.pricelist.getPrices;
-                let skus = Object.keys(pricelist);
+                let priceKeys = Object.keys(pricelist);
                 if (this.bot.options.pricelist.filterCantAfford.enable) {
-                    skus = skus.filter(sku => {
-                        const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
+                    priceKeys = priceKeys.filter(priceKey => {
+                        const amountCanBuy = inventoryManager.amountCanTrade({
+                            priceKey: priceKey,
+                            tradeIntent: 'buying'
+                        });
 
                         if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(pricelist[sku].buy, inventory)) ||
-                            inventory.getAmount(sku, false, true) > 0
+                            (amountCanBuy > 0 &&
+                                inventoryManager.isCanAffordToBuy(pricelist[priceKey].buy, inventory)) ||
+                            Pricelist.isAssetId(priceKey)
+                                ? null === inventory.findByAssetid(priceKey)
+                                    ? 0
+                                    : 1
+                                : inventory.getAmount({
+                                      priceKey: priceKey,
+                                      includeNonNormalized: false,
+                                      tradableOnly: true
+                                  }) > 0
                         ) {
                             // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amount of item is more than 0
                             // return this entry
@@ -249,7 +338,7 @@ export default class Listings {
                         return false;
                     });
                 }
-                skus = skus
+                priceKeys = priceKeys
                     .sort((a, b) => {
                         return (
                             currentPure.keys -
@@ -258,12 +347,15 @@ export default class Listings {
                         );
                     })
                     .sort((a, b) => {
-                        return inventory.findBySKU(b).length - inventory.findBySKU(a).length;
+                        return (
+                            (Pricelist.isAssetId(b) ? [inventory.findByAssetid(b)] : inventory.findBySKU(b)).length -
+                            (Pricelist.isAssetId(a) ? [inventory.findByAssetid(a)] : inventory.findBySKU(a)).length
+                        );
                     });
 
-                log.debug('Checking listings for ' + pluralize('item', skus.length, true) + '...');
+                log.debug('Checking listings for ' + pluralize('item', priceKeys.length, true) + '...');
 
-                void this.recursiveCheckPricelist(skus, pricelist).asCallback(() => {
+                void this.recursiveCheckPricelist(priceKeys, pricelist).finally(() => {
                     log.debug('Done checking all');
                     // Done checking all listings
                     this.checkingAllListings = false;
@@ -282,7 +374,7 @@ export default class Listings {
     }
 
     recursiveCheckPricelist(
-        skus: string[],
+        priceKeys: string[],
         pricelist: PricesObject,
         withDelay = false,
         time?: number,
@@ -292,19 +384,24 @@ export default class Listings {
             let index = 0;
 
             const iteration = async (): Promise<void> => {
-                if (skus.length <= index || this.cancelCheckingListings) {
+                if (priceKeys.length <= index || this.cancelCheckingListings) {
                     this.cancelCheckingListings = false;
                     return resolve();
                 }
 
                 if (withDelay) {
-                    this.checkBySKU(skus[index], pricelist[skus[index]], false, showLogs);
+                    this.checkByPriceKey({
+                        priceKey: priceKeys[index],
+                        data: pricelist[priceKeys[index]],
+                        checkGenerics: false,
+                        showLogs: showLogs
+                    });
                     index++;
-                    await sleepasync().Promise.sleep(time ? time : 200);
+                    await timersPromises.setTimeout(time ? time : 200);
                     void iteration();
                 } else {
                     setImmediate(() => {
-                        this.checkBySKU(skus[index], pricelist[skus[index]]);
+                        this.checkByPriceKey({ priceKey: priceKeys[index], data: pricelist[priceKeys[index]] });
                         index++;
                         void iteration();
                     });
@@ -337,7 +434,7 @@ export default class Listings {
                 return;
             }
 
-            void this.removeAllListings().asCallback(next);
+            void this.removeAllListings().finally(next);
         });
     }
 
@@ -524,12 +621,18 @@ export default class Listings {
         const replaceDetails = (details: string, entry: Entry, key: 'buy' | 'sell') => {
             const price = entry[key].toString();
             const maxStock = entry.max === -1 ? '∞' : entry.max.toString();
-            const currentStock = inventory.getAmount(entry.sku, false, true).toString();
+            const currentStock = inventory
+                .getAmount({
+                    priceKey: entry.sku,
+                    includeNonNormalized: false,
+                    tradableOnly: true
+                })
+                .toString();
             const amountTrade = amountCanTrade.toString();
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
-                .replace(/%name%/g, entry.name)
+                .replace(/%name%/g, entry.id ?? entry.name)
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
@@ -594,8 +697,9 @@ export default class Listings {
                 return details;
             }
 
-            if (details.includes(entry.name)) {
-                details = details.replace(entry.name, entry.sku);
+            if (!entry.id && details.includes(entry.name)) {
+                const regex = new RegExp(entry.name, 'g');
+                details = details.replace(regex, entry.sku);
 
                 if (details.length < 200) {
                     // if details < 200 after replacing name with sku, use this.

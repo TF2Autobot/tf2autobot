@@ -4,17 +4,20 @@ import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import { Listing } from '@tf2autobot/bptf-listings';
 import validUrl from 'valid-url';
+import * as timersPromises from 'timers/promises';
 import path from 'path';
 import child from 'child_process';
-import sleepasync from 'sleep-async';
 import dayjs from 'dayjs';
+import { Message as DiscordMessage } from 'discord.js';
 import { EPersonaState } from 'steam-user';
 import { EFriendRelationship } from 'steam-user';
-import { fixSKU, removeLinkProtocol } from '../functions/utils';
+import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
-import { pure, testSKU } from '../../../lib/tools/export';
+import { pure, testPriceKey } from '../../../lib/tools/export';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { AxiosError } from 'axios';
 
 // Bot manager commands
 
@@ -78,7 +81,7 @@ export default class ManagerCommands {
             });
         } else {
             // For use and delete commands
-            if (params.sku !== undefined && !testSKU(params.sku as string)) {
+            if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
                 return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
             }
 
@@ -172,7 +175,7 @@ export default class ManagerCommands {
                 );
             }
 
-            const targetedSKU = fixSKU(params.sku as string);
+            const targetedSKU = params.sku as string;
             const [uncraft, untrade] = [
                 targetedSKU.includes(';uncraftable'),
                 targetedSKU.includes(';untradable') || targetedSKU.includes(';untradeable')
@@ -311,7 +314,7 @@ export default class ManagerCommands {
 
                 this.bot.sendMessage(steamID, toSend.slice(i * limit, last ? toSendCount : (i + 1) * limit).join('\n'));
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
             }
 
             this.isSendingBlockedList = false;
@@ -417,7 +420,7 @@ export default class ManagerCommands {
                 this.bot.client.removeFriend(steamid);
 
                 // Prevent Steam from detecting the bot as spamming
-                await sleepasync().Promise.sleep(5000);
+                await timersPromises.setTimeout(5000);
             }
 
             this.isClearingFriends = false;
@@ -476,11 +479,18 @@ export default class ManagerCommands {
 
     async haltCommand(steamID: SteamID): Promise<void> {
         if (this.bot.isHalted) {
-            this.bot.sendMessage(steamID, 'Already halted, nothing to halt');
+            this.bot.sendMessage(steamID, 'Already halted, nothing to halt.');
             return;
         }
         this.bot.sendMessage(steamID, '⌛ Halting...');
-        await this.bot.halt();
+
+        const removeAllListingsFailed = await this.bot.halt();
+        this.bot.sendMessage(
+            steamID,
+            `✅ The bot is now in halt mode${
+                removeAllListingsFailed ? ' (but an error has occur during removing all listings).' : '.'
+            }`
+        );
     }
 
     async unhaltCommand(steamID: SteamID): Promise<void> {
@@ -489,7 +499,13 @@ export default class ManagerCommands {
             return;
         }
         this.bot.sendMessage(steamID, '⌛ Unhalting...');
-        await this.bot.unhalt();
+        const recreatedListingsFailed = await this.bot.unhalt();
+        this.bot.sendMessage(
+            steamID,
+            `✅ The bot is no longer in halt mode${
+                recreatedListingsFailed ? ' (but an error has occur during creating listings).' : '.'
+            }`
+        );
     }
 
     haltStatusCommand(steamID: SteamID): void {
@@ -528,7 +544,11 @@ export default class ManagerCommands {
             }
         }
 
-        this.bot.sendMessage(steamID, '/pre ' + this.generateAutokeysReply(steamID, this.bot));
+        this.bot.sendMessage(
+            steamID,
+            (steamID.redirectAnswerTo instanceof DiscordMessage ? '/pre2' : '/pre ') +
+                ManagerCommands.generateAutokeysReply(steamID, this.bot)
+        );
     }
 
     refreshAutokeysCommand(steamID: SteamID): void {
@@ -562,12 +582,13 @@ export default class ManagerCommands {
             );
         } else {
             const listings: { [sku: string]: Listing[] } = {};
-            this.bot.listingManager.getListings(false, async err => {
+            this.bot.listingManager.getListings(false, async (err: AxiosError) => {
                 if (err) {
-                    log.error('Unable to refresh listings: ', err);
+                    const e = filterAxiosError(err);
+                    log.error('Unable to refresh listings: ', e);
 
-                    const errStringify = JSON.stringify(err);
-                    const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                    const errStringify = JSON.stringify(e);
+                    const errMessage = errStringify === '' ? e?.message : errStringify;
                     return this.bot.sendMessage(
                         steamID,
                         '❌ Unable to refresh listings, please try again later: ' + errMessage
@@ -598,7 +619,7 @@ export default class ManagerCommands {
                         }
                     }
 
-                    const match = this.bot.pricelist.getPrice(listingSKU);
+                    const match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
 
                     if (isFilterCantAfford && listing.intent === 0 && match !== null) {
                         const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
@@ -631,8 +652,12 @@ export default class ManagerCommands {
                     const entry = pricelist[sku];
                     const _listings = listings[sku];
 
-                    const amountCanBuy = inventoryManager.amountCanTrade(sku, true);
-                    const amountAvailable = inventory.getAmount(sku, false, true);
+                    const amountCanBuy = inventoryManager.amountCanTrade({ priceKey: sku, tradeIntent: 'buying' });
+                    const amountAvailable = inventory.getAmount({
+                        priceKey: sku,
+                        includeNonNormalized: false,
+                        tradableOnly: true
+                    });
 
                     if (_listings) {
                         _listings.forEach(listing => {
@@ -731,7 +756,7 @@ export default class ManagerCommands {
         }
     }
 
-    private generateAutokeysReply(steamID: SteamID, bot: Bot): string {
+    private static generateAutokeysReply(steamID: SteamID, bot: Bot): string {
         const pureNow = pure.currPure(bot);
         const currKey = pureNow.key;
         const currRef = pureNow.refTotalInScrap;
@@ -927,13 +952,6 @@ export default class ManagerCommands {
                     });
                 };
 
-                const abort = (): void => {
-                    // Bring back online
-                    this.bot.client.setPersona(EPersonaState.Online);
-                    this.bot.handler.isUpdatingStatus = false;
-                    this.bot.manager.pollInterval = 5 * 1000;
-                };
-
                 try {
                     // git reset HEAD --hard
                     await exec('git reset HEAD --hard');
@@ -947,7 +965,7 @@ export default class ManagerCommands {
                     );
 
                     this.bot.sendMessage(steamID, '⌛ Installing packages...');
-                    await exec('npm install');
+                    await exec(`npm install${process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''}`);
 
                     this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
                     await exec('npm run build');
@@ -956,7 +974,11 @@ export default class ManagerCommands {
                     await exec('pm2 restart ecosystem.json');
                 } catch (err) {
                     this.bot.sendMessage(steamID, `❌ Error while updating the bot: ${JSON.stringify(err)}`);
-                    return abort();
+                    // Bring back to online
+                    this.bot.client.setPersona(EPersonaState.Online);
+                    this.bot.handler.isUpdatingStatus = false;
+                    this.bot.manager.pollInterval = 5 * 1000;
+                    return;
                 }
             })
             .catch(err => this.bot.sendMessage(steamID, `❌ Failed to check for updates: ${JSON.stringify(err)}`));

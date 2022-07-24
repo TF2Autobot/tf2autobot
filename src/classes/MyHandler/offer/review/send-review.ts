@@ -1,6 +1,6 @@
 import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import processReview from './process-review';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
@@ -139,7 +139,7 @@ export default async function sendReview(
         const list = t.listItems(offer, bot, items, true);
 
         // add delay here because Steam said RateLimitExceeded
-        if (isNotifyTradePartner) await sleepasync().Promise.sleep(2000);
+        if (isNotifyTradePartner) await timersPromises.setTimeout(2000);
         void sendToAdmin(bot, offer, reasons, content.value, keyPrices, list, links);
     }
 }
@@ -201,16 +201,16 @@ export async function sendToAdmin(
 
         log.debug('Sending message 1');
         bot.messageAdmins(message1, []);
-        await sleepasync().Promise.sleep(1500); // bruh
+        await timersPromises.setTimeout(1500); // bruh
         log.debug('Sending message 2');
         bot.messageAdmins(message2, []);
-        await sleepasync().Promise.sleep(1500);
+        await timersPromises.setTimeout(1500);
         log.debug('Sending message 3');
         bot.messageAdmins(message3, []);
-        await sleepasync().Promise.sleep(1000);
+        await timersPromises.setTimeout(1000);
         log.debug('Sending message 4');
         return bot.messageAdmins(message4, []);
     }
-    await sleepasync().Promise.sleep(1500);
+    await timersPromises.setTimeout(1500);
     bot.messageAdmins(message, []);
 }
