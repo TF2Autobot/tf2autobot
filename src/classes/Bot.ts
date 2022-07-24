@@ -832,7 +832,7 @@ export default class Bot {
                 await this.login(data.loginKey || null)
                     .then(successResponse)
                     .catch(async (err: CustomError) => {
-                        if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
+                        if (!lastLoginFailed && err.eresult === 5) {
                             this.handler.onLoginError(err);
                             lastLoginFailed = true;
                             // Try and sign in without login key
@@ -1028,24 +1028,20 @@ export default class Bot {
                 promise = promise.then(promiseToChain).then(checkIfStopping);
             }
 
-            promise
-                .then(() => {
-                    if (this.options.discordBotToken) {
-                        this.discordBot.setPresence('online');
-                    }
+            void promise.then(() => {
+                if (this.options.discordBotToken) {
+                    this.discordBot.setPresence('online');
+                }
 
-                    this.manager.pollInterval = 5 * 1000;
-                    this.setReady = true;
-                    this.handler.onReady();
-                    this.manager.doPoll();
-                    this.startVersionChecker();
-                    this.initResetCacheInterval();
+                this.manager.pollInterval = 5 * 1000;
+                this.setReady = true;
+                this.handler.onReady();
+                this.manager.doPoll();
+                this.startVersionChecker();
+                this.initResetCacheInterval();
 
-                    resolve();
-                })
-                .catch(err => {
-                    reject(err);
-                });
+                resolve();
+            });
         });
     }
 
