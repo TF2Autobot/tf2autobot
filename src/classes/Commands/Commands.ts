@@ -209,38 +209,38 @@ export default class Commands {
                 await this.pManager.partialPriceUpdateCommand(steamID, message);
             } else if (['getslots', 'listings'].includes(command) && isAdmin) {
                 this.pManager.getSlotsCommand(steamID);
-        } else if (command === 'autoadd' && isAdmin) {
-            this.pManager.autoAddCommand(steamID, message);
-        } else if (command === 'stopautoadd' && isAdmin) {
-            this.pManager.stopAutoAddCommand();
-        } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
-            this.manager.TF2GCCommand(steamID, message, command as TF2GC);
-        } else if (['name', 'avatar'].includes(command) && isAdmin) {
-            this.manager.nameAvatarCommand(steamID, message, command as NameAvatar);
-        } else if (['block', 'unblock'].includes(command) && isAdmin) {
-            this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
-        } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
-            this.manager.blockedListCommand(steamID);
-        } else if (command === 'clearfriends' && isAdmin) {
-            await this.manager.clearFriendsCommand(steamID);
-        } else if (command === 'stop' && isAdmin) {
-            this.manager.stopCommand(steamID);
-        } else if (command === 'halt' && isAdmin) {
-            await this.manager.haltCommand(steamID);
-        } else if (command === 'unhalt' && isAdmin) {
-            await this.manager.unhaltCommand(steamID);
-        } else if (command === 'haltstatus' && isAdmin) {
-            this.manager.haltStatusCommand(steamID);
-        } else if (command === 'restart' && isAdmin) {
-            this.manager.restartCommand(steamID);
-        } else if (command === 'updaterepo' && isAdmin) {
-            this.manager.updaterepoCommand(steamID);
-        } else if (command === 'refreshautokeys' && isAdmin) {
-            this.manager.refreshAutokeysCommand(steamID);
-        } else if (command === 'refreshlist' && isAdmin) {
-            this.manager.refreshListingsCommand(steamID);
-        } else if (command === 'stats' && isAdmin) {
-            await this.status.statsCommand(steamID);
+            } else if (command === 'autoadd' && isAdmin) {
+                this.pManager.autoAddCommand(steamID, message);
+            } else if (command === 'stopautoadd' && isAdmin) {
+                this.pManager.stopAutoAddCommand();
+            } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
+                this.manager.TF2GCCommand(steamID, message, command as TF2GC);
+            } else if (['name', 'avatar'].includes(command) && isAdmin) {
+                this.manager.nameAvatarCommand(steamID, message, command as NameAvatar);
+            } else if (['block', 'unblock'].includes(command) && isAdmin) {
+                this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
+            } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
+                this.manager.blockedListCommand(steamID);
+            } else if (command === 'clearfriends' && isAdmin) {
+                await this.manager.clearFriendsCommand(steamID);
+            } else if (command === 'stop' && isAdmin) {
+                this.manager.stopCommand(steamID);
+            } else if (command === 'halt' && isAdmin) {
+                await this.manager.haltCommand(steamID);
+            } else if (command === 'unhalt' && isAdmin) {
+                await this.manager.unhaltCommand(steamID);
+            } else if (command === 'haltstatus' && isAdmin) {
+                this.manager.haltStatusCommand(steamID);
+            } else if (command === 'restart' && isAdmin) {
+                this.manager.restartCommand(steamID);
+            } else if (command === 'updaterepo' && isAdmin) {
+                this.manager.updaterepoCommand(steamID);
+            } else if (command === 'refreshautokeys' && isAdmin) {
+                this.manager.refreshAutokeysCommand(steamID);
+            } else if (command === 'refreshlist' && isAdmin) {
+                this.manager.refreshListingsCommand(steamID);
+            } else if (command === 'stats' && isAdmin) {
+                await this.status.statsCommand(steamID);
             } else if (command === 'statsdw' && isAdmin) {
                 this.status.statsDWCommand(steamID);
             } else if (command === 'itemstats' && (isAdmin || isWhitelisted)) {
@@ -263,8 +263,8 @@ export default class Commands {
                 this.request.pricecheckCommand(steamID, message);
             } else if (command === 'pricecheckall' && isAdmin) {
                 this.request.pricecheckAllCommand(steamID);
-        } else if (command === 'check' && isAdmin) {
-            await this.request.checkCommand(steamID, message);
+            } else if (command === 'check' && isAdmin) {
+                await this.request.checkCommand(steamID, message);
             } else if (command === 'find' && isAdmin) {
                 await this.pManager.findCommand(steamID, message);
             } else if (command === 'options' && isAdmin) {

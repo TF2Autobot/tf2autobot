@@ -913,10 +913,10 @@ export default class Bot {
             async () => {
                 log.debug('Initializing inventory...');
                 if (this.options.IPC) {
-                            this.ipc.sendPricelist();
-                            this.addListener(this.pricelist, 'pricelist', this.ipc.sendPricelist.bind(this.ipc), false); //TODO adapt
-                        }
-                        this.inventoryManager = new InventoryManager(this.pricelist);// only call this here, and in Commands/Options
+                    this.ipc.sendPricelist();
+                    this.addListener(this.pricelist, 'pricelist', this.ipc.sendPricelist.bind(this.ipc), false); //TODO adapt
+                }
+                this.inventoryManager = new InventoryManager(this.pricelist); // only call this here, and in Commands/Options
                 Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
 
                 this.inventoryManager.setInventory = new Inventory(this.client.steamID, this, 'our');

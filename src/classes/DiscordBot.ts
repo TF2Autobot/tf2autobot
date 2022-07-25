@@ -76,7 +76,7 @@ export default class DiscordBot {
                 // Will return default invalid value
                 const dummySteamID = new SteamID(null);
                 dummySteamID.redirectAnswerTo = message;
-                return await this.bot.handler.onMessage(dummySteamID, message.content);
+                return (await this.bot.handler.onMessage(dummySteamID, message.content)) as void;
             }
 
             const adminID = this.getAdminBy(message.author.id);
