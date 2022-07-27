@@ -1658,6 +1658,8 @@ export default class Trades {
             offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation'] ||
             offer.state === TradeOfferManager.ETradeOfferState['Countered'] ||
             (oldState === TradeOfferManager.ETradeOfferState['Countered'] &&
+                offer.state === TradeOfferManager.ETradeOfferState['Declined']) ||
+            (oldState === TradeOfferManager.ETradeOfferState['Active'] &&
                 offer.state === TradeOfferManager.ETradeOfferState['Declined'])
         ) {
             // Offer is active, or countered, or declined countered, no need to fetch
