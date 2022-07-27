@@ -1653,11 +1653,6 @@ export default class Trades {
             offer.itemsToGive.forEach(item => this.bot.inventoryManager.getInventory.removeItem(item.assetid));
         }
 
-        // Exit all running apps ("TF2Autobot" or custom, and Team Fortress 2)
-        // Will play again after craft/smelt/sort inventory job
-        // https://github.com/TF2Autobot/tf2autobot/issues/527
-        this.bot.client.gamesPlayed([]);
-
         if (
             offer.state === TradeOfferManager.ETradeOfferState['Active'] ||
             offer.state === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation'] ||
@@ -1668,6 +1663,11 @@ export default class Trades {
             // Offer is active, or countered, or declined countered, no need to fetch
             // Do nothing
         } else {
+            // Exit all running apps ("TF2Autobot" or custom, and Team Fortress 2)
+            // Will play again after craft/smelt/sort inventory job
+            // https://github.com/TF2Autobot/tf2autobot/issues/527
+            this.bot.client.gamesPlayed([]);
+
             this.offerChangedAcc.push({ offer, oldState, timeTakenToComplete });
             log.debug('Accumulated offerChanged: ', this.offerChangedAcc.length);
 
