@@ -5,9 +5,10 @@ import log from '../lib/logger';
 import Bot from './Bot';
 import fs from 'fs';
 import path from 'path';
-import Options from './Options';
+import Options, { JsonOptions, removeCliOptions } from './Options';
 import generateCert from '../lib/tools/generateCert';
 import { EntryData } from './Pricelist';
+import { deepMerge } from '../lib/tools/deep-merge';
 
 export default class ipcHandler extends IPC {
     ourServer: any;
@@ -83,6 +84,8 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('getTrades', this.sendTrades.bind(this));
             this.ourServer.on('getInventory', this.sendInventory.bind(this));
             this.ourServer.on('sendChat', this.sendChat.bind(this));
+            this.ourServer.on('getOptions', this.sendOptions.bind(this));
+            this.ourServer.on('updateOptions', this.updateOptions.bind(this));
         };
         if (this.options.tls) this.connectToNet('autobot_gui_dev', onConnected);
         else this.connectTo('autobot_gui_dev', onConnected);
@@ -154,7 +157,8 @@ export default class ipcHandler extends IPC {
     private sendInfo(): void {
         this.ourServer.emit('info', {
             id: this.bot.client.steamID.getSteamID64(),
-            admins: this.bot.getAdmins.map(id => id.getSteamID64())
+            admins: this.bot.getAdmins.map(id => id.getSteamID64()),
+            name: this.bot.options.steamAccountName
         });
     }
 
@@ -192,5 +196,17 @@ export default class ipcHandler extends IPC {
 
     sendInventory(): void {
         this.ourServer.emit('inventory', this.bot.inventoryManager.getInventory.getItems);
+    }
+
+    sendOptions(): void {
+        const saveOptions = deepMerge({}, this.bot.options) as JsonOptions;
+        removeCliOptions(saveOptions);
+
+        this.ourServer.emit('options', saveOptions);
+    }
+
+    updateOptions(newOptions): void {
+        //TODO: implement
+        //reference: commands/sub-classes/Options.ts
     }
 }
