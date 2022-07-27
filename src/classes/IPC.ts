@@ -3,12 +3,13 @@
 import { IPC } from 'node-ipc';
 import log from '../lib/logger';
 import Bot from './Bot';
-import fs from 'fs';
+import fs, { promises as fsp } from 'fs';
 import path from 'path';
-import Options, { JsonOptions, removeCliOptions } from './Options';
+import Options, { getOptionsPath, JsonOptions, removeCliOptions } from './Options';
 import generateCert from '../lib/tools/generateCert';
 import { EntryData } from './Pricelist';
 import { deepMerge } from '../lib/tools/deep-merge';
+import validator from '../lib/validator';
 
 export default class ipcHandler extends IPC {
     ourServer: any;
@@ -206,7 +207,29 @@ export default class ipcHandler extends IPC {
     }
 
     updateOptions(newOptions): void {
-        //TODO: implement
-        //reference: commands/sub-classes/Options.ts
+        const opt = this.bot.options;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const errors = validator(newOptions, 'options');
+        if (errors !== null) {
+            const msg = '❌ Error updating options: ' + errors.join(', ');
+            this.ourServer.emit('optionsUpdated', msg);
+            return;
+        }
+        const optionsPath = getOptionsPath(opt.steamAccountName);
+        fsp.writeFile(optionsPath, JSON.stringify(newOptions, null, 4), { encoding: 'utf8' })
+            .then(() => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                deepMerge(opt, newOptions);
+                const msg = '✅ Updated options!';
+
+                this.ourServer.emit('optionsUpdated', msg);
+            })
+            .catch(err => {
+                const errStringify = JSON.stringify(err);
+                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+                const msg = `❌ Error saving options file to disk: ${errMessage}`;
+                this.ourServer.emit('optionsUpdated', msg);
+                return;
+            });
     }
 }
