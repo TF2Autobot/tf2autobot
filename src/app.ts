@@ -162,13 +162,13 @@ botManager
                     const e = new Error(err.message);
 
                     if (err.response) {
-                        e['status'] = err.response?.status;
+                        e['status'] = err.response.status;
 
-                        if (typeof err.response?.data === 'string' && err.response?.data.includes('<html>')) {
+                        if (typeof err.response.data === 'string' && err.response.data?.includes('<html>')) {
                             return throwErr(e);
                         }
 
-                        e['data'] = err.response?.data;
+                        e['data'] = err.response.data;
                     } else {
                         // No need to get the "config", etc.
                         e['method'] = err.method;
