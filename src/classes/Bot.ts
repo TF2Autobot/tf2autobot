@@ -832,7 +832,7 @@ export default class Bot {
                 await this.login(data.loginKey || null)
                     .then(successResponse)
                     .catch(async (err: CustomError) => {
-                        if (!lastLoginFailed && err.eresult === 5) {
+                        if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
                             this.handler.onLoginError(err);
                             lastLoginFailed = true;
                             // Try and sign in without login key
