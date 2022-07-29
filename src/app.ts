@@ -155,23 +155,36 @@ botManager
         if (err) {
             // https://stackoverflow.com/questions/30715367/why-can-i-not-throw-inside-a-promise-catch-handler
             setTimeout(() => {
-                if (err instanceof AxiosError) {
+                /*eslint-disable */
+                if (err.response || err.name === 'AxiosError') {
                     // if it's Axios error, filter the error
 
                     const e = new Error(err.message);
-                    e['status'] = err.response?.status;
 
-                    if (typeof err.response?.data === 'string' && err.response?.data.includes('<html>')) {
-                        throw e;
+                    if (err.response) {
+                        e['status'] = err.response.status;
+
+                        if (typeof err.response.data === 'string' && err.response.data?.includes('<html>')) {
+                            return throwErr(e);
+                        }
+
+                        e['data'] = err.response.data;
+                    } else {
+                        // No need to get the "config", etc.
+                        e['method'] = err.method;
+                        e['baseURL'] = err.baseURL;
                     }
 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    e['data'] = err.response?.data;
-
-                    throw e;
+                    return throwErr(e);
                 }
+                /*eslint-enable */
 
-                throw err;
-            });
+                return throwErr(err);
+            }, 10);
         }
     });
+
+function throwErr(err): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    process.emit('uncaughtException', err);
+}
