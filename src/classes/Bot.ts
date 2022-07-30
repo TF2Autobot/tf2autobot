@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
-import SteamUser, { EResult } from 'steam-user'; // { EResult, EPersonaState } gives me crash
-import { EPersonaState } from 'steam-user';
+import SteamUser from 'steam-user';
+import { EResult, EPersonaState } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
@@ -832,7 +832,7 @@ export default class Bot {
                 await this.login(data.loginKey || null)
                     .then(successResponse)
                     .catch(async (err: CustomError) => {
-                        if (!lastLoginFailed && err.eresult === 5) {
+                        if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
                             this.handler.onLoginError(err);
                             lastLoginFailed = true;
                             // Try and sign in without login key
