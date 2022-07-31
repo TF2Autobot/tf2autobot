@@ -965,7 +965,11 @@ export default class ManagerCommands {
                     );
 
                     this.bot.sendMessage(steamID, '⌛ Installing packages...');
-                    await exec(`npm install${process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''}`);
+                    await exec(
+                        `npm install${
+                            process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''
+                        } --omit=dev`
+                    );
 
                     this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
                     await exec('npm run build');
