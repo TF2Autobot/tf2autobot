@@ -7,11 +7,11 @@ import Bot from './Bot';
 import Pricelist, { Entry, PricesObject } from './Pricelist';
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
-import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
+import { noiseMakers } from '../lib/data';
 import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
-import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 import ListingManager from '@tf2autobot/bptf-listings';
+import getAttachmentName from '../lib/tools/getAttachmentName';
 
 export default class Listings {
     private checkingAllListings = false;
@@ -716,18 +716,6 @@ export default class Listings {
 }
 
 type Attachment = 's' | 'sp' | 'ke' | 'ks' | 'p';
-
-function getKeyByValue(object: { [key: string]: any }, value: any): string {
-    return Object.keys(object).find(key => object[key] === value);
-}
-
-function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {
-    if (attachment === 's') return getKeyByValue(spellsData, pSKU);
-    else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
-    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
-    else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-    else if (attachment === 'p') return getKeyByValue(paints, parseInt(pSKU.replace('p', '')));
-}
 
 function boldDetails(str: string, style: number): string {
     // https://lingojam.com/BoldTextGenerator

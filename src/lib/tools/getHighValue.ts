@@ -1,9 +1,8 @@
 import SKU from '@tf2autobot/tf2-sku';
 import { Items } from '@tf2autobot/tradeoffer-manager';
-import { spellsData, killstreakersData, sheensData } from '../data';
 import Bot from '../../classes/Bot';
-import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 import { testPriceKey } from '../tools/export';
+import getAttachmentName from './getAttachmentName';
 
 interface ItemsWithName {
     [name: string]: string;
@@ -75,17 +74,3 @@ export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName
 }
 
 type Attachment = 's' | 'sp' | 'ke' | 'ks' | 'p';
-
-function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {
-    if (attachment === 's') return getKeyByValue(spellsData, pSKU);
-    else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
-    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
-    else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-    else if (attachment === 'p') return getKeyByValue(paints, parseInt(pSKU.replace('p', '')));
-}
-
-function getKeyByValue(object: { [key: string]: any }, value: any): string {
-    const keys = Object.keys(object);
-    const key = keys.find(key => object[key] === value);
-    return key;
-}
