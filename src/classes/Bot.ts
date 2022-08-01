@@ -793,7 +793,7 @@ export default class Bot {
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        const promisesChain = [
+        const firstTwoChain = [
             async () => {
                 log.debug('Calling onRun');
 
@@ -817,32 +817,11 @@ export default class Bot {
             async () => {
                 log.info('Signing in to Steam...');
 
-                let lastLoginFailed = false;
+                return await this.login(data.loginKey || null);
+            }
+        ];
 
-                const successResponse = () => {
-                    log.info('Signed in to Steam!');
-                };
-
-                const failResponse = (err: CustomError) => {
-                    this.handler.onLoginError(err);
-                    log.warn('Failed to sign in to Steam: ', err);
-                    throw err;
-                };
-
-                await this.login(data.loginKey || null)
-                    .then(successResponse)
-                    .catch(async (err: CustomError) => {
-                        if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
-                            this.handler.onLoginError(err);
-                            lastLoginFailed = true;
-                            // Try and sign in without login key
-                            log.warn('Failed to sign in to Steam, retrying without login key...');
-                            await this.login(null).then(successResponse).catch(failResponse);
-                        } else {
-                            failResponse(err);
-                        }
-                    });
-            },
+        const promisesChain = [
             async () => {
                 log.debug('Waiting for web session');
                 cookies = await this.getWebSession();
@@ -1017,6 +996,7 @@ export default class Bot {
             }
         ];
 
+        let promiseFirstTwo = Promise.resolve();
         let promise = Promise.resolve();
 
         return new Promise((resolve, reject) => {
@@ -1024,24 +1004,61 @@ export default class Bot {
                 if (this.botManager.isStopping) return reject();
             };
 
-            for (const promiseToChain of promisesChain) {
-                promise = promise.then(promiseToChain).then(checkIfStopping);
+            for (const promiseToChainFirstTwo of firstTwoChain) {
+                promiseFirstTwo = promiseFirstTwo.then(promiseToChainFirstTwo).then(checkIfStopping);
             }
 
-            void promise.then(() => {
-                if (this.options.discordBotToken) {
-                    this.discordBot.setPresence('online');
-                }
+            let lastLoginFailed = false;
 
-                this.manager.pollInterval = 5 * 1000;
-                this.setReady = true;
-                this.handler.onReady();
-                this.manager.doPoll();
-                this.startVersionChecker();
-                this.initResetCacheInterval();
+            const successResponse = () => {
+                log.info('Signed in to Steam!');
+            };
 
-                resolve();
-            });
+            const failResponse = (err: CustomError) => {
+                this.handler.onLoginError(err);
+                log.warn('Failed to sign in to Steam: ', err);
+                return reject(err);
+            };
+
+            promiseFirstTwo
+                .then(() => {
+                    successResponse();
+                })
+                .catch(async (err: CustomError) => {
+                    if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
+                        this.handler.onLoginError(err);
+                        lastLoginFailed = true;
+                        // Try and sign in without login key
+                        log.warn('Failed to sign in to Steam, retrying without login key...');
+                        await this.login(null).then(successResponse).catch(failResponse);
+                    } else {
+                        failResponse(err);
+                    }
+                })
+                .finally(() => {
+                    for (const promiseToChain of promisesChain) {
+                        promise = promise.then(promiseToChain).then(checkIfStopping);
+                    }
+
+                    promise
+                        .then(() => {
+                            if (this.options.discordBotToken) {
+                                this.discordBot.setPresence('online');
+                            }
+
+                            this.manager.pollInterval = 5 * 1000;
+                            this.setReady = true;
+                            this.handler.onReady();
+                            this.manager.doPoll();
+                            this.startVersionChecker();
+                            this.initResetCacheInterval();
+
+                            resolve();
+                        })
+                        .catch(err => {
+                            return reject(err);
+                        });
+                });
         });
     }
 
