@@ -77,7 +77,13 @@ export class Entry implements EntryData {
         this.autoprice = entry.autoprice;
         this.min = entry.min;
         this.max = entry.max;
-        this.intent = entry.intent;
+
+        if (entry.id) {
+            // Always set to sell if id is defined
+            this.intent = 1;
+        } else {
+            this.intent = entry.intent;
+        }
 
         if (entry.buy && entry.sell) {
             // Added both buy and sell

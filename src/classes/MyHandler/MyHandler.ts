@@ -258,13 +258,13 @@ export default class MyHandler extends Handler {
             keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
             // Craft duplicate weapons
-            void craftDuplicateWeapons(this.bot);
-
-            // Craft class weapons
-            this.classWeaponsTimeout = setTimeout(() => {
-                // called after 5 seconds to craft metals and duplicated weapons first.
-                void craftClassWeapons(this.bot);
-            }, 5 * 1000);
+            craftDuplicateWeapons(this.bot)
+                .then(() => {
+                    return craftClassWeapons(this.bot);
+                })
+                .catch(err => {
+                    log.warn('Failed to craft duplicated craft/class weapons', err);
+                });
         }
 
         if (this.isDeletingUntradableJunk) {
@@ -679,8 +679,9 @@ export default class MyHandler extends Handler {
                 // Get High-value items
                 items[which][sku].forEach(item => {
                     if (item.hv !== undefined) {
+                        const priceKey = this.bot.pricelist.hasPrice({ priceKey: item.id }) ? item.id : sku;
                         // If hv exist, get the high value and assign into items
-                        getHighValue[which].items[sku] = item.hv;
+                        getHighValue[which].items[priceKey] = item.hv;
 
                         Object.keys(item.hv).forEach(attachment => {
                             if (item.hv[attachment] !== undefined) {
@@ -696,7 +697,8 @@ export default class MyHandler extends Handler {
                             }
                         });
                     } else if (item.isFullUses !== undefined) {
-                        getHighValue[which].items[sku] = { isFull: item.isFullUses };
+                        const priceKey = this.bot.pricelist.hasPrice({ priceKey: item.id }) ? item.id : sku;
+                        getHighValue[which].items[priceKey] = { isFull: item.isFullUses };
 
                         if (which === 'their') {
                             // Only check for their side
@@ -2203,18 +2205,14 @@ export default class MyHandler extends Handler {
                 // Smelt / combine metal
                 keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
-                // Craft duplicated weapons
-                void craftDuplicateWeapons(this.bot);
-
-                this.classWeaponsTimeout = setTimeout(() => {
-                    // called after 5 second to craft metals and duplicated weapons first.
-                    void craftClassWeapons(this.bot);
-                }, 5 * 1000);
-            }
-
-            if (this.isDeletingUntradableJunk) {
-                // Delete untradable junk
-                this.deleteUntradableJunk();
+                // Craft duplicate weapons
+                craftDuplicateWeapons(this.bot)
+                    .then(() => {
+                        return craftClassWeapons(this.bot);
+                    })
+                    .catch(err => {
+                        log.warn('Failed to craft duplicated craft/class weapons', err);
+                    });
             }
 
             // Sort inventory
@@ -2495,7 +2493,7 @@ export default class MyHandler extends Handler {
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
-                            void this.getBPTFAccountInfo().catch(() => {
+                            this.getBPTFAccountInfo().catch(() => {
                                 // ignore error
                             });
                         }, 5 * 60 * 1000);
@@ -2544,7 +2542,9 @@ export default class MyHandler extends Handler {
 
         for (const assetid of assetidsToDelete) {
             log.debug(`Deleting junk item ${assetid}`);
-            this.bot.tf2gc.deleteItem(assetid);
+            this.bot.tf2gc.deleteItem(assetid, err => {
+                log.warn('Error deleting untradable junk', err);
+            });
         }
     }
 

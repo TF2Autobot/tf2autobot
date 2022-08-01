@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig, Method, AxiosError } from 'axios';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
+import filterAxiosError, { ErrorFiltered } from '@tf2autobot/filter-axios-error';
 import { PricerOptions } from '../../../classes/IPricer';
 import log from '../../logger';
 
@@ -63,8 +63,8 @@ export default class PricesTfApi {
                 ...headers
             });
         } catch (e) {
-            const err = e as AxiosError;
-            if (err.response && err.response.status === 401) {
+            const err = e as ErrorFiltered;
+            if (err?.status === 401) {
                 log.debug('Requesting new token from prices.tf due to 401');
                 await this.setupToken();
                 return this.authedApiRequest(httpMethod, path, params, data, headers);
@@ -123,16 +123,12 @@ export default class PricesTfApi {
     }
 
     async setupToken(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            void PricesTfApi.requestAuthAccess()
-                .then(response => {
-                    this.token = response.accessToken;
-                    resolve();
-                })
-                .catch(err => {
-                    reject(err);
-                });
-        });
+        try {
+            const r = await PricesTfApi.requestAuthAccess();
+            this.token = r.accessToken;
+        } catch (e) {
+            log.error(e as Error);
+        }
     }
 
     async requestCheck(sku: string): Promise<PricesTfRequestCheckResponse> {

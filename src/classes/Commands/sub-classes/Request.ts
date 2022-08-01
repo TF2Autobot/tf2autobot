@@ -11,6 +11,7 @@ import { fixItem } from '../../../lib/items';
 import { testPriceKey } from '../../../lib/tools/export';
 import { UnknownDictionary } from '../../../types/common';
 import IPricer, { RequestCheckFn, RequestCheckResponse } from '../../IPricer';
+import Pricelist from '../../Pricelist';
 
 export default class RequestCommands {
     constructor(private readonly bot: Bot, private priceSource: IPricer) {
@@ -70,7 +71,9 @@ export default class RequestCommands {
         }
 
         const pricelist = this.bot.pricelist.getPrices;
-        const skus = Object.keys(pricelist).filter(sku => sku !== '5021;6');
+        const skus = Object.keys(pricelist).filter(
+            sku => sku !== '5021;6' && !Pricelist.isAssetId(sku) && !/;[p][0-9]+/.test(sku)
+        );
 
         const total = skus.length;
         const totalTime = total * 2 * 1000;
