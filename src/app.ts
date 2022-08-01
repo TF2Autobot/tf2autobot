@@ -161,24 +161,16 @@ botManager
 
                     const e = new Error(err.message);
 
-                    if (err.response) {
-                        e['code'] = err.code;
-                        e['status'] = err.response.status;
-                        e['method'] = err.config?.method;
-                        e['url'] = err.config?.url?.replace(/\?.+/, ''); // Ignore parameters
+                    e['code'] = err.code;
+                    e['status'] = err.response?.status ?? err.status;
+                    e['method'] = err.config?.method ?? err.method;
+                    e['url'] = err.config?.url?.replace(/\?.+/, '') ?? err.baseURL?.replace(/\?.+/, ''); // Ignore parameters
 
-                        if (typeof err.response.data === 'string' && err.response.data?.includes('<html>')) {
-                            return throwErr(e);
-                        }
-
-                        e['data'] = err.response.data;
-                    } else {
-                        // No need to get the "config", etc.
-                        e['code'] = err.code;
-                        e['status'] = err.status;
-                        e['method'] = err.method;
-                        e['baseURL'] = err.baseURL?.replace(/\?.+/, ''); // Ignore parameters
+                    if (typeof err.response?.data === 'string' && err.response?.data?.includes('<html>')) {
+                        return throwErr(e);
                     }
+
+                    e['data'] = err.response?.data;
 
                     return throwErr(e);
                 }
