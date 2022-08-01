@@ -679,8 +679,9 @@ export default class MyHandler extends Handler {
                 // Get High-value items
                 items[which][sku].forEach(item => {
                     if (item.hv !== undefined) {
+                        const priceKey = this.bot.pricelist.hasPrice({ priceKey: item.id }) ? item.id : sku;
                         // If hv exist, get the high value and assign into items
-                        getHighValue[which].items[sku] = item.hv;
+                        getHighValue[which].items[priceKey] = item.hv;
 
                         Object.keys(item.hv).forEach(attachment => {
                             if (item.hv[attachment] !== undefined) {
@@ -696,7 +697,8 @@ export default class MyHandler extends Handler {
                             }
                         });
                     } else if (item.isFullUses !== undefined) {
-                        getHighValue[which].items[sku] = { isFull: item.isFullUses };
+                        const priceKey = this.bot.pricelist.hasPrice({ priceKey: item.id }) ? item.id : sku;
+                        getHighValue[which].items[priceKey] = { isFull: item.isFullUses };
 
                         if (which === 'their') {
                             // Only check for their side

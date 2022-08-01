@@ -250,11 +250,12 @@ export default class Inventory {
                 }
             }
 
-            return accAmount - amountToDeduct;
+            return accAmount === 1 && amountToDeduct === 1 ? 1 : accAmount - amountToDeduct;
         }
 
         // else just return amount
-        return this.findBySKU(sku, tradableOnly).length - amountToDeduct;
+        const amount = this.findBySKU(sku, tradableOnly).length;
+        return amount === 1 && amountToDeduct === 1 ? 1 : amount - amountToDeduct;
     }
 
     getAmountOfGenerics({
