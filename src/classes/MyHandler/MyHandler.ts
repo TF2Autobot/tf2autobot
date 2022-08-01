@@ -2493,7 +2493,7 @@ export default class MyHandler extends Handler {
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
-                            void this.getBPTFAccountInfo().catch(() => {
+                            this.getBPTFAccountInfo().catch(() => {
                                 // ignore error
                             });
                         }, 5 * 60 * 1000);
