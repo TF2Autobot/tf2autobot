@@ -123,16 +123,12 @@ export default class PricesTfApi {
     }
 
     async setupToken(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            void PricesTfApi.requestAuthAccess()
-                .then(response => {
-                    this.token = response.accessToken;
-                    resolve();
-                })
-                .catch(err => {
-                    reject(err);
-                });
-        });
+        try {
+            const r = await PricesTfApi.requestAuthAccess();
+            this.token = r.accessToken;
+        } catch (e) {
+            log.error(e as Error);
+        }
     }
 
     async requestCheck(sku: string): Promise<PricesTfRequestCheckResponse> {
