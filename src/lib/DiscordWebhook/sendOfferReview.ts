@@ -81,7 +81,6 @@ export default function sendOfferReview(
 
     let partnerAvatar: string;
     let partnerName: string;
-    log.debug('getting partner Avatar and Name...');
     offer.getUserDetails((err, me, them) => {
         if (err) {
             log.warn('Error retrieving partner Avatar and Name: ', err);
@@ -89,7 +88,6 @@ export default function sendOfferReview(
                 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/72/72f78b4c8cc1f62323f8a33f6d53e27db57c2252_full.jpg'; //default "?" image
             partnerName = 'unknown';
         } else {
-            log.debug('partner Avatar and Name retrieved. Applying...');
             partnerAvatar = them.avatarFull;
             partnerName = them.personaName;
         }
@@ -122,9 +120,11 @@ export default function sendOfferReview(
                     description:
                         `⚠️ An offer sent by ${partnerNameNoFormat} is waiting for review.\nReasons: ${reasons}` +
                         (reasons.includes('⬜_BANNED_CHECK_FAILED')
-                            ? '\n\n`Backpack.tf or steamrep.com down, please manually check if this person is banned before accepting the offer.`'
+                            ? '\n\n`Failed to get reputation status, please manually check if this person is banned before accepting the offer.`'
                             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
                             ? '\n\n`Steam down, please manually check if this person have escrow.`'
+                            : reasons.includes('⬜_HALTED')
+                            ? '\n\n`Offer received during halt mode`'
                             : '') +
                         summary +
                         (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
@@ -192,15 +192,13 @@ export default function sendOfferReview(
             });
         }
 
-        sendWebhook(opt.offerReview.url, webhookReview, 'offer-review')
-            .then(() => log.debug(`✅ Sent offer-review webhook (#${offer.id}) to Discord.`))
-            .catch(err => {
-                log.warn(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
+        sendWebhook(opt.offerReview.url, webhookReview, 'offer-review').catch(err => {
+            log.warn(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
 
-                const itemListx = listItems(offer, bot, itemsName, true);
+            const itemListx = listItems(offer, bot, itemsName, true);
 
-                void sendToAdmin(bot, offer, reasons, value, keyPrices, itemListx, links);
-            });
+            void sendToAdmin(bot, offer, reasons, value, keyPrices, itemListx, links);
+        });
     });
 }
 

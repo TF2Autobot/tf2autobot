@@ -1,13 +1,14 @@
 import SKU from '@tf2autobot/tf2-sku';
-import SchemaManager from '@tf2autobot/tf2-schema';
+import { Schema } from '@tf2autobot/tf2-schema';
 import Currencies from '@tf2autobot/tf2-currencies';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';
 
 import log from '../logger';
-import { Entry } from '../../classes/Pricelist';
+import { BuyAndSell } from '../../classes/Pricelist';
 import Options from '../../classes/Options';
+import { WebhookError } from './utils';
 
 const australiumImageURL: { [defindex: number]: string } = {
     // Australium Ambassador
@@ -1593,7 +1594,7 @@ const unusualifierImages: { [target: number]: string } = {
     31239: '3G9DJDbHyXxoWu1jLPTRyAD-reefI3j2ejDBYXSLGQY5S7teMj6PqzGks-vCEznISOp4QwhWKKtX9GQdNMyPakY_1dMVu2u_0U1wGUcXapUbIEHonyRVOLAimR4KdJZShyP1JoKA2AhjBw9qV7j5U7zCedj4xy5LFBtqH74TZIuD6WWsocP8bvOGO6FqM_xu_MqJxBkHQdQPS5wywplPvozNtwxRbI1zGg1IQukoZW6BXP_lkXidC-GzarUO4ckEUFEZHx7rz3xzCEgs6PCPYxMA7imVFQNbRQ'
 };
 
-const festivizedImages = {
+const festivizedImages: { [name: string]: string } = {
     // https://wiki.teamfortress.com/wiki/Festivizer#List_of_possible_Festivized_weapons
     // Image for Australium - Not available
     // Scattergun (Stock)
@@ -1744,6 +1745,24 @@ const festivizedImages = {
     1153: 'mMnvA-aHAfQ_ktk664Ma2gl_gwR1N-uyJTlYdAHRFalIWbttp1-8DHA3sMU6DIXn871Xe17ps9SUZbMkNYxETsHXDqfVNVv6ux0-nuEDeJNZsSHG'
 };
 
+const retiredKeys: { [name: string]: string } = {
+    5049: 'https://wiki.teamfortress.com/w/images/c/c7/Backpack_Festive_Winter_Crate_Key.png',
+    5067: 'https://steamcdn-a.akamaihd.net/apps/440/icons/key_summer_large.f49710a191ae35c9f9b83df51c2a734cf143530d.png',
+    5072: 'https://steamcdn-a.akamaihd.net/apps/440/icons/xmas_wicked_key_large.226fac08f92f09a21964f3680f3728bcda1165e6.png',
+    5073: 'https://steamcdn-a.akamaihd.net/apps/440/icons/xmas_key_large.f39ee76a332c53c9bdfed8b3affdf9aca1f02dd5.png',
+    5079: 'https://steamcdn-a.akamaihd.net/apps/440/icons/fire_key_large.20be1b7a01c70a7447132834a125c4cf3d27ead2.png',
+    5081: 'https://steamcdn-a.akamaihd.net/apps/440/icons/fall_key_large.fffc5be5e86b0c37276d1d1d40f0af35beed5236.png',
+    5628: 'https://steamcdn-a.akamaihd.net/apps/440/icons/skeleton_key_large.16f037666afb600ba24a1a5680f49deb40900a3d.png',
+    5631: 'https://steamcdn-a.akamaihd.net/apps/440/icons/smissmass_key_wicked_large.fd2981b2b94e8d5d11c61931c36c1cbba376af59.png',
+    5632: 'https://steamcdn-a.akamaihd.net/apps/440/icons/smissmass_key_large.597ded9890d23737127c9382d037a9d663e7ec67.png',
+    5713: 'https://steamcdn-a.akamaihd.net/apps/440/icons/skeleton_key_02_large.fe725e038cfb51d7a2b43bac57a9932b63dbbbb1.png',
+    5716: 'https://steamcdn-a.akamaihd.net/apps/440/icons/winter2013_naughty_key_large.d95b1d82021ab7bd993f815894b23dd1d246643d.png',
+    5717: 'https://steamcdn-a.akamaihd.net/apps/440/icons/winter2013_nice_key_large.11e8d9592dbba89926c3ad1a50fe7bec5347d0eb.png',
+    5762: 'https://steamcdn-a.akamaihd.net/apps/440/icons/wading_key_large.34ef244f2d9ebc40d2fea3978e378465d5eb45d3.png',
+    5791: 'http://media.steampowered.com/apps/440/icons/winter2013_naughty_key_large.d95b1d82021ab7bd993f815894b23dd1d246643d.png',
+    5792: 'http://media.steampowered.com/apps/440/icons/winter2014_nice_key_large.7246c86cea44b1aa0022e8017dac8d23dee64ea4.png'
+};
+
 const qualityColor: { [name: string]: string } = {
     '0': '11711154', // Normal - #B2B2B2
     '1': '5076053', // Genuine - #4D7455
@@ -1760,26 +1779,29 @@ const qualityColor: { [name: string]: string } = {
 };
 
 export default function sendWebHookPriceUpdateV1(
-    sku: string,
-    itemName: string,
-    newPrice: Entry,
-    time: string,
-    schema: SchemaManager.Schema,
+    schema: Schema,
     options: Options,
+    sku: string,
+    time: string,
+    newPrices: BuyAndSell,
+    oldPrices: BuyAndSell,
     currentStock: number,
-    oldPrice: { buy: Currencies; sell: Currencies },
-    buyChangesValue: number,
-    sellChangesValue: number,
+    conversion: number,
+    buyChangesValue: number | null,
+    sellChangesValue: number | null,
     isCustomPricer: boolean
 ): void {
     const baseItemData = schema.getItemBySKU(sku);
     const item = SKU.fromString(sku);
+    const itemName = schema.getName(item, false);
     const parts = sku.split(';');
 
     let itemImageUrlPrint: string;
 
     if (!baseItemData || !item) {
         itemImageUrlPrint = 'https://jberlife.com/wp-content/uploads/2019/07/sorry-image-not-available.jpg';
+    } else if (retiredKeys[item.defindex] !== undefined) {
+        itemImageUrlPrint = retiredKeys[item.defindex];
     } else if (
         itemName.includes('Non-Craftable') &&
         itemName.includes('Killstreak') &&
@@ -1797,7 +1819,7 @@ export default function sendWebHookPriceUpdateV1(
             : ks1Images[item.target];
 
         if (url) {
-            itemImageUrlPrint = `${front}${url}/520fx520f`;
+            itemImageUrlPrint = `${front}${url}/380fx380f`;
         }
 
         if (!itemImageUrlPrint) {
@@ -1814,7 +1836,7 @@ export default function sendWebHookPriceUpdateV1(
             : strangifierImages[item.target];
 
         if (url) {
-            itemImageUrlPrint = `${front}${url}/520fx520f`;
+            itemImageUrlPrint = `${front}${url}/380fx380f`;
         }
 
         if (!itemImageUrlPrint) {
@@ -1823,25 +1845,26 @@ export default function sendWebHookPriceUpdateV1(
     } else if (paintCans.includes(`${item.defindex}`)) {
         itemImageUrlPrint = `https://steamcommunity-a.akamaihd.net/economy/image/IzMF03bi9WpSBq-S-ekoE33L-iLqGFHVaU25ZzQNQcXdEH9myp0erksICf${
             paintCan[item.defindex]
-        }512fx512f`;
+        }380fx380f`;
     } else if (item.australium === true) {
         // No festivized image available for Australium
         itemImageUrlPrint = australiumImageURL[item.defindex]
             ? `https://steamcommunity-a.akamaihd.net/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgE${
                   australiumImageURL[item.defindex]
-              }512fx512f`
+              }380fx380f`
             : itemImageUrlPrint;
     } else if (item.paintkit !== null) {
-        const newItem = SKU.fromString(`${item.defindex};6`);
-        itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${encodeURIComponent(
-            schema.getName(newItem, false)
-        )}_${item.paintkit}_${item.wear}_${item.festive === true ? 1 : 0}.png`;
+        itemImageUrlPrint = `https://scrap.tf/img/items/warpaint/${item.defindex}_${item.paintkit}_${item.wear}_${
+            item.festive === true ? 1 : 0
+        }.png`;
     } else if (item.festive) {
         const front =
             'https://community.cloudflare.steamstatic.com/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEMaQkUTxr2vTx8';
-        itemImageUrlPrint = festivizedImages[item.defindex]
-            ? `${front}${festivizedImages[item.defindex] as string}/520fx520f`
-            : baseItemData.image_url_large;
+        if (festivizedImages[item.defindex]) {
+            itemImageUrlPrint = `${front}${festivizedImages[item.defindex]}/380fx380f`;
+        } else {
+            itemImageUrlPrint = baseItemData.image_url_large;
+        }
     } else {
         itemImageUrlPrint = baseItemData.image_url_large;
     }
@@ -1858,9 +1881,6 @@ export default function sendWebHookPriceUpdateV1(
 
     const qualityItem = parts[1];
     const qualityColorPrint = qualityColor[qualityItem];
-
-    const buyChanges = Currencies.toCurrencies(buyChangesValue).toString();
-    const sellChanges = Currencies.toCurrencies(sellChangesValue).toString();
 
     const opt = options.discordWebhook;
     const priceUpdate: Webhook = {
@@ -1888,16 +1908,26 @@ export default function sendWebHookPriceUpdateV1(
                 title: '',
                 fields: [
                     {
-                        name: 'Buying for',
-                        value: `${oldPrice.buy.toString()} → ${newPrice.buy.toString()} (${
-                            buyChangesValue > 0 ? `+${buyChanges}` : buyChangesValue === 0 ? `0 ref` : buyChanges
-                        })`
+                        name: `Buying for${buyChangesValue === 0 ? ' 🔄' : buyChangesValue > 0 ? ' 📈' : ' 📉'}`,
+                        value:
+                            buyChangesValue === 0
+                                ? newPrices.buy.toString()
+                                : `${oldPrices.buy.toString()} → ${newPrices.buy.toString()} (${
+                                      buyChangesValue > 0
+                                          ? `+${Currencies.toCurrencies(buyChangesValue, conversion).toString()}`
+                                          : Currencies.toCurrencies(buyChangesValue, conversion).toString()
+                                  })`
                     },
                     {
-                        name: 'Selling for',
-                        value: `${oldPrice.sell.toString()} → ${newPrice.sell.toString()} (${
-                            sellChangesValue > 0 ? `+${sellChanges}` : sellChangesValue === 0 ? `0 ref` : sellChanges
-                        })`
+                        name: `Selling for${sellChangesValue === 0 ? ' 🔄' : sellChangesValue > 0 ? ' 📈' : ' 📉'}`,
+                        value:
+                            sellChangesValue === 0
+                                ? newPrices.sell.toString()
+                                : `${oldPrices.sell.toString()} → ${newPrices.sell.toString()} (${
+                                      sellChangesValue > 0
+                                          ? `+${Currencies.toCurrencies(sellChangesValue, conversion).toString()}`
+                                          : Currencies.toCurrencies(sellChangesValue, conversion).toString()
+                                  })`
                     }
                 ],
                 description: `Stock: ${currentStock}${opt.priceUpdate.note ? `\n${opt.priceUpdate.note}` : ''}`,
@@ -1952,7 +1982,7 @@ class PriceUpdateQueue {
 
         this.isProcessing = true;
 
-        await sleepasync().Promise.sleep(this.sleepTime);
+        await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
             this.sleepTime = 1000;
@@ -1960,17 +1990,13 @@ class PriceUpdateQueue {
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
-            .then(() => {
-                log.debug(`Sent ${sku} update to Discord.`);
-            })
-            .catch(err => {
-                log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, err);
+            .catch((e: WebhookError) => {
+                log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, e);
 
                 /*eslint-disable */
-                if (err.text) {
-                    const errContent = JSON.parse(err.text);
-                    if (errContent.message === 'The resource is being rate limited.') {
-                        this.sleepTime = errContent.retry_after;
+                if (typeof e.err?.data !== 'string') {
+                    if (e.err.data.message === 'The resource is being rate limited.') {
+                        this.sleepTime = e.err.data.retry_after;
                         this.isRateLimited = true;
                     }
                 }

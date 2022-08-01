@@ -1,5 +1,5 @@
 import SteamID from 'steamid';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from '../../Bot';
 
 export default class HelpCommands {
@@ -10,6 +10,25 @@ export default class HelpCommands {
     async helpCommand(steamID: SteamID): Promise<void> {
         const isAdmin = this.bot.isAdmin(steamID);
         const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
+
+        if (steamID instanceof SteamID && steamID.redirectAnswerTo && steamID.type === 0) {
+            return this.bot.sendMessage(
+                steamID,
+                `\nDo not include characters <> nor [ ] - <> means required and [] means optional.` +
+                    "\n\n📜 Here's a list of my commands:" +
+                    '\n- ' +
+                    [
+                        '!help - Get a list of commands.',
+                        '!how2trade - Guide on how to trade with the bot.',
+                        "!links - Links to the bot's Steam, Backpack.tf, and Rep.tf.",
+                        '!price [amount] <name> - Get the price and stock of an item.',
+                        "!sku <Full Item Name|Item's sku> - Get the sku of an item.",
+                        "!owner - Get the owner's Steam profile and Backpack.tf links.",
+                        "!discord - Get a link to join TF2Autobot and/or the owner's discord server.",
+                        '!more - Show more available commands list.'
+                    ].join('\n- ')
+            );
+        }
 
         this.bot.sendMessage(
             steamID,
@@ -48,22 +67,22 @@ export default class HelpCommands {
         );
 
         if (isAdmin) {
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Pricelist manager ===✨\n- ' +
                     [
                         "!sku <Full Item Name|Item's sku> - Get the sku of an item.",
-                        '!add (sku|item|name|defindex)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
+                        '!add (sku|name|defindex|item|id)=<a>&[Listing-parameters] - Add a pricelist entry ➕',
                         '!addbulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk add pricelist entries ➕➕➕',
                         '!autoadd [Listing-parameters] - Perform automatic adding items to the pricelist based on items that are currently' +
                             ' available in your bot inventory (about 2 seconds every item) 🤖',
                         '!stopautoadd - Stop automatic add items operation 🛑',
-                        '!update (sku|name|defindex|item)=<a>&[Listing-parameters] - Update a pricelist entry 🔄',
+                        '!update (sku|name|defindex|item|id)=<a>&[Listing-parameters] - Update a pricelist entry 🔄',
                         '!updatebulk (sku|item)=<a>&[Listing-parameters]<Enter (new line)><second and so on>... - Bulk update pricelist entries 🔄🔄🔄',
-                        '!remove (sku|name|defindex|item)=<a> - Remove a pricelist entry 🔥',
+                        '!remove (sku|name|defindex|item|id)=<a> - Remove a pricelist entry 🔥',
                         '!removebulk (sku|item)=<a><Enter (new line)><second and so on>... - Bulk remove pricelist entries 🔥🔥🔥',
-                        '!get (sku|name|defindex|item)=<a> - Get raw information about a pricelist entry',
+                        '!get (sku|name|defindex|item|id)=<a> - Get raw information about a pricelist entry',
                         '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
                         '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
                         '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
@@ -71,34 +90,39 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Bot manager ===✨\n- ' +
                     [
-                        '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items',
-                        '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items',
-                        "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit",
-                        '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable)',
+                        '!deposit (sku|name|defindex)=<a>&amount=<number> - Deposit items.',
+                        '!withdraw (sku|name|defindex)=<a>&amount=<number> - Withdraw items.',
+                        '!withdrawMptf [max=<number>] - [Exclusive Marketplace.tf Sellers] Withdraw items that does not exist on Marketplace.tf Dashboard items.',
+                        "!expand craftable=(true|false) - Use Backpack Expanders to increase the bot's inventory limit.",
+                        '!use (sku|assetid)=<a> - Use an item (such as Gift-Stuffed Stocking 2020 - sku: 5923;6;untradable).',
                         "!delete (sku|assetid)=<a> - Delete an item from the bot's inventory (SKU input only) 🚮",
                         '!message <steamid> <your message> - Send a message to a specific user 💬',
-                        '!block <steamid> - Block a specific user',
-                        '!unblock <steamid> - Unblock a specific user',
-                        '!blockedList - Get a list of blocked users',
+                        '!block <steamid> [reason] - Block a specific user, reason will be saved for future reference.',
+                        '!unblock <steamid> - Unblock a specific user.',
+                        '!blockedList - Get a list of blocked SteamIDs (with reason if any).',
                         '!clearfriends - Clear friendlist (will keep admins and friendsToKeep) 👋',
                         '!stop - Stop the bot 🔴',
                         '!restart - Restart the bot 🔄',
+                        '!updaterepo - Update your bot to the latest version (only if cloned and running with PM2)',
+                        '!halt - Pause the trading ⏸ (disables listings, commands, most of trades). Admins are immune. Do not spam this.',
+                        '!unhalt - Unpause the trading ▶ (enables listings, commands, trades). Do not spam this.',
+                        '!haltstatus - Get the info whether the bot is paused or not ⏯',
                         "!refreshautokeys - Refresh the bot's autokeys settings.",
                         '!refreshlist - Refresh sell listings 🔄',
-                        "!name <new_name> - Change the bot's name",
-                        "!avatar <image_URL> - Change the bot's avatar",
+                        "!name <new_name> - Change the bot's name.",
+                        "!avatar <image_URL> - Change the bot's avatar.",
                         '!donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰',
                         '!premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑',
-                        '!refreshSchema - Force refresh TF2 Schema when new update arrived (do not spam this)'
+                        '!refreshSchema - Force refresh TF2 Schema when new update arrived (do not spam this).'
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Crafting ===✨\n- ' +
@@ -108,7 +132,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Bot status ===✨\n- ' +
@@ -121,7 +145,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Manual review ===✨\n- ' +
@@ -136,7 +160,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Request ===✨\n- ' +
@@ -153,7 +177,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Configuration manager (options.json) ===✨\n- ' +
@@ -164,7 +188,7 @@ export default class HelpCommands {
                     ].join('\n- ')
             );
 
-            await sleepasync().Promise.sleep(2000);
+            await timersPromises.setTimeout(2000);
             this.bot.sendMessage(
                 steamID,
                 '.\n✨=== Misc ===✨\n- ' +
@@ -174,7 +198,7 @@ export default class HelpCommands {
                         '!uptime - Show the bot uptime 🔌',
                         "!pure - Get the bot's current pure stock 💰",
                         "!rate - Get the bot's current key rates 🔑",
-                        '!stock - Get a list of items that the bot owns',
+                        '!stock [sku|item name] - Get a list of items that the bot owns',
                         "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
                         "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫",
                         '!paints - Get a list of paints partial sku 🎨'
@@ -201,7 +225,7 @@ export default class HelpCommands {
                 '!uptime - Show the bot uptime 🔌',
                 "!pure - Get the bot's current pure stock 💰",
                 "!rate - Get the bot's current key rates 🔑",
-                '!stock - Get a list of items that the bot owns',
+                '!stock [sku|item name] - Get a list of items that the bot owns',
                 "!craftweapon - Get a list of the bot's craftable weapon stock 🔫",
                 "!uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫"
             ].join('\n- ')}`

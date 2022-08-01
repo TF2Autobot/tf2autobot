@@ -2,7 +2,7 @@
 declare module '@tf2autobot/tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
-    import SchemaManager, { Paints } from '@tf2autobot/tf2-schema';
+    import SchemaManager from '@tf2autobot/tf2-schema';
     import Currencies from '@tf2autobot/tf2-currencies';
 
     interface UnknownKeys<T> {
@@ -140,7 +140,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
         }
 
         export interface Prices {
-            [sku: string]: {
+            [priceKey: string]: {
                 buy?: Currencies;
                 sell?: Currencies;
             };
@@ -213,6 +213,14 @@ declare module '@tf2autobot/tradeoffer-manager' {
             error?: string;
         }
 
+        interface Halted {
+            reason: '⬜_HALTED';
+        }
+
+        interface BannedResults {
+            [website: string]: string;
+        }
+
         export type WrongAboutOffer =
             | Overstocked
             | Understocked
@@ -222,7 +230,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             | DupeCheckFailed
             | DupedItems
             | EscrowCheckFailed
-            | BannedCheckFailed;
+            | BannedCheckFailed
+            | Halted;
 
         export interface Meta {
             highValue?: HighValueOutput;
@@ -232,6 +241,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             assetids?: string[];
             sku?: string[];
             result?: boolean[];
+            banned?: BannedResults;
         }
 
         interface PartialSKUWithMention {
@@ -350,9 +360,6 @@ declare module '@tf2autobot/tradeoffer-manager' {
             app_data?: { def_index: string; quality?: string; quantity?: string; limited?: number };
 
             // Custom function added to prototype
-            hasDescription(description: string): boolean;
-
-            // Custom function added to prototype
             getAction(action: string): string | null;
 
             // Custom function added to prototype
@@ -364,9 +371,19 @@ declare module '@tf2autobot/tradeoffer-manager' {
                 normalizeFestivizedItems: boolean,
                 normalizeStrangeAsSecondQuality: boolean,
                 normalizePainted: boolean,
-                paints: Paints,
+                normalizeCraftNumber: boolean,
                 paintsInOptions: string[]
             ): { sku: string; isPainted: boolean } | null;
+        }
+
+        export class EconItemRB extends EconItem {
+            new_assetid: string;
+
+            new_contextid: string;
+
+            rollback_new_assetid: string;
+
+            rollback_new_contextid: string;
         }
 
         type TradeOfferItem = {
@@ -458,6 +475,18 @@ declare module '@tf2autobot/tradeoffer-manager' {
              * @param callback - Function to call when done
              */
             cancel(callback?: (err: Error | null) => void): void;
+
+            // https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOffer#getexchangedetailsgetdetailsiffailed-callback
+            getExchangeDetails(
+                getDetailsIfFailed: boolean,
+                callback: (
+                    err?: Error,
+                    status?: number,
+                    tradeInitTime?: Date,
+                    receivedItems?: EconItemRB[],
+                    sentItems?: EconItemRB[]
+                ) => void
+            ): void;
 
             // Custom function added to prototype
             log(level: string, message: string, ...meta: any[]);

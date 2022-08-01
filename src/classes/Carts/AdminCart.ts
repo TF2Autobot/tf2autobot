@@ -113,85 +113,78 @@ export default class AdminCart extends Cart {
 
             // Load their inventory
 
-            const theirInventory = new Inventory(
-                this.partner,
-                this.bot.manager,
-                this.bot.schema,
-                this.bot.options,
-                this.bot.effects,
-                this.bot.paints,
-                this.bot.strangeParts,
-                'admin'
-            );
+            const theirInventory = new Inventory(this.partner, this.bot, 'admin');
 
-            void theirInventory.fetch().asCallback(err => {
-                if (err) {
+            void theirInventory
+                .fetch()
+                .then(() => {
+                    // Add their items
+
+                    for (const sku in this.their) {
+                        if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
+                            continue;
+                        }
+
+                        let amount = this.getTheirCount(sku);
+                        const theirAssetids = theirInventory.findBySKU(sku, true);
+                        const theirAssetidsCount = theirAssetids.length;
+
+                        if (amount > theirAssetidsCount) {
+                            amount = theirAssetidsCount;
+                            // Remove the item from the cart
+                            this.removeTheirItem(sku);
+
+                            if (theirAssetidsCount === 0) {
+                                alteredMessages.push(
+                                    "you don't have any " +
+                                        pluralize(this.bot.schema.getName(SKU.fromString(sku), false))
+                                );
+                            } else {
+                                alteredMessages.push(
+                                    'you only have ' +
+                                        pluralize(
+                                            this.bot.schema.getName(SKU.fromString(sku), false),
+                                            theirAssetidsCount,
+                                            true
+                                        )
+                                );
+
+                                // Add the max amount to the offer substract current added amount
+                                this.addTheirItem(
+                                    sku,
+                                    this.their[sku] ? theirAssetidsCount - this.their[sku] : theirAssetidsCount
+                                );
+                            }
+                        }
+
+                        for (let i = 0; i < amount; i++) {
+                            offer.addTheirItem({
+                                appid: 440,
+                                contextid: '2',
+                                assetid: theirAssetids[i]
+                            });
+                        }
+                    }
+
+                    offer.data('dict', { our: this.our, their: this.their });
+
+                    this.offer = offer;
+
+                    theirInventory.clearFetch();
+
+                    const timeTaken = Date.now() - start;
+                    offer.data('constructOfferTime', timeTaken);
+                    log.debug(`Constructing offer took ${timeTaken} ms`);
+
+                    return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
+                })
+                .catch((err: Error) => {
                     log.error(`Failed to load admin inventories (${this.partner.getSteamID64()}): `, err);
                     return reject(
                         'Failed to load your inventory, Steam might be down. ' +
                             'Please try again later. If you have your profile/inventory set to private, please set it to public and try again.'
                     );
-                }
-
-                // Add their items
-
-                for (const sku in this.their) {
-                    if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
-                        continue;
-                    }
-
-                    let amount = this.getTheirCount(sku);
-                    const theirAssetids = theirInventory.findBySKU(sku, true);
-                    const theirAssetidsCount = theirAssetids.length;
-
-                    if (amount > theirAssetidsCount) {
-                        amount = theirAssetidsCount;
-                        // Remove the item from the cart
-                        this.removeTheirItem(sku);
-
-                        if (theirAssetidsCount === 0) {
-                            alteredMessages.push(
-                                "you don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false))
-                            );
-                        } else {
-                            alteredMessages.push(
-                                'you only have ' +
-                                    pluralize(
-                                        this.bot.schema.getName(SKU.fromString(sku), false),
-                                        theirAssetidsCount,
-                                        true
-                                    )
-                            );
-
-                            // Add the max amount to the offer substract current added amount
-                            this.addTheirItem(
-                                sku,
-                                this.their[sku] ? theirAssetidsCount - this.their[sku] : theirAssetidsCount
-                            );
-                        }
-                    }
-
-                    for (let i = 0; i < amount; i++) {
-                        offer.addTheirItem({
-                            appid: 440,
-                            contextid: '2',
-                            assetid: theirAssetids[i]
-                        });
-                    }
-                }
-
-                offer.data('dict', { our: this.our, their: this.their });
-
-                this.offer = offer;
-
-                theirInventory.clearFetch();
-
-                const timeTaken = Date.now() - start;
-                offer.data('constructOfferTime', timeTaken);
-                log.debug(`Constructing offer took ${timeTaken} ms`);
-
-                return resolve(alteredMessages.length === 0 ? undefined : alteredMessages.join(', '));
-            });
+                });
         });
     }
 }

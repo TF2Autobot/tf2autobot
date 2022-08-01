@@ -6,12 +6,14 @@ import { Webhook } from './interfaces';
 import log from '../logger';
 import { stats, profit, timeNow } from '../../lib/tools/export';
 import Bot from '../../classes/Bot';
+import loadPollData from '../tools/polldata';
 
 export default async function sendStats(bot: Bot, forceSend = false, steamID?: SteamID): Promise<void> {
     const optDW = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
-    const trades = stats(bot);
-    const profits = await profit(bot, Math.floor((Date.now() - 86400000) / 1000));
+    const pollData = loadPollData(bot.handler.getPaths.files.dir);
+    const trades = stats(bot, pollData);
+    const profits = await profit(bot, pollData, Math.floor((Date.now() - 86400000) / 1000));
 
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;
@@ -129,7 +131,6 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
 
     sendWebhook(optDW.sendStats.url, discordStats, 'statistics')
         .then(() => {
-            log.debug(`✅ Sent statistics webhook to Discord.`);
             if (forceSend) {
                 bot.sendMessage(steamID, '✅ Sent statistics to Discord Webhook!');
             }

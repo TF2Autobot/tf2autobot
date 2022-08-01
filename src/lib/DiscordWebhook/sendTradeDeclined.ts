@@ -43,10 +43,9 @@ export default async function sendTradeDeclined(
           };
 
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = t.valueDiff(offer, keyPrices, isTradingKeys, optBot.miscSettings.showOnlyMetal.enable);
+    const value = t.valueDiff(offer, keyPrices, isTradingKeys);
     const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, false, isOfferSent);
 
-    log.debug('getting partner Avatar and Name...');
     const details = await getPartnerDetails(offer, bot);
 
     const botInfo = bot.handler.getBotInfo;
@@ -184,19 +183,17 @@ export default async function sendTradeDeclined(
     const url = optDW.declinedTrade.url;
 
     url.forEach((link, i) => {
-        sendWebhook(link, declinedTradeSummary, 'trade-declined', i)
-            .then(() => log.debug(`✅ Sent summary (#${offer.id}) to Discord ${url.length > 1 ? `(${i + 1})` : ''}`))
-            .catch(err => {
-                log.warn(
-                    `❌ Failed to send trade-declined webhook (#${offer.id}) to Discord ${
-                        url.length > 1 ? `(${i + 1})` : ''
-                    }: `,
-                    err
-                );
+        sendWebhook(link, declinedTradeSummary, 'trade-declined', i).catch(err => {
+            log.warn(
+                `❌ Failed to send trade-declined webhook (#${offer.id}) to Discord ${
+                    url.length > 1 ? `(${i + 1})` : ''
+                }: `,
+                err
+            );
 
-                const itemListx = t.listItems(offer, bot, itemsName, true);
-                sendToAdmin(bot, offer, value, itemListx, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
-            });
+            const itemListx = t.listItems(offer, bot, itemsName, true);
+            sendToAdmin(bot, offer, value, itemListx, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
+        });
     });
 }
 

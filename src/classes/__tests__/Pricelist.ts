@@ -38,8 +38,8 @@ it('can pricecheck', async () => {
     });
     expect(priceList.getLength).toEqual(0);
     expect(priceList.getPrices).toEqual({});
-    expect(priceList.hasPrice('5021;6')).toEqual(false);
-    expect(priceList.getPrice('5021;6')).toBeNull();
+    expect(priceList.hasPrice({ priceKey: '5021;6' })).toEqual(false);
+    expect(priceList.getPrice({ priceKey: '5021;6' })).toBeNull();
     // expect(priceList.searchByName('Mann Co. Supply Crate Key')).toBeNull();
 });
 

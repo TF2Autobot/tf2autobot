@@ -1,6 +1,6 @@
 import { TradeOffer, Meta } from '@tf2autobot/tradeoffer-manager';
 import processReview from './process-review';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
 import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
@@ -20,14 +20,13 @@ export default async function sendReview(
     const links = t.generateLinks(offer.partner.toString());
     const content = processReview(offer, meta, bot, isTradingKeys);
 
-    const hasCustomNote = !(
-        opt.manualReview.invalidItems.note !== '' ||
+    const hasCustomNote = !(opt.manualReview.invalidItems.note !== '' ||
         opt.manualReview.disabledItems.note !== '' ||
         opt.manualReview.overstocked.note !== '' ||
         opt.manualReview.understocked.note !== '' ||
         opt.manualReview.duped.note !== '' ||
-        opt.manualReview.dupedCheckFailed.note !== ''
-    );
+        opt.manualReview.dupedCheckFailed.note !== '',
+    opt.manualReview.halted.note !== '');
 
     const reasons = meta.uniqueReasons.join(', ');
     const isWebhookEnabled = opt.discordWebhook.offerReview.enable && opt.discordWebhook.offerReview.url !== '';
@@ -35,21 +34,31 @@ export default async function sendReview(
 
     // Notify partner and admin that the offer is waiting for manual review
     if (isNotifyTradePartner) {
-        if (reasons.includes('⬜_BANNED_CHECK_FAILED') || reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
+        if (
+            reasons.includes('⬜_BANNED_CHECK_FAILED') ||
+            reasons.includes('⬜_ESCROW_CHECK_FAILED') ||
+            reasons.includes('⬜_HALTED')
+        ) {
             let reply: string;
 
             if (reasons.includes('⬜_BANNED_CHECK_FAILED')) {
                 const custom = opt.manualReview.bannedCheckFailed.note;
                 reply = custom
                     ? custom
-                    : 'Backpack.tf or steamrep.com is down and I failed to check your backpack.tf/steamrep' +
-                      ' status, please wait for my owner to manually accept/decline your offer.';
-            } else {
+                    : 'I have failed to obtain data about your reputation status' +
+                      ', please wait for my owner to manually accept/decline your offer.';
+            } else if (reasons.includes('⬜_ESCROW_CHECK_FAILED')) {
                 const custom = opt.manualReview.escrowCheckFailed.note;
                 reply = custom
                     ? custom
                     : 'Steam is down and I failed to check your Escrow (Trade holds)' +
                       ' status, please wait for my owner to manually accept/decline your offer.';
+            } else if (reasons.includes('⬜_HALTED')) {
+                const custom = opt.manualReview.halted.note;
+                reply = custom
+                    ? custom
+                    : '❌ The bot is not operational right now, but your offer has been put to review,' +
+                      ' please wait for my owner to manually accept/decline your offer.';
             }
             bot.sendMessage(offer.partner, reply);
         } else {
@@ -89,7 +98,7 @@ export default async function sendReview(
     const highValueItems: string[] = [];
     if (meta?.highValue?.items) {
         if (Object.keys(meta.highValue.items.their).length > 0) {
-            const itemsName = t.getHighValueItems(meta.highValue.items.their, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(meta.highValue.items.their, bot);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -101,7 +110,7 @@ export default async function sendReview(
         }
 
         if (Object.keys(meta.highValue.items.our).length > 0) {
-            const itemsName = t.getHighValueItems(meta.highValue.items.our, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(meta.highValue.items.our, bot);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -130,7 +139,7 @@ export default async function sendReview(
         const list = t.listItems(offer, bot, items, true);
 
         // add delay here because Steam said RateLimitExceeded
-        if (isNotifyTradePartner) await sleepasync().Promise.sleep(2000);
+        if (isNotifyTradePartner) await timersPromises.setTimeout(2000);
         void sendToAdmin(bot, offer, reasons, content.value, keyPrices, list, links);
     }
 }
@@ -162,9 +171,11 @@ export async function sendToAdmin(
         } from ${offer.partner.toString()} is pending review.` +
         `\nReasons: ${reasons}` +
         (reasons.includes('⬜_BANNED_CHECK_FAILED')
-            ? '\n\nBackpack.tf or steamrep.com are down, please manually check if this person is banned before accepting the offer.'
+            ? '\n\nFailed to get reputation status, please manually check if this person is banned before accepting the offer.'
             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
             ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
+            : reasons.includes('⬜_HALTED')
+            ? '\n\nOffer received while in halt mode, please review the offer.'
             : '');
 
     const message2 =
@@ -190,16 +201,16 @@ export async function sendToAdmin(
 
         log.debug('Sending message 1');
         bot.messageAdmins(message1, []);
-        await sleepasync().Promise.sleep(1500); // bruh
+        await timersPromises.setTimeout(1500); // bruh
         log.debug('Sending message 2');
         bot.messageAdmins(message2, []);
-        await sleepasync().Promise.sleep(1500);
+        await timersPromises.setTimeout(1500);
         log.debug('Sending message 3');
         bot.messageAdmins(message3, []);
-        await sleepasync().Promise.sleep(1000);
+        await timersPromises.setTimeout(1000);
         log.debug('Sending message 4');
         return bot.messageAdmins(message4, []);
     }
-    await sleepasync().Promise.sleep(1500);
+    await timersPromises.setTimeout(1500);
     bot.messageAdmins(message, []);
 }

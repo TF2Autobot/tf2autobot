@@ -1,39 +1,32 @@
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import log from '../../../lib/logger';
 
 export default class CustomPricerSocketManager {
-    public socket: SocketIOClient.Socket;
+    public socket: Socket;
 
     constructor(public url: string, public key?: string) {}
 
-    private socketDisconnected() {
-        return (reason: string) => {
+    private socketDisconnected(): (reason: string) => void {
+        return reason => {
             log.debug('Disconnected from socket server', { reason: reason });
 
             if (reason === 'io server disconnect') {
-                this.socket.connect();
+                if (!this.isConnecting) {
+                    this.socket.connect();
+                }
             }
         };
     }
 
-    private socketUnauthorized() {
-        return (err: Error) => {
-            log.warn('Failed to authenticate with socket server', {
-                error: err
-            });
-        };
-    }
-
-    private socketAuthenticated() {
+    private socketAuthenticated(): () => void {
         return () => {
             log.debug('Authenticated with socket server');
         };
     }
 
-    private socketConnect() {
+    private socketConnect(): () => void {
         return () => {
             log.debug('Connected to socket server');
-            this.socket.emit('authentication', this.key);
         };
     }
 
@@ -42,13 +35,15 @@ export default class CustomPricerSocketManager {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment
         this.socket = io(this.url, {
             forceNew: true,
-            autoConnect: false
+            autoConnect: false,
+            auth: {
+                token: this.key
+            }
         });
+
         this.socket.on('connect', this.socketConnect());
 
         this.socket.on('authenticated', this.socketAuthenticated());
-
-        this.socket.on('unauthorized', this.socketUnauthorized());
 
         this.socket.on('disconnect', this.socketDisconnected());
 
@@ -63,6 +58,10 @@ export default class CustomPricerSocketManager {
         this.socket.on('connect_error', err => {
             log.warn(`Couldn't connect to socket server`, err);
         });
+    }
+
+    get isConnecting(): boolean {
+        return this.socket.active;
     }
 
     connect(): void {

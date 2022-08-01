@@ -403,7 +403,7 @@ export default class Autokeys {
 
                 const msg = 'I am now low on both keys and refs.';
                 if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
-                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                    if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                         sendAlert('lowPure', this.bot, msg);
                     } else {
                         this.bot.messageAdmins(msg, []);
@@ -412,7 +412,7 @@ export default class Autokeys {
             }
         } else {
             // if Autokeys is not running/disabled
-            if (this.bot.pricelist.getPrice('5021;6', false) === null) {
+            if (this.bot.pricelist.getPrice({ priceKey: '5021;6', onlyEnabled: false }) === null) {
                 // if Mann Co. Supply Crate Key entry does not exist in the pricelist.json
                 if (isBankingKeys && isEnableKeyBanking) {
                     //create new Key entry and enable keys banking - if banking conditions to enable banking matched and banking is enabled
@@ -449,7 +449,7 @@ export default class Autokeys {
 
                     const msg = 'I am now low on both keys and refs.';
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
@@ -493,7 +493,7 @@ export default class Autokeys {
 
                     const msg = 'I am now low on both keys and refs.';
                     if (opt.sendAlert.enable && opt.sendAlert.autokeys.lowPure) {
-                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url !== '') {
+                        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                             sendAlert('lowPure', this.bot, msg);
                         } else {
                             this.bot.messageAdmins(msg, []);
@@ -519,7 +519,7 @@ export default class Autokeys {
         );
     }
 
-    private generateEntry(enabled: boolean, min: number, max: number, intent: 0 | 1 | 2): EntryData {
+    private static generateEntry(enabled: boolean, min: number, max: number, intent: 0 | 1 | 2): EntryData {
         return {
             sku: '5021;6',
             enabled: enabled,
@@ -530,7 +530,7 @@ export default class Autokeys {
         };
     }
 
-    private setManual(entry: EntryData, keyPrices: KeyPrices): EntryData {
+    private static setManual(entry: EntryData, keyPrices: KeyPrices): EntryData {
         entry.autoprice = false;
         entry.buy = {
             keys: 0,
@@ -583,14 +583,14 @@ export default class Autokeys {
     }
 
     private createToBank(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
-        let entry = this.generateEntry(true, minKeys, maxKeys, 2);
+        let entry = Autokeys.generateEntry(true, minKeys, maxKeys, 2);
 
         if (keyPrices.src === 'manual') {
-            entry = this.setManual(entry, keyPrices);
+            entry = Autokeys.setManual(entry, keyPrices);
         }
 
         this.bot.pricelist
-            .addPrice(entry, true, PricelistChangedSource.Autokeys)
+            .addPrice({ entryData: entry, emitChange: true, src: PricelistChangedSource.Autokeys })
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to bank.`))
             .catch(err => {
                 const opt2 = this.bot.options;
@@ -598,23 +598,23 @@ export default class Autokeys {
                     false,
                     `❌ Failed to add Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                     'autokeys-failedToAdd-bank'
                 );
             });
     }
 
     private create(minKeys: number, maxKeys: number, keyPrices: KeyPrices, intent: 'buy' | 'sell'): void {
-        let entry = this.generateEntry(true, minKeys, maxKeys, intent === 'buy' ? 0 : 1);
+        let entry = Autokeys.generateEntry(true, minKeys, maxKeys, intent === 'buy' ? 0 : 1);
 
         if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
-            entry = this.setManual(entry, keyPrices);
+            entry = Autokeys.setManual(entry, keyPrices);
         } else if (this.isEnableScrapAdjustment) {
             entry = this.setWithScrapAdjustment(entry, keyPrices, intent);
         }
 
         this.bot.pricelist
-            .addPrice(entry, true, PricelistChangedSource.Autokeys)
+            .addPrice({ entryData: entry, emitChange: true, src: PricelistChangedSource.Autokeys })
             .then(() => log.debug(`✅ Automatically added Mann Co. Supply Crate Key to ${intent}.`))
             .catch(err => {
                 const opt2 = this.bot.options;
@@ -622,21 +622,26 @@ export default class Autokeys {
                     false,
                     `❌ Failed to add Mann Co. Supply Crate Key to ${intent} automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToAdd,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                     `autokeys-failedToAdd-${intent}`
                 );
             });
     }
 
     private updateToBank(minKeys: number, maxKeys: number, keyPrices: KeyPrices): void {
-        let entry = this.generateEntry(true, minKeys, maxKeys, 2);
+        let entry = Autokeys.generateEntry(true, minKeys, maxKeys, 2);
 
         if (keyPrices.src === 'manual') {
-            entry = this.setManual(entry, keyPrices);
+            entry = Autokeys.setManual(entry, keyPrices);
         }
 
         this.bot.pricelist
-            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+            .updatePrice({
+                priceKey: entry.sku,
+                entryData: entry,
+                emitChange: true,
+                src: PricelistChangedSource.Autokeys
+            })
             .then(() => log.debug(`✅ Automatically updated Mann Co. Supply Crate Key to bank.`))
             .catch(err => {
                 const opt2 = this.bot.options;
@@ -644,23 +649,28 @@ export default class Autokeys {
                     false,
                     `❌ Failed to update Mann Co. Supply Crate Key to bank automatically: ${(err as Error).message}`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                     'autokeys-failedToUpdate-bank'
                 );
             });
     }
 
     private update(minKeys: number, maxKeys: number, keyPrices: KeyPrices, intent: 'buy' | 'sell'): void {
-        let entry = this.generateEntry(true, minKeys, maxKeys, intent === 'buy' ? 0 : 1);
+        let entry = Autokeys.generateEntry(true, minKeys, maxKeys, intent === 'buy' ? 0 : 1);
 
         if (keyPrices.src === 'manual' && !this.isEnableScrapAdjustment) {
-            entry = this.setManual(entry, keyPrices);
+            entry = Autokeys.setManual(entry, keyPrices);
         } else if (this.isEnableScrapAdjustment) {
             entry = this.setWithScrapAdjustment(entry, keyPrices, intent);
         }
 
         this.bot.pricelist
-            .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+            .updatePrice({
+                priceKey: entry.sku,
+                entryData: entry,
+                emitChange: true,
+                src: PricelistChangedSource.Autokeys
+            })
             .then(() => log.debug(`✅ Automatically update Mann Co. Supply Crate Key to ${intent}.`))
             .catch(err => {
                 const opt2 = this.bot.options;
@@ -670,7 +680,7 @@ export default class Autokeys {
                         (err as Error).message
                     }`,
                     opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToUpdate,
-                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                    opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                     `autokeys-failedToUpdate-${intent}`
                 );
             });
@@ -678,7 +688,7 @@ export default class Autokeys {
 
     disable(keyPrices: KeyPrices): Promise<void> {
         return new Promise((resolve, reject) => {
-            const match = this.bot.pricelist.getPrice('5021;6', false);
+            const match = this.bot.pricelist.getPrice({ priceKey: '5021;6', onlyEnabled: false });
             if (match === null) {
                 return resolve();
             }
@@ -687,14 +697,19 @@ export default class Autokeys {
                 return resolve();
             }
 
-            let entry = this.generateEntry(false, 0, 1, 2);
+            let entry = Autokeys.generateEntry(false, 0, 1, 2);
 
             if (keyPrices.src === 'manual') {
-                entry = this.setManual(entry, keyPrices);
+                entry = Autokeys.setManual(entry, keyPrices);
             }
 
             this.bot.pricelist
-                .updatePrice(entry, true, PricelistChangedSource.Autokeys)
+                .updatePrice({
+                    priceKey: entry.sku,
+                    entryData: entry,
+                    emitChange: true,
+                    src: PricelistChangedSource.Autokeys
+                })
                 .then(() => {
                     log.debug('✅ Automatically disabled Autokeys.');
                     resolve();
@@ -705,7 +720,7 @@ export default class Autokeys {
                         true,
                         `❌ Failed to disable Autokeys: ${(err as Error).message}`,
                         opt2.sendAlert.enable && opt2.sendAlert.autokeys.failedToDisable,
-                        opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url !== '',
+                        opt2.discordWebhook.sendAlert.enable && opt2.discordWebhook.sendAlert.url.main !== '',
                         'autokeys-failedToDisable'
                     );
                     reject();

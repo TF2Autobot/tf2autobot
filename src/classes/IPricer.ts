@@ -21,11 +21,13 @@ export default interface IPricer {
 
     getPricelist(): Promise<GetPricelistResponse>;
 
-    connect(): void;
+    get isPricerConnecting(): boolean;
 
-    shutdown(): void;
+    connect(enabled: boolean): void;
 
-    init(): void;
+    shutdown(enabled: boolean): void;
+
+    init(enabled: boolean): void;
 
     bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void;
 }

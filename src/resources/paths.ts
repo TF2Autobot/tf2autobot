@@ -1,10 +1,13 @@
 import path from 'path';
+import fs from 'fs';
 
 interface FilePaths {
     loginKey: string;
     pollData: string;
     loginAttempts: string;
     pricelist: string;
+    blockedList: string;
+    dir: string;
 }
 
 interface LogPaths {
@@ -18,13 +21,26 @@ export interface Paths {
     logs: LogPaths;
 }
 
-export default function genPaths(steamAccountName: string): Paths {
+function generatePollDataPath(steamAccountName: string, increment: number) {
+    return path.join(__dirname, `../../files/${steamAccountName}/polldata${increment > 0 ? increment : ''}.json`);
+}
+
+export default function genPaths(steamAccountName: string, maxPollDataSizeMB = 5): Paths {
+    let increment = 0;
+    let pollDataPath = generatePollDataPath(steamAccountName, increment);
+
+    while (fs.existsSync(pollDataPath) && fs.statSync(pollDataPath).size / (1024 * 1024) > maxPollDataSizeMB) {
+        pollDataPath = generatePollDataPath(steamAccountName, ++increment);
+    }
+
     return {
         files: {
             loginKey: path.join(__dirname, `../../files/${steamAccountName}/loginkey.txt`),
-            pollData: path.join(__dirname, `../../files/${steamAccountName}/polldata.json`),
+            pollData: pollDataPath,
             loginAttempts: path.join(__dirname, `../../files/${steamAccountName}/loginattempts.json`),
-            pricelist: path.join(__dirname, `../../files/${steamAccountName}/pricelist.json`)
+            pricelist: path.join(__dirname, `../../files/${steamAccountName}/pricelist.json`),
+            blockedList: path.join(__dirname, `../../files/${steamAccountName}/blockedList.json`),
+            dir: path.join(__dirname, `../../files/${steamAccountName}/`)
         },
         logs: {
             log: path.join(__dirname, `../../logs/${steamAccountName}-%DATE%.log`),

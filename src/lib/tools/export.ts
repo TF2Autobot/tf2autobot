@@ -9,7 +9,7 @@ import listItems from './summarizeItems';
 import summarize, { summarizeToChat } from './summarizeOffer';
 import profit from './profit';
 import itemStats from './itemStats';
-import testSKU from './testSKU';
+import testPriceKey from './testPriceKey';
 
 export {
     getHighValueItems,
@@ -28,5 +28,5 @@ export {
     convertTime,
     profit,
     itemStats,
-    testSKU
+    testPriceKey
 };

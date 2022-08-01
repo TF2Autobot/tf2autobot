@@ -24,8 +24,6 @@ if (process.env.BOT_VERSION !== pjson.version) {
     process.exit(1);
 }
 
-import 'bluebird-global';
-
 import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -59,14 +57,22 @@ const botManager = new BotManager(
 import ON_DEATH from 'death';
 import * as inspect from 'util';
 import { Webhook } from './lib/DiscordWebhook/interfaces';
-import { XMLHttpRequest } from 'xmlhttprequest-ts';
+import axios, { AxiosError } from 'axios';
 import { uptime } from './lib/tools/time';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
     const crashed = !['SIGINT', 'SIGTERM'].includes(signalOrErr as 'SIGINT' | 'SIGTERM' | 'SIGQUIT');
 
     if (crashed) {
         const botReady = botManager.isBotReady;
+
+        const stackTrace = inspect.inspect(origin);
+
+        if (stackTrace.includes('Error: Not allowed')) {
+            log.error('Not Allowed');
+            return botManager.stop(null, true, true);
+        }
 
         const errorMessage = [
             'TF2Autobot' +
@@ -77,13 +83,13 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                 process.arch
             }}`,
             'Stack trace:',
-            inspect.inspect(origin),
+            stackTrace,
             `${uptime()}`
         ].join('\r\n');
 
         log.error(errorMessage);
 
-        if (options.discordWebhook.sendAlert.enable && options.discordWebhook.sendAlert.url !== '') {
+        if (options.discordWebhook.sendAlert.enable && options.discordWebhook.sendAlert.url.main !== '') {
             const optDW = options.discordWebhook;
             const sendAlertWebhook: Webhook = {
                 username: optDW.displayName ? optDW.displayName : 'Your beloved bot',
@@ -104,10 +110,13 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
                 ]
             };
 
-            const request = new XMLHttpRequest();
-            request.open('POST', optDW.sendAlert.url);
-            request.setRequestHeader('Content-type', 'application/json');
-            request.send(JSON.stringify(sendAlertWebhook));
+            void axios({
+                method: 'POST',
+                url: optDW.sendAlert.url.main,
+                data: sendAlertWebhook // axios should automatically set Content-Type header to application/json
+            }).catch((err: AxiosError) => {
+                log.error('Error sending webhook on crash', filterAxiosError(err));
+            });
         }
 
         if (botReady) {
@@ -133,20 +142,49 @@ process.on('message', message => {
     }
 });
 
-void botManager.start(options).asCallback(err => {
-    if (err) {
-        throw err;
-    }
-
-    if (options.enableHttpApi) {
-        void import('./classes/HttpManager').then(({ default: HttpManager }) => {
+botManager
+    .start(options)
+    .then(async () => {
+        if (options.enableHttpApi) {
+            const { default: HttpManager } = await import('./classes/HttpManager');
             const httpManager = new HttpManager(options);
+            await httpManager.start();
+        }
+    })
+    .catch(err => {
+        if (err) {
+            // https://stackoverflow.com/questions/30715367/why-can-i-not-throw-inside-a-promise-catch-handler
+            setTimeout(() => {
+                /*eslint-disable */
+                if (err.response || err.name === 'AxiosError') {
+                    // if it's Axios error, filter the error
 
-            void httpManager.start().asCallback(err => {
-                if (err) {
-                    throw err;
+                    const e = new Error(err.message);
+
+                    if (err.response) {
+                        e['status'] = err.response.status;
+
+                        if (typeof err.response.data === 'string' && err.response.data?.includes('<html>')) {
+                            return throwErr(e);
+                        }
+
+                        e['data'] = err.response.data;
+                    } else {
+                        // No need to get the "config", etc.
+                        e['method'] = err.method;
+                        e['baseURL'] = err.baseURL;
+                    }
+
+                    return throwErr(e);
                 }
-            });
-        });
-    }
-});
+                /*eslint-enable */
+
+                return throwErr(err);
+            }, 10);
+        }
+    });
+
+function throwErr(err): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    process.emit('uncaughtException', err);
+}

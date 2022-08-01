@@ -16,9 +16,6 @@
         "sendGroupInvite": {
             "enable": true
         },
-        "autobump": {
-            "enable": true
-        },
         "counterOffer": {
             "enable": true,
             "skipIncludeMessage": false
@@ -42,6 +39,16 @@
             "customTexture": {
                 "enable": true
             }
+        },
+        "deleteUntradableJunk": {
+            "enable": false
+        },
+        "reputationCheck": {
+            "checkMptfBanned": false,
+            "reptfAsPrimarySource": false
+        },
+        "pricecheckAfterTrade": {
+            "enable": true
         }
     },
     "sendAlert": {
@@ -59,6 +66,10 @@
             "tryingToTake": true
         },
         "autoRemoveIntentSellFailed": true,
+        "autoRemoveAssetidFailed": true,
+        "autoRemoveAssetidSuccess": true,
+        "autoUpdateAssetid": true,
+        "autoResetToAutopriceOnceSold": true,
         "autoAddPaintedItems": true,
         "failedAccept": true,
         "unableToProcessOffer": true,
@@ -79,6 +90,9 @@
             "excludeSKU": []
         },
         "filterCantAfford": {
+            "enable": false
+        },
+        "autoResetToAutopriceOnceSold": {
             "enable": false
         },
         "autoRemoveIntentSell": {
@@ -106,10 +120,6 @@
         },
         "giftWithoutMessage": {
             "allow": false
-        },
-        "bannedPeople": {
-            "allow": false,
-            "checkMptfBanned": true
         }
     },
     "tradeSummary": {
@@ -228,6 +238,10 @@
             "our": true,
             "their": true,
             "amountIncludeNonPainted": false
+        },
+        "craftNumber": {
+            "our": false,
+            "their": false
         }
     },
     "details": {
@@ -364,6 +378,9 @@
         },
         "bannedCheckFailed": {
             "ignoreFailed": false
+        },
+        "halted": {
+            "ignoreHalted": false
         }
     },
     "manualReview": {
@@ -399,7 +416,22 @@
         "bannedCheckFailed": {
             "note": ""
         },
+        "halted": {
+            "note": ""
+        },
         "additionalNotes": ""
+    },
+    "discordChat": {
+        "online": {
+            "type": "LISTENING",
+            "name": "incoming offers",
+            "status": "online"
+        },
+        "halt": {
+            "type": "PLAYING",
+            "name": "? No, Halted ⛔",
+            "status": "idle"
+        }
     },
     "discordWebhook": {
         "ownerID": [],
@@ -461,7 +493,10 @@
         "sendAlert": {
             "enable": true,
             "isMention": true,
-            "url": ""
+            "url": {
+                "main": "",
+                "partialPriceUpdate": ""
+            }
         },
         "sendStats": {
             "enable": false,
@@ -472,13 +507,15 @@
         "sendOffer": "",
         "counterOffer": "",
         "welcome": "",
-        "iDontKnowWhatYouMean": "",
+        "commandNotFound": "",
         "success": "",
         "successEscrow": "",
+        "halted": "",
         "decline": {
             "general": "",
             "hasNonTF2Items": "",
             "giftNoNote": "",
+            "giftFailedCheckBanned": "",
             "crimeAttempt": "",
             "onlyMetal": "",
             "duelingNot5Uses": "",
@@ -487,6 +524,7 @@
             "notTradingKeys": "",
             "notSellingKeys": "",
             "notBuyingKeys": "",
+            "halted": "",
             "banned": "",
             "escrow": "",
             "manual": "",

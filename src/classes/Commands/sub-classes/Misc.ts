@@ -1,10 +1,14 @@
 import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
+import { Message as DiscordMessage } from 'discord.js';
+import { removeLinkProtocol } from '../functions/utils';
+import CommandParser from '../../CommandParser';
 import Bot from '../../Bot';
 import { Discord, Stock } from '../../Options';
-import { pure, timeNow, uptime } from '../../../lib/tools/export';
+import { pure, timeNow, uptime, testPriceKey } from '../../../lib/tools/export';
+import getAttachmentName from '../../../lib/tools/getAttachmentName';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -14,7 +18,18 @@ export default class MiscCommands {
         this.bot = bot;
     }
 
-    miscCommand(steamID: SteamID, command: Misc): void {
+    links(SteamID: SteamID): void {
+        const botSteamID = this.bot.client.steamID.getSteamID64();
+
+        this.bot.sendMessage(
+            SteamID,
+            `Steam: <https://steamcommunity.com/profiles/${botSteamID}>` +
+                `\nBackpack.tf: <https://backpack.tf/u/${botSteamID}>` +
+                `\nRep.tf: <https://rep.tf/${botSteamID}>`
+        );
+    }
+
+    miscCommand(steamID: SteamID, command: Misc, message?: string): void {
         const opt = this.bot.options.commands[command];
         if (!opt.enable) {
             if (!this.bot.isAdmin(steamID)) {
@@ -93,6 +108,62 @@ export default class MiscCommands {
             }
             this.bot.sendMessage(steamID, reply);
         } else {
+            const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
+            let reply = '';
+
+            if (itemNameOrSku !== '!sku') {
+                // I don't remember why not `!sku` here.
+                let sku: string = itemNameOrSku;
+                if (itemNameOrSku !== '!stock') {
+                    if (!testPriceKey(itemNameOrSku)) {
+                        // Receive name
+                        sku = this.bot.schema.getSkuFromName(itemNameOrSku);
+
+                        if (sku.includes('null') || sku.includes('undefined')) {
+                            return this.bot.sendMessage(
+                                steamID,
+                                `/pre ❌ Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`
+                            );
+                        }
+                    }
+
+                    const itemDicts = this.bot.inventoryManager.getInventory.getItems[sku] ?? [];
+                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
+
+                    reply = `/pre I currently have ${itemDicts.length} of ${name} (${sku}).`;
+
+                    const assetids: string[] = [];
+                    if (itemDicts.length > 0) {
+                        const hv: string[] = [];
+                        itemDicts.forEach(item => {
+                            if (item.hv) {
+                                Object.keys(item.hv).forEach(attachment => {
+                                    for (const pSku in item.hv[attachment]) {
+                                        if (!Object.prototype.hasOwnProperty.call(item.hv[attachment], pSku)) {
+                                            continue;
+                                        }
+
+                                        const hvName = getAttachmentName(
+                                            attachment,
+                                            pSku,
+                                            this.bot.schema.paints,
+                                            this.bot.strangeParts
+                                        );
+
+                                        hv.push(hvName);
+                                    }
+                                });
+                            }
+
+                            assetids.push(`${item.id}${hv.length > 0 ? ` (${hv.join(', ')})` : ''}`);
+                        });
+                    }
+
+                    reply += assetids.length > 0 ? '\n\nAssetids:\n- ' + assetids.join('\n- ') : '';
+                    return this.bot.sendMessage(steamID, reply);
+                }
+            }
+
             const inventory = this.bot.inventoryManager.getInventory;
             const dict = inventory.getItems;
             const items: { amount: number; name: string }[] = [];
@@ -129,19 +200,19 @@ export default class MiscCommands {
             const pure = [
                 {
                     name: 'Mann Co. Supply Crate Key',
-                    amount: inventory.getAmount('5021;6', false)
+                    amount: inventory.getAmount({ priceKey: '5021;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Refined Metal',
-                    amount: inventory.getAmount('5002;6', false)
+                    amount: inventory.getAmount({ priceKey: '5002;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Reclaimed Metal',
-                    amount: inventory.getAmount('5001;6', false)
+                    amount: inventory.getAmount({ priceKey: '5001;6', includeNonNormalized: false })
                 },
                 {
                     name: 'Scrap Metal',
-                    amount: inventory.getAmount('5000;6', false)
+                    amount: inventory.getAmount({ priceKey: '5000;6', includeNonNormalized: false })
                 }
             ];
 
@@ -163,9 +234,11 @@ export default class MiscCommands {
             }
 
             const custom = opt.customReply.reply;
-            let reply = custom
+            reply += custom
                 ? custom.replace(/%stocklist%/g, stock.join(', \n'))
-                : `/pre 📜 Here's a list of all the items that I have in my inventory:\n${stock.join(', \n')}`;
+                : `${
+                      steamID.redirectAnswerTo instanceof DiscordMessage ? '/pre2' : '/pre '
+                  }📜 Here's a list of all the items that I have in my inventory:\n${stock.join(', \n')}`;
 
             if (left > 0) {
                 reply += `,\nand ${left} other ${pluralize('item', left)}`;
@@ -213,7 +286,7 @@ export default class MiscCommands {
 
                 this.bot.sendMessage(steamID, weaponStock.slice(i15, last ? firstOrLast : (i + 1) * 15).join('\n'));
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
             }
 
             return;
@@ -237,29 +310,39 @@ export default class MiscCommands {
     }
 
     paintsCommand(steamID: SteamID): void {
-        this.bot.sendMessage(steamID, '/code ' + JSON.stringify(this.bot.paints, null, 4));
+        this.bot.sendMessage(
+            steamID,
+            '/code ' +
+                JSON.stringify(
+                    Object.keys(this.bot.schema.paints).reduce((obj, name) => {
+                        obj[name] = `p${this.bot.schema.paints[name]}`;
+                        return obj;
+                    }, {}),
+                    null,
+                    4
+                )
+        );
     }
 
     private getWeaponsStock(showOnlyExist: boolean, weapons: string[]): string[] {
         const items: { amount: number; name: string }[] = [];
         const inventory = this.bot.inventoryManager.getInventory;
-        const schema = this.bot.schema;
 
         if (showOnlyExist) {
             weapons.forEach(sku => {
-                const amount = inventory.getAmount(sku, false);
+                const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 if (amount > 0) {
                     items.push({
-                        name: schema.getName(SKU.fromString(sku), false),
+                        name: this.bot.schema.getName(SKU.fromString(sku), false),
                         amount: amount
                     });
                 }
             });
         } else {
             weapons.forEach(sku => {
-                const amount = inventory.getAmount(sku, false);
+                const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 items.push({
-                    name: schema.getName(SKU.fromString(sku), false),
+                    name: this.bot.schema.getName(SKU.fromString(sku), false),
                     amount: amount
                 });
             });

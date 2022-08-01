@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
 import { promises as fsp } from 'fs';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import Inventory from '../../Inventory';
@@ -93,7 +93,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 const ct = webhook.customText;
                 this.bot.sendMessage(
                     steamID,
@@ -112,7 +112,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -129,7 +129,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -148,7 +148,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -184,7 +184,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -199,7 +199,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -214,7 +214,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -248,7 +248,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -264,7 +264,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -281,7 +281,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -307,7 +307,7 @@ export default class OptionsCommands {
                     obj[webhookKeys[j]] = webhook[webhookKeys[j] as DiscordWebhookKeys];
                     this.bot.sendMessage(steamID, `/code ${JSON.stringify({ discordWebhook: obj }, null, 2)}`);
     
-                    await sleepasync().Promise.sleep(2000);
+                    await timersPromises.setTimeout(2000);
                 }
                 */
 
@@ -328,7 +328,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -342,7 +342,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -357,7 +357,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -372,7 +372,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -395,7 +395,7 @@ export default class OptionsCommands {
                             customMessage: {
                                 sendOffer: webhook.sendOffer,
                                 welcome: webhook.welcome,
-                                iDontKnowWhatYouMean: webhook.iDontKnowWhatYouMean,
+                                commandNotFound: webhook.commandNotFound,
                                 success: webhook.success,
                                 successEscrow: webhook.successEscrow
                             }
@@ -405,7 +405,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -419,7 +419,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -433,7 +433,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -467,7 +467,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -482,7 +482,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -497,7 +497,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -512,7 +512,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -526,7 +526,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -540,7 +540,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -554,7 +554,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -568,7 +568,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -583,7 +583,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -598,7 +598,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -613,7 +613,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -628,7 +628,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -643,7 +643,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -673,7 +673,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -687,7 +687,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 this.bot.sendMessage(
                     steamID,
                     `/code ${JSON.stringify(
@@ -701,7 +701,7 @@ export default class OptionsCommands {
                     )}`
                 );
 
-                await sleepasync().Promise.sleep(3000);
+                await timersPromises.setTimeout(3000);
                 const paints = webhook.painted;
                 const paintedKeys = Object.keys(paints);
                 const paintedKeysCount = paintedKeys.length;
@@ -737,7 +737,7 @@ export default class OptionsCommands {
                             )}`
                         );
 
-                        await sleepasync().Promise.sleep(3000);
+                        await timersPromises.setTimeout(3000);
                     }
                 }
 
@@ -776,7 +776,7 @@ export default class OptionsCommands {
                             )}`
                         );
 
-                        await sleepasync().Promise.sleep(3000);
+                        await timersPromises.setTimeout(3000);
                     }
                 }
             } else {
@@ -868,27 +868,19 @@ export default class OptionsCommands {
                     );
                 }
 
-                if (knownParams.miscSettings?.autobump?.enable === true) {
-                    this.bot.listings.setupAutorelist();
-                    this.bot.handler.disableAutoRefreshListings();
-                } else if (knownParams.miscSettings?.autobump?.enable === false) {
-                    this.bot.listings.disableAutorelistOption();
-                    this.bot.handler.enableAutoRefreshListings();
-                }
-
                 if (knownParams.statistics?.sendStats?.enable === true) {
-                    this.bot.handler.sendStats();
+                    this.bot.sendStats();
                 } else if (knownParams.statistics?.sendStats?.enable === false) {
-                    this.bot.handler.disableSendStats();
+                    this.bot.disableSendStats();
                 }
 
                 if (knownParams.statistics?.sendStats?.time !== undefined) {
-                    this.bot.handler.sendStats();
+                    this.bot.sendStats();
                 }
 
                 if (knownParams.highValue !== undefined) {
                     void this.bot.inventoryManager.getInventory.fetch();
-                    Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
+                    Inventory.setOptions(this.bot.schema.paints, this.bot.strangeParts, opt.highValue);
                 }
 
                 if (typeof knownParams.normalize === 'object') {
@@ -900,6 +892,18 @@ export default class OptionsCommands {
                         void this.bot.handler.autokeys.disable(this.bot.pricelist.getKeyPrices);
                     }
                     this.bot.handler.autokeys.check();
+                }
+
+                if (knownParams.discordChat?.online !== undefined) {
+                    if (this.bot.options.discordBotToken && !this.bot.isHalted) {
+                        this.bot.discordBot.setPresence('online');
+                    }
+                }
+
+                if (knownParams.discordChat?.halt !== undefined) {
+                    if (this.bot.options.discordBotToken && this.bot.isHalted) {
+                        this.bot.discordBot.setPresence('halt');
+                    }
                 }
 
                 if (steamID) {
@@ -1007,7 +1011,7 @@ export default class OptionsCommands {
                 opt.highValue.painted.exceptionSkus.length = 0;
             }
 
-            if (isChanged) Inventory.setOptions(this.bot.paints, this.bot.strangeParts, opt.highValue);
+            if (isChanged) Inventory.setOptions(this.bot.schema.paints, this.bot.strangeParts, opt.highValue);
         }
 
         if (knownParams.statistics?.sendStats?.time !== undefined) {

@@ -1,5 +1,7 @@
 import fs from 'fs';
+import writeFileAtomic from 'write-file-atomic';
 import path from 'path';
+import timersPromises from 'timers/promises';
 
 import { exponentialBackoff } from './helpers';
 
@@ -64,7 +66,8 @@ export function writeFile(p: string, data: unknown, json: boolean): Promise<void
 
         function writeToFile(): void {
             filesBeingSaved++;
-            fs.writeFile(p, write, { encoding: 'utf8' }, err => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            writeFileAtomic(p, write, { encoding: 'utf8' }, err => {
                 filesBeingSaved--;
 
                 if (err) {
@@ -106,7 +109,7 @@ export function waitForWriting(checks = 0): Promise<void> {
     }
 
     return new Promise(resolve => {
-        void Promise.delay(exponentialBackoff(checks, 100)).then(() => {
+        void timersPromises.setTimeout(exponentialBackoff(checks, 100)).then(() => {
             resolve(waitForWriting(checks + 1));
         });
     });

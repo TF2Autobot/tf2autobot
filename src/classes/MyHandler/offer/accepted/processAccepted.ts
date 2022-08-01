@@ -1,6 +1,6 @@
 import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
-import sleepasync from 'sleep-async';
+import * as timersPromises from 'timers/promises';
 import Bot from '../../../Bot';
 import { KeyPrices } from '../../../Pricelist';
 import log from '../../../../lib/logger';
@@ -41,7 +41,7 @@ export default function processAccepted(
                 // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
                 (meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(el => {
-                    const name = t.testSKU(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
+                    const name = t.testPriceKey(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
 
                     accepted.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
                 });
@@ -89,7 +89,7 @@ export default function processAccepted(
         if (highValue && highValue['has'] === undefined) {
             if (Object.keys(highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
+                const itemsName = t.getHighValueItems(highValue.items.their, bot);
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -111,7 +111,7 @@ export default function processAccepted(
 
             if (Object.keys(highValue.items.our).length > 0) {
                 // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
+                const itemsName = t.getHighValueItems(highValue.items.our, bot);
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -132,7 +132,7 @@ export default function processAccepted(
         // This is for offer that bot created from commands
 
         if (highValue.items && Object.keys(highValue.items.their).length > 0) {
-            const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(highValue.items.their, bot);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -153,7 +153,7 @@ export default function processAccepted(
         }
 
         if (highValue.items && Object.keys(highValue.items.our).length > 0) {
-            const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(highValue.items.our, bot);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -200,7 +200,7 @@ export default function processAccepted(
 
         const keyPrices = bot.pricelist.getKeyPrices;
 
-        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
+        const value = t.valueDiff(offer, keyPrices, isTradingKeys);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         void sendToAdmin(
@@ -297,13 +297,13 @@ export async function sendToAdmin(
 
         log.debug('Sending message 1');
         bot.messageAdmins('trade', message1, []);
-        await sleepasync().Promise.sleep(1500); // bruh
+        await timersPromises.setTimeout(1500); // bruh
         log.debug('Sending message 2');
         bot.messageAdmins('trade', message2, []);
-        await sleepasync().Promise.sleep(1500);
+        await timersPromises.setTimeout(1500);
         log.debug('Sending message 3');
         bot.messageAdmins('trade', message3, []);
-        await sleepasync().Promise.sleep(1000);
+        await timersPromises.setTimeout(1000);
         log.debug('Sending message 4');
         return bot.messageAdmins('trade', message4, []);
     }

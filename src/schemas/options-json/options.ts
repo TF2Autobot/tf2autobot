@@ -78,6 +78,24 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['note'],
             additionalProperties: false
         },
+        'discord-chat': {
+            type: 'object',
+            properties: {
+                type: {
+                    type: ['string', 'number'],
+                    enum: ['PLAYING', 0, 'STREAMING', 1, 'LISTENING', 2, 'WATCHING', 3, 'COMPETING', 5]
+                },
+                name: {
+                    type: 'string'
+                },
+                status: {
+                    type: 'string',
+                    enum: ['online', 'idle', 'dnd', 'invisible']
+                }
+            },
+            required: ['type', 'name', 'status'],
+            additionalProperties: false
+        },
         'discord-webhook-misc': {
             type: 'object',
             properties: {
@@ -359,9 +377,6 @@ export const optionsSchema: jsonschema.Schema = {
                 sendGroupInvite: {
                     $ref: '#/definitions/only-enable'
                 },
-                autobump: {
-                    $ref: '#/definitions/only-enable'
-                },
                 counterOffer: {
                     type: 'object',
                     properties: {
@@ -430,6 +445,25 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['customTexture'], // 'giftedByTag'
                     additionalProperties: false
+                },
+                deleteUntradableJunk: {
+                    $ref: '#/definitions/only-enable'
+                },
+                reputationCheck: {
+                    type: 'object',
+                    properties: {
+                        checkMptfBanned: {
+                            type: 'boolean'
+                        },
+                        reptfAsPrimarySource: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['checkMptfBanned', 'reptfAsPrimarySource'],
+                    additionalProperties: false
+                },
+                pricecheckAfterTrade: {
+                    $ref: '#/definitions/only-enable'
                 }
             },
             required: [
@@ -438,13 +472,15 @@ export const optionsSchema: jsonschema.Schema = {
                 'createListings',
                 'addFriends',
                 'sendGroupInvite',
-                'autobump',
                 'counterOffer',
                 'skipItemsInTrade',
                 'weaponsAsCurrency',
                 'checkUses',
                 'game',
-                'alwaysRemoveItemAttributes'
+                'alwaysRemoveItemAttributes',
+                'deleteUntradableJunk',
+                'reputationCheck',
+                'pricecheckAfterTrade'
             ],
             additionalProperties: false
         },
@@ -493,6 +529,18 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 },
                 autoRemoveIntentSellFailed: {
+                    type: 'boolean'
+                },
+                autoRemoveAssetidFailed: {
+                    type: 'boolean'
+                },
+                autoRemoveAssetidSuccess: {
+                    type: 'boolean'
+                },
+                autoUpdateAssetid: {
+                    type: 'boolean'
+                },
+                autoResetToAutopriceOnceSold: {
                     type: 'boolean'
                 },
                 autoAddPaintedItems: {
@@ -545,6 +593,10 @@ export const optionsSchema: jsonschema.Schema = {
                 'backpackFull',
                 'highValue',
                 'autoRemoveIntentSellFailed',
+                'autoRemoveAssetidFailed',
+                'autoRemoveAssetidSuccess',
+                'autoUpdateAssetid',
+                'autoResetToAutopriceOnceSold',
                 'autoAddPaintedItems',
                 'failedAccept',
                 'unableToProcessOffer',
@@ -577,6 +629,9 @@ export const optionsSchema: jsonschema.Schema = {
                 filterCantAfford: {
                     $ref: '#/definitions/only-enable'
                 },
+                autoResetToAutopriceOnceSold: {
+                    $ref: '#/definitions/only-enable'
+                },
                 autoRemoveIntentSell: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -604,6 +659,7 @@ export const optionsSchema: jsonschema.Schema = {
             required: [
                 'partialPriceUpdate',
                 'filterCantAfford',
+                'autoResetToAutopriceOnceSold',
                 'autoRemoveIntentSell',
                 'autoAddInvalidItems',
                 'autoAddInvalidUnusual',
@@ -623,22 +679,9 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 giftWithoutMessage: {
                     $ref: '#/definitions/only-allow'
-                },
-                bannedPeople: {
-                    type: 'object',
-                    properties: {
-                        allow: {
-                            type: 'boolean'
-                        },
-                        checkMptfBanned: {
-                            type: 'boolean'
-                        }
-                    },
-                    required: ['allow', 'checkMptfBanned'],
-                    additionalProperties: false
                 }
             },
-            required: ['escrow', 'overpay', 'giftWithoutMessage', 'bannedPeople'],
+            required: ['escrow', 'overpay', 'giftWithoutMessage'],
             additionalProperties: false
         },
         tradeSummary: {
@@ -934,9 +977,22 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['our', 'their', 'amountIncludeNonPainted'],
                     additionalProperties: false
+                },
+                craftNumber: {
+                    type: 'object',
+                    properties: {
+                        our: {
+                            type: 'boolean'
+                        },
+                        their: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['our', 'their'],
+                    additionalProperties: false
                 }
             },
-            required: ['festivized', 'strangeAsSecondQuality', 'painted'],
+            required: ['festivized', 'strangeAsSecondQuality', 'painted', 'craftNumber'],
             additionalProperties: false
         },
         details: {
@@ -944,11 +1000,11 @@ export const optionsSchema: jsonschema.Schema = {
             properties: {
                 buy: {
                     type: 'string',
-                    maxLength: 200
+                    maxLength: 180
                 },
                 sell: {
                     type: 'string',
-                    maxLength: 200
+                    maxLength: 180
                 },
                 showBoldText: {
                     type: 'object',
@@ -1275,6 +1331,16 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 bannedCheckFailed: {
                     $ref: '#/definitions/only-ignore-failed'
+                },
+                halted: {
+                    type: 'object',
+                    properties: {
+                        ignoreHalted: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['ignoreHalted'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -1287,7 +1353,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'understocked',
                 'duped',
                 'escrowCheckFailed',
-                'bannedCheckFailed'
+                'bannedCheckFailed',
+                'halted'
             ],
             additionalProperties: false
         },
@@ -1336,6 +1403,9 @@ export const optionsSchema: jsonschema.Schema = {
                 bannedCheckFailed: {
                     $ref: '#/definitions/only-note'
                 },
+                halted: {
+                    $ref: '#/definitions/only-note'
+                },
                 additionalNotes: {
                     type: 'string'
                 }
@@ -1355,9 +1425,21 @@ export const optionsSchema: jsonschema.Schema = {
                 'dupedCheckFailed',
                 'escrowCheckFailed',
                 'bannedCheckFailed',
+                'halted',
                 'additionalNotes'
             ],
             additionalProperties: false
+        },
+        discordChat: {
+            type: 'object',
+            properties: {
+                online: {
+                    $ref: '#/definitions/discord-chat'
+                },
+                halt: {
+                    $ref: '#/definitions/discord-chat'
+                }
+            }
         },
         discordWebhook: {
             type: 'object',
@@ -1553,8 +1635,19 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'boolean'
                         },
                         url: {
-                            type: 'string',
-                            pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                            type: 'object',
+                            properties: {
+                                main: {
+                                    type: 'string',
+                                    pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                                },
+                                partialPriceUpdate: {
+                                    type: 'string',
+                                    pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                                }
+                            },
+                            required: ['main', 'partialPriceUpdate'],
+                            additionalProperties: false
                         },
                         isMention: {
                             type: 'boolean'
@@ -1595,13 +1688,16 @@ export const optionsSchema: jsonschema.Schema = {
                 welcome: {
                     type: 'string'
                 },
-                iDontKnowWhatYouMean: {
+                commandNotFound: {
                     type: 'string'
                 },
                 success: {
                     type: 'string'
                 },
                 successEscrow: {
+                    type: 'string'
+                },
+                halted: {
                     type: 'string'
                 },
                 decline: {
@@ -1614,6 +1710,9 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string'
                         },
                         giftNoNote: {
+                            type: 'string'
+                        },
+                        giftFailedCheckBanned: {
                             type: 'string'
                         },
                         crimeAttempt: {
@@ -1640,6 +1739,9 @@ export const optionsSchema: jsonschema.Schema = {
                         notBuyingKeys: {
                             type: 'string'
                         },
+                        halted: {
+                            type: 'string'
+                        },
                         banned: {
                             type: 'string'
                         },
@@ -1662,6 +1764,7 @@ export const optionsSchema: jsonschema.Schema = {
                     required: [
                         'general',
                         'giftNoNote',
+                        'giftFailedCheckBanned',
                         'crimeAttempt',
                         'onlyMetal',
                         'duelingNot5Uses',
@@ -1709,7 +1812,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'sendOffer',
                 'counterOffer',
                 'welcome',
-                'iDontKnowWhatYouMean',
+                'commandNotFound',
                 'success',
                 'successEscrow',
                 'decline',

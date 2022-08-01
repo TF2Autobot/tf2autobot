@@ -31,12 +31,30 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             case 'MANUAL':
                 declined.reasonDescription = offerReceived.reason + ': Manually declined by the owner.';
                 break;
+            case 'HALTED':
+                declined.reasonDescription = offerReceived.reason + ': The bot is halted.';
+                break;
             case 'ESCROW':
                 declined.reasonDescription = offerReceived.reason + ': Partner has trade hold.';
                 break;
-            case 'BANNED':
-                declined.reasonDescription = offerReceived.reason + ': Partner is banned in one or more communities.';
+            case 'BANNED': {
+                let checkResult = '';
+                if (meta?.banned) {
+                    checkResult = 'Check results:\n';
+                    Object.keys(meta.banned).forEach((website, index) => {
+                        if (meta.banned[website] !== 'clean') {
+                            if (index > 0) {
+                                checkResult += '\n';
+                            }
+                            checkResult += `(${index + 1}) ${website}: ${meta.banned[website]}`;
+                        }
+                    });
+                }
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    `: Partner is banned in one or more communities.${checkResult !== '' ? '\n' + checkResult : ''}`;
                 break;
+            }
             case '🟨_CONTAINS_NON_TF2':
                 declined.reasonDescription = offerReceived.reason + ': Trade includes non-TF2 items.';
                 //Maybe implement tags for them as well ?
@@ -138,7 +156,9 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             switch (reason) {
                 case '🟨_INVALID_ITEMS':
                     (meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(el => {
-                        const name = t.testSKU(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
+                        const name = t.testPriceKey(el.sku)
+                            ? bot.schema.getName(SKU.fromString(el.sku), false)
+                            : el.sku;
 
                         declined.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
                     });
@@ -191,7 +211,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
         if (highValue && highValue['has'] === undefined) {
             if (Object.keys(highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
+                const itemsName = t.getHighValueItems(highValue.items.their, bot);
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -204,7 +224,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
 
             if (Object.keys(highValue.items.our).length > 0) {
                 // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
+                const itemsName = t.getHighValueItems(highValue.items.our, bot);
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -219,7 +239,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
         // This is for offer that bot created from commands
 
         if (highValue.items && Object.keys(highValue.items.their).length > 0) {
-            const itemsName = t.getHighValueItems(highValue.items.their, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(highValue.items.their, bot);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -231,7 +251,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
         }
 
         if (highValue.items && Object.keys(highValue.items.our).length > 0) {
-            const itemsName = t.getHighValueItems(highValue.items.our, bot, bot.paints, bot.strangeParts);
+            const itemsName = t.getHighValueItems(highValue.items.our, bot);
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -260,7 +280,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             highValue: declined.highValue.concat(declined.highNotSellingItems)
         };
         const keyPrices = bot.pricelist.getKeyPrices;
-        const value = t.valueDiff(offer, keyPrices, isTradingKeys, opt.miscSettings.showOnlyMetal.enable);
+        const value = t.valueDiff(offer, keyPrices, isTradingKeys);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         sendToAdmin(bot, offer, value, itemList, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);

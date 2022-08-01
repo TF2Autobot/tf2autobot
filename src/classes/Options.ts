@@ -2,7 +2,7 @@ import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import jsonlint from '@tf2autobot/jsonlint';
 import * as path from 'path';
-import { deepMerge } from '../lib/tools/deep-merge';
+import { AnyObject, deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
 import { Currency } from '../types/TeamFortress2';
 
@@ -22,9 +22,6 @@ export const DEFAULTS: JsonOptions = {
             enable: true
         },
         sendGroupInvite: {
-            enable: true
-        },
-        autobump: {
             enable: true
         },
         counterOffer: {
@@ -53,6 +50,16 @@ export const DEFAULTS: JsonOptions = {
             // giftedByTag: {
             //     enable: true
             // }
+        },
+        deleteUntradableJunk: {
+            enable: false
+        },
+        reputationCheck: {
+            checkMptfBanned: false,
+            reptfAsPrimarySource: false
+        },
+        pricecheckAfterTrade: {
+            enable: true
         }
     },
 
@@ -71,6 +78,10 @@ export const DEFAULTS: JsonOptions = {
             tryingToTake: true
         },
         autoRemoveIntentSellFailed: true,
+        autoRemoveAssetidFailed: true,
+        autoRemoveAssetidSuccess: true,
+        autoUpdateAssetid: true,
+        autoResetToAutopriceOnceSold: true,
         autoAddPaintedItems: true,
         failedAccept: true,
         unableToProcessOffer: true,
@@ -92,6 +103,9 @@ export const DEFAULTS: JsonOptions = {
             excludeSKU: []
         },
         filterCantAfford: {
+            enable: false
+        },
+        autoResetToAutopriceOnceSold: {
             enable: false
         },
         autoRemoveIntentSell: {
@@ -120,10 +134,6 @@ export const DEFAULTS: JsonOptions = {
         },
         giftWithoutMessage: {
             allow: false
-        },
-        bannedPeople: {
-            allow: false,
-            checkMptfBanned: true
         }
     },
 
@@ -245,6 +255,10 @@ export const DEFAULTS: JsonOptions = {
             our: true,
             their: true,
             amountIncludeNonPainted: false
+        },
+        craftNumber: {
+            our: false,
+            their: false
         }
     },
 
@@ -395,6 +409,10 @@ export const DEFAULTS: JsonOptions = {
         // ⬜_BANNED_CHECK_FAILED
         bannedCheckFailed: {
             ignoreFailed: false
+        },
+        // ⬜_HALTED
+        halted: {
+            ignoreHalted: false
         }
     },
 
@@ -440,7 +458,26 @@ export const DEFAULTS: JsonOptions = {
         bannedCheckFailed: {
             note: ''
         },
+        // ⬜_HALTED
+        halted: {
+            note: ''
+        },
         additionalNotes: ''
+    },
+
+    discordChat: {
+        online: {
+            // Default: "Listening to incoming offers"
+            type: 'LISTENING', // LISTENING | PLAYING | COMPETING | WATCHING
+            name: 'incoming offers',
+            status: 'online' // online | idle | dnd | invisible
+        },
+        halt: {
+            // Default: "Playing ? No, Halted ⛔"
+            type: 'PLAYING',
+            name: '? No, Halted ⛔',
+            status: 'idle'
+        }
     },
 
     discordWebhook: {
@@ -503,7 +540,10 @@ export const DEFAULTS: JsonOptions = {
         sendAlert: {
             enable: true,
             isMention: true,
-            url: ''
+            url: {
+                main: '',
+                partialPriceUpdate: ''
+            }
         },
         sendStats: {
             enable: false,
@@ -515,13 +555,15 @@ export const DEFAULTS: JsonOptions = {
         sendOffer: '',
         counterOffer: '',
         welcome: '',
-        iDontKnowWhatYouMean: '',
+        commandNotFound: '',
         success: '',
         successEscrow: '',
+        halted: '',
         decline: {
             general: '',
             hasNonTF2Items: '',
             giftNoNote: '',
+            giftFailedCheckBanned: '',
             crimeAttempt: '',
             onlyMetal: '',
             duelingNot5Uses: '',
@@ -530,6 +572,7 @@ export const DEFAULTS: JsonOptions = {
             notTradingKeys: '',
             notSellingKeys: '',
             notBuyingKeys: '',
+            halted: '',
             banned: '',
             escrow: '',
             manual: '',
@@ -1113,12 +1156,19 @@ interface MiscSettings {
     counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
-    autobump?: OnlyEnable;
     skipItemsInTrade?: OnlyEnable;
     weaponsAsCurrency?: WeaponsAsCurrency;
     checkUses?: CheckUses;
     game?: Game;
     alwaysRemoveItemAttributes?: AlwaysRemoveItemAttributes;
+    deleteUntradableJunk?: OnlyEnable;
+    reputationCheck?: ReputationCheck;
+    pricecheckAfterTrade?: OnlyEnable;
+}
+
+export interface ReputationCheck {
+    checkMptfBanned?: boolean;
+    reptfAsPrimarySource?: boolean;
 }
 
 interface AlwaysRemoveItemAttributes {
@@ -1133,6 +1183,10 @@ interface SendAlert extends OnlyEnable {
     backpackFull?: boolean;
     highValue?: HighValueAlert;
     autoRemoveIntentSellFailed?: boolean;
+    autoRemoveAssetidFailed?: boolean;
+    autoRemoveAssetidSuccess?: boolean;
+    autoUpdateAssetid?: boolean;
+    autoResetToAutopriceOnceSold?: boolean;
     autoAddPaintedItems?: boolean;
     failedAccept?: boolean;
     unableToProcessOffer?: boolean;
@@ -1167,6 +1221,7 @@ interface HighValueAlert {
 interface Pricelist {
     partialPriceUpdate?: PartialPriceUpdate;
     filterCantAfford?: OnlyEnable;
+    autoResetToAutopriceOnceSold?: OnlyEnable;
     autoRemoveIntentSell?: OnlyEnable;
     autoAddInvalidItems?: OnlyEnable;
     autoAddInvalidUnusual?: OnlyEnable;
@@ -1189,15 +1244,10 @@ interface Bypass {
     escrow?: OnlyAllow;
     overpay?: OnlyAllow;
     giftWithoutMessage?: OnlyAllow;
-    bannedPeople?: BannedPeople;
 }
 
 interface OnlyAllow {
     allow?: boolean;
-}
-
-interface BannedPeople extends OnlyAllow {
-    checkMptfBanned: boolean;
 }
 
 // ------------ TradeSummary ------------
@@ -1287,6 +1337,7 @@ interface Normalize {
     festivized?: NormalizeFestivized;
     strangeAsSecondQuality?: NormalizeStrange;
     painted?: NormalizePainted;
+    craftNumber?: NormalizeOurOrTheir;
 }
 
 interface NormalizeOurOrTheir {
@@ -1417,6 +1468,7 @@ interface OfferReceived {
     failedToCheckDuped: FailedToCheckDuped;
     escrowCheckFailed?: EscrowBannedCheckFailed;
     bannedCheckFailed?: EscrowBannedCheckFailed;
+    halted?: Halted;
 }
 
 interface DeclineReply extends OnlyEnable {
@@ -1456,6 +1508,10 @@ interface EscrowBannedCheckFailed {
     ignoreFailed?: boolean;
 }
 
+interface Halted {
+    ignoreHalted: boolean;
+}
+
 // ------------ Manual Review ------------
 
 interface ManualReview extends OnlyEnable {
@@ -1472,7 +1528,21 @@ interface ManualReview extends OnlyEnable {
     dupedCheckFailed?: OnlyNote;
     escrowCheckFailed?: OnlyNote;
     bannedCheckFailed?: OnlyNote;
+    halted: OnlyNote;
     additionalNotes?: string;
+}
+
+// ------------ Discord Chat ---------------
+
+interface DiscordChat {
+    online?: DiscordChatStatus;
+    halt?: DiscordChatStatus;
+}
+
+interface DiscordChatStatus {
+    name: string;
+    type?: 'PLAYING' | 'LISTENING' | 'COMPETING' | 'WATCHING' | 'STREAMING';
+    status?: 'online' | 'idle' | 'dnd' | 'invisible';
 }
 
 // ------------ Discord Webhook ------------
@@ -1546,7 +1616,10 @@ interface PriceUpdateDW extends OnlyEnable, OnlyNote {
 
 interface SendAlertStatsDW extends OnlyEnable {
     isMention?: boolean;
-    url?: string;
+    url?: {
+        main: string;
+        partialPriceUpdate: string;
+    };
 }
 
 interface SendStatsDW extends OnlyEnable {
@@ -1559,9 +1632,10 @@ interface CustomMessage {
     sendOffer?: string;
     counterOffer?: string;
     welcome?: string;
-    iDontKnowWhatYouMean?: string;
+    commandNotFound?: string;
     success?: string;
     successEscrow?: string;
+    halted?: string;
     decline?: DeclineNote;
     accepted?: AcceptedNote;
     tradedAway?: string;
@@ -1574,6 +1648,7 @@ interface DeclineNote {
     general?: string;
     hasNonTF2Items?: string;
     giftNoNote?: string;
+    giftFailedCheckBanned?: string;
     crimeAttempt?: string;
     onlyMetal?: string;
     duelingNot5Uses?: string;
@@ -1582,6 +1657,7 @@ interface DeclineNote {
     notTradingKeys?: string;
     notSellingKeys?: string;
     notBuyingKeys?: string;
+    halted?: string;
     banned?: string;
     escrow?: string;
     manual?: string;
@@ -1963,6 +2039,7 @@ export interface JsonOptions {
     crafting?: Crafting;
     offerReceived?: OfferReceived;
     manualReview?: ManualReview;
+    discordChat?: DiscordChat;
     discordWebhook?: DiscordWebhook;
     customMessage?: CustomMessage;
     commands?: Commands;
@@ -1976,9 +2053,14 @@ export default interface Options extends JsonOptions {
     steamIdentitySecret?: string;
 
     bptfAccessToken?: string;
-    bptfAPIKey?: string;
+    bptfApiKey?: string;
+    useragentHeaderCustom?: string;
+    useragentHeaderShowVersion?: boolean;
 
-    admins?: string[];
+    mptfApiKey?: string;
+    discordBotToken?: string;
+
+    admins?: adminData[];
     keep?: string[];
     itemStatsWhitelist?: string[];
     groups?: string[];
@@ -1997,12 +2079,18 @@ export default interface Options extends JsonOptions {
 
     debug?: boolean;
     debugFile?: boolean;
+    enableSaveLogFile?: boolean;
 
     folderName?: string;
     filePrefix?: string;
 
     enableHttpApi?: boolean;
     httpApiPort?: number;
+}
+
+export interface adminData {
+    steam: string;
+    discord?: string;
 }
 
 function getOption<T>(option: string, def: T, parseFn: (target: string) => T, options?: Options): T {
@@ -2057,7 +2145,7 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
             }
 
             fileOptions = deepMerge({}, workingDefault, parsedRaw);
-            return deepMerge(fileOptions, incomingOptions);
+            return deepMerge(fileOptions as AnyObject, incomingOptions);
         } catch (e) {
             if (e instanceof SyntaxError) {
                 // lint the rawOptions to give better feedback since it is SyntaxError
@@ -2186,6 +2274,65 @@ function replaceOldProperties(options: Options): boolean {
         isChanged = true;
     }
 
+    // v4.7.0 -> v4.7.1 - Automatically remove miscSettings.autobump
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.miscSettings?.autobump !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.miscSettings.autobump;
+
+        isChanged = true;
+    }
+
+    // v4.8.0 -> v4.9.0 - Automatically make room to separate different discord urls for sendAlert
+    if (typeof options.discordWebhook?.sendAlert?.url === 'string') {
+        const mainUrl = options.discordWebhook.sendAlert.url;
+        options.discordWebhook.sendAlert.url = {
+            main: mainUrl,
+            partialPriceUpdate: ''
+        };
+
+        isChanged = true;
+    }
+
+    // v4.12.1 -> v4.13.0
+    /*eslint-disable */
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.bypass?.bannedPeople !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        const mptfCheckValue = options.bypass.bannedPeople?.checkMptfBanned;
+
+        if (options.miscSettings.reputationCheck !== undefined) {
+            options.miscSettings.reputationCheck.checkMptfBanned =
+                typeof mptfCheckValue === 'boolean' ? mptfCheckValue : true;
+        } else {
+            options.miscSettings['reputationCheck'] = {
+                checkMptfBanned: process.env.MPTF_API_KEY !== undefined ? mptfCheckValue : false, // below v4.13.0 -> v4.13.1
+                reptfAsPrimarySource: true
+            };
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.bypass.bannedPeople;
+        isChanged = true;
+    }
+    /*eslint-enable */
+
+    // <=v4.16.2 -> v5.0.0
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.customMessage?.iDontKnowWhatYouMean !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.customMessage.iDontKnowWhatYouMean;
+        options.customMessage['commandNotFound'] = '';
+        isChanged = true;
+    }
+
     return isChanged;
 }
 
@@ -2197,6 +2344,7 @@ export function loadOptions(options?: Options): Options {
     const jsonParseArray = (jsonString: string): string[] => JSON.parse(jsonString) as unknown as string[];
     const jsonParseBoolean = (jsonString: string): boolean => JSON.parse(jsonString) as unknown as boolean;
     const jsonParseNumber = (jsonString: string): number => JSON.parse(jsonString) as unknown as number;
+    const jsonParseAdminData = (jsonString: string): adminData[] => JSON.parse(jsonString) as unknown as adminData[];
 
     const envOptions = {
         steamAccountName: steamAccountName,
@@ -2205,9 +2353,14 @@ export function loadOptions(options?: Options): Options {
         steamIdentitySecret: getOption('steamIdentitySecret', '', String, incomingOptions),
 
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
-        bptfAPIKey: getOption('bptfAPIKey', '', String, incomingOptions),
+        bptfApiKey: getOption('bptfApiKey', '', String, incomingOptions),
+        useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
+        useragentHeaderShowVersion: getOption('useragentHeaderShowVersion', false, jsonParseBoolean, incomingOptions),
 
-        admins: getOption('admins', [], jsonParseArray, incomingOptions),
+        mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
+        discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
+
+        admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
         itemStatsWhitelist: getOption('itemStatsWhitelist', [], jsonParseArray, incomingOptions),
         groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),
@@ -2226,6 +2379,7 @@ export function loadOptions(options?: Options): Options {
 
         debug: getOption('debug', true, jsonParseBoolean, incomingOptions),
         debugFile: getOption('debugFile', true, jsonParseBoolean, incomingOptions),
+        enableSaveLogFile: getOption('enableSaveLogFile', true, jsonParseBoolean, incomingOptions),
 
         enableHttpApi: getOption('enableHttpApi', false, jsonParseBoolean, incomingOptions),
         httpApiPort: getOption('httpApiPort', 3001, jsonParseNumber, incomingOptions)

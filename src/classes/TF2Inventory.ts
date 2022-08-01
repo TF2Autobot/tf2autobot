@@ -1,7 +1,8 @@
 import SteamID from 'steamid';
 import TradeOfferManager from '@tf2autobot/tradeoffer-manager';
-import request from 'request-retry-dayjs';
+import axios, { AxiosError } from 'axios';
 import cheerio from 'cheerio';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 // import { uid } from 'rand-token';
 
 type TF2Attribute = {
@@ -98,24 +99,19 @@ export default class TF2Inventory {
 
     private fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
-            void request(
-                {
-                    url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
-                    method: 'GET',
-                    qs: {
-                        key: this.manager.apiKey,
-                        steamid: this.getSteamID.toString()
-                    },
-                    json: true,
-                    gzip: true
-                },
-                (err: Error, response, body: GetPlayerItems) => {
-                    if (err) {
-                        return reject(err);
-                    }
+            void axios({
+                url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
+                method: 'GET',
+                params: {
+                    key: this.manager.apiKey,
+                    steamid: this.getSteamID.toString()
+                }
+            })
+                .then(response => {
+                    const body = response.data as GetPlayerItems;
 
                     if (body.result.status != 1) {
-                        err = new Error(body.result.statusDetail);
+                        const err = new Error(body.result.statusDetail);
                         err['status'] = body.result.status;
                         return reject(err);
                     }
@@ -124,8 +120,12 @@ export default class TF2Inventory {
                     this.items = body.result.items;
 
                     return resolve();
-                }
-            );
+                })
+                .catch((err: AxiosError) => {
+                    if (err) {
+                        return reject(filterAxiosError(err));
+                    }
+                });
         });
     }
 
@@ -138,19 +138,16 @@ export default class TF2Inventory {
         history?: [];
     }> {
         return new Promise((resolve, reject) => {
-            void request(
-                {
-                    url: 'https://backpack.tf/item/' + assetid,
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
-                        Cookie: 'user-id=' + userID // uid(12)
-                    }
-                },
-                (err, response, body) => {
-                    if (err) {
-                        return reject(err);
-                    }
+            void axios({
+                url: 'https://old.backpack.tf/item/' + assetid,
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
+                    Cookie: 'user-id=' + userID // uid(12)
+                }
+            })
+                .then(response => {
+                    const body = response.data as string;
 
                     const $ = cheerio.load(body);
 
@@ -169,8 +166,12 @@ export default class TF2Inventory {
                         isDuped: isDuped,
                         history: []
                     });
-                }
-            );
+                })
+                .catch((err: AxiosError) => {
+                    if (err) {
+                        return reject(filterAxiosError(err));
+                    }
+                });
         });
     }
 }

@@ -1,11 +1,11 @@
-import sleepasync from 'sleep-async';
-import { RequestCheckFn, RequestCheckResponse } from '../../../IPricer';
+import * as timersPromises from 'timers/promises';
+import { RequestCheckFn } from '../../../IPricer';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
 import SKU from '@tf2autobot/tf2-sku';
 
 export default class PriceCheckQueue {
-    private static skus: string[] = [];
+    private static skus: Set<string> = new Set();
 
     private static requestCheck: RequestCheckFn;
 
@@ -22,25 +22,22 @@ export default class PriceCheckQueue {
     private static isProcessing = false;
 
     static enqueue(sku: string): void {
-        this.skus.push(sku);
+        this.skus.add(sku.replace(/;[p][0-9]+/, ''));
 
         void this.process();
     }
 
-    private static dequeue(): void {
-        this.skus.shift();
-    }
-
-    private static first(): string {
-        return this.skus[0];
-    }
-
-    private static size(): number {
-        return this.skus.length;
+    private static next(): string | undefined {
+        let result: string | undefined = undefined;
+        for (const sku of this.skus) {
+            result = sku;
+            break;
+        }
+        return result;
     }
 
     private static async process(): Promise<void> {
-        const sku = this.first();
+        const sku = this.next();
 
         if (sku === undefined || this.isProcessing) {
             return;
@@ -48,36 +45,33 @@ export default class PriceCheckQueue {
 
         this.isProcessing = true;
 
-        await sleepasync().Promise.sleep(2000);
+        await timersPromises.setTimeout(2000);
 
         // Update listings (exclude weapons/pure)
-        this.bot.listings.checkBySKU(sku, null, false, true);
+        this.bot.listings.checkByPriceKey({ priceKey: sku, checkGenerics: false, showLogs: true });
 
         if (sku === '5021;6') {
             this.isProcessing = false;
-            this.dequeue();
-            return void this.process();
+            this.skus.delete(sku);
+            return await this.process();
         }
 
-        void this.requestCheck(sku)
-            .then((body: RequestCheckResponse) => {
-                let name: string;
-                if (body.name) {
-                    name = body.name;
-                } else {
-                    name = this.bot.schema.getName(SKU.fromString(sku));
-                }
-                log.debug(`✅ Requested pricecheck for ${name} (${sku}).`);
-            })
-            .catch(err => {
-                const errStringify = JSON.stringify(err);
-                const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
-                log.warn(`❌ Failed to request pricecheck for ${sku}: ${errMessage}`);
-            })
-            .finally(() => {
-                this.isProcessing = false;
-                this.dequeue();
-                void this.process();
-            });
+        try {
+            const body = await this.requestCheck(sku);
+            let name: string;
+            if (body.name) {
+                name = body.name;
+            } else {
+                name = this.bot.schema.getName(SKU.fromString(sku));
+            }
+            log.debug(`✅ Requested pricecheck for ${name} (${sku}).`);
+        } catch (err) {
+            const errStringify = JSON.stringify(err);
+            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
+            log.warn(`❌ Failed to request pricecheck for ${sku}: ${errMessage}`);
+        }
+        this.isProcessing = false;
+        this.skus.delete(sku);
+        await this.process();
     }
 }

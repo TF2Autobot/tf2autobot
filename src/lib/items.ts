@@ -11,14 +11,15 @@ export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): Minimu
     if (schemaItem === null) {
         return item;
     }
-
-    const items = schema.raw.schema.items;
-    const itemsCount = items.length;
+    const itemsCount = schema.raw.schema.items.length;
 
     if (schemaItem.name.includes(schemaItem.item_class.toUpperCase())) {
         for (let i = 0; i < itemsCount; i++) {
-            if (items[i].item_class === schemaItem.item_class && items[i].name.startsWith('Upgradeable ')) {
-                item.defindex = items[i].defindex;
+            if (
+                schema.raw.schema.items[i].item_class === schemaItem.item_class &&
+                schema.raw.schema.items[i].name.startsWith('Upgradeable ')
+            ) {
+                item.defindex = schema.raw.schema.items[i].defindex;
             }
         }
     }
@@ -102,15 +103,21 @@ export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): Minimu
 
     if (isPromo && item.quality != 1) {
         for (let i = 0; i < itemsCount; i++) {
-            if (!isPromoItem(items[i]) && items[i].item_name == schemaItem.item_name) {
+            if (
+                !isPromoItem(schema.raw.schema.items[i]) &&
+                schema.raw.schema.items[i].item_name == schemaItem.item_name
+            ) {
                 // This is the non-promo version, use that defindex instead
-                item.defindex = items[i].defindex;
+                item.defindex = schema.raw.schema.items[i].defindex;
             }
         }
     } else if (!isPromo && item.quality == 1) {
         for (let i = 0; i < itemsCount; i++) {
-            if (isPromoItem(items[i]) && items[i].item_name == schemaItem.item_name) {
-                item.defindex = items[i].defindex;
+            if (
+                isPromoItem(schema.raw.schema.items[i]) &&
+                schema.raw.schema.items[i].item_name == schemaItem.item_name
+            ) {
+                item.defindex = schema.raw.schema.items[i].defindex;
             }
         }
     }
@@ -155,17 +162,10 @@ export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): Minimu
             item.quality = 5;
         } else if (item.paintkit !== null) {
             // War Paint or Skins
-            if (item.quality2 === 11) {
+            if (item.quality2 === 11 || item.quality === 5) {
                 // Strange Unusual
-                item.quality = 11;
-                item.quality2 = null;
+                item.quality = 15;
             }
-        }
-    } else if (item.paintkit !== null) {
-        // War Paint or Skins (No effect)
-        if (item.quality2 === 11) {
-            item.quality = 11;
-            item.quality2 = null;
         }
     }
 

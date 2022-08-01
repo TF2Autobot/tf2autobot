@@ -1,15 +1,15 @@
 import SKU from '@tf2autobot/tf2-sku';
 import { Items } from '@tf2autobot/tradeoffer-manager';
-import { spellsData, killstreakersData, sheensData } from '../data';
 import Bot from '../../classes/Bot';
-import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
-import { testSKU } from '../tools/export';
+import { testPriceKey } from '../tools/export';
+import getAttachmentName from './getAttachmentName';
+import Pricelist from '../../classes/Pricelist';
 
 interface ItemsWithName {
     [name: string]: string;
 }
 
-export default function getHighValueItems(items: Items, bot: Bot, paints: Paints, parts: StrangeParts): ItemsWithName {
+export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName {
     const itemsWithName: ItemsWithName = {};
 
     const cT = bot.options.tradeSummary.customText;
@@ -21,7 +21,7 @@ export default function getHighValueItems(items: Items, bot: Bot, paints: Paints
             continue;
         }
 
-        if (!testSKU(sku)) {
+        if (!testPriceKey(sku)) {
             continue;
         }
 
@@ -56,7 +56,7 @@ export default function getHighValueItems(items: Items, bot: Bot, paints: Paints
                         }
 
                         toJoin.push(
-                            `${getAttachmentName(attachment, pSKU, paints, parts)}${
+                            `${getAttachmentName(attachment, pSKU, bot.schema.paints, bot.strangeParts)}${
                                 attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
                             }${items[sku][attachment as Attachment][pSKU] === true ? ' 🌟' : ''}`
                         );
@@ -68,24 +68,11 @@ export default function getHighValueItems(items: Items, bot: Bot, paints: Paints
             }
         });
 
-        itemsWithName[bot.schema.getName(SKU.fromString(sku.replace(/;p\d+/, '')))] = toString;
+        const nameSku = Pricelist.isAssetId(sku) ? bot.pricelist.getPrice({ priceKey: sku }).sku : sku;
+        itemsWithName[bot.schema.getName(SKU.fromString(nameSku.replace(/;p\d+/, '')))] = toString;
     }
 
     return itemsWithName;
 }
 
 type Attachment = 's' | 'sp' | 'ke' | 'ks' | 'p';
-
-function getAttachmentName(attachment: string, pSKU: string, paints: Paints, parts: StrangeParts): string {
-    if (attachment === 's') return getKeyByValue(spellsData, pSKU);
-    else if (attachment === 'sp') return getKeyByValue(parts, pSKU);
-    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSKU);
-    else if (attachment === 'ks') return getKeyByValue(sheensData, pSKU);
-    else if (attachment === 'p') return getKeyByValue(paints, pSKU);
-}
-
-function getKeyByValue(object: { [key: string]: any }, value: any): string {
-    const keys = Object.keys(object);
-    const key = keys.find(key => object[key] === value);
-    return key;
-}

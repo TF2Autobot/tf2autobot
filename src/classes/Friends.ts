@@ -1,9 +1,8 @@
 import { EFriendRelationship } from 'steam-user';
 import SteamID from 'steamid';
-import { OptionsWithUri } from 'request';
-import request from 'request-retry-dayjs';
-import { UnknownDictionary } from '../types/common';
+import axios, { AxiosError } from 'axios';
 import Bot from './Bot';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 export default class Friends {
     maxFriends: number | undefined;
@@ -43,38 +42,36 @@ export default class Friends {
     }
 
     get getMaxFriends(): Promise<number> {
-        const options: OptionsWithUri = {
-            uri: 'https://api.steampowered.com/IPlayerService/GetBadges/v1/',
-            method: 'GET',
-            json: true,
-            gzip: true,
-            qs: {
-                key: this.bot.manager.apiKey,
-                steamid: (this.bot.client.steamID === null
-                    ? this.bot.handler.getBotInfo.steamID
-                    : this.bot.client.steamID
-                ).getSteamID64()
-            }
-        };
-
         return new Promise((resolve, reject) => {
-            void request(options, (err: Error | null, response, body: UnknownDictionary<any>) => {
-                if (err) {
-                    return reject(err);
+            void axios({
+                url: 'https://api.steampowered.com/IPlayerService/GetBadges/v1/',
+                method: 'GET',
+                params: {
+                    key: this.bot.manager.apiKey,
+                    steamid: (this.bot.client.steamID === null
+                        ? this.bot.handler.getBotInfo.steamID
+                        : this.bot.client.steamID
+                    ).getSteamID64()
                 }
+            })
+                .then(response => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                    const result = response.data.response;
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                    const level = result.player_level;
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                const result = body.response;
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                const level = result.player_level;
+                    const base = 250;
+                    const multiplier = 5;
 
-                const base = 250;
-                const multiplier = 5;
+                    this.maxFriends = base + level * multiplier;
 
-                this.maxFriends = base + level * multiplier;
-
-                resolve(this.maxFriends);
-            });
+                    resolve(this.maxFriends);
+                })
+                .catch((err: AxiosError) => {
+                    if (err) {
+                        return reject(filterAxiosError(err));
+                    }
+                });
         });
     }
 }

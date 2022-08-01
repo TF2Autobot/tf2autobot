@@ -1,6 +1,5 @@
-import { OptionsWithUrl, ResponseAsJSON } from 'request';
-
-import request from 'request-retry-dayjs';
+import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { PricerOptions } from '../../../classes/IPricer';
 
 export interface PricesCurrency {
@@ -72,33 +71,45 @@ export interface CustomPricerPricesRequestCheckResponse extends CustomPricesResp
 export default class CustomPricerApi {
     public constructor(public url?: string, public apiToken?: string) {}
 
-    private apiRequest<I, R extends CustomPricesResponse>(httpMethod: string, path: string, input: I): Promise<R> {
-        const options: OptionsWithUrl & { headers: Record<string, unknown> } = {
-            method: httpMethod,
+    private apiRequest<R extends CustomPricesResponse>(
+        httpMethod: string,
+        path: string,
+        params?: Record<string, any>,
+        data?: Record<string, any>
+    ): Promise<R> {
+        const options: AxiosRequestConfig = {
+            method: httpMethod as Method,
             url: `${this.url ? this.url : 'https://api.prices.tf'}${path}`,
             headers: {
                 // This one is okay to keep I guess
                 'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
             },
-            json: true,
-            gzip: true,
             timeout: 30000
         };
 
         if (this.apiToken) {
-            options.headers.Authorization = `Token ${this.apiToken}`;
+            options.headers = { Authorization: `Token ${this.apiToken}` };
         }
 
-        options[httpMethod === 'GET' ? 'qs' : 'body'] = input;
+        if (params) {
+            options.params = params;
+        }
+
+        if (data) {
+            options.data = data;
+        }
 
         return new Promise((resolve, reject) => {
-            void request(options, (err, response: ResponseAsJSON, body: R) => {
-                if (err) {
-                    reject(err);
-                }
-
-                resolve(body);
-            });
+            void axios(options)
+                .then(response => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    resolve(response.data);
+                })
+                .catch((err: AxiosError) => {
+                    if (err) {
+                        reject(filterAxiosError(err));
+                    }
+                });
         });
     }
 

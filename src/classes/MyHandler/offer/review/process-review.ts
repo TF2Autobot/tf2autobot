@@ -5,7 +5,7 @@ import { ValueDiff, valueDiff } from '../../../../lib/tools/export';
 
 export default function processReview(offer: TradeOffer, meta: Meta, bot: Bot, isTradingKeys: boolean): Content {
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, isTradingKeys, bot.options.miscSettings.showOnlyMetal.enable);
+    const value = valueDiff(offer, keyPrices, isTradingKeys);
     const reasons = meta.uniqueReasons;
     const reviewReasons: string[] = [];
 
