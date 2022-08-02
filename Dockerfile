@@ -10,7 +10,7 @@ RUN npm install typescript@latest pm2 -g && \
     cd /app && \
     npm install && \
     npm run build && \
-    rm -rf src/ .idea/ .vscode/
+    rm -rf src/
 
 WORKDIR /app
 
