@@ -13,7 +13,8 @@ export default class DiscordBot {
         const botIntents = new IntentsBitField([
             IntentsBitField.Flags.Guilds,
             IntentsBitField.Flags.GuildMessages,
-            IntentsBitField.Flags.DirectMessages
+            IntentsBitField.Flags.DirectMessages,
+            IntentsBitField.Flags.MessageContent
         ]);
 
         this.client = new Client({
