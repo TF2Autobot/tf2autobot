@@ -258,13 +258,13 @@ export default class MyHandler extends Handler {
             keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
             // Craft duplicate weapons
-            void craftDuplicateWeapons(this.bot);
-
-            // Craft class weapons
-            this.classWeaponsTimeout = setTimeout(() => {
-                // called after 5 seconds to craft metals and duplicated weapons first.
-                void craftClassWeapons(this.bot);
-            }, 5 * 1000);
+            craftDuplicateWeapons(this.bot)
+                .then(() => {
+                    return craftClassWeapons(this.bot);
+                })
+                .catch(err => {
+                    log.warn('Failed to craft duplicated craft/class weapons', err);
+                });
         }
 
         if (this.isDeletingUntradableJunk) {
@@ -2205,18 +2205,14 @@ export default class MyHandler extends Handler {
                 // Smelt / combine metal
                 keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
-                // Craft duplicated weapons
-                void craftDuplicateWeapons(this.bot);
-
-                this.classWeaponsTimeout = setTimeout(() => {
-                    // called after 5 second to craft metals and duplicated weapons first.
-                    void craftClassWeapons(this.bot);
-                }, 5 * 1000);
-            }
-
-            if (this.isDeletingUntradableJunk) {
-                // Delete untradable junk
-                this.deleteUntradableJunk();
+                // Craft duplicate weapons
+                craftDuplicateWeapons(this.bot)
+                    .then(() => {
+                        return craftClassWeapons(this.bot);
+                    })
+                    .catch(err => {
+                        log.warn('Failed to craft duplicated craft/class weapons', err);
+                    });
             }
 
             // Sort inventory
@@ -2497,7 +2493,7 @@ export default class MyHandler extends Handler {
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
-                            void this.getBPTFAccountInfo().catch(() => {
+                            this.getBPTFAccountInfo().catch(() => {
                                 // ignore error
                             });
                         }, 5 * 60 * 1000);
@@ -2546,7 +2542,9 @@ export default class MyHandler extends Handler {
 
         for (const assetid of assetidsToDelete) {
             log.debug(`Deleting junk item ${assetid}`);
-            this.bot.tf2gc.deleteItem(assetid);
+            this.bot.tf2gc.deleteItem(assetid, err => {
+                log.warn('Error deleting untradable junk', err);
+            });
         }
     }
 

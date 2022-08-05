@@ -17,13 +17,13 @@ export type ClassesForCraftableWeapons =
 
 export type SlotsForCraftableWeapons = 'primary' | 'secondary' | 'melee' | 'pda2';
 
-export default function craftClassWeapons(bot: Bot): Promise<void> {
+export default async function craftClassWeapons(bot: Bot): Promise<void> {
     if (!bot.options.crafting.weapons.enable) {
         return;
     }
     const currencies = bot.inventoryManager.getInventory.getCurrencies(bot.craftWeapons, false);
 
-    void Promise.all(
+    await Promise.all(
         ['scout', 'soldier', 'pyro', 'demoman', 'heavy', 'engineer', 'medic', 'sniper', 'spy'].map(classChar =>
             craftEachClassWeapons(bot, bot.craftWeaponsByClass[classChar as ClassesForCraftableWeapons], currencies)
         )
