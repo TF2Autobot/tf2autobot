@@ -138,7 +138,10 @@ export default class DiscordBot {
             activities: [
                 {
                     name: opt.name,
-                    type: ActivityType[capitalizeFirstLetter(opt.type.toLowerCase())]
+                    type:
+                        typeof opt.type === 'string'
+                            ? ActivityType[capitalizeFirstLetter(opt.type.toLowerCase())]
+                            : opt.type
                 }
             ],
             status: opt.status
