@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
 
-import { Client, IntentsBitField, Message, DiscordAPIError, Snowflake, ActivityType } from 'discord.js';
+import { Client, GatewayIntentBits, Message, DiscordAPIError, Snowflake, ActivityType } from 'discord.js';
 import log from '../lib/logger';
 import Options from './Options';
 import Bot from './Bot';
@@ -10,15 +10,13 @@ export default class DiscordBot {
     readonly client: Client;
 
     constructor(private options: Options, private bot: Bot) {
-        const botIntents = new IntentsBitField([
-            IntentsBitField.Flags.Guilds,
-            IntentsBitField.Flags.GuildMessages,
-            IntentsBitField.Flags.DirectMessages,
-            IntentsBitField.Flags.MessageContent
-        ]);
-
         this.client = new Client({
-            intents: botIntents
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.DirectMessages,
+                GatewayIntentBits.MessageContent
+            ]
         });
 
         // 'ready' binding should be executed BEFORE the login() is complete
