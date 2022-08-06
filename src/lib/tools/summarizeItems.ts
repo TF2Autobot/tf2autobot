@@ -121,14 +121,13 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
             continue;
         }
 
+        buyPrice = new Currencies(prices[priceKey].buy).toString();
+        sellPrice = new Currencies(prices[priceKey].sell).toString();
+
         const entry = bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
+
         if (entry !== null) {
-            buyPrice = entry.buy.toString();
-            sellPrice = entry.sell.toString();
             autoprice = entry.autoprice ? `autopriced${entry.isPartialPriced ? ' - ppu' : ''}` : 'manual';
-        } else {
-            buyPrice = new Currencies(prices[priceKey].buy).toString();
-            sellPrice = new Currencies(prices[priceKey].sell).toString();
         }
 
         const name = testPriceKey(priceKey)
