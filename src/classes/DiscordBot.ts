@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
 
-import { Client, Intents, Message, DiscordAPIError, Snowflake } from 'discord.js';
+import { Client, GatewayIntentBits, Message, DiscordAPIError, Snowflake, ActivityType } from 'discord.js';
 import log from '../lib/logger';
 import Options from './Options';
 import Bot from './Bot';
@@ -11,7 +11,12 @@ export default class DiscordBot {
 
     constructor(private options: Options, private bot: Bot) {
         this.client = new Client({
-            intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES]
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.DirectMessages,
+                GatewayIntentBits.MessageContent
+            ]
         });
 
         // 'ready' binding should be executed BEFORE the login() is complete
@@ -131,7 +136,10 @@ export default class DiscordBot {
             activities: [
                 {
                     name: opt.name,
-                    type: opt.type
+                    type:
+                        typeof opt.type === 'string'
+                            ? ActivityType[capitalizeFirstLetter(opt.type.toLowerCase())]
+                            : opt.type
                 }
             ],
             status: opt.status
@@ -167,4 +175,8 @@ export default class DiscordBot {
         }
         return result[0];
     }
+}
+
+function capitalizeFirstLetter(s: string): string {
+    return s.charAt(0).toUpperCase() + s.slice(1);
 }
