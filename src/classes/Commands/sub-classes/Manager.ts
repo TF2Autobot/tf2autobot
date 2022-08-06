@@ -434,7 +434,11 @@ export default class ManagerCommands {
                 return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
             }
 
-            const friendsToRemove = Object.keys(friendlist).filter(steamid => !friendsToKeep.includes(steamid));
+            const friendsToRemove = Object.keys(friendlist).filter(
+                // Make sure only friends, not overall
+                friendID => !friendsToKeep.includes(friendID) && friendlist[friendID] === EFriendRelationship.Friend
+            );
+
             if (friendsToRemove.length === 0) {
                 return this.bot.sendMessage(steamID, `❌ I don't have any friends to remove.`);
             }
