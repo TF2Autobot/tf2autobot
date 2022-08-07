@@ -182,27 +182,22 @@ export default function updateListings(
         //
 
         if (isAutopriceManuallyPricedItem) {
-            const entry: EntryData = {
-                sku: priceListEntry.sku,
-                intent: priceListEntry.intent,
-                enabled: priceListEntry.enabled,
-                min: priceListEntry.min,
-                max: priceListEntry.max,
-                autoprice: true
-            };
+            priceListEntry.autoprice = true;
+            delete priceListEntry.name;
+            delete priceListEntry.time;
 
             bot.pricelist
-                .updatePrice({ priceKey, entryData: entry, emitChange: true })
+                .updatePrice({ priceKey, entryData: priceListEntry, emitChange: true })
                 .then(updatedEntry => {
                     const msg =
-                        `✅ Automatically reset ${entry.sku} to autoprice (item sold).` +
+                        `✅ Automatically reset ${priceListEntry.sku} to autoprice (item sold).` +
                         `\nPrevious: ${priceListEntry.buy.toString()}/${priceListEntry.sell.toString()}` +
                         `\nNew: ${updatedEntry.buy.toString()}/${updatedEntry.sell.toString()}`;
                     log.debug(msg);
 
                     if (opt.sendAlert.enable && opt.sendAlert.autoResetToAutopriceOnceSold) {
                         if (dwEnabled) {
-                            sendAlert('autoResetToAutopriceOnceSold', bot, msg, null, null, [entry.sku]);
+                            sendAlert('autoResetToAutopriceOnceSold', bot, msg, null, null, [priceListEntry.sku]);
                         } else {
                             bot.messageAdmins(msg, []);
                         }
@@ -211,7 +206,7 @@ export default function updateListings(
                     if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
-                    log.warn(`❌ Failed to automatically reset ${entry.sku} to autoprice: `, err);
+                    log.warn(`❌ Failed to automatically reset ${priceListEntry.sku} to autoprice: `, err);
                     if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 });
         }
