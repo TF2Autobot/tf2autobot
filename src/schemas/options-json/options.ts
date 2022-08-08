@@ -930,7 +930,16 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/high-value-content'
                 }
             },
-            required: ['enableHold', 'retainOldGroup', 'customGroup', 'spells', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
+            required: [
+                'enableHold',
+                'retainOldGroup',
+                'customGroup',
+                'spells',
+                'sheens',
+                'killstreakers',
+                'strangeParts',
+                'painted'
+            ],
             additionalProperties: false
         },
         normalize: {
