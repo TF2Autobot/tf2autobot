@@ -880,10 +880,13 @@ export default class MyHandler extends Handler {
 
         const offerMessage = offer.message.toLowerCase();
 
-        const forcesReview = offerMessage === 'force-review'; // maybe there is a better keyword?
-        wrongAboutOffer.push({
-            reason: '⬜_REVIEW_FORCED'
-        });
+        const forcesReview =
+            opt.manualReview.enable && ['refund', 'review', 'check', 'manual'].some(word => offerMessage === word);
+        if (forcesReview) {
+            wrongAboutOffer.push({
+                reason: '⬜_REVIEW_FORCED'
+            });
+        }
 
         if (!forcesReview) {
             if (itemsToGiveCount === 0) {
@@ -1822,7 +1825,7 @@ export default class MyHandler extends Handler {
                 highValue: isContainsHighValue ? highValueMeta : undefined
             };
 
-            // don't use business logic if the bot is not operational
+            // don't use business logic if the bot is not operational or the trade must be reviewed
             if (this.bot.isHalted || forcesReview) {
                 return {
                     action: 'skip',
