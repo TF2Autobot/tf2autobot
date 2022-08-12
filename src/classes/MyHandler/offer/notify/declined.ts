@@ -2,13 +2,13 @@ import { Action, Meta, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { valueDiff, summarizeToChat } from '../../../../lib/tools/export';
 import Bot from '../../../Bot';
 
-export default function declined(offer: TradeOffer, bot: Bot, isTradingKeys: boolean): void {
+export default function declined(offer: TradeOffer, bot: Bot): void {
     const opt = bot.options;
 
     const offerReason = offer.data('action') as Action;
     const meta = offer.data('meta') as Meta;
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, isTradingKeys);
+    const value = valueDiff(offer);
     const manualReviewDisabled = !opt.manualReview.enable;
 
     const declined = '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined';
