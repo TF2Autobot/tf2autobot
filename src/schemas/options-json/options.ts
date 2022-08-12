@@ -875,6 +875,12 @@ export const optionsSchema: jsonschema.Schema = {
                 enableHold: {
                     type: 'boolean'
                 },
+                retainOldGroup: {
+                    type: 'boolean'
+                },
+                customGroup: {
+                    type: 'string'
+                },
                 spells: {
                     type: 'object',
                     properties: {
@@ -924,7 +930,16 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/high-value-content'
                 }
             },
-            required: ['enableHold', 'spells', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
+            required: [
+                'enableHold',
+                'retainOldGroup',
+                'customGroup',
+                'spells',
+                'sheens',
+                'killstreakers',
+                'strangeParts',
+                'painted'
+            ],
             additionalProperties: false
         },
         normalize: {

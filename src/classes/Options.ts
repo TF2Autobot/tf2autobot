@@ -218,6 +218,8 @@ export const DEFAULTS: JsonOptions = {
 
     highValue: {
         enableHold: true,
+        retainOldGroup: false,
+        customGroup: 'highValue',
         spells: {
             names: [],
             exceptionSkus: []
@@ -1319,6 +1321,8 @@ interface NotifyTradePartner {
 
 export interface HighValue {
     enableHold?: boolean;
+    retainOldGroup?: boolean;
+    customGroup?: string;
     spells?: HighValueContent;
     sheens?: HighValueContent;
     killstreakers?: HighValueContent;
