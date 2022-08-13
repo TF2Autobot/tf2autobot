@@ -55,6 +55,8 @@ export default class Bot {
 
     readonly community: SteamCommunity;
 
+    tradeOfferUrl: string;
+
     listingManager: ListingManager; // should be readonly
 
     readonly friends: Friends;
@@ -1042,18 +1044,26 @@ export default class Bot {
 
                     promise
                         .then(() => {
-                            if (this.options.discordBotToken) {
-                                this.discordBot.setPresence('online');
-                            }
+                            this.community.getTradeURL((err, url) => {
+                                if (err) {
+                                    throw err;
+                                }
 
-                            this.manager.pollInterval = 5 * 1000;
-                            this.setReady = true;
-                            this.handler.onReady();
-                            this.manager.doPoll();
-                            this.startVersionChecker();
-                            this.initResetCacheInterval();
+                                this.tradeOfferUrl = url;
 
-                            resolve();
+                                if (this.options.discordBotToken) {
+                                    this.discordBot.setPresence('online');
+                                }
+
+                                this.manager.pollInterval = 5 * 1000;
+                                this.setReady = true;
+                                this.handler.onReady();
+                                this.manager.doPoll();
+                                this.startVersionChecker();
+                                this.initResetCacheInterval();
+
+                                resolve();
+                            });
                         })
                         .catch(err => {
                             return reject(err);
