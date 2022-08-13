@@ -122,9 +122,7 @@ export default class DiscordBot {
         log.info(
             `Logged in to Discord as ${String(this.client.user.tag)} to serve in ${
                 this.client.channels.cache.size
-            } channels on ${this.client.guilds.cache.size} servers, for a total of ${
-                this.client.users.cache.size
-            } users.`
+            } channels on ${this.client.guilds.cache.size} servers.`
         );
         this.client.user.setStatus('idle');
 
