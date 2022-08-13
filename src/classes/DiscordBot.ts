@@ -118,7 +118,12 @@ export default class DiscordBot {
     }
 
     private onClientReady() {
-        log.info(`Logged in to Discord as ` + String(this.client.user.tag));
+        // https://github.com/TF2Autobot/tf2autobot-giveawaybot/blob/master/src/events/ready.ts
+        log.info(
+            `Logged in to Discord as ${String(this.client.user.tag)} to serve on ${
+                this.client.guilds.cache.size
+            } servers.`
+        );
         this.client.user.setStatus('idle');
 
         // DM chats are not giving messageCreate until first usage. This thing fetches required DM chats.
