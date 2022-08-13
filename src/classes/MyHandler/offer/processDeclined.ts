@@ -5,7 +5,7 @@ import * as t from '../../../lib/tools/export';
 import sendTradeDeclined from '../../../lib/DiscordWebhook/sendTradeDeclined';
 import { KeyPrices } from '../../../classes/Pricelist';
 
-export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTradingKeys: boolean): void {
+export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
     const opt = bot.options;
 
     const declined: Declined = {
@@ -268,7 +268,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
         offer.data('processOfferTime')) as number;
 
     if (isWebhookEnabled) {
-        void sendTradeDeclined(offer, declined, bot, timeTakenToProcessOrConstruct, isTradingKeys, isOfferSent);
+        void sendTradeDeclined(offer, declined, bot, timeTakenToProcessOrConstruct, isOfferSent);
     } else {
         const itemsName = {
             invalid: declined.invalidItems, // 🟨_INVALID_ITEMS
@@ -280,7 +280,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot, isTrading
             highValue: declined.highValue.concat(declined.highNotSellingItems)
         };
         const keyPrices = bot.pricelist.getKeyPrices;
-        const value = t.valueDiff(offer, keyPrices, isTradingKeys);
+        const value = t.valueDiff(offer);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         sendToAdmin(bot, offer, value, itemList, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
