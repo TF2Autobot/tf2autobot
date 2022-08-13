@@ -120,9 +120,9 @@ export default class DiscordBot {
     private onClientReady() {
         // https://github.com/TF2Autobot/tf2autobot-giveawaybot/blob/master/src/events/ready.ts
         log.info(
-            `Logged in to Discord as ${String(this.client.user.tag)} to serve in ${
-                this.client.channels.cache.size
-            } channels on ${this.client.guilds.cache.size} servers.`
+            `Logged in to Discord as ${String(this.client.user.tag)} to serve on ${
+                this.client.guilds.cache.size
+            } servers.`
         );
         this.client.user.setStatus('idle');
 
