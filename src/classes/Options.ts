@@ -267,6 +267,7 @@ export const DEFAULTS: JsonOptions = {
     details: {
         buy: 'I am buying your %name% for %price%, I have %current_stock% / %max_stock%.',
         sell: 'I am selling my %name% for %price%, I am selling %amount_trade%.',
+        showAutokeys: true,
         showBoldText: {
             onPrice: false,
             onAmount: false,
@@ -1366,6 +1367,7 @@ interface NormalizePainted extends NormalizeOurOrTheir {
 interface Details {
     buy?: string;
     sell?: string;
+    showAutokeys?: boolean;
     showBoldText?: ShowBoldText;
     highValue?: ShowHighValue;
     uses?: UsesDetails;

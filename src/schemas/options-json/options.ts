@@ -1021,6 +1021,9 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'string',
                     maxLength: 180
                 },
+                showAutokeys: {
+                    type: 'boolean'
+                },
                 showBoldText: {
                     type: 'object',
                     properties: {
@@ -1124,7 +1127,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['buy', 'sell', 'showBoldText', 'highValue', 'uses'],
+            required: ['buy', 'sell', 'showAutokeys', 'showBoldText', 'highValue', 'uses'],
             additionalProperties: false
         },
         statistics: {

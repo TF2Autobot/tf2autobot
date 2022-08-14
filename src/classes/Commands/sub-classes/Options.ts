@@ -906,6 +906,10 @@ export default class OptionsCommands {
                     }
                 }
 
+                if (knownParams.details?.showAutokeys) {
+                    this.bot.listings.checkByPriceKey({ priceKey: '5021;6' });
+                }
+
                 if (steamID) {
                     return this.bot.sendMessage(steamID, msg);
                 } else {
