@@ -182,12 +182,20 @@ export default function updateListings(
         //
 
         if (isAutopriceManuallyPricedItem) {
-            priceListEntry.autoprice = true;
-            delete priceListEntry.name;
-            delete priceListEntry.time;
+            const entry: EntryData = {
+                sku: priceListEntry.sku,
+                intent: priceListEntry.intent,
+                enabled: priceListEntry.enabled,
+                min: priceListEntry.min,
+                max: priceListEntry.max,
+                autoprice: true, // We only change this
+                note: priceListEntry.note,
+                promoted: priceListEntry.promoted,
+                group: priceListEntry.group
+            };
 
             bot.pricelist
-                .updatePrice({ priceKey, entryData: priceListEntry, emitChange: true })
+                .updatePrice({ priceKey, entryData: entry, emitChange: true })
                 .then(updatedEntry => {
                     const msg =
                         `✅ Automatically reset ${priceListEntry.sku} to autoprice (item sold).` +
@@ -439,16 +447,37 @@ export default function updateListings(
             // If item received is high value, temporarily disable that item so it will not be sellable.
             const oldGroup = priceListEntry.group;
 
-            priceListEntry.enabled = false;
-            if (!opt.highValue.retainOldGroup) {
-                priceListEntry.group = opt.highValue.customGroup ? opt.highValue.customGroup : 'highValue';
+            const entry: EntryData = {
+                sku: priceKey,
+                enabled: false, // We only change this
+                autoprice: priceListEntry.autoprice,
+                min: priceListEntry.min,
+                max: priceListEntry.max,
+                intent: priceListEntry.intent,
+                note: priceListEntry.note,
+                promoted: priceListEntry.promoted,
+                group: priceListEntry.group
+            };
+
+            if (!priceListEntry.autoprice) {
+                // if not autopriced, then explicitly set the buy/sell prices
+                // with the current buy/sell prices
+                entry.buy = {
+                    keys: priceListEntry.buy.keys,
+                    metal: priceListEntry.buy.metal
+                };
+                entry.sell = {
+                    keys: priceListEntry.sell.keys,
+                    metal: priceListEntry.sell.metal
+                };
             }
 
-            delete priceListEntry.name;
-            delete priceListEntry.time;
+            if (!opt.highValue.retainOldGroup) {
+                entry.group = opt.highValue.customGroup ? opt.highValue.customGroup : 'highValue';
+            }
 
             bot.pricelist
-                .updatePrice({ priceKey, entryData: priceListEntry, emitChange: true })
+                .updatePrice({ priceKey, entryData: entry, emitChange: true })
                 .then(() => {
                     log.debug(`✅ Automatically disabled ${priceKey}, which is a high value item.`);
 
