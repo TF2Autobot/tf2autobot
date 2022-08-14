@@ -691,16 +691,12 @@ export default class Listings {
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
                 : details.replace(/%keyPrice%/g, '');
             //
-        } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
+        } else if (entry.sku === '5021;6' || !entry[key].toString().includes('key')) {
             // this part checks if the item Mann Co. Supply Crate Key or the buying/selling price involve keys.
             details = replaceDetails(this.templates[key], entry, key)
                 .replace(/%keyPrice%/g, '')
                 .replace(/%uses%/g, '');
-            if (
-                entry.name === 'Mann Co. Supply Crate Key' &&
-                this.bot.handler.autokeys.isEnabled &&
-                opt.details.showAutokeys
-            ) {
+            if (entry.sku === '5021;6' && this.bot.handler.autokeys.isEnabled && opt.details.showAutokeys) {
                 details = '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + details;
             }
             //
