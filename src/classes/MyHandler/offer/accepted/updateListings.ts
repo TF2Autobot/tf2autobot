@@ -455,7 +455,8 @@ export default function updateListings(
                 max: priceListEntry.max,
                 intent: priceListEntry.intent,
                 note: priceListEntry.note,
-                promoted: priceListEntry.promoted
+                promoted: priceListEntry.promoted,
+                group: priceListEntry.group
             };
 
             if (!priceListEntry.autoprice) {
