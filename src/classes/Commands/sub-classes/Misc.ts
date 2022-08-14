@@ -18,14 +18,15 @@ export default class MiscCommands {
         this.bot = bot;
     }
 
-    links(SteamID: SteamID): void {
+    links(steamID: SteamID): void {
         const botSteamID = this.bot.client.steamID.getSteamID64();
 
         this.bot.sendMessage(
-            SteamID,
+            steamID,
             `Steam: <https://steamcommunity.com/profiles/${botSteamID}>` +
                 `\nBackpack.tf: <https://backpack.tf/u/${botSteamID}>` +
-                `\nRep.tf: <https://rep.tf/${botSteamID}>`
+                `\nRep.tf: <https://rep.tf/${botSteamID}>` +
+                `\nTrade Offer URL: <${this.bot.tradeOfferUrl}>`
         );
     }
 
