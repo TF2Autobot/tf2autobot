@@ -8,7 +8,7 @@ export const listingSchema: jsonschema.Schema = {
             anyOf: [
                 {
                     type: 'string',
-                    maxLength: 180
+                    maxLength: 200
                 },
                 {
                     type: 'null'
@@ -19,7 +19,7 @@ export const listingSchema: jsonschema.Schema = {
             anyOf: [
                 {
                     type: 'string',
-                    maxLength: 180
+                    maxLength: 200
                 },
                 {
                     type: 'null'

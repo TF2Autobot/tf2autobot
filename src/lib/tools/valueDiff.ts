@@ -1,36 +1,23 @@
-import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
+import { ItemsValue, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import Currencies from '@tf2autobot/tf2-currencies';
-import { KeyPrices } from '../../classes/Pricelist';
 
-export default function valueDiff(offer: TradeOffer, keyPrices: KeyPrices, isTradingKeys: boolean): ValueDiff {
-    let value = offer.data('value') as ItemValue;
+export default function valueDiff(offer: TradeOffer): ValueDiff {
+    const value = offer.data('value') as ItemsValue;
 
     if (!value) {
         return { ourValue: 0, theirValue: 0, diff: 0, diffRef: 0, diffKey: '' };
     }
 
-    value = {
-        our: new Currencies({ keys: value.our.keys, metal: value.our.metal }),
-        their: new Currencies({ keys: value.their.keys, metal: value.their.metal })
-    };
-
-    const ourValue = value.our.toValue(keyPrices.sell.metal);
-    const theirValue = value.their.toValue(isTradingKeys ? keyPrices.buy.metal : keyPrices.sell.metal);
-    const diff = theirValue - ourValue;
+    const diff = value.their.total - value.our.total;
     const absoluteValue = Math.abs(diff);
 
     return {
-        ourValue,
-        theirValue,
+        ourValue: value.our.total,
+        theirValue: value.their.total,
         diff,
         diffRef: Currencies.toRefined(absoluteValue),
-        diffKey: Currencies.toCurrencies(absoluteValue, keyPrices.sell.metal).toString()
+        diffKey: Currencies.toCurrencies(absoluteValue, value.rate).toString()
     };
-}
-
-interface ItemValue {
-    our: Currencies;
-    their: Currencies;
 }
 
 export interface ValueDiff {

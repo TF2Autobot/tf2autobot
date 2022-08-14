@@ -76,7 +76,7 @@ export function summarizeToChat(
         `${cTAsked} ${generatedSummary.asked}` +
         `\n${cTOffered} ${generatedSummary.offered}` +
         '\n──────────────────────' +
-        (['summary-accepted', 'review-admin'].includes(type)
+        (['summary-accepted', 'review-admin'].includes(type) && !isOfferSent
             ? value.diff > 0
                 ? `\n${cTProfit} ${value.diffRef} ref` +
                   (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')

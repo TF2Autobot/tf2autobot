@@ -12,6 +12,7 @@ import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
 import ListingManager from '@tf2autobot/bptf-listings';
 import getAttachmentName from '../lib/tools/getAttachmentName';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 export default class Listings {
     private checkingAllListings = false;
@@ -446,24 +447,42 @@ export default class Listings {
             this.bot.listingManager.actions.create = [];
 
             // Wait for backpack.tf to finish creating / removing listings
-            void this.waitForListings().then(() => {
-                if (this.bot.listingManager.listings.length === 0) {
-                    log.debug('We have no listings');
-                    this.removingAllListings = false;
-                    return resolve();
-                }
-
-                log.debug('Removing all listings...');
-
-                this.bot.listingManager.deleteAllListings(err => {
-                    if (err) {
-                        return reject(err);
+            this.waitForListings()
+                .then(() => {
+                    if (this.bot.listingManager.listings.length === 0) {
+                        log.debug('We have no listings');
+                        this.removingAllListings = false;
+                        return resolve();
                     }
 
-                    // The request might fail, if it does we will try again
-                    return resolve(this.removeAllListings());
+                    log.debug('Removing all listings...');
+
+                    this.bot.listingManager.deleteAllListings(err => {
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        // The request might fail, if it does we will try again
+                        return resolve(this.removeAllListings());
+                    });
+                })
+                .catch(err => {
+                    // if an error occurred, we bypass checking listings and just call delete all listings
+
+                    log.error(
+                        'Error getting listings info, force delete all listings. Error details: ',
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                        filterAxiosError(err)
+                    );
+                    this.bot.listingManager.deleteAllListings(err => {
+                        if (err) {
+                            // But if failed to delete all listings, blame bptf 😴
+                            return reject(err);
+                        }
+
+                        return resolve();
+                    });
                 });
-            });
         });
     }
 
@@ -672,12 +691,12 @@ export default class Listings {
                 ? details.replace(/%keyPrice%/g, 'Key rate: ' + keyPrice.toString() + '/key')
                 : details.replace(/%keyPrice%/g, '');
             //
-        } else if (entry.name === 'Mann Co. Supply Crate Key' || !entry[key].toString().includes('key')) {
+        } else if (entry.sku === '5021;6' || !entry[key].toString().includes('key')) {
             // this part checks if the item Mann Co. Supply Crate Key or the buying/selling price involve keys.
             details = replaceDetails(this.templates[key], entry, key)
                 .replace(/%keyPrice%/g, '')
                 .replace(/%uses%/g, '');
-            if (entry.name === 'Mann Co. Supply Crate Key' && this.bot.handler.autokeys.isEnabled) {
+            if (entry.sku === '5021;6' && this.bot.handler.autokeys.isEnabled && opt.details.showAutokeys) {
                 details = '[𝐀𝐮𝐭𝐨𝐤𝐞𝐲𝐬] ' + details;
             }
             //

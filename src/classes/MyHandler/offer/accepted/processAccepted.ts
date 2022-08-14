@@ -10,7 +10,6 @@ import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
 export default function processAccepted(
     offer: i.TradeOffer,
     bot: Bot,
-    isTradingKeys: boolean,
     timeTakenToComplete: number
 ): { theirHighValuedItems: string[]; isDisableSKU: string[]; items: i.Items | undefined } {
     const opt = bot.options;
@@ -184,7 +183,6 @@ export default function processAccepted(
             timeTakenToComplete,
             timeTakenToProcessOrConstruct,
             timeTakenToCounterOffer,
-            isTradingKeys,
             isOfferSent
         );
     } else {
@@ -200,7 +198,7 @@ export default function processAccepted(
 
         const keyPrices = bot.pricelist.getKeyPrices;
 
-        const value = t.valueDiff(offer, keyPrices, isTradingKeys);
+        const value = t.valueDiff(offer);
         const itemList = t.listItems(offer, bot, itemsName, true);
 
         void sendToAdmin(
