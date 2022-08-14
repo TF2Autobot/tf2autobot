@@ -1327,7 +1327,7 @@ export default class Bot {
                     log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
                 })
                 .catch(err => {
-                    log.error(`Error while sending message to ${steamID64}`, err);
+                    log.error(`Error while getting ${steamID64} details`, err);
                 });
             return;
         }
