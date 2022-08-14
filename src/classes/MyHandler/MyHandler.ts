@@ -2552,7 +2552,10 @@ export default class MyHandler extends Handler {
     async onPricelist(pricelist: PricesObject): Promise<void> {
         if (Object.keys(pricelist).length === 0) {
             // Ignore errors
-            await this.bot.listings.removeAll();
+            await this.bot.listings.removeAll().catch(err => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                log.error('Error on removing all listings: ', filterAxiosError(err));
+            });
         }
 
         /*
