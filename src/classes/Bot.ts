@@ -1322,9 +1322,13 @@ export default class Bot {
         if (!friend) {
             // If not friend, we send message with chatMessage
             this.client.chatMessage(steamID, message);
-            void this.getPartnerDetails(steamID).then(name => {
-                log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
-            });
+            this.getPartnerDetails(steamID64)
+                .then(name => {
+                    log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
+                })
+                .catch(err => {
+                    log.error(`Error while getting ${steamID64} details`, err);
+                });
             return;
         }
 
