@@ -418,6 +418,7 @@ export const DEFAULTS: JsonOptions = {
 
     manualReview: {
         enable: true,
+        allowForce: true,
         showOfferSummary: true,
         showReviewOfferNote: true,
         showOwnerCurrentTime: true,
@@ -1515,6 +1516,7 @@ interface Halted {
 // ------------ Manual Review ------------
 
 interface ManualReview extends OnlyEnable {
+    allowForce?: boolean;
     showOfferSummary?: boolean;
     showReviewOfferNote?: boolean;
     showOwnerCurrentTime?: boolean;

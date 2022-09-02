@@ -1364,6 +1364,9 @@ export const optionsSchema: jsonschema.Schema = {
                 enable: {
                     type: 'boolean'
                 },
+                allowForce: {
+                    type: 'boolean'
+                },
                 showOfferSummary: {
                     type: 'boolean'
                 },

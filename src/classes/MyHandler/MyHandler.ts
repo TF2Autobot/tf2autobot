@@ -881,7 +881,9 @@ export default class MyHandler extends Handler {
         const offerMessage = offer.message.toLowerCase();
 
         const forcesReview =
-            opt.manualReview.enable && ['refund', 'review', 'check', 'manual'].some(word => offerMessage === word);
+            opt.manualReview.enable &&
+            opt.manualReview.allowForce &&
+            ['refund', 'review', 'check', 'manual'].some(word => offerMessage === word);
         if (forcesReview) {
             wrongAboutOffer.push({
                 reason: '⬜_REVIEW_FORCED'
