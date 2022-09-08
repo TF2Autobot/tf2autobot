@@ -9,7 +9,7 @@ import SteamID from 'steamid';
 export default class DiscordBot {
     readonly client: Client;
 
-    MAX_MESSAGE_LENGTH = 2000;
+    MAX_MESSAGE_LENGTH = 2000 - 2; // some characters are reserved
 
     constructor(private options: Options, private bot: Bot) {
         this.client = new Client({
@@ -130,6 +130,13 @@ export default class DiscordBot {
     }
 
     private sendMessage(origMessage: Message, message: string): void {
+        if (message.startsWith('\n')) {
+            message = '.' + message;
+        }
+        if (message.endsWith('\n')) {
+            message = message + '.';
+        }
+
         origMessage.channel
             .send(message)
             .then(() => log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`))
