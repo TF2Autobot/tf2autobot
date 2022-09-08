@@ -9,6 +9,8 @@ import SteamID from 'steamid';
 export default class DiscordBot {
     readonly client: Client;
 
+    MAX_MESSAGE_LENGTH = 2000;
+
     constructor(private options: Options, private bot: Bot) {
         this.client = new Client({
             intents: [
@@ -107,13 +109,30 @@ export default class DiscordBot {
         }
     }
 
-    public sendAnswer(origMessage: Message, message: string): void {
-        const formattedMessage = DiscordBot.reformat(message);
+    public sendAnswer(origMessage: Message, messageToSend: string): void {
+        const formattedMessage = DiscordBot.reformat(messageToSend);
+
+        if (messageToSend == formattedMessage) {
+            const lines = messageToSend.split('\n');
+            let partialMessage = '';
+            for (const line of lines) {
+                if (partialMessage.length + 1 + line.length <= this.MAX_MESSAGE_LENGTH) {
+                    partialMessage += '\n' + line;
+                } else {
+                    this.sendMessage(origMessage, partialMessage);
+                    partialMessage = line; // Error is still possible if any line is longer than limit
+                }
+            }
+            this.sendMessage(origMessage, partialMessage);
+        } else {
+            this.sendMessage(origMessage, formattedMessage); // TODO: normal parsing of markup things
+        }
+    }
+
+    private sendMessage(origMessage: Message, message: string): void {
         origMessage.channel
-            .send(formattedMessage)
-            .then(() =>
-                log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${formattedMessage}`)
-            )
+            .send(message)
+            .then(() => log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`))
             .catch(err => log.error('Failed to send message to Discord:', err));
     }
 
