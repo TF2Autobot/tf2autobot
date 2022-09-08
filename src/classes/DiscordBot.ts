@@ -110,14 +110,20 @@ export default class DiscordBot {
     }
 
     public sendAnswer(origMessage: Message, messageToSend: string): void {
+        messageToSend = messageToSend.trim();
         const formattedMessage = DiscordBot.reformat(messageToSend);
 
         if (messageToSend == formattedMessage) {
             const lines = messageToSend.split('\n');
             let partialMessage = '';
-            for (const line of lines) {
+            for (let i = 0; i < lines.length; i += 1) {
+                const line = lines[i];
                 if (partialMessage.length + 1 + line.length <= this.MAX_MESSAGE_LENGTH) {
-                    partialMessage += '\n' + line;
+                    if (i == 0) {
+                        partialMessage += line;
+                    } else {
+                        partialMessage += '\n' + line;
+                    }
                 } else {
                     this.sendMessage(origMessage, partialMessage);
                     partialMessage = line; // Error is still possible if any line is longer than limit
