@@ -94,7 +94,8 @@ export default class Commands {
     }
 
     async processMessage(steamID: SteamID, message: string): Promise<void> {
-        const command = CommandParser.getCommand(message.toLowerCase());
+        const customSteamPrefix = this.bot.options.miscSettings?.prefixes?.steam ?? '!';
+        const command = CommandParser.getCommand(message.toLowerCase(), customSteamPrefix);
         const isAdmin = this.bot.isAdmin(steamID);
         const isWhitelisted = this.bot.isWhitelisted(steamID);
         const isInvalidType = steamID.type === 0;
@@ -105,7 +106,7 @@ export default class Commands {
             return this.bot.sendMessage(steamID, "⛔ Don't spam");
         }
 
-        if (message.startsWith('!')) {
+        if (message.startsWith(customSteamPrefix)) {
             if (command === 'help') {
                 void this.help.helpCommand(steamID);
             } else if (command === 'how2trade') {
@@ -288,7 +289,7 @@ export default class Commands {
 
                 this.bot.sendMessage(
                     steamID,
-                    custom ? custom.replace('%command%', command) : `❌ Command "!${command}" not found!`
+                    custom ? custom.replace('%command%', command) : `❌ Command "${command}" not found!`
                 );
             }
         }
@@ -524,13 +525,17 @@ export default class Commands {
                 steamID,
                 `I can only sell ${pluralize(name, amount, true)}. ` +
                     (amount > 1 ? 'They have' : 'It has') +
-                    ' been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
+                    ` been added to your cart. Type "${this.bot.getPrefix(
+                        steamID
+                    )}cart" to view your cart summary or "${this.bot.getPrefix(steamID)}checkout" to checkout. 🛒`
             );
         } else
             this.bot.sendMessage(
                 steamID,
                 `✅ ${pluralize(name, Math.abs(amount), true)}` +
-                    ' has been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
+                    ` has been added to your cart. Type "${this.bot.getPrefix(
+                        steamID
+                    )}cart" to view your cart summary or "${this.bot.getPrefix(steamID)}checkout" to checkout. 🛒`
             );
 
         cart.addOurItem(info.priceKey, amount);
@@ -599,13 +604,17 @@ export default class Commands {
                 steamID,
                 `I can only buy ${pluralize(skuCount.name, amount, true)}. ` +
                     (amount > 1 ? 'They have' : 'It has') +
-                    ' been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
+                    ` been added to your cart. Type "${this.bot.getPrefix(
+                        steamID
+                    )}cart" to view your cart summary or "${this.bot.getPrefix(steamID)}checkout" to checkout. 🛒`
             );
         } else {
             this.bot.sendMessage(
                 steamID,
                 `✅ ${pluralize(skuCount.name, Math.abs(amount), true)}` +
-                    ' has been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
+                    ` has been added to your cart. Type "${this.bot.getPrefix(
+                        steamID
+                    )}cart" to view your cart summary or "${this.bot.getPrefix(steamID)}checkout" to checkout. 🛒`
             );
         }
 
@@ -625,7 +634,11 @@ export default class Commands {
         if (this.isDonating) {
             return this.bot.sendMessage(
                 steamID,
-                `You're about to send donation. Send "!donatecart" to view your donation cart summary or "!donatenow" to send donation now.`
+                `You're about to send donation. Send "${this.bot.getPrefix(
+                    steamID
+                )}donatecart" to view your donation cart summary or "${this.bot.getPrefix(
+                    steamID
+                )}donatenow" to send donation now.`
             );
         }
         this.bot.sendMessage(steamID, Cart.stringify(steamID, false));
@@ -641,7 +654,11 @@ export default class Commands {
         if (this.isDonating) {
             return this.bot.sendMessage(
                 steamID,
-                `You're about to send donation. Send "!donatecart" to view your donation cart summary or "!donatenow" to send donation now.`
+                `You're about to send donation. Send "${this.bot.getPrefix(
+                    steamID
+                )}donatecart" to view your donation cart summary or "${this.bot.getPrefix(
+                    steamID
+                )}donatenow" to send donation now.`
             );
         }
 
@@ -925,7 +942,9 @@ export default class Commands {
             steamID,
             `✅ ${pluralize(itemName, Math.abs(amount), true)} has been ` +
                 (amount >= 0 ? 'added to' : 'removed from') +
-                ' your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
+                ` your cart. Type "${this.bot.getPrefix(
+                    steamID
+                )}cart" to view your cart summary or "${this.bot.getPrefix(steamID)}checkout" to checkout. 🛒`
         );
     }
 
@@ -995,14 +1014,18 @@ export default class Commands {
                 steamID,
                 `I only have ${pluralize(name, amount, true)}. ` +
                     (amount > 1 ? 'They have' : 'It has') +
-                    ' been added to your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
+                    ` been added to your cart. Type "${this.bot.getPrefix(
+                        steamID
+                    )}cart" to view your cart summary or "${this.bot.getPrefix(steamID)}checkout" to checkout. 🛒`
             );
         } else {
             this.bot.sendMessage(
                 steamID,
                 `✅ ${pluralize(name, Math.abs(amount), true)} has been ` +
                     (amount >= 0 ? 'added to' : 'removed from') +
-                    ' your cart. Type "!cart" to view your cart summary or "!checkout" to checkout. 🛒'
+                    ` your cart. Type "${this.bot.getPrefix(
+                        steamID
+                    )}cart" to view your cart summary or "${this.bot.getPrefix(steamID)}checkout" to checkout. 🛒`
             );
         }
 
@@ -1206,14 +1229,22 @@ export default class Commands {
                 steamID,
                 `I only have ${pluralize(name, amount, true)}. ` +
                     (amount > 1 ? 'They have' : 'It has') +
-                    ' been added to your donate cart. Type "!donatecart" to view your donation cart summary or "!donatenow" to donate. 💰'
+                    ` been added to your donate cart. Type "${this.bot.getPrefix(
+                        steamID
+                    )}donatecart" to view your donation cart summary or "${this.bot.getPrefix(
+                        steamID
+                    )}donatenow" to donate. 💰`
             );
         } else {
             this.bot.sendMessage(
                 steamID,
                 `✅ ${pluralize(name, Math.abs(amount), true)} has been ` +
                     (amount >= 0 ? 'added to' : 'removed from') +
-                    ' your donate cart. Type "!donatecart" to view your donation cart summary or "!donatenow" to donate. 💰'
+                    ` your donate cart. Type "${this.bot.getPrefix(
+                        steamID
+                    )}donatecart" to view your donation cart summary or "${this.bot.getPrefix(
+                        steamID
+                    )}donatenow" to donate. 💰`
             );
         }
 
@@ -1227,7 +1258,9 @@ export default class Commands {
         if (!this.isDonating) {
             return this.bot.sendMessage(
                 steamID,
-                `You're currently not donating to backpack.tf. If a cart already been created, cancel it with "!clearcart"`
+                `You're currently not donating to backpack.tf. If a cart already been created, cancel it with "${this.bot.getPrefix(
+                    steamID
+                )}clearcart"`
             );
         }
 
@@ -1248,7 +1281,9 @@ export default class Commands {
         if (!this.isDonating) {
             return this.bot.sendMessage(
                 steamID,
-                `You're currently not donating to backpack.tf. If a cart already been created, cancel it with "!clearcart"`
+                `You're currently not donating to backpack.tf. If a cart already been created, cancel it with "${this.bot.getPrefix(
+                    steamID
+                )}clearcart"`
             );
         }
         this.bot.sendMessage(steamID, Cart.stringify(steamID, true));
