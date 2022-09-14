@@ -464,6 +464,18 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 pricecheckAfterTrade: {
                     $ref: '#/definitions/only-enable'
+                },
+                prefixes: {
+                    type: 'object',
+                    properties: {
+                        steam: {
+                            type: 'string'
+                        },
+                        discord: {
+                            type: 'string'
+                        }
+                    },
+                    additionalProperties: false
                 }
             },
             required: [
