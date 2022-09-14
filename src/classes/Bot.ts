@@ -319,6 +319,13 @@ export default class Bot {
             .forEach(steamID => this.sendMessage(steamID, message));
     }
 
+    getPrefix(steamID?: SteamID): string {
+        if (steamID && steamID.redirectAnswerTo) {
+            return this.options.miscSettings?.prefixes?.discord ?? '!';
+        }
+        return this.options.miscSettings?.prefixes?.steam ?? '!';
+    }
+
     set setReady(isReady: boolean) {
         this.ready = isReady;
     }
