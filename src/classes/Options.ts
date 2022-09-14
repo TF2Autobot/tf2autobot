@@ -1167,6 +1167,12 @@ interface MiscSettings {
     deleteUntradableJunk?: OnlyEnable;
     reputationCheck?: ReputationCheck;
     pricecheckAfterTrade?: OnlyEnable;
+    prefixes?: Prefixes;
+}
+
+interface Prefixes {
+    steam?: string;
+    discord?: string;
 }
 
 export interface ReputationCheck {
