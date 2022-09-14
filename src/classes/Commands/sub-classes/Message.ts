@@ -44,7 +44,9 @@ export default class MessageCommand {
                 log.error('Wrong input (SteamID): ', err);
                 return this.bot.sendMessage(
                     steamID,
-                    '❌ Your syntax is wrong or the SteamID is incorrectly formatted. Here\'s an example: "!message 76561198120070906 Hi"' +
+                    `❌ Your syntax is wrong or the SteamID is incorrectly formatted. Here's an example: "${this.bot.getPrefix(
+                        steamID
+                    )}message 76561198120070906 Hi"` +
                         "\n\nHow to get the targeted user's SteamID?" +
                         '\n1. Go to his/her profile page.' +
                         '\n2. Go to https://steamrep.com/' +
@@ -135,7 +137,7 @@ export default class MessageCommand {
                     steamID,
                     custom.wrongSyntax
                         ? custom.wrongSyntax
-                        : '❌ Please include a message. Here\'s an example: "!message Hi"'
+                        : `❌ Please include a message. Here's an example: "${this.bot.getPrefix(steamID)}message Hi"`
                 );
             }
 

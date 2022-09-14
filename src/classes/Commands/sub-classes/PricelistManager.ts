@@ -686,7 +686,7 @@ export default class PricelistManagerCommands {
                         : totalTime < anHour
                         ? `${Math.round(totalTime / aMin)} minutes`
                         : `${Math.round(totalTime / anHour)} hours`
-                } to complete. Send "!stopautoadd" to abort.`
+                } to complete. Send "${this.bot.getPrefix(steamID)}stopautoadd" to abort.`
         );
 
         const autoAdd = new AutoAddQueue(this.bot, steamID, skusFromPricelist, params, isPremium);
@@ -719,7 +719,9 @@ export default class PricelistManagerCommands {
                     return this.bot.sendMessage(
                         steamID,
                         `❌ Please specify "withgroup" or "withoutgroup" to change note.` +
-                            `\nExample: "!update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
+                            `\nExample: "${this.bot.getPrefix(
+                                steamID
+                            )}update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
                     );
                 }
 
@@ -727,12 +729,17 @@ export default class PricelistManagerCommands {
                     return this.bot.sendMessage(
                         steamID,
                         `❌ Please specify "withgroup" or "withoutgroup" to change buying/selling price.\nExample:\n` +
-                            `"!update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
+                            `"${this.bot.getPrefix(
+                                steamID
+                            )}update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
                     );
                 }
             }
             if (params.promoted) {
-                return this.bot.sendMessage(steamID, `❌ Parameter "promoted" can't be used with "!update all=true".`);
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ Parameter "promoted" can't be used with "${this.bot.getPrefix(steamID)}update all=true".`
+                );
             }
 
             if (params.withgroup && params.withoutgroup) {

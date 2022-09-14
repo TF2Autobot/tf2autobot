@@ -206,7 +206,9 @@ export default function sendAlert(
             `Offer #${items[1]} with ${items[0]} was unable to process due to some issue with Steam.` +
             ' The offer data received was broken because our side and their side are both empty.' +
             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${items[1]}/` +
-            `\nSend "!faccept ${items[1]}" to force accept, or "!fdecline ${items[1]}" to decline.`;
+            `\nSend "${bot.getPrefix()}faccept ${items[1]}" to force accept, or "${bot.getPrefix()}fdecline ${
+                items[1]
+            }" to decline.`;
         color = '16711680'; // red
     } else if (type === 'failed-counter') {
         title = 'Failed to counter an offer';

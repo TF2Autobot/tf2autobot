@@ -85,7 +85,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
         reply = custom
             ? custom
             : declined +
-              ' because I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+              ` because I am no longer trading keys. You can confirm this by typing "${bot.getPrefix()}price Mann Co. Supply Crate Key" or "${bot.getPrefix()}autokeys".`;
         //
     } else if (offerReason.reason === 'NOT_SELLING_KEYS') {
         //
@@ -93,7 +93,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
         reply = custom
             ? custom
             : declined +
-              ' because I am no longer selling keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+              ` because I am no longer selling keys. You can confirm this by typing "${bot.getPrefix()}price Mann Co. Supply Crate Key" or "${bot.getPrefix()}autokeys".`;
         //
     } else if (offerReason.reason === 'NOT_BUYING_KEYS') {
         //
@@ -101,7 +101,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
         reply = custom
             ? custom
             : declined +
-              ' because I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+              ` because I am no longer buying keys. You can confirm this by typing "${bot.getPrefix()}price Mann Co. Supply Crate Key" or "${bot.getPrefix()}autokeys".`;
         //
     } else if (offerReason.reason === 'BANNED') {
         //

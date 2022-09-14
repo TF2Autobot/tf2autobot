@@ -270,7 +270,10 @@ export default class ManagerCommands {
             );
         } else {
             if (!validUrl.isUri(input)) {
-                return this.bot.sendMessage(steamID, `❌ Your url is not valid. Example: "!avatar ${example}"`);
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ Your url is not valid. Example: "${this.bot.getPrefix(steamID)}avatar ${example}"`
+                );
             }
 
             this.bot.community.uploadAvatar(input, err => {

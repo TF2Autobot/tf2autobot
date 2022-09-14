@@ -445,7 +445,9 @@ export default class Trades {
                             summary +
                             (action === 'counter'
                                 ? '\n\nThe offer has been automatically declined.'
-                                : `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "!f${action} ${offer.id}" now.`),
+                                : `\n\nRetrying in 30 seconds, or you can try to force ${action} this trade, send "${this.bot.getPrefix()}f${action} ${
+                                      offer.id
+                                  }" now.`),
                         null,
                         err,
                         [offer.id]
@@ -467,7 +469,9 @@ export default class Trades {
                             summary +
                             (action === 'counter'
                                 ? '\n\nThe offer has been automatically declined.'
-                                : `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "!f${action} ${offer.id}" now.`) +
+                                : `\n\nRetrying in 30 seconds, you can try to force ${action} this trade, reply "${this.bot.getPrefix()}f${action} ${
+                                      offer.id
+                                  }" now.`) +
                             `\n\nError: ${
                                 (err as CustomError).eresult
                                     ? `${
@@ -652,7 +656,7 @@ export default class Trades {
                                             `Error while trying to accept mobile confirmation on offer #${offer.id}` +
                                                 summary +
                                                 `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                                ` sending "!trade ${offer.id}"`,
+                                                ` sending "${this.bot.getPrefix()}trade ${offer.id}"`,
                                             null,
                                             err,
                                             [offer.id]
@@ -673,7 +677,7 @@ export default class Trades {
                                             `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
                                                 summary +
                                                 `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                                ` sending "!trade ${offer.id}` +
+                                                ` sending "${this.bot.getPrefix()}trade ${offer.id}` +
                                                 `\n\nError: ${
                                                     (err as CustomError).eresult
                                                         ? `${

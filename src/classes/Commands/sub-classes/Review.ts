@@ -75,7 +75,8 @@ export default class ReviewCommands {
             reply +=
                 `\n- Offer #${offer.id as string} from ${(offer.data as OfferData).partner} (reason: ${(
                     offer.data as OfferData
-                ).meta.uniqueReasons.join(', ')})` + `\n⚠️ Send "!trade ${offer.id as string}" for more details.\n`;
+                ).meta.uniqueReasons.join(', ')})` +
+                `\n⚠️ Send "${this.bot.getPrefix()}trade ${offer.id as string}" for more details.\n`;
         }
 
         return reply;
@@ -94,9 +95,13 @@ export default class ReviewCommands {
 
             reply +=
                 `\n- Offer #${offer.id as string} from ${(offer.data as OfferData).partner}` +
-                `\n⚠️ Send "!trade ${offer.id as string}" for more details, "!faccept ${
+                `\n⚠️ Send "${this.bot.getPrefix()}trade ${
                     offer.id as string
-                }" to force accept the trade, or "!fdecline ${offer.id as string}" to force decline the trade.\n`;
+                }" for more details, "${this.bot.getPrefix()}faccept ${
+                    offer.id as string
+                }" to force accept the trade, or "${this.bot.getPrefix()}fdecline ${
+                    offer.id as string
+                }" to force decline the trade.\n`;
         }
 
         return reply;
@@ -106,7 +111,10 @@ export default class ReviewCommands {
         const offerId = CommandParser.removeCommand(message).trim();
 
         if (offerId === '') {
-            return this.bot.sendMessage(steamID, '⚠️ Missing offer id. Example: "!trade 3957959294"');
+            return this.bot.sendMessage(
+                steamID,
+                `⚠️ Missing offer id. Example: "${this.bot.getPrefix(steamID)}trade 3957959294"`
+            );
         }
 
         const state = this.bot.manager.pollData.received[offerId];
@@ -183,8 +191,14 @@ export default class ReviewCommands {
         reply +=
             `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
             (offerData?.action?.action === 'skip'
-                ? `\n\n⚠️ Send "!accept ${offerId}" to accept or "!decline ${offerId}" to decline this offer.`
-                : `\n\n⚠️ Send "!faccept ${offerId}" to force accept, or "!fdecline ${offerId}" to decline the trade now!`);
+                ? `\n\n⚠️ Send "${this.bot.getPrefix(steamID)}accept ${offerId}" to accept or "${this.bot.getPrefix(
+                      steamID
+                  )}decline ${offerId}" to decline this offer.`
+                : `\n\n⚠️ Send "${this.bot.getPrefix(
+                      steamID
+                  )}faccept ${offerId}" to force accept, or "${this.bot.getPrefix(
+                      steamID
+                  )}fdecline ${offerId}" to decline the trade now!`);
 
         this.bot.sendMessage(steamID, reply);
     }
@@ -357,7 +371,10 @@ export default class ReviewCommands {
         const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
         if (isNaN(+offerIdRegex) || !offerIdRegex) {
-            return this.bot.sendMessage(steamID, `⚠️ Missing offer id. Example: "!offerinfo 3957959294"`);
+            return this.bot.sendMessage(
+                steamID,
+                `⚠️ Missing offer id. Example: "${this.bot.getPrefix(steamID)}offerinfo 3957959294"`
+            );
         }
 
         const offerId = offerIdRegex[0];

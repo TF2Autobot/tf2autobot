@@ -483,8 +483,8 @@ export default function updateListings(
 
                     let msg =
                         `I have temporarily disabled ${name} (${priceKey}) because it contains some high value spells/parts.` +
-                        `\nYou can manually price it with "!update sku=${priceKey}&enabled=true&<buy and sell price>"` +
-                        ` or just re-enable it with "!update sku=${priceKey}&enabled=true${
+                        `\nYou can manually price it with "${bot.getPrefix()}update sku=${priceKey}&enabled=true&<buy and sell price>"` +
+                        ` or just re-enable it with "${bot.getPrefix()}update sku=${priceKey}&enabled=true${
                             opt.highValue.retainOldGroup ? '' : `&group=${oldGroup}".`
                         }` +
                         '\n\nItem information:\n\n- ';

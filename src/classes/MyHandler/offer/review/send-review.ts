@@ -185,7 +185,9 @@ export async function sendToAdmin(
         ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
         `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
         `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
-        `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
+        `\n\n⚠️ Send "${bot.getPrefix()}accept ${offer.id}" to accept or "${bot.getPrefix()}decline ${
+            offer.id
+        }" to decline this offer.` +
         `\n\nVersion ${process.env.BOT_VERSION}`;
 
     const message = message1 + message2 + message3 + message4;

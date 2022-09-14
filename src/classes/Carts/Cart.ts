@@ -530,9 +530,9 @@ export default abstract class Cart {
             }
         }
 
-        str += `\n\nType ${isDonating ? '"!donatenow"' : '"!checkout"'} to ${
-            isDonating ? 'donate' : 'checkout'
-        } and proceed trade, or "!clearcart" to cancel.`;
+        str += `\n\nType ${
+            isDonating ? `"${this.bot.getPrefix()}donatenow"` : `"${this.bot.getPrefix()}checkout"`
+        } to ${isDonating ? 'donate' : 'checkout'} and proceed trade, or "${this.bot.getPrefix()}clearcart" to cancel.`;
 
         return str;
     }
