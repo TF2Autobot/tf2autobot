@@ -2,6 +2,7 @@ import SteamID from 'steamid';
 import pluralize from 'pluralize';
 import TradeOfferManager, { Meta, OfferData, OurTheirItemsDict } from '@tf2autobot/tradeoffer-manager';
 import Currencies from '@tf2autobot/tf2-currencies';
+import { Message as DiscordMessage } from 'discord.js';
 import { UnknownDictionaryKnownValues } from '../../../types/common';
 import SKU from '@tf2autobot/tf2-sku';
 import Bot from '../../Bot';
@@ -371,7 +372,16 @@ export default class ReviewCommands {
             const show = {};
             show[offerId] = offer;
 
-            this.bot.sendMessage(steamID, '/code ' + JSON.stringify(show, null, 4));
+            let body = JSON.stringify(show, null, 2);
+
+            if (
+                (steamID.redirectAnswerTo instanceof DiscordMessage && body.length > 2000) ||
+                (steamID.type !== 0 && body.length > 500)
+            ) {
+                body = JSON.stringify(show);
+            }
+
+            this.bot.sendMessage(steamID, '/code ' + body);
         } catch (err) {
             return this.bot.sendMessage(steamID, `❌ Error getting offer #${offerId} info: ${(err as Error).message}`);
         }

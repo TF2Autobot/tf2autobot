@@ -11,7 +11,6 @@ export default async function sendTradeDeclined(
     declined: Declined,
     bot: Bot,
     timeTakenToProcessOrConstruct: number,
-    isTradingKeys: boolean,
     isOfferSent: boolean
 ): Promise<void> {
     const optBot = bot.options;
@@ -43,7 +42,7 @@ export default async function sendTradeDeclined(
           };
 
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = t.valueDiff(offer, keyPrices, isTradingKeys);
+    const value = t.valueDiff(offer);
     const summary = t.summarizeToChat(offer, bot, 'declined', true, value, keyPrices, false, isOfferSent);
 
     const details = await getPartnerDetails(offer, bot);

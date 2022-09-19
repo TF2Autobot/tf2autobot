@@ -8,17 +8,12 @@ import * as t from '../../../../lib/tools/export';
 import { KeyPrices } from 'src/classes/Pricelist';
 import { Links } from '../../../../lib/tools/export';
 
-export default async function sendReview(
-    offer: TradeOffer,
-    bot: Bot,
-    meta: Meta,
-    isTradingKeys: boolean
-): Promise<void> {
+export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta): Promise<void> {
     const opt = bot.options;
     const time = t.timeNow(bot.options);
     const keyPrices = bot.pricelist.getKeyPrices;
     const links = t.generateLinks(offer.partner.toString());
-    const content = processReview(offer, meta, bot, isTradingKeys);
+    const content = processReview(offer, meta, bot);
 
     const hasCustomNote = !(opt.manualReview.invalidItems.note !== '' ||
         opt.manualReview.disabledItems.note !== '' ||

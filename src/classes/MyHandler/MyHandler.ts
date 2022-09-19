@@ -140,8 +140,6 @@ export default class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private isTradingKeys = false;
-
     get customGameName(): string {
         const customGameName = this.opt.miscSettings.game.customName;
         return customGameName ? customGameName : `TF2Autobot`;
@@ -258,13 +256,13 @@ export default class MyHandler extends Handler {
             keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
             // Craft duplicate weapons
-            void craftDuplicateWeapons(this.bot);
-
-            // Craft class weapons
-            this.classWeaponsTimeout = setTimeout(() => {
-                // called after 5 seconds to craft metals and duplicated weapons first.
-                void craftClassWeapons(this.bot);
-            }, 5 * 1000);
+            craftDuplicateWeapons(this.bot)
+                .then(() => {
+                    return craftClassWeapons(this.bot);
+                })
+                .catch(err => {
+                    log.warn('Failed to craft duplicated craft/class weapons', err);
+                });
         }
 
         if (this.isDeletingUntradableJunk) {
@@ -722,8 +720,9 @@ export default class MyHandler extends Handler {
                 // Get High-value items
                 items[which][sku].forEach(item => {
                     if (item.hv !== undefined) {
+                        const priceKey = this.bot.pricelist.hasPrice({ priceKey: item.id }) ? item.id : sku;
                         // If hv exist, get the high value and assign into items
-                        getHighValue[which].items[sku] = item.hv;
+                        getHighValue[which].items[priceKey] = item.hv;
 
                         Object.keys(item.hv).forEach(attachment => {
                             if (item.hv[attachment] !== undefined) {
@@ -739,7 +738,8 @@ export default class MyHandler extends Handler {
                             }
                         });
                     } else if (item.isFullUses !== undefined) {
-                        getHighValue[which].items[sku] = { isFull: item.isFullUses };
+                        const priceKey = this.bot.pricelist.hasPrice({ priceKey: item.id }) ? item.id : sku;
+                        getHighValue[which].items[priceKey] = { isFull: item.isFullUses };
 
                         if (which === 'their') {
                             // Only check for their side
@@ -1499,7 +1499,6 @@ export default class MyHandler extends Handler {
                 // Check overstock / understock on keys
                 const diff = itemsDiff['5021;6'] as number | null;
                 // If the diff is greater than 0 then we are buying, less than is selling
-                this.isTradingKeys = true;
                 const isBuying = diff > 0;
                 const inventoryManager = this.bot.inventoryManager;
                 const amountCanTrade = inventoryManager.amountCanTrade({
@@ -2130,9 +2129,8 @@ export default class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
                     if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
-                    if (notifyOpt.onDeclined) declined(offer, this.bot, this.isTradingKeys);
+                    if (notifyOpt.onDeclined) declined(offer, this.bot);
                     offer.data('isDeclined', true);
-                    this.isTradingKeys = false; // reset
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
 
@@ -2219,8 +2217,7 @@ export default class MyHandler extends Handler {
 
                 this.autokeys.check();
 
-                const result = processAccepted(offer, this.bot, this.isTradingKeys, timeTakenToComplete);
-                this.isTradingKeys = false; // reset
+                const result = processAccepted(offer, this.bot, timeTakenToComplete);
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
@@ -2234,7 +2231,7 @@ export default class MyHandler extends Handler {
                 clearTimeout(this.resetSentSummaryTimeout);
                 this.sentSummary[offer.id] = true;
 
-                processDeclined(offer, this.bot, this.isTradingKeys);
+                processDeclined(offer, this.bot);
                 MyHandler.removePolldataKeys(offer);
             }
         }
@@ -2246,18 +2243,14 @@ export default class MyHandler extends Handler {
                 // Smelt / combine metal
                 keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
-                // Craft duplicated weapons
-                void craftDuplicateWeapons(this.bot);
-
-                this.classWeaponsTimeout = setTimeout(() => {
-                    // called after 5 second to craft metals and duplicated weapons first.
-                    void craftClassWeapons(this.bot);
-                }, 5 * 1000);
-            }
-
-            if (this.isDeletingUntradableJunk) {
-                // Delete untradable junk
-                this.deleteUntradableJunk();
+                // Craft duplicate weapons
+                craftDuplicateWeapons(this.bot)
+                    .then(() => {
+                        return craftClassWeapons(this.bot);
+                    })
+                    .catch(err => {
+                        log.warn('Failed to craft duplicated craft/class weapons', err);
+                    });
             }
 
             // Sort inventory
@@ -2299,7 +2292,7 @@ export default class MyHandler extends Handler {
         }
 
         if (action === 'skip') {
-            void sendReview(offer, this.bot, meta, this.isTradingKeys);
+            void sendReview(offer, this.bot, meta);
             return;
         }
     }
@@ -2538,7 +2531,7 @@ export default class MyHandler extends Handler {
                         clearTimeout(this.retryRequest);
 
                         this.retryRequest = setTimeout(() => {
-                            void this.getBPTFAccountInfo().catch(() => {
+                            this.getBPTFAccountInfo().catch(() => {
                                 // ignore error
                             });
                         }, 5 * 60 * 1000);
@@ -2587,7 +2580,9 @@ export default class MyHandler extends Handler {
 
         for (const assetid of assetidsToDelete) {
             log.debug(`Deleting junk item ${assetid}`);
-            this.bot.tf2gc.deleteItem(assetid);
+            this.bot.tf2gc.deleteItem(assetid, err => {
+                log.warn('Error deleting untradable junk', err);
+            });
         }
     }
 
@@ -2600,7 +2595,10 @@ export default class MyHandler extends Handler {
     async onPricelist(pricelist: PricesObject): Promise<void> {
         if (Object.keys(pricelist).length === 0) {
             // Ignore errors
-            await this.bot.listings.removeAll();
+            await this.bot.listings.removeAll().catch(err => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                log.error('Error on removing all listings: ', filterAxiosError(err));
+            });
         }
 
         /*

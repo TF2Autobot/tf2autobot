@@ -434,7 +434,11 @@ export default class ManagerCommands {
                 return this.bot.sendMessage(steamID, `❌ Error getting friendlist: ${JSON.stringify(err)}`);
             }
 
-            const friendsToRemove = Object.keys(friendlist).filter(steamid => !friendsToKeep.includes(steamid));
+            const friendsToRemove = Object.keys(friendlist).filter(
+                // Make sure only friends, not overall
+                friendID => !friendsToKeep.includes(friendID) && friendlist[friendID] === EFriendRelationship.Friend
+            );
+
             if (friendsToRemove.length === 0) {
                 return this.bot.sendMessage(steamID, `❌ I don't have any friends to remove.`);
             }
@@ -965,7 +969,11 @@ export default class ManagerCommands {
                     );
 
                     this.bot.sendMessage(steamID, '⌛ Installing packages...');
-                    await exec(`npm install${process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''}`);
+                    await exec(
+                        `npm install${
+                            process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''
+                        } --omit=dev`
+                    );
 
                     this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
                     await exec('npm run build');

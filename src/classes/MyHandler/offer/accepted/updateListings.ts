@@ -188,21 +188,24 @@ export default function updateListings(
                 enabled: priceListEntry.enabled,
                 min: priceListEntry.min,
                 max: priceListEntry.max,
-                autoprice: true
+                autoprice: true, // We only change this
+                note: priceListEntry.note,
+                promoted: priceListEntry.promoted,
+                group: priceListEntry.group
             };
 
             bot.pricelist
                 .updatePrice({ priceKey, entryData: entry, emitChange: true })
                 .then(updatedEntry => {
                     const msg =
-                        `✅ Automatically reset ${entry.sku} to autoprice (item sold).` +
+                        `✅ Automatically reset ${priceListEntry.sku} to autoprice (item sold).` +
                         `\nPrevious: ${priceListEntry.buy.toString()}/${priceListEntry.sell.toString()}` +
                         `\nNew: ${updatedEntry.buy.toString()}/${updatedEntry.sell.toString()}`;
                     log.debug(msg);
 
                     if (opt.sendAlert.enable && opt.sendAlert.autoResetToAutopriceOnceSold) {
                         if (dwEnabled) {
-                            sendAlert('autoResetToAutopriceOnceSold', bot, msg, null, null, [entry.sku]);
+                            sendAlert('autoResetToAutopriceOnceSold', bot, msg, null, null, [priceListEntry.sku]);
                         } else {
                             bot.messageAdmins(msg, []);
                         }
@@ -211,7 +214,7 @@ export default function updateListings(
                     if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
-                    log.warn(`❌ Failed to automatically reset ${entry.sku} to autoprice: `, err);
+                    log.warn(`❌ Failed to automatically reset ${priceListEntry.sku} to autoprice: `, err);
                     if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 });
         }
@@ -445,13 +448,15 @@ export default function updateListings(
             const oldGroup = priceListEntry.group;
 
             const entry: EntryData = {
-                sku: priceKey, // required
-                enabled: false, // required
-                autoprice: priceListEntry.autoprice, // required
-                min: priceListEntry.min, // required
-                max: priceListEntry.max, // required
-                intent: priceListEntry.intent, // required
-                group: 'highValue'
+                sku: priceKey,
+                enabled: false, // We only change this
+                autoprice: priceListEntry.autoprice,
+                min: priceListEntry.min,
+                max: priceListEntry.max,
+                intent: priceListEntry.intent,
+                note: priceListEntry.note,
+                promoted: priceListEntry.promoted,
+                group: priceListEntry.group
             };
 
             if (!priceListEntry.autoprice) {
@@ -467,15 +472,21 @@ export default function updateListings(
                 };
             }
 
+            if (!opt.highValue.retainOldGroup) {
+                entry.group = opt.highValue.customGroup ? opt.highValue.customGroup : 'highValue';
+            }
+
             bot.pricelist
-                .updatePrice({ priceKey: entry.sku, entryData: entry, emitChange: true })
+                .updatePrice({ priceKey, entryData: entry, emitChange: true })
                 .then(() => {
                     log.debug(`✅ Automatically disabled ${priceKey}, which is a high value item.`);
 
                     let msg =
                         `I have temporarily disabled ${name} (${priceKey}) because it contains some high value spells/parts.` +
                         `\nYou can manually price it with "!update sku=${priceKey}&enabled=true&<buy and sell price>"` +
-                        ` or just re-enable it with "!update sku=${priceKey}&enabled=true&group=${oldGroup}".` +
+                        ` or just re-enable it with "!update sku=${priceKey}&enabled=true${
+                            opt.highValue.retainOldGroup ? '' : `&group=${oldGroup}".`
+                        }` +
                         '\n\nItem information:\n\n- ';
 
                     const theirCount = highValue.theirItems.length;

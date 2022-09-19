@@ -105,8 +105,6 @@ export default class Commands {
             return this.bot.sendMessage(steamID, "⛔ Don't spam");
         }
 
-        log.debug('Read processMessage');
-
         if (message.startsWith('!')) {
             if (command === 'help') {
                 await this.help.helpCommand(steamID);

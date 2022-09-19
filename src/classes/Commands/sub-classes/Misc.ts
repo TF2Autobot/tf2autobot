@@ -8,8 +8,7 @@ import CommandParser from '../../CommandParser';
 import Bot from '../../Bot';
 import { Discord, Stock } from '../../Options';
 import { pure, timeNow, uptime, testPriceKey } from '../../../lib/tools/export';
-import { killstreakersData, sheensData, spellsData } from '../../../lib/data';
-import { Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import getAttachmentName from '../../../lib/tools/getAttachmentName';
 
 type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -19,14 +18,15 @@ export default class MiscCommands {
         this.bot = bot;
     }
 
-    links(SteamID: SteamID): void {
+    links(steamID: SteamID): void {
         const botSteamID = this.bot.client.steamID.getSteamID64();
 
         this.bot.sendMessage(
-            SteamID,
+            steamID,
             `Steam: <https://steamcommunity.com/profiles/${botSteamID}>` +
                 `\nBackpack.tf: <https://backpack.tf/u/${botSteamID}>` +
-                `\nRep.tf: <https://rep.tf/${botSteamID}>`
+                `\nRep.tf: <https://rep.tf/${botSteamID}>` +
+                `\nTrade Offer URL: <${this.bot.tradeOfferUrl}>`
         );
     }
 
@@ -373,16 +373,4 @@ export default class MiscCommands {
         }
         return stock;
     }
-}
-
-function getKeyByValue(object: { [key: string]: any }, value: any): string {
-    return Object.keys(object).find(key => object[key] === value);
-}
-
-function getAttachmentName(attachment: string, pSku: string, paints: Paints, parts: StrangeParts): string {
-    if (attachment === 's') return getKeyByValue(spellsData, pSku);
-    else if (attachment === 'sp') return getKeyByValue(parts, pSku);
-    else if (attachment === 'ke') return getKeyByValue(killstreakersData, pSku);
-    else if (attachment === 'ks') return getKeyByValue(sheensData, pSku);
-    else if (attachment === 'p') return getKeyByValue(paints, parseInt(pSku.replace('p', '')));
 }

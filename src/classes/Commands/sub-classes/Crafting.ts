@@ -118,10 +118,17 @@ export default class CraftingCommands {
         const capTokenType = capitalize(tokenType);
         const capSubTokenType = subTokenType === 'pda2' ? 'PDA2' : capitalize(subTokenType);
 
+        if (amount === 'max' && amountCanCraft === 0) {
+            return this.bot.sendMessage(
+                steamID,
+                `❌ Unable to craft ${capTokenType} Token - ${capSubTokenType} since I only have of ${capSubTokenType} ${tokenType} items.`
+            );
+        }
+
         if (amount !== 'max' && amount > amountCanCraft) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ I can only craft  ${amountCanCraft} ${capTokenType} Token - ${capSubTokenType} at the moment, since I only ` +
+                `❌ I can only craft ${amountCanCraft} ${capTokenType} Token - ${capSubTokenType} at the moment, since I only ` +
                     `have ${availableAmount} of ${capSubTokenType} ${tokenType} items.`
             );
         }

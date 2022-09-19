@@ -15,7 +15,6 @@ export default async function sendTradeSummary(
     timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
     timeTakenToCounterOffer: number | undefined,
-    isTradingKeys: boolean,
     isOfferSent: boolean | undefined
 ): Promise<void> {
     const optBot = bot.options;
@@ -44,7 +43,7 @@ export default async function sendTradeSummary(
           };
 
     const keyPrices = bot.pricelist.getKeyPrices;
-    const value = t.valueDiff(offer, keyPrices, isTradingKeys);
+    const value = t.valueDiff(offer);
     const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, keyPrices, false, isOfferSent);
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus

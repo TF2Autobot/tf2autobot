@@ -1,6 +1,6 @@
 import SteamID from 'steamid';
-import SteamUser, { EResult } from 'steam-user'; // { EResult, EPersonaState } gives me crash
-import { EPersonaState } from 'steam-user';
+import SteamUser from 'steam-user';
+import { EResult, EPersonaState } from 'steam-user';
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
@@ -57,6 +57,8 @@ export default class Bot {
     readonly manager: TradeOfferManager;
 
     readonly community: SteamCommunity;
+
+    tradeOfferUrl: string;
 
     listingManager: ListingManager; // should be readonly
 
@@ -796,7 +798,7 @@ export default class Bot {
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        const promisesChain = [
+        const firstTwoChain = [
             async () => {
                 log.debug('Calling onRun');
 
@@ -820,33 +822,11 @@ export default class Bot {
             async () => {
                 log.info('Signing in to Steam...');
 
-                let lastLoginFailed = false;
+                return await this.login(data.loginKey || null);
+            }
+        ];
 
-                const successResponse = () => {
-                    log.info('Signed in to Steam!');
-                    if (this.options.IPC) this.ipc.init();
-                };
-
-                const failResponse = (err: CustomError) => {
-                    this.handler.onLoginError(err);
-                    log.warn('Failed to sign in to Steam: ', err);
-                    throw err;
-                };
-
-                await this.login(data.loginKey || null)
-                    .then(successResponse)
-                    .catch(async (err: CustomError) => {
-                        if (!lastLoginFailed && err.eresult === 5) {
-                            this.handler.onLoginError(err);
-                            lastLoginFailed = true;
-                            // Try and sign in without login key
-                            log.warn('Failed to sign in to Steam, retrying without login key...');
-                            await this.login(null).then(successResponse).catch(failResponse);
-                        } else {
-                            failResponse(err);
-                        }
-                    });
-            },
+        const promisesChain = [
             async () => {
                 log.debug('Waiting for web session');
                 cookies = await this.getWebSession();
@@ -1023,6 +1003,7 @@ export default class Bot {
             }
         ];
 
+        let promiseFirstTwo = Promise.resolve();
         let promise = Promise.resolve();
 
         return new Promise((resolve, reject) => {
@@ -1030,24 +1011,71 @@ export default class Bot {
                 if (this.botManager.isStopping) return reject();
             };
 
-            for (const promiseToChain of promisesChain) {
-                promise = promise.then(promiseToChain).then(checkIfStopping);
+            for (const promiseToChainFirstTwo of firstTwoChain) {
+                promiseFirstTwo = promiseFirstTwo.then(promiseToChainFirstTwo).then(checkIfStopping);
             }
 
-            void promise.then(() => {
-                if (this.options.discordBotToken) {
-                    this.discordBot.setPresence('online');
-                }
+            let lastLoginFailed = false;
 
-                this.manager.pollInterval = 5 * 1000;
-                this.setReady = true;
-                this.handler.onReady();
-                this.manager.doPoll();
-                this.startVersionChecker();
-                this.initResetCacheInterval();
+            const successResponse = () => {
+                log.info('Signed in to Steam!');
 
-                resolve();
-            });
+                if (this.options.IPC) this.ipc.init();
+            };
+
+            const failResponse = (err: CustomError) => {
+                this.handler.onLoginError(err);
+                log.warn('Failed to sign in to Steam: ', err);
+                return reject(err);
+            };
+
+            promiseFirstTwo
+                .then(() => {
+                    successResponse();
+                })
+                .catch(async (err: CustomError) => {
+                    if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
+                        this.handler.onLoginError(err);
+                        lastLoginFailed = true;
+                        // Try and sign in without login key
+                        log.warn('Failed to sign in to Steam, retrying without login key...');
+                        await this.login(null).then(successResponse).catch(failResponse);
+                    } else {
+                        failResponse(err);
+                    }
+                })
+                .finally(() => {
+                    for (const promiseToChain of promisesChain) {
+                        promise = promise.then(promiseToChain).then(checkIfStopping);
+                    }
+
+                    promise
+                        .then(() => {
+                            this.community.getTradeURL((err, url) => {
+                                if (err) {
+                                    throw err;
+                                }
+
+                                this.tradeOfferUrl = url;
+
+                                if (this.options.discordBotToken) {
+                                    this.discordBot.setPresence('online');
+                                }
+
+                                this.manager.pollInterval = 5 * 1000;
+                                this.setReady = true;
+                                this.handler.onReady();
+                                this.manager.doPoll();
+                                this.startVersionChecker();
+                                this.initResetCacheInterval();
+
+                                resolve();
+                            });
+                        })
+                        .catch(err => {
+                            return reject(err);
+                        });
+                });
         });
     }
 
@@ -1301,9 +1329,13 @@ export default class Bot {
         if (!friend) {
             // If not friend, we send message with chatMessage
             this.client.chatMessage(steamID, message);
-            void this.getPartnerDetails(steamID).then(name => {
-                log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
-            });
+            this.getPartnerDetails(steamID64)
+                .then(name => {
+                    log.info(`Message sent to ${name} (${steamID64} - not friend): ${message}`);
+                })
+                .catch(err => {
+                    log.error(`Error while getting ${steamID64} details`, err);
+                });
             return;
         }
 

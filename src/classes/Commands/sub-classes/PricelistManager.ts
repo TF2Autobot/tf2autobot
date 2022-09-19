@@ -2273,14 +2273,15 @@ export default class PricelistManagerCommands {
             const isPremium = this.bot.handler.getBotInfo.premium;
 
             const list = filter.map((entry, i) => {
+                const priceKey = entry.id ? entry.id : entry.sku;
                 const name = entry.name;
                 const stock = this.bot.inventoryManager.getInventory.getAmount({
-                    priceKey: entry.sku,
+                    priceKey,
                     includeNonNormalized: false,
                     tradableOnly: true
                 });
 
-                return `${i + 1}. ${entry.sku} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
+                return `${i + 1}. ${priceKey} - ${name}${name.length > 40 ? '\n' : ' '}(${stock}, ${entry.min}, ${
                     entry.max
                 }, ${entry.intent === 2 ? 'bank' : entry.intent === 1 ? 'sell' : 'buy'}, ${
                     entry.enabled ? '✅' : '❌'
