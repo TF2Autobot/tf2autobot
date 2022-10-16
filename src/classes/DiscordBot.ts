@@ -9,7 +9,7 @@ import SteamID from 'steamid';
 export default class DiscordBot {
     readonly client: Client;
 
-    MAX_MESSAGE_LENGTH = 2000 - 2; // some characters are reserved
+    private MAX_MESSAGE_LENGTH = 2000 - 2; // some characters are reserved
 
     constructor(private options: Options, private bot: Bot) {
         this.client = new Client({
