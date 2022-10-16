@@ -135,8 +135,8 @@ export default class MiscCommands {
 
                     const assetids: string[] = [];
                     if (itemDicts.length > 0) {
-                        const hv: string[] = [];
                         itemDicts.forEach(item => {
+                            const hv: string[] = [];
                             if (item.hv) {
                                 Object.keys(item.hv).forEach(attachment => {
                                     for (const pSku in item.hv[attachment]) {
