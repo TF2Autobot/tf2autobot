@@ -160,7 +160,7 @@ export default class MiscCommands {
                                 });
                             }
 
-                            assetids.push(`${item.id}${hv[item.id].length > 0 ? ` (${hv[item.id].join(', ')})` : ''}`);
+                            assetids.push(`${item.id}${hv[item.id]?.length > 0 ? ` (${hv[item.id].join(', ')})` : ''}`);
                         });
                     }
 
