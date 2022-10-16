@@ -136,7 +136,7 @@ export default class MiscCommands {
                     const assetids: string[] = [];
                     if (itemDicts.length > 0) {
                         itemDicts.forEach(item => {
-                            const hv: string[] = [];
+                            const hv: { [id: string]: string[] } = {};
                             if (item.hv) {
                                 Object.keys(item.hv).forEach(attachment => {
                                     for (const pSku in item.hv[attachment]) {
@@ -151,12 +151,16 @@ export default class MiscCommands {
                                             this.bot.strangeParts
                                         );
 
-                                        hv.push(hvName);
+                                        if (hv[item.id] === undefined) {
+                                            hv[item.id] = [];
+                                        }
+
+                                        hv[item.id].push(hvName);
                                     }
                                 });
                             }
 
-                            assetids.push(`${item.id}${hv.length > 0 ? ` (${hv.join(', ')})` : ''}`);
+                            assetids.push(`${item.id}${hv[item.id].length > 0 ? ` (${hv[item.id].join(', ')})` : ''}`);
                         });
                     }
 
