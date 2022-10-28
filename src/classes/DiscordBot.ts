@@ -161,7 +161,7 @@ export default class DiscordBot {
         // DM chats are not giving messageCreate until first usage. This thing fetches required DM chats.
         this.admins.forEach(admin => {
             const adminUser = this.client.users.resolve(admin.discordID);
-            if (!adminUser.bot) {
+            if (adminUser && !adminUser.bot) {
                 this.client.users.createDM(adminUser).catch(err => {
                     log.error('Failed to fetch DM channel with admin:', err);
                 });
