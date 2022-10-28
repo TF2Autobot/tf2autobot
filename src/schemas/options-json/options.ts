@@ -875,6 +875,12 @@ export const optionsSchema: jsonschema.Schema = {
                 enableHold: {
                     type: 'boolean'
                 },
+                retainOldGroup: {
+                    type: 'boolean'
+                },
+                customGroup: {
+                    type: 'string'
+                },
                 spells: {
                     type: 'object',
                     properties: {
@@ -924,7 +930,16 @@ export const optionsSchema: jsonschema.Schema = {
                     $ref: '#/definitions/high-value-content'
                 }
             },
-            required: ['enableHold', 'spells', 'sheens', 'killstreakers', 'strangeParts', 'painted'],
+            required: [
+                'enableHold',
+                'retainOldGroup',
+                'customGroup',
+                'spells',
+                'sheens',
+                'killstreakers',
+                'strangeParts',
+                'painted'
+            ],
             additionalProperties: false
         },
         normalize: {
@@ -1005,6 +1020,9 @@ export const optionsSchema: jsonschema.Schema = {
                 sell: {
                     type: 'string',
                     maxLength: 180
+                },
+                showAutokeys: {
+                    type: 'boolean'
                 },
                 showBoldText: {
                     type: 'object',
@@ -1109,7 +1127,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['buy', 'sell', 'showBoldText', 'highValue', 'uses'],
+            required: ['buy', 'sell', 'showAutokeys', 'showBoldText', 'highValue', 'uses'],
             additionalProperties: false
         },
         statistics: {

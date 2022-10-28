@@ -3,9 +3,8 @@ import * as re from './reasons/export-reasons';
 import Bot from '../../../Bot';
 import { ValueDiff, valueDiff } from '../../../../lib/tools/export';
 
-export default function processReview(offer: TradeOffer, meta: Meta, bot: Bot, isTradingKeys: boolean): Content {
-    const keyPrices = bot.pricelist.getKeyPrices;
-    const value = valueDiff(offer, keyPrices, isTradingKeys);
+export default function processReview(offer: TradeOffer, meta: Meta, bot: Bot): Content {
+    const value = valueDiff(offer);
     const reasons = meta.uniqueReasons;
     const reviewReasons: string[] = [];
 

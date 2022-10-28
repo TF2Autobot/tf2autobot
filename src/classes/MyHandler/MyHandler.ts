@@ -140,8 +140,6 @@ export default class MyHandler extends Handler {
 
     private hasInvalidValueException = false;
 
-    private isTradingKeys = false;
-
     get customGameName(): string {
         const customGameName = this.opt.miscSettings.game.customName;
         return customGameName ? customGameName : `TF2Autobot`;
@@ -1482,7 +1480,6 @@ export default class MyHandler extends Handler {
                 // Check overstock / understock on keys
                 const diff = itemsDiff['5021;6'] as number | null;
                 // If the diff is greater than 0 then we are buying, less than is selling
-                this.isTradingKeys = true;
                 const isBuying = diff > 0;
                 const inventoryManager = this.bot.inventoryManager;
                 const amountCanTrade = inventoryManager.amountCanTrade({
@@ -2113,9 +2110,8 @@ export default class MyHandler extends Handler {
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
                     if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
-                    if (notifyOpt.onDeclined) declined(offer, this.bot, this.isTradingKeys);
+                    if (notifyOpt.onDeclined) declined(offer, this.bot);
                     offer.data('isDeclined', true);
-                    this.isTradingKeys = false; // reset
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
                     if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
 
@@ -2202,8 +2198,7 @@ export default class MyHandler extends Handler {
 
                 this.autokeys.check();
 
-                const result = processAccepted(offer, this.bot, this.isTradingKeys, timeTakenToComplete);
-                this.isTradingKeys = false; // reset
+                const result = processAccepted(offer, this.bot, timeTakenToComplete);
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
@@ -2217,7 +2212,7 @@ export default class MyHandler extends Handler {
                 clearTimeout(this.resetSentSummaryTimeout);
                 this.sentSummary[offer.id] = true;
 
-                processDeclined(offer, this.bot, this.isTradingKeys);
+                processDeclined(offer, this.bot);
                 MyHandler.removePolldataKeys(offer);
             }
         }
@@ -2278,7 +2273,7 @@ export default class MyHandler extends Handler {
         }
 
         if (action === 'skip') {
-            void sendReview(offer, this.bot, meta, this.isTradingKeys);
+            void sendReview(offer, this.bot, meta);
             return;
         }
     }
@@ -2581,7 +2576,10 @@ export default class MyHandler extends Handler {
     async onPricelist(pricelist: PricesObject): Promise<void> {
         if (Object.keys(pricelist).length === 0) {
             // Ignore errors
-            await this.bot.listings.removeAll();
+            await this.bot.listings.removeAll().catch(err => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                log.error('Error on removing all listings: ', filterAxiosError(err));
+            });
         }
 
         /*

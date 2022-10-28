@@ -9,6 +9,8 @@ import SteamID from 'steamid';
 export default class DiscordBot {
     readonly client: Client;
 
+    private MAX_MESSAGE_LENGTH = 2000 - 2; // some characters are reserved
+
     constructor(private options: Options, private bot: Bot) {
         this.client = new Client({
             intents: [
@@ -107,25 +109,63 @@ export default class DiscordBot {
         }
     }
 
-    public sendAnswer(origMessage: Message, message: string): void {
-        const formattedMessage = DiscordBot.reformat(message);
+    public sendAnswer(origMessage: Message, messageToSend: string): void {
+        messageToSend = messageToSend.trim();
+        const formattedMessage = DiscordBot.reformat(messageToSend);
+
+        if (messageToSend == formattedMessage) {
+            const lines = messageToSend.split('\n');
+            let partialMessage = '';
+            for (let i = 0; i < lines.length; i += 1) {
+                const line = lines[i];
+                if (partialMessage.length + 1 + line.length <= this.MAX_MESSAGE_LENGTH) {
+                    if (i == 0) {
+                        partialMessage += line;
+                    } else {
+                        partialMessage += '\n' + line;
+                    }
+                } else {
+                    this.sendMessage(origMessage, partialMessage);
+                    partialMessage = line; // Error is still possible if any line is longer than limit
+                }
+            }
+            this.sendMessage(origMessage, partialMessage);
+        } else {
+            this.sendMessage(origMessage, formattedMessage); // TODO: normal parsing of markup things
+        }
+    }
+
+    private sendMessage(origMessage: Message, message: string): void {
+        if (message.startsWith('\n')) {
+            message = '.' + message;
+        }
+        if (message.endsWith('\n')) {
+            message = message + '.';
+        }
+
         origMessage.channel
-            .send(formattedMessage)
-            .then(() =>
-                log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${formattedMessage}`)
-            )
+            .send(message)
+            .then(() => log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`))
             .catch(err => log.error('Failed to send message to Discord:', err));
     }
 
     private onClientReady() {
-        log.info(`Logged in to Discord as ` + String(this.client.user.tag));
+        // https://github.com/TF2Autobot/tf2autobot-giveawaybot/blob/master/src/events/ready.ts
+        log.info(
+            `Logged in to Discord as ${String(this.client.user.tag)} to serve on ${
+                this.client.guilds.cache.size
+            } servers.`
+        );
         this.client.user.setStatus('idle');
 
         // DM chats are not giving messageCreate until first usage. This thing fetches required DM chats.
         this.admins.forEach(admin => {
-            this.client.users.createDM(admin.discordID).catch(err => {
-                log.error('Failed to fetch DM channel with admin:', err);
-            });
+            const adminUser = this.client.users.resolve(admin.discordID);
+            if (adminUser && !adminUser.bot) {
+                this.client.users.createDM(adminUser).catch(err => {
+                    log.error('Failed to fetch DM channel with admin:', err);
+                });
+            }
         });
     }
 

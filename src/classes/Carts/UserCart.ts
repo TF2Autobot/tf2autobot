@@ -1076,6 +1076,11 @@ export default class UserCart extends Cart {
         }
 
         offer.data('dict', itemsDict);
+
+        // TODO: Investigate why sometimes exchange.our.value and exchange.their.value are not the same
+        // Example:
+        // - https://prnt.sc/NHPHl853MdZF
+        // - https://prnt.sc/SY-hknettW0V
         offer.data('value', {
             our: {
                 total: exchange.our.value,

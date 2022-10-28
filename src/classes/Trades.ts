@@ -425,7 +425,7 @@ export default class Trades {
 
             if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                 const keyPrices = this.bot.pricelist.getKeyPrices;
-                const value = t.valueDiff(offer, keyPrices, false);
+                const value = t.valueDiff(offer);
 
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
                     const summary = t.summarizeToChat(
@@ -630,7 +630,7 @@ export default class Trades {
 
                                 if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                                     const keyPrices = this.bot.pricelist.getKeyPrices;
-                                    const value = t.valueDiff(offer, keyPrices, false);
+                                    const value = t.valueDiff(offer);
 
                                     if (
                                         opt.discordWebhook.sendAlert.enable &&
@@ -1662,8 +1662,9 @@ export default class Trades {
             (oldState === TradeOfferManager.ETradeOfferState['Active'] &&
                 offer.state === TradeOfferManager.ETradeOfferState['Declined'])
         ) {
-            // Offer is active, or countered, or declined countered, no need to fetch
-            // Do nothing
+            // Offer is active, or countered, or declined countered, no need to fetch inventory
+            // Just handle changes
+            this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
         } else {
             // Exit all running apps ("TF2Autobot" or custom, and Team Fortress 2)
             // Will play again after craft/smelt/sort inventory job
