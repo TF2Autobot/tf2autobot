@@ -881,7 +881,7 @@ export default class MyHandler extends Handler {
         const forcesReview =
             opt.manualReview.enable &&
             opt.manualReview.allowForce &&
-            ['refund', 'review', 'check', 'manual'].some(word => offerMessage === word);
+            ['refund', 'review', 'check', 'manual'].some(word => offerMessage.includes(word)); // "Please review" will also make this true this way.
         if (forcesReview) {
             wrongAboutOffer.push({
                 reason: '⬜_REVIEW_FORCED'
