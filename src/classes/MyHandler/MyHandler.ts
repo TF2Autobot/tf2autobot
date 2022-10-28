@@ -886,9 +886,7 @@ export default class MyHandler extends Handler {
             wrongAboutOffer.push({
                 reason: '⬜_REVIEW_FORCED'
             });
-        }
-
-        if (!forcesReview) {
+        } else {
             if (itemsToGiveCount === 0) {
                 const isGift = [
                     'gift',
