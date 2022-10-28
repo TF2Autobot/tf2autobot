@@ -466,6 +466,10 @@ export const DEFAULTS: JsonOptions = {
         halted: {
             note: ''
         },
+        // ⬜_REVIEW_FORCED
+        reviewForced: {
+            note: ''
+        },
         additionalNotes: ''
     },
 
@@ -1536,7 +1540,8 @@ interface ManualReview extends OnlyEnable {
     dupedCheckFailed?: OnlyNote;
     escrowCheckFailed?: OnlyNote;
     bannedCheckFailed?: OnlyNote;
-    halted: OnlyNote;
+    halted?: OnlyNote;
+    reviewForced?: OnlyNote;
     additionalNotes?: string;
 }
 

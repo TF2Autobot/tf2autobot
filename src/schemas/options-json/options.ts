@@ -1427,6 +1427,9 @@ export const optionsSchema: jsonschema.Schema = {
                 halted: {
                     $ref: '#/definitions/only-note'
                 },
+                reviewForced: {
+                    $ref: '#/definitions/only-note'
+                },
                 additionalNotes: {
                     type: 'string'
                 }
