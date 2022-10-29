@@ -149,7 +149,7 @@ export default class DiscordBot {
             .catch(err => log.error('Failed to send message to Discord:', err));
     }
 
-    private onClientReady() {
+    private async onClientReady() {
         // https://github.com/TF2Autobot/tf2autobot-giveawaybot/blob/master/src/events/ready.ts
         log.info(
             `Logged in to Discord as ${String(this.client.user.tag)} to serve on ${
@@ -158,15 +158,17 @@ export default class DiscordBot {
         );
         this.client.user.setStatus('idle');
 
-        // DM chats are not giving messageCreate until first usage. This thing fetches required DM chats.
-        this.admins.forEach(admin => {
-            const adminUser = this.client.users.resolve(admin.discordID);
+        // DM chats won't emit messageCreate until the first usage. This thing fetches required DM chats.
+        for (const admin of this.admins) {
+            const adminUser = await this.client.users.fetch(admin.discordID).catch(err => {
+                log.error('Failed to fetch admin by id:', err);
+            });
             if (adminUser && !adminUser.bot) {
                 this.client.users.createDM(adminUser).catch(err => {
                     log.error('Failed to fetch DM channel with admin:', err);
                 });
             }
-        });
+        }
     }
 
     setPresence(type: 'online' | 'halt'): void {
