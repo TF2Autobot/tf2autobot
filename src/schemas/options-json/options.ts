@@ -1451,6 +1451,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'escrowCheckFailed',
                 'bannedCheckFailed',
                 'halted',
+                'reviewForced',
                 'additionalNotes'
             ],
             additionalProperties: false
