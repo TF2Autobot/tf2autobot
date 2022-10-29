@@ -416,12 +416,14 @@ export const DEFAULTS: JsonOptions = {
         // ⬜_HALTED
         halted: {
             ignoreHalted: false
+        },
+        reviewForced: {
+            enable: true
         }
     },
 
     manualReview: {
         enable: true,
-        allowForce: true,
         showOfferSummary: true,
         showReviewOfferNote: true,
         showOwnerCurrentTime: true,
@@ -1480,6 +1482,7 @@ interface OfferReceived {
     escrowCheckFailed?: EscrowBannedCheckFailed;
     bannedCheckFailed?: EscrowBannedCheckFailed;
     halted?: Halted;
+    reviewForced?: OnlyEnable;
 }
 
 interface DeclineReply extends OnlyEnable {
@@ -1526,7 +1529,6 @@ interface Halted {
 // ------------ Manual Review ------------
 
 interface ManualReview extends OnlyEnable {
-    allowForce?: boolean;
     showOfferSummary?: boolean;
     showReviewOfferNote?: boolean;
     showOwnerCurrentTime?: boolean;

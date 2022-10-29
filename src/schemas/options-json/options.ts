@@ -1359,6 +1359,9 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['ignoreHalted'],
                     additionalProperties: false
+                },
+                reviewForced: {
+                    $ref: '#/definitions/only-enable'
                 }
             },
             required: [
@@ -1372,7 +1375,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'duped',
                 'escrowCheckFailed',
                 'bannedCheckFailed',
-                'halted'
+                'halted',
+                'reviewForced'
             ],
             additionalProperties: false
         },
@@ -1380,9 +1384,6 @@ export const optionsSchema: jsonschema.Schema = {
             type: 'object',
             properties: {
                 enable: {
-                    type: 'boolean'
-                },
-                allowForce: {
                     type: 'boolean'
                 },
                 showOfferSummary: {
