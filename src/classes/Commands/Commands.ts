@@ -387,7 +387,7 @@ export default class Commands {
         }
 
         reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount({
-            priceKey: match.sku,
+            priceKey: match.id ?? match.sku,
             includeNonNormalized: false,
             tradableOnly: true
         })}`;

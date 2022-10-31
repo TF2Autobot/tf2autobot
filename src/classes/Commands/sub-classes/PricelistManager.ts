@@ -1564,7 +1564,7 @@ export default class PricelistManagerCommands {
     private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
         const keyPrice = this.bot.pricelist.getKeyPrice;
         const amount = this.bot.inventoryManager.getInventory.getAmount({
-            priceKey: oldEntry.sku,
+            priceKey: oldEntry.id ?? oldEntry.sku,
             includeNonNormalized: false
         });
 
@@ -1968,7 +1968,7 @@ export default class PricelistManagerCommands {
 
     private generateOutput(filtered: Entry): string {
         const currentStock = this.bot.inventoryManager.getInventory.getAmount({
-            priceKey: filtered.sku,
+            priceKey: filtered.id ?? filtered.sku,
             includeNonNormalized: false,
             tradableOnly: true
         });
@@ -2329,7 +2329,10 @@ export default class PricelistManagerCommands {
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
-    const amount = bot.inventoryManager.getInventory.getAmount({ priceKey: entry.sku, includeNonNormalized: false });
+    const amount = bot.inventoryManager.getInventory.getAmount({
+        priceKey: entry.id ?? entry.sku,
+        includeNonNormalized: false
+    });
 
     return (
         `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +
