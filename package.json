@@ -79,7 +79,7 @@
         "@types/pluralize": "0.0.29",
         "@types/request": "^2.48.8",
         "@types/retry": "^0.12.2",
-        "@types/semver": "^7.3.12",
+        "@types/semver": "^7.3.13",
         "@types/valid-url": "^1.0.3",
         "@types/write-file-atomic": "^4.0.0",
         "@types/ws": "^8.5.3",
