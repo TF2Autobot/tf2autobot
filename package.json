@@ -41,7 +41,7 @@
         "callback-queue": "^3.0.0",
         "change-case": "^4.1.2",
         "cheerio": "^1.0.0-rc.12",
-        "dayjs": "^1.11.5",
+        "dayjs": "^1.11.6",
         "death": "^1.1.0",
         "discord.js": "^14.2.0",
         "dot-prop": "^6.0.1",
