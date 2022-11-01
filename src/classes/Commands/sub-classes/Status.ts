@@ -7,7 +7,8 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats, testPriceKey } from '../../../lib/tools/export';
 import { sendStats } from '../../../lib/DiscordWebhook/export';
-import loadPollData from '../../../lib/tools/polldata';
+import loadPollData, { deletePollData } from '../../../lib/tools/polldata';
+import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 
 // Bot status
 
@@ -99,6 +100,35 @@ export default class StatusCommands {
         }
 
         void sendStats(this.bot, true, steamID);
+    }
+
+    statsWipeCommand(steamID: SteamID, message: string): void {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.i_am_sure != 'yes_i_am') {
+            return this.bot.sendMessage(
+                steamID,
+                `⚠️ Are you sure you want to delete all stats?` +
+                    `\n- This process is irreversible and will delete the record of accepted trades!` +
+                    `\n- If you're sure, try again with If you are sure, try again with i_am_sure=yes_i_am as a parameter.`
+            );
+        }
+
+        this.bot.sendMessage(steamID, '⚠️ Deleting all stats...');
+
+        const pollData: SteamTradeOfferManager.PollData = this.bot.manager.pollData;
+
+        pollData.sent = {};
+        pollData.received = {};
+        pollData.timestamps = {};
+        pollData.offersSince = 0;
+        pollData.offerData = {};
+
+        this.bot.trades.setPollData(pollData);
+
+        deletePollData(this.bot.handler.getPaths.files.dir);
+
+        this.bot.sendMessage(steamID, '✅ All stats have been deleted.');
     }
 
     inventoryCommand(steamID: SteamID): void {
