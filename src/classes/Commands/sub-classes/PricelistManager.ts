@@ -1922,7 +1922,8 @@ export default class PricelistManagerCommands {
 
         let answer = `You have ${groups.size} groups in total:\n`;
         [...groups.keys()].forEach((group, i) => {
-            answer += `${i + 1}. ${group} (${groups.get(group)} entries)\n`;
+            const amount = groups.get(group);
+            answer += `${i + 1}. ${group} (${amount} ${amount === 1 ? 'entry' : 'entries'})\n`;
         });
 
         return this.bot.sendMessage(steamID, answer);
