@@ -1359,6 +1359,9 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['ignoreHalted'],
                     additionalProperties: false
+                },
+                reviewForced: {
+                    $ref: '#/definitions/only-enable'
                 }
             },
             required: [
@@ -1372,7 +1375,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'duped',
                 'escrowCheckFailed',
                 'bannedCheckFailed',
-                'halted'
+                'halted',
+                'reviewForced'
             ],
             additionalProperties: false
         },
@@ -1424,6 +1428,9 @@ export const optionsSchema: jsonschema.Schema = {
                 halted: {
                     $ref: '#/definitions/only-note'
                 },
+                reviewForced: {
+                    $ref: '#/definitions/only-note'
+                },
                 additionalNotes: {
                     type: 'string'
                 }
@@ -1444,6 +1451,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'escrowCheckFailed',
                 'bannedCheckFailed',
                 'halted',
+                'reviewForced',
                 'additionalNotes'
             ],
             additionalProperties: false
