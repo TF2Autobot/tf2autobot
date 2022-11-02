@@ -207,6 +207,8 @@ export default class Commands {
                 void this.pManager.partialPriceUpdateCommand(steamID, message);
             } else if (['getslots', 'listings'].includes(command) && isAdmin) {
                 void this.pManager.getSlotsCommand(steamID);
+            } else if (command === 'groups' && isAdmin) {
+                void this.pManager.getGroupsCommand(steamID);
             } else if (command === 'autoadd' && isAdmin) {
                 this.pManager.autoAddCommand(steamID, message);
             } else if (command === 'stopautoadd' && isAdmin) {

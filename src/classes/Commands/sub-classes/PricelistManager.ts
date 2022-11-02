@@ -1904,6 +1904,30 @@ export default class PricelistManagerCommands {
         );
     }
 
+    getGroupsCommand(steamID: SteamID): void {
+        const pricelist = this.bot.pricelist.getPrices;
+        if (Object.keys(pricelist).length === 0) {
+            return this.bot.sendMessage(steamID, '❌ Your pricelist is empty.');
+        }
+
+        const groups = new Map<string, number>();
+        for (const priceKey of Object.keys(pricelist)) {
+            const entry = pricelist[priceKey];
+            const group = entry.group;
+            if (!groups.has(group)) {
+                groups.set(group, 0);
+            }
+            groups.set(group, groups.get(group) + 1);
+        }
+
+        let answer = `You have ${groups.size} groups in total:\n`;
+        [...groups.keys()].forEach((group, i) => {
+            answer += `${i + 1}. ${group} (${groups.get(group)} entries)\n`;
+        });
+
+        return this.bot.sendMessage(steamID, answer);
+    }
+
     getCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         let sku = params.sku as string;
