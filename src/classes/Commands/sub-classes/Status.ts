@@ -133,7 +133,6 @@ export default class StatusCommands {
         } catch (err) {
             this.bot.sendMessage(steamID, `❌ Error while deleting stats: ${JSON.stringify(err)}`);
         }
-        
     }
 
     inventoryCommand(steamID: SteamID): void {
