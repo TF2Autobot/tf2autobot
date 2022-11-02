@@ -116,19 +116,24 @@ export default class StatusCommands {
 
         this.bot.sendMessage(steamID, '⚠️ Deleting all stats...');
 
-        const pollData: SteamTradeOfferManager.PollData = this.bot.manager.pollData;
+        try {
+            const pollData: SteamTradeOfferManager.PollData = this.bot.manager.pollData;
 
-        pollData.sent = {};
-        pollData.received = {};
-        pollData.timestamps = {};
-        pollData.offersSince = 0;
-        pollData.offerData = {};
+            pollData.sent = {};
+            pollData.received = {};
+            pollData.timestamps = {};
+            pollData.offersSince = 0;
+            pollData.offerData = {};
 
-        this.bot.trades.setPollData(pollData);
+            this.bot.trades.setPollData(pollData);
 
-        deletePollData(this.bot.handler.getPaths.files.dir);
+            deletePollData(this.bot.handler.getPaths.files.dir);
 
-        this.bot.sendMessage(steamID, '✅ All stats have been deleted.');
+            this.bot.sendMessage(steamID, '✅ All stats have been deleted.');
+        } catch (err) {
+            this.bot.sendMessage(steamID, `❌ Error while deleting stats: ${JSON.stringify(err)}`);
+        }
+        
     }
 
     inventoryCommand(steamID: SteamID): void {
