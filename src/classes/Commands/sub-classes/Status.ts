@@ -110,7 +110,7 @@ export default class StatusCommands {
                 steamID,
                 `⚠️ Are you sure you want to delete all stats?` +
                     `\n- This process is irreversible and will delete the record of accepted trades!` +
-                    `\n- If you're sure, try again with If you are sure, try again with i_am_sure=yes_i_am as a parameter.`
+                    `\n- If you're sure, try again with i_am_sure=yes_i_am as a parameter.`
             );
         }
 
