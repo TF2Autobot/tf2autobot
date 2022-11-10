@@ -174,7 +174,7 @@ export default class DiscordBot {
     setPresence(type: 'online' | 'halt'): void {
         const opt = this.bot.options.discordChat[type];
 
-        this.client.user.setPresence({
+        this.client?.user?.setPresence({
             activities: [
                 {
                     name: opt.name,
