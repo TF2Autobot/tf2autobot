@@ -27,8 +27,6 @@ export default class DiscordBot {
     }
 
     public async start(): Promise<void> {
-        // TODO: check for discord IDs not being repeated in ADMINS
-
         try {
             await this.client.login(this.options.discordBotToken);
         } catch (err) {
@@ -66,7 +64,7 @@ export default class DiscordBot {
         }
 
         if (!message.content.startsWith('!')) {
-            return; // Ignore message that not start with !
+            return; // Ignore a message that doesn't start with !
         }
 
         log.info(
@@ -158,6 +156,9 @@ export default class DiscordBot {
         );
         this.client.user.setStatus('idle');
 
+        // I don't use try-catch here since the bot has to crash if something went wrong
+        this.validateAdmins();
+
         // DM chats won't emit messageCreate until the first usage. This thing fetches required DM chats.
         for (const admin of this.admins) {
             const adminUser = await this.client.users.fetch(admin.discordID).catch(err => {
@@ -174,7 +175,7 @@ export default class DiscordBot {
     setPresence(type: 'online' | 'halt'): void {
         const opt = this.bot.options.discordChat[type];
 
-        this.client.user.setPresence({
+        this.client?.user?.setPresence({
             activities: [
                 {
                     name: opt.name,
@@ -204,17 +205,25 @@ export default class DiscordBot {
         return this.bot.getAdmins.filter(admin => admin.discordID);
     }
 
+    private validateAdmins(): void {
+        const uniqueAdmins = new Set<Snowflake>();
+        this.admins.forEach(admin => {
+            const discordID = admin.discordID;
+            if (uniqueAdmins.has(discordID)) {
+                throw Error(`ADMINS contains more than one entry with discordID ${discordID}`);
+            }
+            uniqueAdmins.add(discordID);
+        });
+    }
+
     private getAdminBy(discordID: Snowflake): SteamID {
         // Intended to use with all checks made before. Throwing errors just to be sure.
 
-        if (!this.isDiscordAdmin) {
+        if (!this.isDiscordAdmin(discordID)) {
             throw Error(`Admin with discordID ${discordID} was not found`);
         }
 
-        const result = this.admins.filter(admin => admin.discordID == discordID);
-        if (result.length > 1) {
-            throw Error(`ADMINS contains more than one entry with discordID ${discordID}`);
-        }
+        const result = this.admins.filter(admin => admin.discordID === discordID);
         return result[0];
     }
 }
