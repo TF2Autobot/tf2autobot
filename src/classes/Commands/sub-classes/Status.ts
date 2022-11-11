@@ -130,6 +130,11 @@ export default class StatusCommands {
             deletePollData(this.bot.handler.getPaths.files.dir);
 
             this.bot.sendMessage(steamID, '✅ All stats have been deleted.');
+
+            this.bot.handler.commands.useUpdateOptionsCommand(
+                steamID,
+                '!config statistics.lastTotalTrades=0&statistics.startingTimeInUnix=0&statistics.lastTotalProfitMadeInRef=0&statistics.lastTotalProfitOverpayInRef=0&statistics.profitDataSinceInUnix=0'
+            );
         } catch (err) {
             this.bot.sendMessage(steamID, `❌ Error while deleting stats: ${JSON.stringify(err)}`);
         }
