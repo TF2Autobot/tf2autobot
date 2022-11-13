@@ -179,9 +179,7 @@ export default class BotManager {
             this.bot.manager.pollInterval = -1;
 
             // Stop reading Discord
-            if (this.bot.discordBot) {
-                this.bot.discordBot.stop();
-            }
+            this.bot.discordBot?.stop();
 
             // Stop updating schema
             clearTimeout(this.schemaManager?._updateTimeout);
@@ -200,7 +198,7 @@ export default class BotManager {
         }
 
         // Disconnect from socket server to stop price updates
-        this.pricer.shutdown(this.bot?.options.enableSocket);
+        this.pricer.shutdown(!!this.bot?.options.enableSocket);
     }
 
     private exit(err: Error | null): void {
