@@ -43,7 +43,7 @@ import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 export default class Bot {
     // Modules and classes
-    schema: SchemaManager.Schema; // should be readonly
+    schema: SchemaManager.Schema;
 
     readonly bptf: BptfLogin;
 
@@ -57,7 +57,7 @@ export default class Bot {
 
     tradeOfferUrl: string;
 
-    listingManager: ListingManager; // should be readonly
+    listingManager: ListingManager;
 
     readonly friends: Friends;
 
@@ -71,13 +71,13 @@ export default class Bot {
 
     readonly handler: MyHandler;
 
-    discordBot: DiscordBot; // should be readonly?
+    discordBot: DiscordBot;
 
-    inventoryManager: InventoryManager; // should be readonly
+    inventoryManager: InventoryManager;
 
-    pricelist: Pricelist; // should be readonly
+    pricelist: Pricelist;
 
-    schemaManager: SchemaManager; // should be readonly
+    schemaManager: SchemaManager;
 
     public effects: Effect[];
 
