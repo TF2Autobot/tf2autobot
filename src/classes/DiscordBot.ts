@@ -1,13 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
 
-import { Client, GatewayIntentBits, Message, DiscordAPIError, Snowflake, ActivityType } from 'discord.js';
+import {
+    Client,
+    GatewayIntentBits,
+    Message,
+    DiscordAPIError,
+    Snowflake,
+    ActivityType,
+    ApplicationCommandType
+} from 'discord.js';
 import log from '../lib/logger';
 import Options from './Options';
 import Bot from './Bot';
 import SteamID from 'steamid';
+import { uptime } from '../lib/tools/time';
 
 export default class DiscordBot {
     readonly client: Client;
+
+    private MAX_MESSAGE_LENGTH = 2000 - 2; // some characters are reserved
 
     constructor(private options: Options, private bot: Bot) {
         this.client = new Client({
@@ -25,10 +36,23 @@ export default class DiscordBot {
     }
 
     public async start(): Promise<void> {
-        // TODO: check for discord IDs not being repeated in ADMINS
-
         try {
             await this.client.login(this.options.discordBotToken);
+            await this.client.application.commands.set([
+                {
+                    name: 'uptime',
+                    description: 'Show bot uptime',
+                    type: ApplicationCommandType.ChatInput
+                }
+            ]);
+
+            this.client.on('interactionCreate', async interaction => {
+                if (!interaction.isChatInputCommand()) return;
+
+                if (interaction.commandName === 'uptime') {
+                    await interaction.reply({ content: uptime() });
+                }
+            });
         } catch (err) {
             const error = err as DiscordAPIError;
 
@@ -64,7 +88,7 @@ export default class DiscordBot {
         }
 
         if (!message.content.startsWith('!')) {
-            return; // Ignore message that not start with !
+            return; // Ignore a message that doesn't start with !
         }
 
         log.info(
@@ -107,17 +131,47 @@ export default class DiscordBot {
         }
     }
 
-    public sendAnswer(origMessage: Message, message: string): void {
-        const formattedMessage = DiscordBot.reformat(message);
+    public sendAnswer(origMessage: Message, messageToSend: string): void {
+        messageToSend = messageToSend.trim();
+        const formattedMessage = DiscordBot.reformat(messageToSend);
+
+        if (messageToSend == formattedMessage) {
+            const lines = messageToSend.split('\n');
+            let partialMessage = '';
+            for (let i = 0; i < lines.length; i += 1) {
+                const line = lines[i];
+                if (partialMessage.length + 1 + line.length <= this.MAX_MESSAGE_LENGTH) {
+                    if (i == 0) {
+                        partialMessage += line;
+                    } else {
+                        partialMessage += '\n' + line;
+                    }
+                } else {
+                    this.sendMessage(origMessage, partialMessage);
+                    partialMessage = line; // Error is still possible if any line is longer than limit
+                }
+            }
+            this.sendMessage(origMessage, partialMessage);
+        } else {
+            this.sendMessage(origMessage, formattedMessage); // TODO: normal parsing of markup things
+        }
+    }
+
+    private sendMessage(origMessage: Message, message: string): void {
+        if (message.startsWith('\n')) {
+            message = '.' + message;
+        }
+        if (message.endsWith('\n')) {
+            message = message + '.';
+        }
+
         origMessage.channel
-            .send(formattedMessage)
-            .then(() =>
-                log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${formattedMessage}`)
-            )
+            .send(message)
+            .then(() => log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`))
             .catch(err => log.error('Failed to send message to Discord:', err));
     }
 
-    private onClientReady() {
+    private async onClientReady() {
         // https://github.com/TF2Autobot/tf2autobot-giveawaybot/blob/master/src/events/ready.ts
         log.info(
             `Logged in to Discord as ${String(this.client.user.tag)} to serve on ${
@@ -126,18 +180,26 @@ export default class DiscordBot {
         );
         this.client.user.setStatus('idle');
 
-        // DM chats are not giving messageCreate until first usage. This thing fetches required DM chats.
-        this.admins.forEach(admin => {
-            this.client.users.createDM(admin.discordID).catch(err => {
-                log.error('Failed to fetch DM channel with admin:', err);
+        // I don't use try-catch here since the bot has to crash if something went wrong
+        this.validateAdmins();
+
+        // DM chats won't emit messageCreate until the first usage. This thing fetches required DM chats.
+        for (const admin of this.admins) {
+            const adminUser = await this.client.users.fetch(admin.discordID).catch(err => {
+                log.error('Failed to fetch admin by id:', err);
             });
-        });
+            if (adminUser && !adminUser.bot) {
+                this.client.users.createDM(adminUser).catch(err => {
+                    log.error('Failed to fetch DM channel with admin:', err);
+                });
+            }
+        }
     }
 
     setPresence(type: 'online' | 'halt'): void {
         const opt = this.bot.options.discordChat[type];
 
-        this.client.user.setPresence({
+        this.client?.user?.setPresence({
             activities: [
                 {
                     name: opt.name,
@@ -167,17 +229,25 @@ export default class DiscordBot {
         return this.bot.getAdmins.filter(admin => admin.discordID);
     }
 
+    private validateAdmins(): void {
+        const uniqueAdmins = new Set<Snowflake>();
+        this.admins.forEach(admin => {
+            const discordID = admin.discordID;
+            if (uniqueAdmins.has(discordID)) {
+                throw Error(`ADMINS contains more than one entry with discordID ${discordID}`);
+            }
+            uniqueAdmins.add(discordID);
+        });
+    }
+
     private getAdminBy(discordID: Snowflake): SteamID {
         // Intended to use with all checks made before. Throwing errors just to be sure.
 
-        if (!this.isDiscordAdmin) {
+        if (!this.isDiscordAdmin(discordID)) {
             throw Error(`Admin with discordID ${discordID} was not found`);
         }
 
-        const result = this.admins.filter(admin => admin.discordID == discordID);
-        if (result.length > 1) {
-            throw Error(`ADMINS contains more than one entry with discordID ${discordID}`);
-        }
+        const result = this.admins.filter(admin => admin.discordID === discordID);
         return result[0];
     }
 }

@@ -7,7 +7,8 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats, testPriceKey } from '../../../lib/tools/export';
 import { sendStats } from '../../../lib/DiscordWebhook/export';
-import loadPollData from '../../../lib/tools/polldata';
+import loadPollData, { deletePollData } from '../../../lib/tools/polldata';
+import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 
 // Bot status
 
@@ -19,6 +20,11 @@ export default class StatusCommands {
     async statsCommand(steamID: SteamID): Promise<void> {
         const tradesFromEnv = this.bot.options.statistics.lastTotalTrades;
         const pollData = loadPollData(this.bot.handler.getPaths.files.dir);
+
+        if (!pollData) {
+            return this.bot.sendMessage(steamID, '❌ Polldata file(s) not available.');
+        }
+
         const trades = stats(this.bot, pollData);
         const profits = await profit(this.bot, pollData, Math.floor((Date.now() - 86400000) / 1000)); //since -24h
 
@@ -99,6 +105,44 @@ export default class StatusCommands {
         }
 
         void sendStats(this.bot, true, steamID);
+    }
+
+    statsWipeCommand(steamID: SteamID, message: string): void {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+
+        if (params.i_am_sure != 'yes_i_am') {
+            return this.bot.sendMessage(
+                steamID,
+                `⚠️ Are you sure you want to delete all stats?` +
+                    `\n- This process is irreversible and will delete the record of accepted trades!` +
+                    `\n- If you're sure, try again with i_am_sure=yes_i_am as a parameter.`
+            );
+        }
+
+        this.bot.sendMessage(steamID, '⚠️ Deleting all stats...');
+
+        try {
+            const pollData: SteamTradeOfferManager.PollData = this.bot.manager.pollData;
+
+            pollData.sent = {};
+            pollData.received = {};
+            pollData.timestamps = {};
+            pollData.offersSince = 0;
+            pollData.offerData = {};
+
+            this.bot.trades.setPollData(pollData);
+
+            deletePollData(this.bot.handler.getPaths.files.dir);
+
+            this.bot.sendMessage(steamID, '✅ All stats have been deleted.');
+
+            this.bot.handler.commands.useUpdateOptionsCommand(
+                steamID,
+                '!config statistics.lastTotalTrades=0&statistics.startingTimeInUnix=0&statistics.lastTotalProfitMadeInRef=0&statistics.lastTotalProfitOverpayInRef=0&statistics.profitDataSinceInUnix=0'
+            );
+        } catch (err) {
+            this.bot.sendMessage(steamID, `❌ Error while deleting stats: ${JSON.stringify(err)}`);
+        }
     }
 
     inventoryCommand(steamID: SteamID): void {

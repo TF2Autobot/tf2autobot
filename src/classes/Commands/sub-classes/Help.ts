@@ -86,7 +86,8 @@ export default class HelpCommands {
                         '!getAll [limit=<number>] - Get a list of all items exist in your pricelist. Set limit=-1 to show all',
                         '!find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍',
                         '!ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled',
-                        '!getSlots or !listings - Get current used listings slot per cap count.'
+                        '!getSlots or !listings - Get current used listings slot per cap count.',
+                        '!groups - Get a list of groups in your pricelist 📜'
                     ].join('\n- ')
             );
 
@@ -139,6 +140,7 @@ export default class HelpCommands {
                     [
                         '!stats - Get statistics for accepted trades 📊',
                         '!itemstats <item name|sku> - Get statistics for specific item (keys/weapons not supported) 📊',
+                        '!wipestats - Wipe statistics for accepted trades 🔥',
                         '!statsdw - Send statistics to Discord Webhook 📊',
                         "!inventory - Get the bot's current inventory spaces 🎒",
                         '!version - Get the TF2Autobot version that the bot is running'

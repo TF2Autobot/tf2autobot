@@ -217,6 +217,10 @@ declare module '@tf2autobot/tradeoffer-manager' {
             reason: '⬜_HALTED';
         }
 
+        interface ReviewForced {
+            reason: '⬜_REVIEW_FORCED';
+        }
+
         interface BannedResults {
             [website: string]: string;
         }
@@ -231,7 +235,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             | DupedItems
             | EscrowCheckFailed
             | BannedCheckFailed
-            | Halted;
+            | Halted
+            | ReviewForced;
 
         export interface Meta {
             highValue?: HighValueOutput;
