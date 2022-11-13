@@ -71,7 +71,7 @@ export default class Bot {
 
     readonly handler: MyHandler;
 
-    discordBot: DiscordBot;
+    discordBot: DiscordBot = null;
 
     inventoryManager: InventoryManager;
 
@@ -341,7 +341,7 @@ export default class Bot {
         this.client.setPersona(EPersonaState.Snooze);
 
         log.debug('Settings status in Discord to "idle"');
-        this.discordBot.halt();
+        this.discordBot?.halt();
 
         // disable auto-check for missing/mismatching listings
         clearInterval(this.autoRefreshListingsInterval);
@@ -369,7 +369,7 @@ export default class Bot {
         this.client.setPersona(EPersonaState.Online);
 
         log.debug('Settings status in Discord to "online"');
-        this.discordBot.unhalt();
+        this.discordBot?.unhalt();
 
         // Re-initialize auto-check for missing/mismatching listings
         this.startAutoRefreshListings();
@@ -836,6 +836,7 @@ export default class Bot {
                     try {
                         await this.discordBot.start();
                     } catch (err) {
+                        this.discordBot = null;
                         log.warn('Failed to start Discord bot: ', err);
                         throw err;
                     }
@@ -1051,8 +1052,8 @@ export default class Bot {
 
                                 this.tradeOfferUrl = url;
 
-                                if (this.options.discordBotToken) {
-                                    this.discordBot.setPresence('online');
+                                if (this.options.discordBotToken && this.discordBot) {
+                                    this.discordBot?.setPresence('online');
                                 }
 
                                 this.manager.pollInterval = 5 * 1000;
@@ -1308,7 +1309,7 @@ export default class Bot {
     sendMessage(steamID: SteamID | string, message: string): void {
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
-            if (origMessage instanceof DiscordMessage) {
+            if (origMessage instanceof DiscordMessage && this.discordBot) {
                 this.discordBot.sendAnswer(origMessage, message);
             } else {
                 log.error(`Failed to send message, broken redirect:`, origMessage);
