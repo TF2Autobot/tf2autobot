@@ -1719,7 +1719,7 @@ export default class PricelistManagerCommands {
                     return await this.bot.listings.redoListings();
                 } catch (err) {
                     //FIXME:Add abstraction to allow more error messages without a lot of jank.
-                    const errMsg = params.withIntent
+                    const errMsg = !params.withintent
                         ? `❌ Failed to clear pricelist with/without group: ${(err as Error).message}`
                         : `❌ Failed to clear pricelist with intent: ${(err as Error).message}`;
                     return this.bot.sendMessage(steamID, errMsg);

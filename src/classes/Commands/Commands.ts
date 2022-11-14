@@ -1049,11 +1049,9 @@ export default class Commands {
                 : params.withgroup;
 
         const withIntent =
-            params.withintent == '' || typeof params.withintent !== 'number'
-                ? typeof params.withintent === 'string'
-                    ? Number(params.withintent)
-                    : undefined
-                : params.withintent;
+            params.withintent == '0' || params.withintent == '1' || params.withintent == '2'
+                ? Number(params.withintent)
+                : undefined;
 
         try {
             const mptfItemsSkus = await getMptfDashboardItems(this.bot.options.mptfApiKey, ignorePainted);
