@@ -444,7 +444,7 @@ export default class StatusCommands {
                     if (process.platform === 'win32') {
                         messages.concat([
                             '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
-                            '/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js'
+                            '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && node dist/app.js'
                         ]);
                     } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
                         messages.concat([
