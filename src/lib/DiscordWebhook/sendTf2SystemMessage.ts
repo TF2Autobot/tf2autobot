@@ -11,7 +11,7 @@ export default function sendTf2SystemMessage(bot: Bot, message: string): void {
     const discordAdminMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-        content: '',
+        content: opt.sendTf2Events.systemMessage.custom.content || '',
         embeds: [
             {
                 author: {

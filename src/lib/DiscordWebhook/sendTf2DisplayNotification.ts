@@ -11,7 +11,7 @@ export default function sendTf2DisplayNotification(bot: Bot, title: string, body
     const discordAdminMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-        content: '',
+        content: opt.sendTf2Events.displayNotification.custom.content || '',
         embeds: [
             {
                 author: {

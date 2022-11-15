@@ -17,7 +17,7 @@ export default function sendTf2ItemBroadcast(
     const discordAdminMsg: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
-        content: '',
+        content: opt.sendTf2Events.itemBroadcast.custom.content || '',
         embeds: [
             {
                 author: {
