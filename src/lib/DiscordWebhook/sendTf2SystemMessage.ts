@@ -8,7 +8,7 @@ export default function sendTf2SystemMessage(bot: Bot, message: string): void {
     const opt = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
 
-    const discordAdminMsg: Webhook = {
+    const webhook: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
         content: opt.sendTf2Events.systemMessage.custom.content || '',
@@ -30,7 +30,7 @@ export default function sendTf2SystemMessage(bot: Bot, message: string): void {
         ]
     };
 
-    sendWebhook(opt.sendTf2Events.systemMessage.url, discordAdminMsg, 'partner-message').catch(err => {
+    sendWebhook(opt.sendTf2Events.systemMessage.url, webhook, 'tf2-system-message').catch(err => {
         log.warn(`❌ Failed to send TF2 System Message webhook to Discord: `, err);
     });
 }

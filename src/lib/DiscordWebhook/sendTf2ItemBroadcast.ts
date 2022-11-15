@@ -14,7 +14,7 @@ export default function sendTf2ItemBroadcast(
     const opt = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
 
-    const discordAdminMsg: Webhook = {
+    const webhook: Webhook = {
         username: opt.displayName ? opt.displayName : botInfo.name,
         avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
         content: opt.sendTf2Events.itemBroadcast.custom.content || '',
@@ -40,7 +40,7 @@ export default function sendTf2ItemBroadcast(
         ]
     };
 
-    sendWebhook(opt.sendTf2Events.itemBroadcast.url, discordAdminMsg, 'partner-message').catch(err => {
+    sendWebhook(opt.sendTf2Events.itemBroadcast.url, webhook, 'tf2-display-notification').catch(err => {
         log.warn(`❌ Failed to send TF2 Display Notification webhook to Discord: `, err);
     });
 }
