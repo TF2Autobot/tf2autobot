@@ -150,7 +150,7 @@ export const optionsSchema: jsonschema.Schema = {
                     additionalProperties: false
                 }
             },
-            required: ['enable', 'url', 'content'],
+            required: ['enable', 'url', 'custom'],
             additionalProperties: false
         },
         'only-customReply-reply': {
