@@ -1684,6 +1684,22 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 sendStats: {
                     $ref: '#/definitions/discord-webhook-enable-url'
+                },
+                sendTf2Events: {
+                    type: 'object',
+                    properties: {
+                        systemMessage: {
+                            $ref: '#/definitions/discord-webhook-enable-url'
+                        },
+                        displayNotification: {
+                            $ref: '#/definitions/discord-webhook-enable-url'
+                        },
+                        itemBroadcast: {
+                            $ref: '#/definitions/discord-webhook-enable-url'
+                        }
+                    },
+                    required: ['systemMessage', 'displayNotification', 'itemBroadcast'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -1697,7 +1713,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'messages',
                 'priceUpdate',
                 'sendAlert',
-                'sendStats'
+                'sendStats',
+                'sendTf2Events'
             ],
             additionalProperties: false
         },

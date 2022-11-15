@@ -1,5 +1,9 @@
 import Bot from './Bot';
 import log from '../lib/logger';
+import sendTf2SystemMessage from '../lib/DiscordWebhook/sendTf2SystemMessage';
+import sendTf2DisplayNotification from '../lib/DiscordWebhook/sendTf2DisplayNotification';
+import sendTf2ItemBroadcast from '../lib/DiscordWebhook/sendTf2ItemBroadcast';
+import { SendTf2Events } from './Options';
 
 export enum Attributes {
     Paint = 1031,
@@ -616,6 +620,8 @@ export default class TF2GC {
         };
 
         const timeout = setTimeout(onTimeout, 10000);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         this.bot.tf2.on(event, onEvent);
 
         return onCancel;
@@ -705,6 +711,28 @@ export default class TF2GC {
 
     private get isConnectedToGC(): boolean {
         return this.bot.client._playingAppIds.some(game => game == 440);
+    }
+
+    private get sendTf2EventOpt(): SendTf2Events {
+        return this.bot.options.discordWebhook.sendTf2Events;
+    }
+
+    onSystemMessage(message: string): void {
+        if (this.sendTf2EventOpt.systemMessage.enable && this.sendTf2EventOpt.systemMessage.url !== '') {
+            sendTf2SystemMessage(this.bot, message);
+        }
+    }
+
+    onDisplayNotification(title: string, body: string): void {
+        if (this.sendTf2EventOpt.displayNotification.enable && this.sendTf2EventOpt.displayNotification.url !== '') {
+            sendTf2DisplayNotification(this.bot, title, body);
+        }
+    }
+
+    onItemBroadcast(message: string, username: string, wasDestruction: boolean, defindex: number): void {
+        if (this.sendTf2EventOpt.itemBroadcast.enable && this.sendTf2EventOpt.itemBroadcast.url !== '') {
+            sendTf2ItemBroadcast(this.bot, message, username, wasDestruction, defindex);
+        }
     }
 }
 
