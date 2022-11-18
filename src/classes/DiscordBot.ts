@@ -1,19 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
 
-import {
-    Client,
-    GatewayIntentBits,
-    Message,
-    DiscordAPIError,
-    Snowflake,
-    ActivityType,
-    ApplicationCommandType
-} from 'discord.js';
+import { Client, GatewayIntentBits, Message, DiscordAPIError, Snowflake, ActivityType } from 'discord.js';
 import log from '../lib/logger';
 import Options from './Options';
 import Bot from './Bot';
 import SteamID from 'steamid';
-import { uptime } from '../lib/tools/time';
+import { initSlashCommands } from './DiscordSlashCommands';
 
 export default class DiscordBot {
     readonly client: Client;
@@ -38,21 +30,7 @@ export default class DiscordBot {
     public async start(): Promise<void> {
         try {
             await this.client.login(this.options.discordBotToken);
-            await this.client.application.commands.set([
-                {
-                    name: 'uptime',
-                    description: 'Show bot uptime',
-                    type: ApplicationCommandType.ChatInput
-                }
-            ]);
-
-            this.client.on('interactionCreate', async interaction => {
-                if (!interaction.isChatInputCommand()) return;
-
-                if (interaction.commandName === 'uptime') {
-                    await interaction.reply({ content: uptime() });
-                }
-            });
+            await initSlashCommands(this.client, this.bot);
         } catch (err) {
             const error = err as DiscordAPIError;
 
