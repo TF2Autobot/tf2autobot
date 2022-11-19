@@ -793,8 +793,13 @@ export default class PricelistManagerCommands {
                     continue;
                 }
 
-                if (params.withintent && entry.intent === params.withintent) {
-                    continue;
+                if (params.withintent) {
+                    let _withintent = params.withintent as string;
+                    _withintent = _withintent.toLowerCase();
+                    const __withintent = ['buy', 'sell', 'bank'].indexOf(_withintent);
+                    if (__withintent !== entry.intent) {
+                        continue;
+                    }
                 }
 
                 // Autokeys is a feature, so when updating multiple entry with
