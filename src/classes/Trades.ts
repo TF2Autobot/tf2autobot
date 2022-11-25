@@ -536,7 +536,7 @@ export default class Trades {
 
         log.verbose(`Handling offer #${offerId}...`);
 
-        void this.getOffer(offerId)
+        this.getOffer(offerId)
             .then(offer => {
                 if (!offer) {
                     log.debug('Failed to get offer');
