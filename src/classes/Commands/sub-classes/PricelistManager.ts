@@ -1564,7 +1564,7 @@ export default class PricelistManagerCommands {
     private generateUpdateReply(isPremium: boolean, oldEntry: Entry, newEntry: Entry): string {
         const keyPrice = this.bot.pricelist.getKeyPrice;
         const amount = this.bot.inventoryManager.getInventory.getAmount({
-            priceKey: oldEntry.sku,
+            priceKey: oldEntry.id ?? oldEntry.sku,
             includeNonNormalized: false
         });
 
@@ -1904,6 +1904,31 @@ export default class PricelistManagerCommands {
         );
     }
 
+    getGroupsCommand(steamID: SteamID): void {
+        const pricelist = this.bot.pricelist.getPrices;
+        if (Object.keys(pricelist).length === 0) {
+            return this.bot.sendMessage(steamID, '❌ Your pricelist is empty.');
+        }
+
+        const groups = new Map<string, number>();
+        for (const priceKey of Object.keys(pricelist)) {
+            const entry = pricelist[priceKey];
+            const group = entry.group;
+            if (!groups.has(group)) {
+                groups.set(group, 0);
+            }
+            groups.set(group, groups.get(group) + 1);
+        }
+
+        let answer = `You have ${groups.size} groups in total:\n`;
+        [...groups.keys()].forEach((group, i) => {
+            const amount = groups.get(group);
+            answer += `${i + 1}. ${group} (${amount} ${amount === 1 ? 'entry' : 'entries'})\n`;
+        });
+
+        return this.bot.sendMessage(steamID, answer);
+    }
+
     getCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         let sku = params.sku as string;
@@ -1968,7 +1993,7 @@ export default class PricelistManagerCommands {
 
     private generateOutput(filtered: Entry): string {
         const currentStock = this.bot.inventoryManager.getInventory.getAmount({
-            priceKey: filtered.sku,
+            priceKey: filtered.id ?? filtered.sku,
             includeNonNormalized: false,
             tradableOnly: true
         });
@@ -2329,7 +2354,10 @@ export default class PricelistManagerCommands {
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {
-    const amount = bot.inventoryManager.getInventory.getAmount({ priceKey: entry.sku, includeNonNormalized: false });
+    const amount = bot.inventoryManager.getInventory.getAmount({
+        priceKey: entry.id ?? entry.sku,
+        includeNonNormalized: false
+    });
 
     return (
         `\n💲 Buy: ${entry.buy.toString()} | Sell: ${entry.sell.toString()}` +

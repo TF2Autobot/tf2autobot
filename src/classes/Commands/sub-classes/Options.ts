@@ -896,13 +896,13 @@ export default class OptionsCommands {
 
                 if (knownParams.discordChat?.online !== undefined) {
                     if (this.bot.options.discordBotToken && !this.bot.isHalted) {
-                        this.bot.discordBot.setPresence('online');
+                        this.bot.discordBot?.setPresence('online');
                     }
                 }
 
                 if (knownParams.discordChat?.halt !== undefined) {
                     if (this.bot.options.discordBotToken && this.bot.isHalted) {
-                        this.bot.discordBot.setPresence('halt');
+                        this.bot.discordBot?.setPresence('halt');
                     }
                 }
 

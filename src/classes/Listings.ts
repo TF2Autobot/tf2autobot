@@ -642,7 +642,7 @@ export default class Listings {
             const maxStock = entry.max === -1 ? '∞' : entry.max.toString();
             const currentStock = inventory
                 .getAmount({
-                    priceKey: entry.sku,
+                    priceKey: entry.id ?? entry.sku,
                     includeNonNormalized: false,
                     tradableOnly: true
                 })

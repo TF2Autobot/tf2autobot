@@ -12,6 +12,11 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
     const optDW = bot.options.discordWebhook;
     const botInfo = bot.handler.getBotInfo;
     const pollData = loadPollData(bot.handler.getPaths.files.dir);
+
+    if (!pollData) {
+        return;
+    }
+
     const trades = stats(bot, pollData);
     const profits = await profit(bot, pollData, Math.floor((Date.now() - 86400000) / 1000));
 

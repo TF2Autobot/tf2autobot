@@ -384,6 +384,9 @@
         },
         "halted": {
             "ignoreHalted": false
+        },
+        "reviewForced": {
+            "enable": true
         }
     },
     "manualReview": {
@@ -420,6 +423,9 @@
             "note": ""
         },
         "halted": {
+            "note": ""
+        },
+        "reviewForced": {
             "note": ""
         },
         "additionalNotes": ""
