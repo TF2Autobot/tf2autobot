@@ -817,8 +817,12 @@ export default class Bot {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.tf2.on('backpackLoaded', () => {
+            if (!fs.existsSync(path.join(__dirname, `../../files/test`))) {
+                fs.mkdirSync(path.join(__dirname, `../../files/test`));
+            }
+
             fs.writeFile(
-                path.join(__dirname, `../../files/test/bp-${Date.now() / 1000}`),
+                path.join(__dirname, `../../files/test/bp-${Date.now() / 1000}.json`),
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 JSON.stringify(this.tf2.backpack),
