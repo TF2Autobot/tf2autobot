@@ -33,8 +33,6 @@ const paths = genPaths(options.steamAccountName);
 import log, { init } from './lib/logger';
 init(paths, options);
 
-log.debug('options.discordWebhook.sendTf2Events check', options.discordWebhook.sendTf2Events);
-
 if (process.env.pm_id === undefined && process.env.DOCKER === undefined) {
     log.warn(
         "You are not running the bot with PM2! If the bot crashes it won't start again." +
