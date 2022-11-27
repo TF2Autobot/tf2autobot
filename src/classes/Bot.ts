@@ -822,7 +822,7 @@ export default class Bot {
             }
 
             fs.writeFile(
-                path.join(__dirname, `../../files/test/bp-${Date.now() / 1000}.json`),
+                path.join(__dirname, `../../files/test/bp-${Math.floor(Date.now() / 1000)}.json`),
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 JSON.stringify(this.tf2.backpack),
