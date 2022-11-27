@@ -796,9 +796,23 @@ export default class Bot {
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
 
-        this.addListener(this.tf2, 'systemMessage', this.tf2gc.onSystemMessage.bind(this.tf2gc), true);
-        this.addListener(this.tf2, 'displayNotification', this.tf2gc.onDisplayNotification.bind(this.tf2), true);
-        this.addListener(this.tf2, 'itemBroadcast', this.tf2gc.onItemBroadcast.bind(this.tf2gc), true);
+        this.tf2.on('systemMessage', message => {
+            if (this.canSendEvents()) {
+                this.handler.onSystemMessage(message);
+            }
+        });
+
+        this.tf2.on('displayNotification', (title, body) => {
+            if (this.canSendEvents()) {
+                this.handler.onDisplayNotification(title, body);
+            }
+        });
+
+        this.tf2.on('itemBroadcast', (message, username, wasDestruction, defindex) => {
+            if (this.canSendEvents()) {
+                this.handler.onItemBroadcast(message, username, wasDestruction, defindex);
+            }
+        });
 
         const firstTwoChain = [
             async () => {
