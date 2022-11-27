@@ -814,6 +814,26 @@ export default class Bot {
             }
         });
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.tf2.on('backpackLoaded', () => {
+            fs.writeFile(
+                path.join(__dirname, `../../files/test/bp-${Date.now() / 1000}`),
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                JSON.stringify(this.tf2.backpack),
+                { encoding: 'utf-8' },
+                err => {
+                    if (err) {
+                        log.error('save backpack error', err);
+                        return;
+                    }
+
+                    log.debug('backpackLoaded event emitted.');
+                }
+            );
+        });
+
         const firstTwoChain = [
             async () => {
                 log.debug('Calling onRun');
