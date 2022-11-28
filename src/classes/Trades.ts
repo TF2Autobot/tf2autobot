@@ -726,14 +726,21 @@ export default class Trades {
                 this.bot.client.steamID || this.bot.community.steamID,
                 offer.itemsToGive,
                 this.bot,
-                'our'
+                'our',
+                this.bot.boundInventoryGetter
             ).getItems;
 
-            const theirItems = Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot, 'their').getItems;
+            const theirItems = Inventory.fromItems(
+                offer.partner,
+                offer.itemsToReceive,
+                this.bot,
+                'their',
+                this.bot.boundInventoryGetter
+            ).getItems;
 
             const ourInventoryItems = this.bot.inventoryManager.getInventory.getItems;
 
-            const theirInventory = new Inventory(offer.partner, this.bot, 'their');
+            const theirInventory = new Inventory(offer.partner, this.bot, 'their', this.bot.boundInventoryGetter);
 
             log.debug('Fetching their inventory...');
             void theirInventory

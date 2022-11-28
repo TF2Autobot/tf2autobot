@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import SteamUser from 'steam-user';
 import { EResult, EPersonaState } from 'steam-user';
-import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
+import TradeOfferManager, { CustomError, EconItem } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager, { Listing } from '@tf2autobot/bptf-listings';
@@ -27,6 +27,7 @@ import Trades from './Trades';
 import Listings from './Listings';
 import TF2GC from './TF2GC';
 import Inventory from './Inventory';
+import InventoryGetter from './InventoryGetter';
 import BotManager from './BotManager';
 import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
@@ -70,6 +71,16 @@ export default class Bot {
     readonly tf2gc: TF2GC;
 
     readonly handler: MyHandler;
+
+    readonly inventoryGetter: InventoryGetter;
+
+    readonly boundInventoryGetter: (
+        steamID: SteamID | string,
+        appid: number,
+        contextid: string,
+        tradeableOnly: boolean,
+        callback: (err?: Error, inventory?: EconItem[], currencies?: EconItem[]) => void
+    ) => void;
 
     discordBot: DiscordBot = null;
 
@@ -201,6 +212,9 @@ export default class Bot {
                 throw new Error('Invalid Item stats whitelist steamID');
             }
         });
+
+        this.inventoryGetter = new InventoryGetter(this);
+        this.boundInventoryGetter = this.inventoryGetter.getUserInventoryContents.bind(this.inventoryGetter);
     }
 
     isAdmin(steamID: SteamID | string): boolean {
@@ -895,7 +909,12 @@ export default class Bot {
                 // only call this here, and in Commands/Options
                 Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
 
-                this.inventoryManager.setInventory = new Inventory(this.client.steamID, this, 'our');
+                this.inventoryManager.setInventory = new Inventory(
+                    this.client.steamID,
+                    this,
+                    'our',
+                    this.boundInventoryGetter
+                );
                 await this.inventoryManager.getInventory.fetch();
             },
             async () => {

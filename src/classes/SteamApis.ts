@@ -1,0 +1,148 @@
+import axios, { AxiosError } from 'axios';
+import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { UnknownDictionary } from 'src/types/common';
+import Bot from './Bot';
+import SteamID from 'steamid';
+import CEconItem from '@tf2autobot/steamcommunity/classes/CEconItem';
+import { EconItem } from '@tf2autobot/tradeoffer-manager';
+
+export default class SteamApis {
+    constructor(private bot: Bot) {}
+
+    // Adapted from node-steamcommunity
+    public getUserInventoryContents(
+        userID: SteamID | string,
+        appID: number,
+        contextID: string,
+        tradableOnly: boolean,
+        callback: (err?: Error, inventory?: EconItem[], currency?: EconItem[], totalInventoryCount?: number) => void
+    ): void {
+        if (!userID) {
+            callback(new Error("The user's SteamID is invalid or missing."));
+            return;
+        }
+
+        const userSteamID64 = typeof userID === 'string' ? userID : userID.getSteamID64();
+        const apiKey = this.bot.options.steamApis.apiKey;
+
+        let pos = 1;
+        get([], []);
+
+        function get(inventory: EconItem[], currency: EconItem[], start?: string) {
+            void axios({
+                url: `https://api.steamapis.com/steam/inventory/${userSteamID64}/${appID}/${contextID}`,
+                params: {
+                    api_key: apiKey,
+                    l: 'english',
+                    count: 2000,
+                    start_assetid: start
+                }
+            }).then(
+                response => {
+                    const result = response.data as GetUserInventoryContentsResult;
+
+                    if (response.status === 403 && result === null) {
+                        callback(new Error('This profile is private.'));
+                        return;
+                    }
+
+                    if (response.status == 500 && result && result.error) {
+                        const errToReturn = new Error(result.error);
+                        const match = result.error.match(/^(.+) \((\d+)\)$/);
+                        if (match) {
+                            errToReturn.message = match[1];
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            errToReturn.eresult = match[2];
+                        }
+                        callback(errToReturn);
+                        return;
+                    }
+
+                    if (result && result.success && result.total_inventory_count === 0) {
+                        // Empty inventory
+                        callback(null, [], [], 0);
+                        return;
+                    }
+
+                    if (!result || !result.success || !result.assets || !result.descriptions) {
+                        if (result) {
+                            // Dunno if the error/Error property even exists on this new endpoint
+                            callback(new Error(result.error || result.Error || 'Malformed response'));
+                        } else {
+                            callback(new Error('Malformed response'));
+                        }
+
+                        return;
+                    }
+
+                    for (let i = 0; i < result.assets.length; i++) {
+                        const description = getDescription(
+                            result.descriptions,
+                            result.assets[i].classid,
+                            result.assets[i].instanceid
+                        );
+
+                        if (!tradableOnly || (description && description.tradable)) {
+                            result.assets[i].pos = pos++;
+                            (result.assets[i].currencyid ? currency : inventory).push(
+                                new CEconItem(result.assets[i], description, contextID)
+                            );
+                        }
+                    }
+
+                    if (result.more_items) {
+                        get(inventory, currency, result.last_assetid);
+                    } else {
+                        callback(null, inventory, currency, result.total_inventory_count);
+                    }
+                },
+                (err: AxiosError) => {
+                    callback(filterAxiosError(err) as Error);
+                }
+            );
+        }
+
+        // A bit of optimization; objects are hash tables so it's more efficient to look up by key than to iterate an array
+        const quickDescriptionLookup: UnknownDictionary<Description> = {};
+
+        function getDescription(descriptions: Description[], classID: string, instanceID: string): Description {
+            const key = classID + '_' + (instanceID || '0'); // instanceID can be undefined, in which case it's 0.
+
+            if (quickDescriptionLookup[key]) {
+                return quickDescriptionLookup[key];
+            }
+
+            for (let i = 0; i < descriptions.length; i++) {
+                quickDescriptionLookup[descriptions[i].classid + '_' + (descriptions[i].instanceid || '0')] =
+                    descriptions[i];
+            }
+
+            return quickDescriptionLookup[key];
+        }
+    }
+}
+
+interface Description {
+    classid: string;
+    instanceid?: string;
+    tradable?: number;
+}
+
+interface Asset {
+    pos?: number;
+    classid: string;
+    currencyid?: string;
+    instanceid: string;
+}
+
+interface GetUserInventoryContentsResult {
+    assets?: Asset[];
+    descriptions?: Description[];
+    error?: string;
+    Error?: string;
+    last_assetid?: string;
+    more_items?: number;
+    total_inventory_count?: number;
+    success?: number;
+}

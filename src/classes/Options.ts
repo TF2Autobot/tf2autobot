@@ -475,6 +475,11 @@ export const DEFAULTS: JsonOptions = {
         additionalNotes: ''
     },
 
+    steamApis: {
+        enable: false,
+        apiKey: ''
+    },
+
     discordChat: {
         online: {
             // Default: "Listening to incoming offers"
@@ -1547,6 +1552,12 @@ interface ManualReview extends OnlyEnable {
     additionalNotes?: string;
 }
 
+// ------------- SteamApis -----------------
+
+interface SteamApis extends OnlyEnable {
+    apiKey?: string;
+}
+
 // ------------ Discord Chat ---------------
 
 interface DiscordChat {
@@ -2054,6 +2065,7 @@ export interface JsonOptions {
     crafting?: Crafting;
     offerReceived?: OfferReceived;
     manualReview?: ManualReview;
+    steamApis?: SteamApis;
     discordChat?: DiscordChat;
     discordWebhook?: DiscordWebhook;
     customMessage?: CustomMessage;
