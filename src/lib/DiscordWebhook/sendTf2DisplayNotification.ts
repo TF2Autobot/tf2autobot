@@ -17,10 +17,9 @@ export default function sendTf2DisplayNotification(bot: Bot, title: string, body
                 author: {
                     name: 'Team Fortress 2',
                     url: 'https://www.teamfortress.com/',
-                    icon_url:
-                        'https://steamuserimages-a.akamaihd.net/ugc/397802673729276567/5616177ADB53A1F185A00458A9CC037AC46B48AB/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false'
+                    icon_url: 'https://wiki.teamfortress.com/w/images/4/41/Team_Fortress_2.png'
                 },
-                title: 'Team Fortress 2 - Display Notification',
+                title: '__Display Notification__',
                 description: `${title ? `**__${title}__**\n\n` : ''}${body}`,
                 color: '12936960',
                 footer: {

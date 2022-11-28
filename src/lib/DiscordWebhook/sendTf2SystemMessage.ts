@@ -17,11 +17,10 @@ export default function sendTf2SystemMessage(bot: Bot, message: string): void {
                 author: {
                     name: 'Team Fortress 2',
                     url: 'https://www.teamfortress.com/',
-                    icon_url:
-                        'https://steamuserimages-a.akamaihd.net/ugc/397802673729276567/5616177ADB53A1F185A00458A9CC037AC46B48AB/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false'
+                    icon_url: 'https://wiki.teamfortress.com/w/images/4/41/Team_Fortress_2.png'
                 },
-                title: 'Team Fortress 2 - System Message',
-                description: `__${message}__`,
+                title: '__System Message__',
+                description: `${message}`,
                 color: '12936960',
                 footer: {
                     text: `${timeNow(bot.options).time}`
