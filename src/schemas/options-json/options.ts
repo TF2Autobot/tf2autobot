@@ -1463,12 +1463,12 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 },
                 apiKey: {
-                    type: 'string',
+                    type: 'string'
                 }
             },
             required: ['enable', 'apiKey'],
             additionalProperties: false
-        }
+        },
         discordChat: {
             type: 'object',
             properties: {
