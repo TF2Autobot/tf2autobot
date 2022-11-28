@@ -430,6 +430,10 @@
         },
         "additionalNotes": ""
     },
+    "steamApis": {
+        "enable": false,
+        "apiKey": ""
+    },
     "discordChat": {
         "online": {
             "type": "LISTENING",
