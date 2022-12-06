@@ -169,7 +169,44 @@ export default class Bot {
 
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
-        this.tf2.setLang('english');
+        if (
+            [
+                'english',
+                'brazilian',
+                'bulgarian',
+                'czech',
+                'danish',
+                'dutch',
+                'finnish',
+                'french',
+                'german',
+                'greek',
+                'hungarian',
+                'italian',
+                'japanese',
+                'korean',
+                'koreana',
+                'norwegian',
+                'pirate',
+                'polish',
+                'portuguese'
+            ].includes(this.options.tf2Language)
+        ) {
+            setInterval(() => {
+                axios({
+                    method: 'get',
+                    url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`
+                })
+                    .then(response => {
+                        const content = response.data as string;
+                        this.tf2.setLang(content);
+                    })
+                    .catch(() => {
+                        // Just log, do nothing.
+                        log.warn('Error getting TF2 Localization file.');
+                    });
+            }, 1 * 60 * 60 * 1000); // every hour?
+        }
 
         this.friends = new Friends(this);
         this.groups = new Groups(this);

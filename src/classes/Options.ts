@@ -2139,6 +2139,7 @@ export default interface Options extends JsonOptions {
     skipBPTFTradeofferURL?: boolean;
     skipUpdateProfileSettings?: boolean;
 
+    tf2Language?: string;
     timezone?: string;
     customTimeFormat?: string;
     timeAdditionalNotes?: string;
@@ -2439,6 +2440,7 @@ export function loadOptions(options?: Options): Options {
         skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, jsonParseBoolean, incomingOptions),
         skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, jsonParseBoolean, incomingOptions),
 
+        tf2Language: getOption('tf2Language', 'english', String, incomingOptions),
         timezone: getOption('timezone', '', String, incomingOptions),
         customTimeFormat: getOption('customTimeFormat', '', String, incomingOptions),
         timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),
