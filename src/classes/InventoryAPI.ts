@@ -7,7 +7,7 @@ import { EconItem } from '@tf2autobot/tradeoffer-manager';
 
 import Bot from './Bot';
 
-export default class InventoryAPI {
+export default class InventoryApi {
     constructor(private bot: Bot, private optionsKey: string) {}
 
     public isEnabled(): boolean {
@@ -15,9 +15,9 @@ export default class InventoryAPI {
         return this.bot.options[this.optionsKey].enable;
     }
 
-    protected getApiKey(): string {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-        return this.bot.options[this.optionsKey].apiKey;
+    public getApiKey(): string {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return this.bot.options[this.optionsKey.toLowerCase() + 'ApiKey'];
     }
 
     // This method should be defined by a class extending InventoryAPI

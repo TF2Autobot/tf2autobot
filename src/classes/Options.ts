@@ -475,9 +475,10 @@ export const DEFAULTS: JsonOptions = {
         additionalNotes: ''
     },
 
-    steamApis: {
-        enable: false,
-        apiKey: ''
+    inventoryApis: {
+        steamApis: {
+            enable: false
+        }
     },
 
     discordChat: {
@@ -1552,10 +1553,10 @@ interface ManualReview extends OnlyEnable {
     additionalNotes?: string;
 }
 
-// ------------- SteamApis -----------------
+// ----------- Inventory APIs --------------
 
-interface SteamApis extends OnlyEnable {
-    apiKey?: string;
+interface InventoryApis {
+    steamApis?: OnlyEnable;
 }
 
 // ------------ Discord Chat ---------------
@@ -2065,7 +2066,7 @@ export interface JsonOptions {
     crafting?: Crafting;
     offerReceived?: OfferReceived;
     manualReview?: ManualReview;
-    steamApis?: SteamApis;
+    inventoryApis?: InventoryApis;
     discordChat?: DiscordChat;
     discordWebhook?: DiscordWebhook;
     customMessage?: CustomMessage;
@@ -2086,6 +2087,7 @@ export default interface Options extends JsonOptions {
 
     mptfApiKey?: string;
     discordBotToken?: string;
+    steamApisApiKey?: string;
 
     admins?: adminData[];
     keep?: string[];
@@ -2386,6 +2388,7 @@ export function loadOptions(options?: Options): Options {
 
         mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
         discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
+        steamApisApiKey: getOption('steamapisApiKey', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),

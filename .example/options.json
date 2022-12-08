@@ -430,9 +430,10 @@
         },
         "additionalNotes": ""
     },
-    "steamApis": {
-        "enable": false,
-        "apiKey": ""
+    "inventoryApis": {
+        "steamApis": {
+            "enable": false
+        }
     },
     "discordChat": {
         "online": {

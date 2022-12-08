@@ -2,14 +2,14 @@ import SteamID from 'steamid';
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
 
 import Bot from './Bot';
-import InventoryAPI from './InventoryAPI';
+import InventoryApi from './InventoryApi';
 import SteamApis from './SteamApis';
 
 export default class InventoryGetter {
-    private readonly inventoryAPIs: InventoryAPI[];
+    private readonly inventoryApis: InventoryApi[];
 
     constructor(private readonly bot: Bot) {
-        this.inventoryAPIs = [new SteamApis(this.bot)];
+        this.inventoryApis = [new SteamApis(this.bot)];
     }
 
     getUserInventoryContents(
@@ -23,8 +23,8 @@ export default class InventoryGetter {
             this.bot.manager.getUserInventoryContents(steamID, appid, contextid, tradeableOnly, callback);
             return;
         }
-        for (const inventoryAPI of this.inventoryAPIs) {
-            if (inventoryAPI.isEnabled()) {
+        for (const inventoryAPI of this.inventoryApis) {
+            if (inventoryAPI.isEnabled() && inventoryAPI.getApiKey() != '') {
                 inventoryAPI.getUserInventoryContents(steamID, appid, contextid, tradeableOnly, callback);
                 return;
             }

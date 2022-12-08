@@ -25,7 +25,7 @@ export type OptionsKeys =
     | 'crafting'
     | 'offerReceived'
     | 'manualReview'
-    | 'steamApis'
+    | 'inventoryApis'
     | 'discordWebhook'
     | 'customMessage'
     | 'commands'

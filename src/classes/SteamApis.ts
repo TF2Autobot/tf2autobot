@@ -1,8 +1,8 @@
 import { UnknownDictionaryKnownValues } from 'src/types/common';
 import Bot from './Bot';
-import InventoryAPI from './InventoryAPI';
+import InventoryApi from './InventoryApi';
 
-export default class SteamApis extends InventoryAPI {
+export default class SteamApis extends InventoryApi {
     constructor(bot: Bot) {
         super(bot, 'steamApis');
     }
