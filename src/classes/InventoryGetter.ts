@@ -24,9 +24,9 @@ export default class InventoryGetter {
             this.bot.manager.getUserInventoryContents(steamID, appid, contextid, tradeableOnly, callback);
             return;
         }
-        for (const inventoryAPI of this.inventoryApis) {
-            if (inventoryAPI.isEnabled() && inventoryAPI.getApiKey() != '') {
-                inventoryAPI.getUserInventoryContents(steamID, appid, contextid, tradeableOnly, callback);
+        for (const inventoryApi of this.inventoryApis) {
+            if (inventoryApi.isEnabled() && inventoryApi.getApiKey() != '') {
+                inventoryApi.getUserInventoryContents(steamID, appid, contextid, tradeableOnly, callback);
                 return;
             }
         }
