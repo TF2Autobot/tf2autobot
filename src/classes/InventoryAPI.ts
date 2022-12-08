@@ -12,12 +12,12 @@ export default class InventoryApi {
 
     public isEnabled(): boolean {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-        return this.bot.options[this.optionsKey].enable;
+        return this.bot.options.inventoryApis[this.optionsKey].enable;
     }
 
     public getApiKey(): string {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return this.bot.options[this.optionsKey.toLowerCase() + 'ApiKey'];
+        return this.bot.options[this.optionsKey + 'ApiKey'];
     }
 
     // This method should be defined by a class extending InventoryAPI
