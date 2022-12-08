@@ -3,13 +3,14 @@ import { EconItem } from '@tf2autobot/tradeoffer-manager';
 
 import Bot from './Bot';
 import InventoryApi from './InventoryApis/InventoryApi';
+import SteamSupply from './InventoryApis/SteamSupply';
 import SteamApis from './InventoryApis/SteamApis';
 
 export default class InventoryGetter {
     private readonly inventoryApis: InventoryApi[];
 
     constructor(private readonly bot: Bot) {
-        this.inventoryApis = [new SteamApis(this.bot)];
+        this.inventoryApis = [new SteamSupply(this.bot), new SteamApis(this.bot)];
     }
 
     getUserInventoryContents(

@@ -431,6 +431,9 @@
         "additionalNotes": ""
     },
     "inventoryApis": {
+        "steamSupply": {
+            "enable": false
+        },
         "steamApis": {
             "enable": false
         }

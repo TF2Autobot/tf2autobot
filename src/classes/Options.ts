@@ -476,6 +476,9 @@ export const DEFAULTS: JsonOptions = {
     },
 
     inventoryApis: {
+        steamSupply: {
+            enable: false
+        },
         steamApis: {
             enable: false
         }
@@ -1556,6 +1559,7 @@ interface ManualReview extends OnlyEnable {
 // ----------- Inventory APIs --------------
 
 interface InventoryApis {
+    steamSupply?: OnlyEnable;
     steamApis?: OnlyEnable;
 }
 
@@ -2087,6 +2091,7 @@ export default interface Options extends JsonOptions {
 
     mptfApiKey?: string;
     discordBotToken?: string;
+    steamSupplyApiKey?: string;
     steamApisApiKey?: string;
 
     admins?: adminData[];
@@ -2388,6 +2393,7 @@ export function loadOptions(options?: Options): Options {
 
         mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
         discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
+        steamSupplyApiKey: getOption('steamsupplyApiKey', '', String, incomingOptions),
         steamApisApiKey: getOption('steamapisApiKey', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseAdminData, incomingOptions),

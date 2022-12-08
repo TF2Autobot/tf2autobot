@@ -25,6 +25,7 @@
 
                 "MPTF_API_KEY": "",
                 "DISCORD_BOT_TOKEN": "",
+                "STEAMSUPPLY_API_KEY": "",
                 "STEAMAPIS_API_KEY": "",
 
                 "ADMINS": [
