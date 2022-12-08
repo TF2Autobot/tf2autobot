@@ -5,7 +5,7 @@ import SteamID from 'steamid';
 import CEconItem from '@tf2autobot/steamcommunity/classes/CEconItem';
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
 
-import Bot from './Bot';
+import Bot from '../Bot';
 
 export default class InventoryApi {
     constructor(private bot: Bot, private optionsKey: string) {}

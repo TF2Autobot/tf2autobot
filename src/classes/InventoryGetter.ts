@@ -2,8 +2,8 @@ import SteamID from 'steamid';
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
 
 import Bot from './Bot';
-import InventoryApi from './InventoryApi';
-import SteamApis from './SteamApis';
+import InventoryApi from './InventoryApis/InventoryApi';
+import SteamApis from './InventoryApis/SteamApis';
 
 export default class InventoryGetter {
     private readonly inventoryApis: InventoryApi[];

@@ -1,5 +1,5 @@
 import { UnknownDictionaryKnownValues } from 'src/types/common';
-import Bot from './Bot';
+import Bot from '../Bot';
 import InventoryApi from './InventoryApi';
 
 export default class SteamApis extends InventoryApi {
