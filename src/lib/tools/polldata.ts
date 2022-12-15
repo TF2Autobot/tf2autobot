@@ -41,3 +41,11 @@ export default function loadPollData(dir: string) {
 
     return polldata;
 }
+
+export function deletePollData(dir: string): void {
+    fs.readdirSync(dir)
+        .filter(name => name.includes('polldata'))
+        .forEach(name => {
+            fs.unlinkSync(dir + name);
+        });
+}

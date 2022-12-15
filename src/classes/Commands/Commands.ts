@@ -208,6 +208,8 @@ export default class Commands {
                 void this.pManager.partialPriceUpdateCommand(steamID, message);
             } else if (['getslots', 'listings'].includes(command) && isAdmin) {
                 void this.pManager.getSlotsCommand(steamID);
+            } else if (command === 'groups' && isAdmin) {
+                void this.pManager.getGroupsCommand(steamID);
             } else if (command === 'autoadd' && isAdmin) {
                 this.pManager.autoAddCommand(steamID, message);
             } else if (command === 'stopautoadd' && isAdmin) {
@@ -244,6 +246,8 @@ export default class Commands {
                 this.status.statsDWCommand(steamID);
             } else if (command === 'itemstats' && (isAdmin || isWhitelisted)) {
                 void this.status.itemStatsCommand(steamID, message);
+            } else if (command == 'wipestats' && isAdmin) {
+                this.status.statsWipeCommand(steamID, message);
             } else if (command === 'inventory' && isAdmin) {
                 this.status.inventoryCommand(steamID);
             } else if (command === 'version' && (isAdmin || isWhitelisted)) {
@@ -388,7 +392,7 @@ export default class Commands {
         }
 
         reply += `.\n📦 I have ${this.bot.inventoryManager.getInventory.getAmount({
-            priceKey: match.sku,
+            priceKey: match.id ?? match.sku,
             includeNonNormalized: false,
             tradableOnly: true
         })}`;

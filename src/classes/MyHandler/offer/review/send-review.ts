@@ -32,7 +32,8 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
         if (
             reasons.includes('⬜_BANNED_CHECK_FAILED') ||
             reasons.includes('⬜_ESCROW_CHECK_FAILED') ||
-            reasons.includes('⬜_HALTED')
+            reasons.includes('⬜_HALTED') ||
+            reasons.includes('⬜_REVIEW_FORCED')
         ) {
             let reply: string;
 
@@ -54,6 +55,9 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
                     ? custom
                     : '❌ The bot is not operational right now, but your offer has been put to review,' +
                       ' please wait for my owner to manually accept/decline your offer.';
+            } else if (reasons.includes('⬜_REVIEW_FORCED')) {
+                const custom = opt.manualReview.reviewForced.note;
+                reply = custom ? custom : 'Your offer has been received and will be manually reviewed by the owner.';
             }
             bot.sendMessage(offer.partner, reply);
         } else {

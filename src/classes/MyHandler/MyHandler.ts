@@ -880,70 +880,51 @@ export default class MyHandler extends Handler {
 
         const offerMessage = offer.message.toLowerCase();
 
-        if (itemsToGiveCount === 0) {
-            const isGift = [
-                'gift',
-                'donat', // So that 'donate' or 'donation' will also be accepted
-                'tip', // All others are synonyms
-                'tribute',
-                'souvenir',
-                'favor',
-                'giveaway',
-                'bonus',
-                'grant',
-                'bounty',
-                'present',
-                'contribution',
-                'award',
-                'nice', // Up until here actually
-                'happy', // All below people might also use
-                'thank',
-                'goo', // For 'good', 'goodie' or anything else
-                'awesome',
-                'rep',
-                'joy',
-                'cute', // right?
-                'enjoy',
-                'prize',
-                'free',
-                'tnx',
-                'ty',
-                'love',
-                '<3'
-            ].some(word => offerMessage.includes(word));
+        const forcesReview =
+            opt.manualReview.enable &&
+            opt.offerReceived.reviewForced.enable &&
+            ['refund', 'review', 'check', 'manual'].some(word => offerMessage.includes(word)); // "Please review" will also make this true this way.
+        if (forcesReview) {
+            wrongAboutOffer.push({
+                reason: '⬜_REVIEW_FORCED'
+            });
+        } else {
+            if (itemsToGiveCount === 0) {
+                const isGift = [
+                    'gift',
+                    'donat', // So that 'donate' or 'donation' will also be accepted
+                    'tip', // All others are synonyms
+                    'tribute',
+                    'souvenir',
+                    'favor',
+                    'giveaway',
+                    'bonus',
+                    'grant',
+                    'bounty',
+                    'present',
+                    'contribution',
+                    'award',
+                    'nice', // Up until here actually
+                    'happy', // All below people might also use
+                    'thank',
+                    'goo', // For 'good', 'goodie' or anything else
+                    'awesome',
+                    'rep',
+                    'joy',
+                    'cute', // right?
+                    'enjoy',
+                    'prize',
+                    'free',
+                    'tnx',
+                    'ty',
+                    'love',
+                    '<3'
+                ].some(word => offerMessage.includes(word));
 
-            if (isGift) {
-                // We can accept escrow if it's gift
-                if (checkBannedFailed) {
-                    offer.log('info', `is a gift offer, but failed to check for banned status, declining...`);
-                    return {
-                        action: 'decline',
-                        reason: 'GIFT_FAILED_CHECK_BANNED',
-                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                    };
-                }
-
-                offer.log(
-                    'trade',
-                    `is a gift offer, accepting. Summary:\n${JSON.stringify(
-                        summarize(offer, this.bot, 'summary-accepting', false),
-                        null,
-                        4
-                    )}`
-                );
-
-                return {
-                    action: 'accept',
-                    reason: 'GIFT',
-                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                };
-            } else {
-                if (opt.bypass.giftWithoutMessage.allow) {
+                if (isGift) {
+                    // We can accept escrow if it's gift
                     if (checkBannedFailed) {
-                        offer.log(
-                            'info',
-                            `is a gift offer without any offer message, but failed to check for banned status, declining...`
-                        );
+                        offer.log('info', `is a gift offer, but failed to check for banned status, declining...`);
                         return {
                             action: 'decline',
                             reason: 'GIFT_FAILED_CHECK_BANNED',
@@ -953,7 +934,11 @@ export default class MyHandler extends Handler {
 
                     offer.log(
                         'trade',
-                        'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                        `is a gift offer, accepting. Summary:\n${JSON.stringify(
+                            summarize(offer, this.bot, 'summary-accepting', false),
+                            null,
+                            4
+                        )}`
                     );
 
                     return {
@@ -962,25 +947,50 @@ export default class MyHandler extends Handler {
                         meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
                     };
                 } else {
-                    offer.log('info', 'is a gift offer without any offer message, declining...');
-                    return {
-                        action: 'decline',
-                        reason: 'GIFT_NO_NOTE',
-                        meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-                    };
+                    if (opt.bypass.giftWithoutMessage.allow) {
+                        if (checkBannedFailed) {
+                            offer.log(
+                                'info',
+                                `is a gift offer without any offer message, but failed to check for banned status, declining...`
+                            );
+                            return {
+                                action: 'decline',
+                                reason: 'GIFT_FAILED_CHECK_BANNED',
+                                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                            };
+                        }
+
+                        offer.log(
+                            'trade',
+                            'is a gift offer without any offer message, but allowed to be accepted, accepting...'
+                        );
+
+                        return {
+                            action: 'accept',
+                            reason: 'GIFT',
+                            meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                        };
+                    } else {
+                        offer.log('info', 'is a gift offer without any offer message, declining...');
+                        return {
+                            action: 'decline',
+                            reason: 'GIFT_NO_NOTE',
+                            meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                        };
+                    }
                 }
+            } else if (
+                itemsToGiveCount > 0 &&
+                itemsToReceiveCount === 0 &&
+                !(opt.miscSettings.counterOffer.enable && exchange.contains.items)
+            ) {
+                offer.log('info', 'is taking our items for free, declining...');
+                return {
+                    action: 'decline',
+                    reason: 'CRIME_ATTEMPT',
+                    meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+                };
             }
-        } else if (
-            itemsToGiveCount > 0 &&
-            itemsToReceiveCount === 0 &&
-            !(opt.miscSettings.counterOffer.enable && exchange.contains.items)
-        ) {
-            offer.log('info', 'is taking our items for free, declining...');
-            return {
-                action: 'decline',
-                reason: 'CRIME_ATTEMPT',
-                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
-            };
         }
 
         // Check for Dueling Mini-Game and/or Noise maker for 5x/25x Uses only when enabled
@@ -1060,13 +1070,15 @@ export default class MyHandler extends Handler {
                 }
             }
 
-            return {
-                action: 'decline',
-                reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
-                meta: {
-                    highValueName: highValueOurNames
-                }
-            };
+            if (!forcesReview) {
+                return {
+                    action: 'decline',
+                    reason: 'HIGH_VALUE_ITEMS_NOT_SELLING',
+                    meta: {
+                        highValueName: highValueOurNames
+                    }
+                };
+            }
         }
 
         const itemPrices: Prices = {};
@@ -1420,14 +1432,14 @@ export default class MyHandler extends Handler {
             };
         }
 
-        if (exchange.contains.metal && !exchange.contains.keys && !exchange.contains.items) {
+        if (!forcesReview && exchange.contains.metal && !exchange.contains.keys && !exchange.contains.items) {
             // Offer only contains metal
             offer.log('info', 'only contains metal, declining...');
             return { action: 'decline', reason: 'ONLY_METAL' };
         } else if (exchange.contains.keys && !exchange.contains.items) {
             // Offer is for trading keys, check if we are trading them
             const priceEntry = this.bot.pricelist.getPrice({ priceKey: '5021;6', onlyEnabled: true });
-            if (priceEntry === null) {
+            if (!forcesReview && priceEntry === null) {
                 // We are not trading keys
                 offer.log('info', 'we are not trading keys, declining...');
                 this.bot.listings.checkByPriceKey({
@@ -1436,7 +1448,12 @@ export default class MyHandler extends Handler {
                     showLogs: true
                 });
                 return { action: 'decline', reason: 'NOT_TRADING_KEYS' };
-            } else if (exchange.our.contains.keys && priceEntry.intent !== 1 && priceEntry.intent !== 2) {
+            } else if (
+                !forcesReview &&
+                exchange.our.contains.keys &&
+                priceEntry.intent !== 1 &&
+                priceEntry.intent !== 2
+            ) {
                 // We are not selling keys
                 offer.log('info', 'we are not selling keys, declining...');
                 this.bot.listings.checkByPriceKey({
@@ -1445,7 +1462,12 @@ export default class MyHandler extends Handler {
                     showLogs: true
                 });
                 return { action: 'decline', reason: 'NOT_SELLING_KEYS' };
-            } else if (exchange.their.contains.keys && priceEntry.intent !== 0 && priceEntry.intent !== 2) {
+            } else if (
+                !forcesReview &&
+                exchange.their.contains.keys &&
+                priceEntry.intent !== 0 &&
+                priceEntry.intent !== 2
+            ) {
                 // We are not buying keys
                 offer.log('info', 'we are not buying keys, declining...');
                 this.bot.listings.checkByPriceKey({
@@ -1566,7 +1588,7 @@ export default class MyHandler extends Handler {
             }
         }
 
-        if (exchange.our.value < exchange.their.value && !opt.bypass.overpay.allow) {
+        if (!forcesReview && exchange.our.value < exchange.their.value && !opt.bypass.overpay.allow) {
             offer.log('info', 'is offering more than needed, declining...');
             return {
                 action: 'decline',
@@ -1802,8 +1824,8 @@ export default class MyHandler extends Handler {
                 highValue: isContainsHighValue ? highValueMeta : undefined
             };
 
-            // don't use business logic if the bot is not operational
-            if (this.bot.isHalted) {
+            // don't use business logic if the bot is not operational or the trade must be reviewed
+            if (this.bot.isHalted || forcesReview) {
                 return {
                     action: 'skip',
                     reason: 'REVIEW',

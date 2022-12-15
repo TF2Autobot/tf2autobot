@@ -43,7 +43,7 @@ import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 export default class Bot {
     // Modules and classes
-    schema: SchemaManager.Schema; // should be readonly
+    schema: SchemaManager.Schema;
 
     readonly bptf: BptfLogin;
 
@@ -57,7 +57,7 @@ export default class Bot {
 
     tradeOfferUrl: string;
 
-    listingManager: ListingManager; // should be readonly
+    listingManager: ListingManager;
 
     readonly friends: Friends;
 
@@ -71,13 +71,13 @@ export default class Bot {
 
     readonly handler: MyHandler;
 
-    discordBot: DiscordBot; // should be readonly?
+    discordBot: DiscordBot = null;
 
-    inventoryManager: InventoryManager; // should be readonly
+    inventoryManager: InventoryManager;
 
-    pricelist: Pricelist; // should be readonly
+    pricelist: Pricelist;
 
-    schemaManager: SchemaManager; // should be readonly
+    schemaManager: SchemaManager;
 
     public effects: Effect[];
 
@@ -348,7 +348,7 @@ export default class Bot {
         this.client.setPersona(EPersonaState.Snooze);
 
         log.debug('Settings status in Discord to "idle"');
-        this.discordBot.halt();
+        this.discordBot?.halt();
 
         // disable auto-check for missing/mismatching listings
         clearInterval(this.autoRefreshListingsInterval);
@@ -376,7 +376,7 @@ export default class Bot {
         this.client.setPersona(EPersonaState.Online);
 
         log.debug('Settings status in Discord to "online"');
-        this.discordBot.unhalt();
+        this.discordBot?.unhalt();
 
         // Re-initialize auto-check for missing/mismatching listings
         this.startAutoRefreshListings();
@@ -472,7 +472,7 @@ export default class Bot {
                 if (process.platform === 'win32') {
                     messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
-                        '/code rmdir /s /q node_modules dist & git reset HEAD --hard & git pull --prune & npm install & npm run build & node dist/app.js'
+                        '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && node dist/app.js'
                     ];
                 } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
                     messages = [
@@ -843,6 +843,7 @@ export default class Bot {
                     try {
                         await this.discordBot.start();
                     } catch (err) {
+                        this.discordBot = null;
                         log.warn('Failed to start Discord bot: ', err);
                         throw err;
                     }
@@ -1058,8 +1059,8 @@ export default class Bot {
 
                                 this.tradeOfferUrl = url;
 
-                                if (this.options.discordBotToken) {
-                                    this.discordBot.setPresence('online');
+                                if (this.options.discordBotToken && this.discordBot) {
+                                    this.discordBot?.setPresence('online');
                                 }
 
                                 this.manager.pollInterval = 5 * 1000;
@@ -1315,7 +1316,7 @@ export default class Bot {
     sendMessage(steamID: SteamID | string, message: string): void {
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
-            if (origMessage instanceof DiscordMessage) {
+            if (origMessage instanceof DiscordMessage && this.discordBot) {
                 this.discordBot.sendAnswer(origMessage, message);
             } else {
                 log.error(`Failed to send message, broken redirect:`, origMessage);

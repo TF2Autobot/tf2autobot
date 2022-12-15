@@ -33,13 +33,14 @@ export default function sendOfferReview(
                 reasons.includes('🟪_DUPE_CHECK_FAILED')
             );
     }
-    const mentionOwner = noMentionOnInvalidValue
-        ? `${offer.id}`
-        : `${
-              opt.offerReview.isMention && opt.ownerID.length > 0
-                  ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, `
-                  : ''
-          }check this! - ${offer.id}`;
+    const mentionOwner =
+        noMentionOnInvalidValue && !reasons.includes('⬜_REVIEW_FORCED')
+            ? `${offer.id}`
+            : `${
+                  opt.offerReview.isMention && opt.ownerID.length > 0
+                      ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, `
+                      : ''
+              }check this! - ${offer.id}`;
 
     const botInfo = bot.handler.getBotInfo;
     const pureStock = pure.stock(bot);

@@ -416,6 +416,9 @@ export const DEFAULTS: JsonOptions = {
         // ⬜_HALTED
         halted: {
             ignoreHalted: false
+        },
+        reviewForced: {
+            enable: true
         }
     },
 
@@ -463,6 +466,10 @@ export const DEFAULTS: JsonOptions = {
         },
         // ⬜_HALTED
         halted: {
+            note: ''
+        },
+        // ⬜_REVIEW_FORCED
+        reviewForced: {
             note: ''
         },
         additionalNotes: ''
@@ -1481,6 +1488,7 @@ interface OfferReceived {
     escrowCheckFailed?: EscrowBannedCheckFailed;
     bannedCheckFailed?: EscrowBannedCheckFailed;
     halted?: Halted;
+    reviewForced?: OnlyEnable;
 }
 
 interface DeclineReply extends OnlyEnable {
@@ -1540,7 +1548,8 @@ interface ManualReview extends OnlyEnable {
     dupedCheckFailed?: OnlyNote;
     escrowCheckFailed?: OnlyNote;
     bannedCheckFailed?: OnlyNote;
-    halted: OnlyNote;
+    halted?: OnlyNote;
+    reviewForced?: OnlyNote;
     additionalNotes?: string;
 }
 
