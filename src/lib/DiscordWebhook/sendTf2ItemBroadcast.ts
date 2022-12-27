@@ -26,7 +26,7 @@ export default function sendTf2ItemBroadcast(
                     icon_url: 'https://wiki.teamfortress.com/w/images/4/41/Team_Fortress_2.png'
                 },
                 title: '__Item Broadcast__',
-                description: `\`\`\`${JSON.stringify({ message, username, wasDestruction, defindex }, null, 4)}\`\`\``,
+                description: `\`\`\`${JSON.stringify({ message, username, wasDestruction, defindex }, null, 2)}\`\`\``,
                 color: '12936960',
                 footer: {
                     text: `${timeNow(bot.options).time}`
