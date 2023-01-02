@@ -205,7 +205,7 @@ export default class Bot {
                         // Just log, do nothing.
                         log.warn('Error getting TF2 Localization file.');
                     });
-            }, 1 * 60 * 60 * 1000); // every hour?
+            }, 24 * 60 * 60 * 1000);
         }
 
         this.friends = new Friends(this);
