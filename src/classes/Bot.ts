@@ -189,7 +189,16 @@ export default class Bot {
                 'norwegian',
                 'pirate',
                 'polish',
-                'portuguese'
+                'portuguese',
+                'romanian',
+                'russian',
+                'schinese',
+                'spanish',
+                'swedish',
+                'tchinese',
+                'thai',
+                'turkish',
+                'ukrainian'
             ].includes(this.options.tf2Language)
         ) {
             setInterval(() => {
