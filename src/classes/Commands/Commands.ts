@@ -268,6 +268,8 @@ export default class Commands {
                 void this.request.checkCommand(steamID, message);
             } else if (command === 'find' && isAdmin) {
                 void this.pManager.findCommand(steamID, message);
+            } else if (command == 'backup' && isAdmin) {
+                void this.opt.backupPricelistCommand(steamID);
             } else if (command === 'options' && isAdmin) {
                 void this.opt.optionsCommand(steamID, message);
             } else if (command === 'config' && isAdmin) {
