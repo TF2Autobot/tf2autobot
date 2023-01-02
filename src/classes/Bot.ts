@@ -991,6 +991,37 @@ export default class Bot {
                         log.info('Getting TF2 schema...');
                         void this.initializeSchema().asCallback(callback);
                     },
+                    (callback: (err?) => void): void => {
+                        log.info('Initializing and setting up pricelist...');
+
+                        this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
+                        this.addListener(
+                            this.pricelist,
+                            'pricelist',
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            this.handler.onPricelist.bind(this.handler),
+                            false
+                        );
+                        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
+
+                        this.pricelist.init();
+
+                        const pricelist = Array.isArray(data.pricelist)
+                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
+                                  buff[e.sku] = e;
+                                  return buff;
+                              }, {}) as PricesDataObject)
+                            : data.pricelist || {};
+
+                        this.pricelist
+                            .setPricelist(pricelist, this)
+                            .then(() => {
+                                callback(null);
+                            })
+                            .catch(err => {
+                                callback(err);
+                            });
+                    },
                     (callback): void => {
                         log.info('Initializing inventory, bptf-listings, and profile settings');
                         this.setProperties();
@@ -1102,37 +1133,6 @@ export default class Bot {
                             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             callback
                         );
-                    },
-                    (callback: (err?) => void): void => {
-                        log.info('Initializing and setting up pricelist...');
-
-                        this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
-                        this.addListener(
-                            this.pricelist,
-                            'pricelist',
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            this.handler.onPricelist.bind(this.handler),
-                            false
-                        );
-                        this.addListener(this.pricelist, 'price', this.handler.onPriceChange.bind(this.handler), true);
-
-                        this.pricelist.init();
-
-                        const pricelist = Array.isArray(data.pricelist)
-                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
-                                  buff[e.sku] = e;
-                                  return buff;
-                              }, {}) as PricesDataObject)
-                            : data.pricelist || {};
-
-                        this.pricelist
-                            .setPricelist(pricelist, this)
-                            .then(() => {
-                                callback(null);
-                            })
-                            .catch(err => {
-                                callback(err);
-                            });
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
