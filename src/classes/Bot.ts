@@ -992,7 +992,7 @@ export default class Bot {
                         void this.initializeSchema().asCallback(callback);
                     },
                     (callback: (err?) => void): void => {
-                        log.info('Initializing and setting up pricelist...');
+                        log.info('Initializing pricelist...');
 
                         this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
                         this.addListener(
@@ -1006,21 +1006,7 @@ export default class Bot {
 
                         this.pricelist.init();
 
-                        const pricelist = Array.isArray(data.pricelist)
-                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
-                                  buff[e.sku] = e;
-                                  return buff;
-                              }, {}) as PricesDataObject)
-                            : data.pricelist || {};
-
-                        this.pricelist
-                            .setPricelist(pricelist, this)
-                            .then(() => {
-                                callback(null);
-                            })
-                            .catch(err => {
-                                callback(err);
-                            });
+                        callback(null);
                     },
                     (callback): void => {
                         log.info('Initializing inventory, bptf-listings, and profile settings');
@@ -1133,6 +1119,25 @@ export default class Bot {
                             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             callback
                         );
+                    },
+                    (callback: (err?) => void): void => {
+                        log.info('Setting up pricelist...');
+
+                        const pricelist = Array.isArray(data.pricelist)
+                            ? (data.pricelist.reduce((buff: Record<string, unknown>, e: EntryData) => {
+                                  buff[e.sku] = e;
+                                  return buff;
+                              }, {}) as PricesDataObject)
+                            : data.pricelist || {};
+
+                        this.pricelist
+                            .setPricelist(pricelist, this)
+                            .then(() => {
+                                callback(null);
+                            })
+                            .catch(err => {
+                                callback(err);
+                            });
                     },
                     (callback): void => {
                         log.debug('Getting max friends...');
