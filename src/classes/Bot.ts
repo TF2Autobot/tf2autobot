@@ -984,7 +984,8 @@ export default class Bot {
                     (callback): void => {
                         this.schemaManager = new SchemaManager({
                             apiKey: this.manager.apiKey,
-                            updateTime: 24 * 60 * 60 * 1000
+                            updateTime: 24 * 60 * 60 * 1000,
+                            lite: true
                         });
 
                         log.info('Getting TF2 schema...');
