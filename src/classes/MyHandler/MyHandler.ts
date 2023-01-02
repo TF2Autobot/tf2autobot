@@ -410,7 +410,7 @@ export default class MyHandler extends Handler {
                         log.warn('Unable to disable Mann Co. Supply Crate Key...');
                     })
                     .finally(() => {
-                        if (this.bot.listingManager.ready !== true) {
+                        if (!this.bot.listingManager || this.bot.listingManager.ready !== true) {
                             // We have not set up the listing manager, don't try and remove listings
                             return resolve();
                         }
@@ -423,7 +423,7 @@ export default class MyHandler extends Handler {
                             .finally(() => resolve());
                     });
             } else {
-                if (this.bot.listingManager.ready !== true) {
+                if (!this.bot.listingManager || this.bot.listingManager.ready !== true) {
                     // We have not set up the listing manager, don't try and remove listings
                     return resolve();
                 }
