@@ -993,6 +993,7 @@ export default class Bot {
                     },
                     (callback): void => {
                         log.info('Initializing inventory, bptf-listings, and profile settings');
+                        this.setProperties();
                         async.parallel(
                             [
                                 (callback): void => {
