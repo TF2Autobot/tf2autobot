@@ -31,7 +31,7 @@
         "@tf2autobot/filter-axios-error": "^1.5.1",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/steamcommunity": "^3.45.6",
-        "@tf2autobot/tf2": "^1.2.1",
+        "@tf2autobot/tf2": "^1.2.3",
         "@tf2autobot/tf2-currencies": "^2.0.1",
         "@tf2autobot/tf2-schema": "^4.2.6",
         "@tf2autobot/tf2-sku": "^2.0.3",

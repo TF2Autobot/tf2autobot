@@ -616,6 +616,8 @@ export default class TF2GC {
         };
 
         const timeout = setTimeout(onTimeout, 10000);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         this.bot.tf2.on(event, onEvent);
 
         return onCancel;

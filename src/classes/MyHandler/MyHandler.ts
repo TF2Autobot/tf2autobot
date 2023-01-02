@@ -49,6 +49,10 @@ import Options, { OfferType } from '../Options';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 
+import sendTf2SystemMessage from '../../lib/DiscordWebhook/sendTf2SystemMessage';
+import sendTf2DisplayNotification from '../../lib/DiscordWebhook/sendTf2DisplayNotification';
+import sendTf2ItemBroadcast from '../../lib/DiscordWebhook/sendTf2ItemBroadcast';
+
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
     return [...filtered];
@@ -2660,6 +2664,33 @@ export default class MyHandler extends Handler {
 
     onDeleteArchivedListingError(err: Error): void {
         log.error('Error on delete archived listings:', err);
+    }
+
+    onSystemMessage(message: string): void {
+        if (
+            this.opt.discordWebhook.sendTf2Events.systemMessage.enable &&
+            this.opt.discordWebhook.sendTf2Events.systemMessage.url !== ''
+        ) {
+            sendTf2SystemMessage(this.bot, message);
+        }
+    }
+
+    onDisplayNotification(title: string, body: string): void {
+        if (
+            this.opt.discordWebhook.sendTf2Events.displayNotification.enable &&
+            this.opt.discordWebhook.sendTf2Events.displayNotification.url !== ''
+        ) {
+            sendTf2DisplayNotification(this.bot, title, body);
+        }
+    }
+
+    onItemBroadcast(message: string, username: string, wasDestruction: boolean, defindex: number): void {
+        if (
+            this.opt.discordWebhook.sendTf2Events.itemBroadcast.enable &&
+            this.opt.discordWebhook.sendTf2Events.itemBroadcast.url !== ''
+        ) {
+            sendTf2ItemBroadcast(this.bot, message, username, wasDestruction, defindex);
+        }
     }
 
     refreshPollDataPath() {

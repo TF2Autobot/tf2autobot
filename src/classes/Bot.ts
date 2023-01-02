@@ -170,6 +170,53 @@ export default class Bot {
 
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
+        if (
+            [
+                'english',
+                'brazilian',
+                'bulgarian',
+                'czech',
+                'danish',
+                'dutch',
+                'finnish',
+                'french',
+                'german',
+                'greek',
+                'hungarian',
+                'italian',
+                'japanese',
+                'korean',
+                'koreana',
+                'norwegian',
+                'pirate',
+                'polish',
+                'portuguese',
+                'romanian',
+                'russian',
+                'schinese',
+                'spanish',
+                'swedish',
+                'tchinese',
+                'thai',
+                'turkish',
+                'ukrainian'
+            ].includes(this.options.tf2Language)
+        ) {
+            setInterval(() => {
+                axios({
+                    method: 'get',
+                    url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`
+                })
+                    .then(response => {
+                        const content = response.data as string;
+                        this.tf2.setLang(content);
+                    })
+                    .catch(() => {
+                        // Just log, do nothing.
+                        log.warn('Error getting TF2 Localization file.');
+                    });
+            }, 24 * 60 * 60 * 1000);
+        }
 
         this.friends = new Friends(this);
         this.groups = new Groups(this);
@@ -795,6 +842,10 @@ export default class Bot {
         this.addListener(this.manager, 'sentOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'receivedOfferChanged', this.trades.onOfferChanged.bind(this.trades), true);
         this.addListener(this.manager, 'offerList', this.trades.onOfferList.bind(this.trades), true);
+
+        this.addListener(this.tf2, 'systemMessage', this.handler.onSystemMessage.bind(this.handler), true);
+        this.addListener(this.tf2, 'displayNotification', this.handler.onDisplayNotification.bind(this.handler), true);
+        this.addListener(this.tf2, 'itemBroadcast', this.handler.onItemBroadcast.bind(this.handler), true);
 
         return new Promise((resolve, reject) => {
             async.eachSeries(

@@ -386,6 +386,20 @@ export default class OptionsCommands {
                         2
                     )}`
                 );
+
+                await timersPromises.setTimeout(3000);
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(
+                        {
+                            discordWebhook: {
+                                sendTf2Events: webhook.sendTf2Events
+                            }
+                        },
+                        null,
+                        2
+                    )}`
+                );
             } else if (optKey === 'customMessage') {
                 const webhook = liveOptions['customMessage'];
                 this.bot.sendMessage(

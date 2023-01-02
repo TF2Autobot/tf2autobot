@@ -129,6 +129,30 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['enable', 'url'],
             additionalProperties: false
         },
+        'discord-webhook-enable-url-custom': {
+            type: 'object',
+            properties: {
+                enable: {
+                    type: 'boolean'
+                },
+                url: {
+                    type: 'string',
+                    pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
+                },
+                custom: {
+                    type: 'object',
+                    properties: {
+                        content: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['content'],
+                    additionalProperties: false
+                }
+            },
+            required: ['enable', 'url', 'custom'],
+            additionalProperties: false
+        },
         'only-customReply-reply': {
             type: 'object',
             properties: {
@@ -1684,6 +1708,22 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 sendStats: {
                     $ref: '#/definitions/discord-webhook-enable-url'
+                },
+                sendTf2Events: {
+                    type: 'object',
+                    properties: {
+                        systemMessage: {
+                            $ref: '#/definitions/discord-webhook-enable-url-custom'
+                        },
+                        displayNotification: {
+                            $ref: '#/definitions/discord-webhook-enable-url-custom'
+                        },
+                        itemBroadcast: {
+                            $ref: '#/definitions/discord-webhook-enable-url-custom'
+                        }
+                    },
+                    required: ['systemMessage', 'displayNotification', 'itemBroadcast'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -1697,7 +1737,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'messages',
                 'priceUpdate',
                 'sendAlert',
-                'sendStats'
+                'sendStats',
+                'sendTf2Events'
             ],
             additionalProperties: false
         },
