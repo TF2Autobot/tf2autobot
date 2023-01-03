@@ -94,7 +94,7 @@ export default class Commands {
     }
 
     async processMessage(steamID: SteamID, message: string): Promise<void> {
-        const customSteamPrefix = this.bot.options.miscSettings?.prefixes?.steam ?? '!';
+        const customSteamPrefix = this.bot.getPrefix(steamID);
         const command = CommandParser.getCommand(message.toLowerCase(), customSteamPrefix);
         const isAdmin = this.bot.isAdmin(steamID);
         const isWhitelisted = this.bot.isWhitelisted(steamID);
