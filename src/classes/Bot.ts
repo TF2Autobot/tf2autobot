@@ -16,6 +16,7 @@ import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
+import { BackpackParser, NodeTF2Backpack } from 'tf2-backpack';
 
 import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
@@ -73,6 +74,8 @@ export default class Bot {
     readonly handler: MyHandler;
 
     readonly inventoryGetter: InventoryGetter;
+
+    private backpackParser: BackpackParser;
 
     readonly boundInventoryGetter: (
         steamID: SteamID | string,
@@ -867,11 +870,16 @@ export default class Bot {
                 fs.mkdirSync(path.join(__dirname, `../../files/test`));
             }
 
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            this.backpackParser = new BackpackParser(this.tf2.itemSchema);
+
             fs.writeFile(
                 path.join(__dirname, `../../files/test/bp-${Math.floor(Date.now() / 1000)}.json`),
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                JSON.stringify(this.tf2.backpack),
+                JSON.stringify(this.backpackParser.parseBackpack(this.tf2.backpack as NodeTF2Backpack, false)),
                 { encoding: 'utf-8' },
                 err => {
                     if (err) {

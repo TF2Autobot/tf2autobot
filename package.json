@@ -64,6 +64,7 @@
         "steam-totp": "^2.1.2",
         "steam-user": "^4.26.1",
         "steamid": "^2.0.0",
+        "tf2-backpack": "^1.1.5",
         "url": "^0.11.0",
         "valid-url": "^1.0.9",
         "winston": "^3.8.2",
