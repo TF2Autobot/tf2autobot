@@ -27,7 +27,7 @@
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "^5.6.11",
-        "@tf2autobot/bptf-login": "^2.3.4",
+        "@tf2autobot/bptf-login": "^2.3.5",
         "@tf2autobot/filter-axios-error": "^1.5.1",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/steamcommunity": "^3.45.6",
