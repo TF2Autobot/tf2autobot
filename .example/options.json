@@ -430,14 +430,6 @@
         },
         "additionalNotes": ""
     },
-    "inventoryApis": {
-        "steamSupply": {
-            "enable": false
-        },
-        "steamApis": {
-            "enable": false
-        }
-    },
     "discordChat": {
         "online": {
             "type": "LISTENING",
