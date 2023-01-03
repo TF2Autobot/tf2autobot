@@ -566,10 +566,16 @@ export default class MyHandler extends Handler {
                 this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
                 offer.itemsToGive,
                 this.bot,
-                'our'
+                'our',
+                this.bot.boundInventoryGetter
             ).getItems,
-            their: Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot, isAdmin ? 'admin' : 'their')
-                .getItems
+            their: Inventory.fromItems(
+                offer.partner,
+                offer.itemsToReceive,
+                this.bot,
+                isAdmin ? 'admin' : 'their',
+                this.bot.boundInventoryGetter
+            ).getItems
         };
 
         const exchange = {

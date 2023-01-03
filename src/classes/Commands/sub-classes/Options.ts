@@ -27,6 +27,7 @@ export type OptionsKeys =
     | 'crafting'
     | 'offerReceived'
     | 'manualReview'
+    | 'inventoryApis'
     | 'discordWebhook'
     | 'customMessage'
     | 'commands'

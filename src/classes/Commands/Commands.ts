@@ -864,7 +864,8 @@ export default class Commands {
 
         const steamid = steamID.getSteamID64();
 
-        const adminInventory = this.adminInventory[steamid] || new Inventory(steamID, this.bot, 'their');
+        const adminInventory =
+            this.adminInventory[steamid] || new Inventory(steamID, this.bot, 'their', this.bot.boundInventoryGetter);
 
         if (this.adminInventory[steamid] === undefined) {
             try {
