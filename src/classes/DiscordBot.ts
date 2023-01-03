@@ -123,6 +123,8 @@ export default class DiscordBot {
             log.error(err);
             message.channel
                 .send(`❌ Error:\n${JSON.stringify(err)}`)
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 .catch(err => log.error('Failed to send error message to Discord:', err));
         }
     }
@@ -175,6 +177,8 @@ export default class DiscordBot {
 
         origMessage.channel
             .send(message)
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             .then(() => log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`))
             .catch(err => log.error('Failed to send message to Discord:', err));
     }

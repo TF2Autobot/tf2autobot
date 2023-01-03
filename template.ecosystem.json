@@ -25,6 +25,8 @@
 
                 "MPTF_API_KEY": "",
                 "DISCORD_BOT_TOKEN": "",
+                "STEAMSUPPLY_API_KEY": "",
+                "STEAMAPIS_API_KEY": "",
 
                 "ADMINS": [
                     { "steam": "<your steamid 64>", "discord": null }
@@ -43,6 +45,7 @@
                 "SKIP_BPTF_TRADEOFFERURL": true,
                 "SKIP_UPDATE_PROFILE_SETTINGS": true,
 
+                "TF2_LANGUAGE": "english",
                 "TIMEZONE": "Europe/London",
                 "CUSTOM_TIME_FORMAT": "MMMM Do YYYY, HH:mm:ss ZZ",
                 "TIME_ADDITIONAL_NOTES": "",

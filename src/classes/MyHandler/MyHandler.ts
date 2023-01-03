@@ -49,6 +49,10 @@ import Options, { OfferType } from '../Options';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 
+import sendTf2SystemMessage from '../../lib/DiscordWebhook/sendTf2SystemMessage';
+import sendTf2DisplayNotification from '../../lib/DiscordWebhook/sendTf2DisplayNotification';
+import sendTf2ItemBroadcast from '../../lib/DiscordWebhook/sendTf2ItemBroadcast';
+
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
     return [...filtered];
@@ -406,12 +410,12 @@ export default class MyHandler extends Handler {
                         log.warn('Unable to disable Mann Co. Supply Crate Key...');
                     })
                     .finally(() => {
-                        if (this.bot.listingManager.ready !== true) {
+                        if (!this.bot.listingManager || this.bot.listingManager.ready !== true) {
                             // We have not set up the listing manager, don't try and remove listings
                             return resolve();
                         }
 
-                        void this.bot.listings
+                        this.bot.listings
                             .removeAll()
                             .catch((err: Error) =>
                                 log.warn('Failed to remove all listings on shutdown (autokeys was enabled): ', err)
@@ -419,12 +423,12 @@ export default class MyHandler extends Handler {
                             .finally(() => resolve());
                     });
             } else {
-                if (this.bot.listingManager.ready !== true) {
+                if (!this.bot.listingManager || this.bot.listingManager.ready !== true) {
                     // We have not set up the listing manager, don't try and remove listings
                     return resolve();
                 }
 
-                void this.bot.listings
+                this.bot.listings
                     .removeAll()
                     .catch((err: Error) => log.warn('Failed to remove all listings on shutdown: ', err))
                     .finally(() => resolve());
@@ -562,10 +566,16 @@ export default class MyHandler extends Handler {
                 this.bot.client.steamID === null ? this.botSteamID : this.bot.client.steamID,
                 offer.itemsToGive,
                 this.bot,
-                'our'
+                'our',
+                this.bot.boundInventoryGetter
             ).getItems,
-            their: Inventory.fromItems(offer.partner, offer.itemsToReceive, this.bot, isAdmin ? 'admin' : 'their')
-                .getItems
+            their: Inventory.fromItems(
+                offer.partner,
+                offer.itemsToReceive,
+                this.bot,
+                isAdmin ? 'admin' : 'their',
+                this.bot.boundInventoryGetter
+            ).getItems
         };
 
         const exchange = {
@@ -979,11 +989,7 @@ export default class MyHandler extends Handler {
                         };
                     }
                 }
-            } else if (
-                itemsToGiveCount > 0 &&
-                itemsToReceiveCount === 0 &&
-                !(opt.miscSettings.counterOffer.enable && exchange.contains.items)
-            ) {
+            } else if (itemsToGiveCount > 0 && itemsToReceiveCount === 0) {
                 offer.log('info', 'is taking our items for free, declining...');
                 return {
                     action: 'decline',
@@ -2662,6 +2668,33 @@ export default class MyHandler extends Handler {
 
     onDeleteArchivedListingError(err: Error): void {
         log.error('Error on delete archived listings:', err);
+    }
+
+    onSystemMessage(message: string): void {
+        if (
+            this.opt.discordWebhook.sendTf2Events.systemMessage.enable &&
+            this.opt.discordWebhook.sendTf2Events.systemMessage.url !== ''
+        ) {
+            sendTf2SystemMessage(this.bot, message);
+        }
+    }
+
+    onDisplayNotification(title: string, body: string): void {
+        if (
+            this.opt.discordWebhook.sendTf2Events.displayNotification.enable &&
+            this.opt.discordWebhook.sendTf2Events.displayNotification.url !== ''
+        ) {
+            sendTf2DisplayNotification(this.bot, title, body);
+        }
+    }
+
+    onItemBroadcast(message: string, username: string, wasDestruction: boolean, defindex: number): void {
+        if (
+            this.opt.discordWebhook.sendTf2Events.itemBroadcast.enable &&
+            this.opt.discordWebhook.sendTf2Events.itemBroadcast.url !== ''
+        ) {
+            sendTf2ItemBroadcast(this.bot, message, username, wasDestruction, defindex);
+        }
     }
 
     refreshPollDataPath() {
