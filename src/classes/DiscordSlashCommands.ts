@@ -1,15 +1,10 @@
 import {
     Client,
-    GatewayIntentBits,
-    Message,
-    DiscordAPIError,
-    Snowflake,
-    ActivityType,
     ApplicationCommandType,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    ActionRow
+    ApplicationCommandOptionType
 } from 'discord.js';
 import { uptime } from '../lib/tools/time';
 import Bot from './Bot';
@@ -19,12 +14,53 @@ export async function initSlashCommands(discordClient: Client, bot: Bot): Promis
         {
             name: 'uptime',
             description: 'Show bot uptime',
-            type: ApplicationCommandType.ChatInput,
-            options: []
+            type: ApplicationCommandType.ChatInput
         },
         {
             name: 'links',
             description: "Get links to the bot's Steam, Backpack.tf, Rep.tf, and Trade offer URL",
+            type: ApplicationCommandType.ChatInput
+        },
+        {
+            name: 'crafttoken',
+            description: 'Craft class or slot tokens',
+            type: ApplicationCommandType.ChatInput,
+            options: [
+                {
+                    name: 'slot',
+                    description: 'Craft primary/secondary/melee/pda slot token',
+                    type: ApplicationCommandOptionType.String,
+                    required: true,
+                    choices: [
+                        {
+                            name: 'primary',
+                            value: 'primary'
+                        },
+                        {
+                            name: 'secondary',
+                            value: 'secondary'
+                        },
+                        {
+                            name: 'melee',
+                            value: 'melee'
+                        },
+                        {
+                            name: 'pda2',
+                            value: 'pda2'
+                        }
+                    ]
+                },
+                {
+                    name: 'amount',
+                    description: 'Input amount to craft',
+                    type: ApplicationCommandOptionType.String,
+                    required: true
+                }
+            ]
+        },
+        {
+            name: 'crafttokencheck',
+            description: 'Check current available stock for Slot or Class Tokens',
             type: ApplicationCommandType.ChatInput
         }
     ]);
@@ -32,7 +68,7 @@ export async function initSlashCommands(discordClient: Client, bot: Bot): Promis
     discordClient.on('interactionCreate', async interaction => {
         if (!interaction.isChatInputCommand()) return;
 
-        const command = interaction.commandName;
+        const command = interaction.commandName.toLowerCase();
 
         if (command === 'uptime') {
             await interaction.reply({ content: uptime() });
