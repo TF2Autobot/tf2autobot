@@ -915,6 +915,12 @@ export default class Bot {
             }
         });
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.tf2.on('itemSchemaError', err => {
+            log.error('Error on tf2 getting schema', err);
+        });
+
         return new Promise((resolve, reject) => {
             async.eachSeries(
                 [
