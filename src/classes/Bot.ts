@@ -908,6 +908,15 @@ export default class Bot {
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
+        this.tf2.on('itemSchema', () => {
+            if (this.needSave) {
+                this.saveBackpack();
+                this.needSave = false;
+            }
+        });
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         this.tf2.on('itemSchemaLoaded', () => {
             if (this.needSave) {
                 this.saveBackpack();
