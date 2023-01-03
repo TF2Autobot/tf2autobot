@@ -77,6 +77,8 @@ export default class Bot {
 
     private backpackParser: BackpackParser;
 
+    private needSave = false;
+
     readonly boundInventoryGetter: (
         steamID: SteamID | string,
         appid: number,
@@ -830,6 +832,33 @@ export default class Bot {
         });
     }
 
+    saveBackpack(): void {
+        if (!fs.existsSync(path.join(__dirname, `../../files/test`))) {
+            fs.mkdirSync(path.join(__dirname, `../../files/test`));
+        }
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        this.backpackParser = new BackpackParser(this.tf2.itemSchema);
+
+        fs.writeFile(
+            path.join(__dirname, `../../files/test/bp-${Math.floor(Date.now() / 1000)}.json`),
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            JSON.stringify(this.backpackParser.parseBackpack(this.tf2.backpack as NodeTF2Backpack, false)),
+            { encoding: 'utf-8' },
+            err => {
+                if (err) {
+                    log.error('save backpack error', err);
+                    return;
+                }
+
+                log.debug('backpackLoaded event emitted.');
+            }
+        );
+    }
+
     start(): Promise<void> {
         let data: {
             loginAttempts?: number[];
@@ -866,30 +895,24 @@ export default class Bot {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.tf2.on('backpackLoaded', () => {
-            if (!fs.existsSync(path.join(__dirname, `../../files/test`))) {
-                fs.mkdirSync(path.join(__dirname, `../../files/test`));
-            }
-
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            this.backpackParser = new BackpackParser(this.tf2.itemSchema);
+            if (!this.tf2.itemSchema) {
+                this.needSave = true;
+                return;
+            }
 
-            fs.writeFile(
-                path.join(__dirname, `../../files/test/bp-${Math.floor(Date.now() / 1000)}.json`),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                JSON.stringify(this.backpackParser.parseBackpack(this.tf2.backpack as NodeTF2Backpack, false)),
-                { encoding: 'utf-8' },
-                err => {
-                    if (err) {
-                        log.error('save backpack error', err);
-                        return;
-                    }
+            this.saveBackpack();
+        });
 
-                    log.debug('backpackLoaded event emitted.');
-                }
-            );
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.tf2.on('itemSchemaLoaded', () => {
+            if (this.needSave) {
+                this.saveBackpack();
+                this.needSave = false;
+            }
         });
 
         return new Promise((resolve, reject) => {
