@@ -184,6 +184,7 @@ export default class HelpCommands {
                 steamID,
                 '.\n✨=== Configuration manager (options.json) ===✨\n- ' +
                     [
+                        '!backup - Backup your pricelist.json file 🔧',
                         '!options <OptionsKey> - Get options.json content (current bot option settings) 🔧',
                         '!config <OptionsKey>=<value>[&OtherOptions] - Update the current options (example: !config game.customName=Selling Tools!) 🔧',
                         '!clearArray <OptionsKey>=[] - Clear any array options (example: !clearArray highValue.sheens=[]&highValue.painted=[]) 🔥📃'

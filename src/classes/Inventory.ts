@@ -44,7 +44,14 @@ export default class Inventory {
     constructor(
         steamID: SteamID | string,
         private readonly bot: Bot,
-        private readonly which: 'our' | 'their' | 'admin'
+        private readonly which: 'our' | 'their' | 'admin',
+        private readonly boundInventoryGetter: (
+            steamID: SteamID | string,
+            appid: number,
+            contextid: string,
+            tradeableOnly: boolean,
+            callback: (err?: Error, inventory?: EconItem[], currencies?: EconItem[]) => void
+        ) => void
     ) {
         this.steamID = new SteamID(steamID.toString());
     }
@@ -53,9 +60,16 @@ export default class Inventory {
         steamID: SteamID | string,
         items: EconItem[],
         bot: Bot,
-        which: 'our' | 'their' | 'admin'
+        which: 'our' | 'their' | 'admin',
+        boundInventoryGetter: (
+            steamID: SteamID | string,
+            appid: number,
+            contextid: string,
+            tradeableOnly: boolean,
+            callback: (err?: Error, inventory?: EconItem[], currencies?: EconItem[]) => void
+        ) => void
     ): Inventory {
-        const inventory = new Inventory(steamID, bot, which);
+        const inventory = new Inventory(steamID, bot, which, boundInventoryGetter);
         inventory.setItems = items;
         return inventory;
     }
@@ -115,7 +129,7 @@ export default class Inventory {
 
     fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
-            this.bot.manager.getUserInventoryContents(this.getSteamID, 440, '2', false, (err, items) => {
+            this.boundInventoryGetter(this.getSteamID, 440, '2', false, (err, items) => {
                 if (err) {
                     return reject(err);
                 }

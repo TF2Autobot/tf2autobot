@@ -475,6 +475,15 @@ export const DEFAULTS: JsonOptions = {
         additionalNotes: ''
     },
 
+    inventoryApis: {
+        steamSupply: {
+            enable: false
+        },
+        steamApis: {
+            enable: false
+        }
+    },
+
     discordChat: {
         online: {
             // Default: "Listening to incoming offers"
@@ -1570,6 +1579,13 @@ interface ManualReview extends OnlyEnable {
     additionalNotes?: string;
 }
 
+// ----------- Inventory APIs --------------
+
+interface InventoryApis {
+    steamSupply?: OnlyEnable;
+    steamApis?: OnlyEnable;
+}
+
 // ------------ Discord Chat ---------------
 
 interface DiscordChat {
@@ -2105,6 +2121,7 @@ export interface JsonOptions {
     crafting?: Crafting;
     offerReceived?: OfferReceived;
     manualReview?: ManualReview;
+    inventoryApis?: InventoryApis;
     discordChat?: DiscordChat;
     discordWebhook?: DiscordWebhook;
     customMessage?: CustomMessage;
@@ -2125,6 +2142,8 @@ export default interface Options extends JsonOptions {
 
     mptfApiKey?: string;
     discordBotToken?: string;
+    steamSupplyApiKey?: string;
+    steamApisApiKey?: string;
 
     admins?: adminData[];
     keep?: string[];
@@ -2139,6 +2158,7 @@ export default interface Options extends JsonOptions {
     skipBPTFTradeofferURL?: boolean;
     skipUpdateProfileSettings?: boolean;
 
+    tf2Language?: string;
     timezone?: string;
     customTimeFormat?: string;
     timeAdditionalNotes?: string;
@@ -2425,6 +2445,8 @@ export function loadOptions(options?: Options): Options {
 
         mptfApiKey: getOption('mptfApiKey', '', String, incomingOptions),
         discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
+        steamSupplyApiKey: getOption('steamsupplyApiKey', '', String, incomingOptions),
+        steamApisApiKey: getOption('steamapisApiKey', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
@@ -2439,6 +2461,7 @@ export function loadOptions(options?: Options): Options {
         skipBPTFTradeofferURL: getOption('skipBPTFTradeofferURL', true, jsonParseBoolean, incomingOptions),
         skipUpdateProfileSettings: getOption('skipUpdateProfileSettings', true, jsonParseBoolean, incomingOptions),
 
+        tf2Language: getOption('tf2Language', 'english', String, incomingOptions),
         timezone: getOption('timezone', '', String, incomingOptions),
         customTimeFormat: getOption('customTimeFormat', '', String, incomingOptions),
         timeAdditionalNotes: getOption('timeAdditionalNotes', '', String, incomingOptions),

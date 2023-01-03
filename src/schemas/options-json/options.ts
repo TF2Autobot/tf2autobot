@@ -1480,6 +1480,19 @@ export const optionsSchema: jsonschema.Schema = {
             ],
             additionalProperties: false
         },
+        inventoryApis: {
+            type: 'object',
+            properties: {
+                steamSupply: {
+                    $ref: '#/definitions/only-enable'
+                },
+                steamApis: {
+                    $ref: '#/definitions/only-enable'
+                }
+            },
+            required: ['steamSupply', 'steamApis'],
+            additionalProperties: false
+        },
         discordChat: {
             type: 'object',
             properties: {
