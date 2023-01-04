@@ -824,8 +824,6 @@ export default class Bot {
                     log.error('save backpack error', err);
                     return;
                 }
-
-                log.debug('backpackLoaded event emitted.');
             }
         );
     }
@@ -866,6 +864,7 @@ export default class Bot {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.tf2.on('backpackLoaded', () => {
+            log.debug('backpackLoaded event emitted.');
             this.saveBackpack();
         });
 
