@@ -652,8 +652,6 @@ export default class TF2GC {
 
         if (job !== undefined && job.callback) {
             job.callback(err);
-        } else if (job.callback) {
-            job.callback(null);
         }
 
         this.processingQueue = false;
