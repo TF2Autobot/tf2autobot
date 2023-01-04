@@ -811,7 +811,7 @@ export default class Bot {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        this.backpackParser = new BackpackParser(this.tf2.itemSchema);
+        this.backpackParser = new BackpackParser(this.schema.raw.items_game);
 
         fs.writeFile(
             path.join(__dirname, `../../files/test/bp-${Math.floor(Date.now() / 1000)}.json`),
@@ -866,14 +866,6 @@ export default class Bot {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.tf2.on('backpackLoaded', () => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            if (!this.tf2.itemSchema) {
-                this.needSave = true;
-                return;
-            }
-
             this.saveBackpack();
         });
 
@@ -1191,16 +1183,6 @@ export default class Bot {
                             .catch(err => {
                                 callback(err);
                             });
-                    },
-                    (callback: (err?) => void): void => {
-                        log.debug('Wait for the TF2 Schema file to load...');
-                        this.tf2gc.waitForSchemaLoaded(err => {
-                            if (err) {
-                                return callback(err);
-                            }
-
-                            callback(null);
-                        });
                     },
                     (callback): void => {
                         this.community.getTradeURL((err, url) => {
