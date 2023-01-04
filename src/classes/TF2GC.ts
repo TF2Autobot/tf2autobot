@@ -36,7 +36,8 @@ type Job = {
         | 'delete'
         | 'sort'
         | 'removeAttributes'
-        | 'craftToken';
+        | 'craftToken'
+        | 'backpackLoad';
     defindex?: number;
     sku?: string;
     skus?: string[];
@@ -151,6 +152,12 @@ export default class TF2GC {
         this.newJob({ type: 'craftToken', assetids, tokenType, subTokenType, callback: callback });
     }
 
+    waitForBackpackLoaded(callback: (err: Error | null) => void): void {
+        log.debug(`Enqueueing backpackLoaded trigger job`);
+
+        this.newJob({ type: 'backpackLoad', callback: callback });
+    }
+
     private newJob(job: Job): void {
         this.jobs.push(job);
         this.handleJobQueue();
@@ -203,6 +210,8 @@ export default class TF2GC {
                     func = this.handleSortJob.bind(this, job);
                 } else if (job.type === 'craftToken') {
                     func = this.handleCraftTokenJob.bind(this, job);
+                } else if (job.type === 'backpackLoad') {
+                    func = this.handleBackpackLoadedJob.bind(this, job);
                 }
 
                 if (func) {
@@ -527,6 +536,21 @@ export default class TF2GC {
         );
     }
 
+    private handleBackpackLoadedJob(): void {
+        this.bot.client.gamesPlayed([]);
+        this.bot.client.gamesPlayed(440);
+
+        this.listenForEvent(
+            'backpackLoaded',
+            () => {
+                this.finishedProcessingJob();
+            },
+            err => {
+                this.finishedProcessingJob(err);
+            }
+        );
+    }
+
     /**
      * Listens for GC event
      *
@@ -628,6 +652,8 @@ export default class TF2GC {
 
         if (job !== undefined && job.callback) {
             job.callback(err);
+        } else {
+            job.callback(null);
         }
 
         this.processingQueue = false;
