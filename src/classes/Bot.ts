@@ -16,7 +16,7 @@ import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
-import { BackpackParser, NodeTF2Backpack } from 'tf2-backpack';
+import { BackpackParser } from 'tf2-backpack';
 
 import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
@@ -75,7 +75,7 @@ export default class Bot {
 
     readonly inventoryGetter: InventoryGetter;
 
-    private backpackParser: BackpackParser;
+    backpackParser: BackpackParser;
 
     needSave = false;
 
@@ -114,8 +114,6 @@ export default class Bot {
         sniper: string[];
         spy: string[];
     };
-
-    public updateSchemaPropertiesInterval: NodeJS.Timeout;
 
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
@@ -803,31 +801,6 @@ export default class Bot {
         });
     }
 
-    saveBackpack(): void {
-        if (!fs.existsSync(path.join(__dirname, `../../files/test`))) {
-            fs.mkdirSync(path.join(__dirname, `../../files/test`));
-        }
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        this.backpackParser = new BackpackParser(this.schema.raw.items_game);
-
-        fs.writeFile(
-            path.join(__dirname, `../../files/test/bp-${Math.floor(Date.now() / 1000)}.json`),
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            JSON.stringify(this.backpackParser.parseBackpack(this.tf2.backpack as NodeTF2Backpack, false)),
-            { encoding: 'utf-8' },
-            err => {
-                if (err) {
-                    log.error('save backpack error', err);
-                    return;
-                }
-            }
-        );
-    }
-
     start(): Promise<void> {
         let data: {
             loginAttempts?: number[];
@@ -860,13 +833,6 @@ export default class Bot {
         this.addListener(this.tf2, 'systemMessage', this.handler.onSystemMessage.bind(this.handler), true);
         this.addListener(this.tf2, 'displayNotification', this.handler.onDisplayNotification.bind(this.handler), true);
         this.addListener(this.tf2, 'itemBroadcast', this.handler.onItemBroadcast.bind(this.handler), true);
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.tf2.on('backpackLoaded', () => {
-            log.debug('backpackLoaded event emitted.');
-            this.saveBackpack();
-        });
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
@@ -1013,6 +979,17 @@ export default class Bot {
                         log.info('Getting TF2 schema...');
                         void this.initializeSchema().asCallback(callback);
                     },
+                    (callback): void => {
+                        log.info('Initializing Backpack parser...');
+                        this.setProperties();
+                        this.backpackParser = new BackpackParser(this.schema.raw.items_game);
+                        this.schemaManager.on('schema', () => {
+                            this.backpackParser = new BackpackParser(this.schema.raw.items_game);
+                            this.setProperties();
+                        });
+                        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                        return callback(null);
+                    },
                     (callback: (err?) => void): void => {
                         log.info('Initializing pricelist...');
 
@@ -1032,7 +1009,6 @@ export default class Bot {
                     },
                     (callback): void => {
                         log.info('Initializing inventory, bptf-listings, and profile settings');
-                        this.setProperties();
                         async.parallel(
                             [
                                 (callback): void => {
@@ -1249,15 +1225,6 @@ export default class Bot {
             sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
             spy: this.schema.getWeaponsForCraftingByClass('Spy')
         };
-
-        clearInterval(this.updateSchemaPropertiesInterval);
-        this.refreshSchemaProperties();
-    }
-
-    private refreshSchemaProperties(): void {
-        this.updateSchemaPropertiesInterval = setInterval(() => {
-            this.setProperties();
-        }, 24 * 60 * 60 * 1000);
     }
 
     setCookies(cookies: string[]): Promise<void> {
