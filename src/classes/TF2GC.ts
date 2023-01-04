@@ -652,7 +652,7 @@ export default class TF2GC {
 
         if (job !== undefined && job.callback) {
             job.callback(err);
-        } else {
+        } else if (job.callback) {
             job.callback(null);
         }
 
