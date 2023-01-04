@@ -77,7 +77,7 @@ export default class Bot {
 
     private backpackParser: BackpackParser;
 
-    private needSave = false;
+    needSave = false;
 
     readonly boundInventoryGetter: (
         steamID: SteamID | string,
@@ -877,30 +877,6 @@ export default class Bot {
             this.saveBackpack();
         });
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.tf2.on('itemSchema', () => {
-            if (this.needSave) {
-                this.saveBackpack();
-                this.needSave = false;
-            }
-        });
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.tf2.on('itemSchemaLoaded', () => {
-            if (this.needSave) {
-                this.saveBackpack();
-                this.needSave = false;
-            }
-        });
-
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.tf2.on('itemSchemaError', err => {
-            log.error('Error on tf2 getting schema', err);
-        });
-
         return new Promise((resolve, reject) => {
             async.eachSeries(
                 [
@@ -1215,6 +1191,16 @@ export default class Bot {
                             .catch(err => {
                                 callback(err);
                             });
+                    },
+                    (callback: (err?) => void): void => {
+                        log.debug('Wait for the TF2 Schema file to load...');
+                        this.tf2gc.waitForSchemaLoaded(err => {
+                            if (err) {
+                                return callback(err);
+                            }
+
+                            callback(null);
+                        });
                     },
                     (callback): void => {
                         this.community.getTradeURL((err, url) => {

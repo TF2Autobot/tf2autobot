@@ -36,7 +36,8 @@ type Job = {
         | 'delete'
         | 'sort'
         | 'removeAttributes'
-        | 'craftToken';
+        | 'craftToken'
+        | 'schemaLoad';
     defindex?: number;
     sku?: string;
     skus?: string[];
@@ -151,6 +152,10 @@ export default class TF2GC {
         this.newJob({ type: 'craftToken', assetids, tokenType, subTokenType, callback: callback });
     }
 
+    waitForSchemaLoaded(callback: (err: Error | null) => void): void {
+        this.newJob({ type: 'schemaLoad', callback: callback });
+    }
+
     private newJob(job: Job): void {
         this.jobs.push(job);
         this.handleJobQueue();
@@ -203,6 +208,8 @@ export default class TF2GC {
                     func = this.handleSortJob.bind(this, job);
                 } else if (job.type === 'craftToken') {
                     func = this.handleCraftTokenJob.bind(this, job);
+                } else if (job.type === 'schemaLoad') {
+                    func = this.handleSchemaLoadJob();
                 }
 
                 if (func) {
@@ -523,6 +530,22 @@ export default class TF2GC {
                     // Job failed
                     this.finishedProcessingJob(err);
                 }
+            }
+        );
+    }
+
+    private handleSchemaLoadJob(): void {
+        this.listenForEvent(
+            'schemaLoaded',
+            () => {
+                this.finishedProcessingJob();
+
+                if (this.bot.needSave) {
+                    this.bot.saveBackpack();
+                }
+            },
+            err => {
+                this.finishedProcessingJob(err);
             }
         );
     }
