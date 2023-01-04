@@ -180,54 +180,6 @@ export default class Bot {
 
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
-        if (
-            [
-                'english',
-                'brazilian',
-                'bulgarian',
-                'czech',
-                'danish',
-                'dutch',
-                'finnish',
-                'french',
-                'german',
-                'greek',
-                'hungarian',
-                'italian',
-                'japanese',
-                'korean',
-                'koreana',
-                'norwegian',
-                'pirate',
-                'polish',
-                'portuguese',
-                'romanian',
-                'russian',
-                'schinese',
-                'spanish',
-                'swedish',
-                'tchinese',
-                'thai',
-                'turkish',
-                'ukrainian'
-            ].includes(this.options.tf2Language)
-        ) {
-            setInterval(() => {
-                axios({
-                    method: 'get',
-                    url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`
-                })
-                    .then(response => {
-                        const content = response.data as string;
-                        this.tf2.setLang(content);
-                    })
-                    .catch(() => {
-                        // Just log, do nothing.
-                        log.warn('Error getting TF2 Localization file.');
-                    });
-            }, 24 * 60 * 60 * 1000);
-        }
-
         this.friends = new Friends(this);
         this.groups = new Groups(this);
         this.trades = new Trades(this);
@@ -345,6 +297,25 @@ export default class Bot {
                     // ignore error
                 });
         }, 12 * 60 * 60 * 1000);
+    }
+
+    private getLocalizationFile(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            axios({
+                method: 'get',
+                url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`
+            })
+                .then(response => {
+                    const content = response.data as string;
+                    this.tf2.setLang(content);
+                    return resolve();
+                })
+                .catch(err => {
+                    // Just log, do nothing.
+                    log.warn('Error getting TF2 Localization file.');
+                    return reject(err);
+                });
+        });
     }
 
     get alertTypes(): string[] {
@@ -1161,6 +1132,19 @@ export default class Bot {
                     (callback): void => {
                         log.debug('Creating listings...');
                         void this.listings.redoListings().asCallback(callback);
+                    },
+                    (callback: (err?) => void): void => {
+                        log.debug('Getting localization file...');
+                        this.getLocalizationFile()
+                            .then(() => {
+                                setInterval(() => {
+                                    void this.getLocalizationFile();
+                                }, 24 * 60 * 60 * 1000);
+                                callback(null);
+                            })
+                            .catch(err => {
+                                callback(err);
+                            });
                     },
                     (callback): void => {
                         this.community.getTradeURL((err, url) => {
