@@ -209,7 +209,7 @@ export default class TF2GC {
                 } else if (job.type === 'craftToken') {
                     func = this.handleCraftTokenJob.bind(this, job);
                 } else if (job.type === 'schemaLoad') {
-                    func = this.handleSchemaLoadJob();
+                    func = this.handleSchemaLoadJob.bind(this, job);
                 }
 
                 if (func) {
