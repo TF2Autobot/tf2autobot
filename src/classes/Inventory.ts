@@ -155,6 +155,8 @@ export default class Inventory {
         );
     }
 
+    // TODO: Process internal inventory
+
     findByAssetid(assetid: string): string | null {
         for (const sku in this.tradable) {
             if (!Object.prototype.hasOwnProperty.call(this.tradable, sku)) {
