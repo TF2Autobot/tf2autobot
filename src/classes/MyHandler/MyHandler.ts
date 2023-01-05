@@ -990,10 +990,11 @@ export default class MyHandler extends Handler {
             } else if (
                 itemsToGiveCount > 0 &&
                 itemsToReceiveCount === 0 &&
-                (opt.miscSettings.counterOffer.enable
-                    ? opt.miscSettings.counterOffer.autoDeclineLazyOffer
-                    : true) &&
-                exchange.contains.items
+                !(
+                    (opt.miscSettings.counterOffer.enable
+                        ? !opt.miscSettings.counterOffer.autoDeclineLazyOffer
+                        : false) && exchange.contains.items
+                )
             ) {
                 offer.log('info', 'is taking our items for free, declining...');
                 return {
