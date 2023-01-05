@@ -409,9 +409,12 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         skipIncludeMessage: {
                             type: 'boolean'
+                        },
+                        autoDeclineLazyOffer: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['enable', 'skipIncludeMessage'],
+                    required: ['enable', 'skipIncludeMessage', 'autoDeclineLazyOffer'],
                     additionalProperties: false
                 },
                 skipItemsInTrade: {
