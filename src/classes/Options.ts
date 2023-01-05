@@ -26,7 +26,8 @@ export const DEFAULTS: JsonOptions = {
         },
         counterOffer: {
             enable: true,
-            skipIncludeMessage: false
+            skipIncludeMessage: false,
+            autoDeclineLazyOffer: false
         },
         skipItemsInTrade: {
             enable: true
@@ -1187,6 +1188,7 @@ interface Game {
 
 interface Counteroffer extends OnlyEnable {
     skipIncludeMessage?: boolean;
+    autoDeclineLazyOffer?: boolean;
 }
 
 // --------- Misc Settings ----------
