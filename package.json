@@ -33,7 +33,7 @@
         "@tf2autobot/steamcommunity": "^3.45.6",
         "@tf2autobot/tf2": "^1.3.0",
         "@tf2autobot/tf2-currencies": "^2.0.1",
-        "@tf2autobot/tf2-schema": "^4.2.7",
+        "@tf2autobot/tf2-schema": "^4.2.8",
         "@tf2autobot/tf2-sku": "^2.0.3",
         "@tf2autobot/tradeoffer-manager": "^2.14.2",
         "async": "^3.2.4",
