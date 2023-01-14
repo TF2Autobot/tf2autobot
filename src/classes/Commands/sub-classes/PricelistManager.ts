@@ -1643,7 +1643,7 @@ export default class PricelistManagerCommands {
                     if (!Object.prototype.hasOwnProperty.call(newPricelist, sku)) continue;
                     const entity = newPricelist[sku];
                     if (params.withgroup && entity.group === params.withgroup) delete newPricelist[sku];
-                    else if (params.withoutgroup && entity.group !== params.withgroup) delete newPricelist[sku];
+                    else if (params.withoutgroup && entity.group !== params.withoutgroup) delete newPricelist[sku];
                 }
             } else {
                 newPricelist = {};
