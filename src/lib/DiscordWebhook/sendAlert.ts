@@ -40,6 +40,7 @@ type AlertType =
     | 'error-accept'
     | 'autoUpdatePartialPriceSuccess'
     | 'autoUpdatePartialPriceFailed'
+    | 'autoUpdatePartialPriceFailedToDisable'
     | 'autoResetPartialPrice'
     | 'autoResetPartialPriceBulk'
     | 'onBulkUpdatePartialPriced'
@@ -156,6 +157,10 @@ export default function sendAlert(
         title = 'Failed update item prices (Partial price update)';
         description = msg;
         color = '16711680'; // red
+    } else if (type === 'autoUpdatePartialPriceFailedToDisable') {
+        title = 'Failed disabling item (Partial price update failed)';
+        description = msg;
+        color = '16711680'; // red
     } else if (type === 'autoResetPartialPrice') {
         title = '✅ Automatically reset partially priced item';
         description = msg;
@@ -201,12 +206,13 @@ export default function sendAlert(
         content = items[0]; // offer id
         color = '16711680'; // red
     } else if (type === 'failed-processing-offer') {
+        const prefix = bot.getPrefix();
         title = 'Unable to process an offer';
         description =
             `Offer #${items[1]} with ${items[0]} was unable to process due to some issue with Steam.` +
             ' The offer data received was broken because our side and their side are both empty.' +
             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${items[1]}/` +
-            `\nSend "!faccept ${items[1]}" to force accept, or "!fdecline ${items[1]}" to decline.`;
+            `\nSend "${prefix}faccept ${items[1]}" to force accept, or "${prefix}fdecline ${items[1]}" to decline.`;
         color = '16711680'; // red
     } else if (type === 'failed-counter') {
         title = 'Failed to counter an offer';
@@ -255,6 +261,7 @@ export default function sendAlert(
                 'escrow-check-failed-not-restart-bptf-down',
                 'queue-problem-not-restart-bptf-down',
                 'autoAddPaintedItemsFailed',
+                'autoUpdatePartialPriceFailedToDisable',
                 'failed-accept',
                 'error-accept',
                 'unusualInvalidItems'
@@ -281,6 +288,7 @@ export default function sendAlert(
         [
             'autoUpdatePartialPriceSuccess',
             'autoUpdatePartialPriceFailed',
+            'autoUpdatePartialPriceFailedToDisable',
             'autoResetPartialPrice',
             'autoResetPartialPriceBulk',
             'onBulkUpdatePartialPriced',

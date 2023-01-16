@@ -18,6 +18,8 @@ import { uptime } from '../lib/tools/time';
 export default class DiscordBot {
     readonly client: Client;
 
+    private prefix = '!';
+
     private MAX_MESSAGE_LENGTH = 2000 - 2; // some characters are reserved
 
     constructor(private options: Options, private bot: Bot) {
@@ -33,6 +35,7 @@ export default class DiscordBot {
         // 'ready' binding should be executed BEFORE the login() is complete
         this.client.on('ready', this.onClientReady.bind(this));
         this.client.on('messageCreate', async message => this.onMessage(message));
+        this.prefix = this.bot.options.miscSettings?.prefixes?.discord ?? this.prefix;
     }
 
     public async start(): Promise<void> {
@@ -87,8 +90,8 @@ export default class DiscordBot {
             return; // Ignore webhook messages
         }
 
-        if (!message.content.startsWith('!')) {
-            return; // Ignore a message that doesn't start with !
+        if (!message.content.startsWith(this.prefix)) {
+            return; // Ignore message that not start with !
         }
 
         log.info(
@@ -115,6 +118,8 @@ export default class DiscordBot {
             log.error(err);
             message.channel
                 .send(`❌ Error:\n${JSON.stringify(err)}`)
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 .catch(err => log.error('Failed to send error message to Discord:', err));
         }
     }
@@ -167,6 +172,8 @@ export default class DiscordBot {
 
         origMessage.channel
             .send(message)
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             .then(() => log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`))
             .catch(err => log.error('Failed to send message to Discord:', err));
     }

@@ -10,6 +10,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = valueDiff(offer);
     const manualReviewDisabled = !opt.manualReview.enable;
+    const prefix = bot.getPrefix();
 
     const declined = '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: The offer has been declined';
 
@@ -85,7 +86,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
         reply = custom
             ? custom
             : declined +
-              ' because I am no longer trading keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+              ` because I am no longer trading keys. You can confirm this by typing "${prefix}price Mann Co. Supply Crate Key" or "${prefix}autokeys".`;
         //
     } else if (offerReason.reason === 'NOT_SELLING_KEYS') {
         //
@@ -93,7 +94,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
         reply = custom
             ? custom
             : declined +
-              ' because I am no longer selling keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+              ` because I am no longer selling keys. You can confirm this by typing "${prefix}price Mann Co. Supply Crate Key" or "${prefix}autokeys".`;
         //
     } else if (offerReason.reason === 'NOT_BUYING_KEYS') {
         //
@@ -101,7 +102,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
         reply = custom
             ? custom
             : declined +
-              ' because I am no longer buying keys. You can confirm this by typing "!price Mann Co. Supply Crate Key" or "!autokeys".';
+              ` because I am no longer buying keys. You can confirm this by typing "${prefix}price Mann Co. Supply Crate Key" or "${prefix}autokeys".`;
         //
     } else if (offerReason.reason === 'BANNED') {
         //

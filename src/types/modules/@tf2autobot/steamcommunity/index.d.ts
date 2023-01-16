@@ -119,3 +119,11 @@ declare module '@tf2autobot/steamcommunity' {
 
     export = SteamCommunity;
 }
+
+declare module '@tf2autobot/steamcommunity/classes/CEconItem' {
+    import { EconItem } from '@tf2autobot/tradeoffer-manager';
+    import { UnknownDictionaryKnownValues } from 'src/types/common';
+    export default class CEconItem extends EconItem {
+        constructor(asset: UnknownDictionaryKnownValues, description: UnknownDictionaryKnownValues, contextID: string);
+    }
+}

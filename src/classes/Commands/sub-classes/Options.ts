@@ -5,10 +5,12 @@ import { removeLinkProtocol } from '../functions/utils';
 import Bot from '../../Bot';
 import Inventory from '../../Inventory';
 import CommandParser from '../../CommandParser';
-import { getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
+import { getFilesPath, getOptionsPath, JsonOptions, removeCliOptions } from '../../Options';
 import validator from '../../../lib/validator';
 import log from '../../../lib/logger';
 import { deepMerge } from '../../../lib/tools/deep-merge';
+import dayjs from 'dayjs';
+import path from 'path';
 
 export type OptionsKeys =
     | 'miscSettings'
@@ -25,6 +27,7 @@ export type OptionsKeys =
     | 'crafting'
     | 'offerReceived'
     | 'manualReview'
+    | 'inventoryApis'
     | 'discordWebhook'
     | 'customMessage'
     | 'commands'
@@ -37,7 +40,7 @@ export default class OptionsCommands {
         this.bot = bot;
     }
 
-    async optionsCommand(steamID: SteamID, message: string): Promise<void> {
+    async optionsCommand(steamID: SteamID, message: string, prefix: string): Promise<void> {
         if (isSending) {
             return this.bot.sendMessage(steamID, '❌ Please wait.');
         }
@@ -53,7 +56,7 @@ export default class OptionsCommands {
         if (!optKey) {
             return this.bot.sendMessage(
                 steamID,
-                '❌ Wrong syntax. Please include any valid options parent key.\nExample: "!options miscSettings"' +
+                `❌ Wrong syntax. Please include any valid options parent key.\nExample: "${prefix}options miscSettings"` +
                     '\n\nValid options parent keys:\n• ' +
                     optionsKeys.join('\n• ')
             );
@@ -380,6 +383,20 @@ export default class OptionsCommands {
                             discordWebhook: {
                                 sendAlert: webhook.sendAlert,
                                 sendStats: webhook.sendStats
+                            }
+                        },
+                        null,
+                        2
+                    )}`
+                );
+
+                await timersPromises.setTimeout(3000);
+                this.bot.sendMessage(
+                    steamID,
+                    `/code ${JSON.stringify(
+                        {
+                            discordWebhook: {
+                                sendTf2Events: webhook.sendTf2Events
                             }
                         },
                         null,
@@ -788,6 +805,47 @@ export default class OptionsCommands {
 
             isSending = false;
         }
+    }
+
+    backupPricelistCommand(steamID: SteamID): void {
+        const opt = this.bot.options;
+        const filesPath = getFilesPath(opt.steamAccountName);
+        const pricelistPath = path.resolve(filesPath, 'pricelist.json');
+        const currentTime = dayjs().tz(opt.timezone ? opt.timezone : 'UTC');
+        const dateString = currentTime.format('MM_DD_YYYY');
+        const timeString = 'pricelist_' + currentTime.format('HH_mm_ss');
+
+        // Check if the backup folder exists
+        fsp.mkdir(path.resolve(filesPath, 'backups', dateString), { recursive: true })
+            .then(() => {
+                fsp.copyFile(pricelistPath, path.resolve(filesPath, 'backups', dateString, timeString + '.json'))
+                    .then(() => {
+                        this.bot.sendMessage(
+                            steamID,
+                            "✅ Successfully backed up pricelist.json, check your bot's files!"
+                        );
+                    })
+                    .catch(() => {
+                        const msg = '❌ Error backing up pricelist';
+                        if (steamID) {
+                            this.bot.sendMessage(steamID, msg);
+                        } else {
+                            log.error(msg);
+                        }
+
+                        return;
+                    });
+            })
+            .catch(() => {
+                const msg = '❌ Error backing up pricelist';
+                if (steamID) {
+                    this.bot.sendMessage(steamID, msg);
+                } else {
+                    log.error(msg);
+                }
+
+                return;
+            });
     }
 
     updateOptionsCommand(steamID: SteamID, message: string): void {
