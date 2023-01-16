@@ -301,28 +301,47 @@ export default class Commands {
     }
 
     private getSKU(steamID: SteamID, message: string): void {
-        const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
+        const itemNamesOrSkus = CommandParser.removeCommand(removeLinkProtocol(message));
 
-        if (itemNameOrSku === '!sku') {
+        if (itemNamesOrSkus === '!sku') {
             return this.bot.sendMessage(steamID, `❌ Missing item name or item sku!`);
         }
 
-        if (!testPriceKey(itemNameOrSku)) {
-            // Receive name
-            const sku = this.bot.schema.getSkuFromName(itemNameOrSku);
+        const itemsOrSkus = itemNamesOrSkus.split('\n');
 
-            if (sku.includes('null') || sku.includes('undefined')) {
-                return this.bot.sendMessage(
-                    steamID,
-                    `Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`
-                );
+        if (itemsOrSkus.length === 1) {
+            if (!testPriceKey(itemNamesOrSkus)) {
+                // Receive name
+                const sku = this.bot.schema.getSkuFromName(itemNamesOrSkus);
+
+                if (sku.includes('null') || sku.includes('undefined')) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        `Generated sku: ${sku}\nPlease check the name. If correct, please let us know. Thank you.`
+                    );
+                }
+
+                this.bot.sendMessage(steamID, `• ${sku}\nhttps://autobot.tf/items/${sku}`);
+            } else {
+                // Receive sku
+                const name = this.bot.schema.getName(SKU.fromString(itemNamesOrSkus), false);
+                this.bot.sendMessage(steamID, `• ${name}\nhttps://autobot.tf/items/${itemNamesOrSkus}`);
             }
-
-            this.bot.sendMessage(steamID, `• ${sku}\nhttps://autobot.tf/items/${sku}`);
         } else {
-            // Receive sku
-            const name = this.bot.schema.getName(SKU.fromString(itemNameOrSku), false);
-            this.bot.sendMessage(steamID, `• ${name}\nhttps://autobot.tf/items/${itemNameOrSku}`);
+            const results: { source: string; generated: string }[] = [];
+            itemsOrSkus.forEach(item => {
+                if (!testPriceKey(item)) {
+                    // Receive name
+                    results.push({ source: item, generated: this.bot.schema.getSkuFromName(item) });
+                } else {
+                    results.push({ source: item, generated: this.bot.schema.getName(SKU.fromString(item), false) });
+                }
+            });
+
+            this.bot.sendMessage(
+                steamID,
+                `• ${results.map(item => `${item.source} => ${item.generated}`).join('\n •')}`
+            );
         }
     }
 
