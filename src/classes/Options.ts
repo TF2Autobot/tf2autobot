@@ -60,6 +60,10 @@ export const DEFAULTS: JsonOptions = {
         },
         pricecheckAfterTrade: {
             enable: true
+        },
+        prefixes: {
+            steam: '!',
+            discord: '!'
         }
     },
 
