@@ -94,10 +94,6 @@ export default class DiscordBot {
             return; // Ignore message that not start with !
         }
 
-        const isCustomPrefix = this.bot.options.miscSettings?.prefixes?.discord;
-        const steamCustomPrefix = this.bot.options.miscSettings?.prefixes?.steam ?? '!';
-        isCustomPrefix ? (message.content = message.content.replace(this.prefix, steamCustomPrefix)) : null;
-
         log.info(
             `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
         );
