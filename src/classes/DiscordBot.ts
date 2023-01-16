@@ -19,6 +19,7 @@ export default class DiscordBot {
     readonly client: Client;
 
     private prefix = '!';
+
     private MAX_MESSAGE_LENGTH = 2000 - 2; // some characters are reserved
 
     constructor(private options: Options, private bot: Bot) {
