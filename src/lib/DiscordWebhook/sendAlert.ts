@@ -40,6 +40,7 @@ type AlertType =
     | 'error-accept'
     | 'autoUpdatePartialPriceSuccess'
     | 'autoUpdatePartialPriceFailed'
+    | 'autoUpdatePartialPriceFailedToDisable'
     | 'autoResetPartialPrice'
     | 'autoResetPartialPriceBulk'
     | 'onBulkUpdatePartialPriced'
@@ -156,6 +157,10 @@ export default function sendAlert(
         title = 'Failed update item prices (Partial price update)';
         description = msg;
         color = '16711680'; // red
+    } else if (type === 'autoUpdatePartialPriceFailedToDisable') {
+        title = 'Failed disabling item (Partial price update failed)';
+        description = msg;
+        color = '16711680'; // red
     } else if (type === 'autoResetPartialPrice') {
         title = '✅ Automatically reset partially priced item';
         description = msg;
@@ -256,6 +261,7 @@ export default function sendAlert(
                 'escrow-check-failed-not-restart-bptf-down',
                 'queue-problem-not-restart-bptf-down',
                 'autoAddPaintedItemsFailed',
+                'autoUpdatePartialPriceFailedToDisable',
                 'failed-accept',
                 'error-accept',
                 'unusualInvalidItems'
@@ -282,6 +288,7 @@ export default function sendAlert(
         [
             'autoUpdatePartialPriceSuccess',
             'autoUpdatePartialPriceFailed',
+            'autoUpdatePartialPriceFailedToDisable',
             'autoResetPartialPrice',
             'autoResetPartialPriceBulk',
             'onBulkUpdatePartialPriced',
