@@ -340,7 +340,7 @@ export default class Commands {
 
             this.bot.sendMessage(
                 steamID,
-                `• ${results.map(item => `${item.source} => ${item.generated}`).join('\n •')}`
+                `• ${results.map(item => `${item.source} => ${item.generated}`).join('\n• ')}`
             );
         }
     }
