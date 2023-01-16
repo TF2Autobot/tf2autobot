@@ -480,11 +480,12 @@ export default function updateListings(
                 .updatePrice({ priceKey, entryData: entry, emitChange: true })
                 .then(() => {
                     log.debug(`✅ Automatically disabled ${priceKey}, which is a high value item.`);
+                    const prefix = bot.getPrefix();
 
                     let msg =
                         `I have temporarily disabled ${name} (${priceKey}) because it contains some high value spells/parts.` +
-                        `\nYou can manually price it with "${bot.getPrefix()}update sku=${priceKey}&enabled=true&<buy and sell price>"` +
-                        ` or just re-enable it with "${bot.getPrefix()}update sku=${priceKey}&enabled=true${
+                        `\nYou can manually price it with "${prefix}update sku=${priceKey}&enabled=true&<buy and sell price>"` +
+                        ` or just re-enable it with "${prefix}update sku=${priceKey}&enabled=true${
                             opt.highValue.retainOldGroup ? '' : `&group=${oldGroup}".`
                         }` +
                         '\n\nItem information:\n\n- ';

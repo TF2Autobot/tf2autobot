@@ -15,6 +15,7 @@ export function getItemAndAmount(
     steamID: SteamID,
     message: string,
     bot: Bot,
+    prefix: string,
     from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
 ): { match: Entry; priceKey: string; amount: number } | null {
     let name = removeLinkProtocol(message);
@@ -143,7 +144,7 @@ export function getItemAndAmount(
         };
 
         if (closestMatch === null) {
-            bot.sendMessage(steamID, notFound(name, bot.getPrefix(steamID)));
+            bot.sendMessage(steamID, notFound(name, prefix));
 
             return null;
         }
@@ -181,7 +182,7 @@ export function getItemAndAmount(
                 match: closestMatch
             };
         } else {
-            bot.sendMessage(steamID, notFound(name, bot.getPrefix(steamID)));
+            bot.sendMessage(steamID, notFound(name, prefix));
 
             return null;
         }

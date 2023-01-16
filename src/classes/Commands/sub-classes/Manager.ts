@@ -240,7 +240,7 @@ export default class ManagerCommands {
         }
     }
 
-    nameAvatarCommand(steamID: SteamID, message: string, command: NameAvatar): void {
+    nameAvatarCommand(steamID: SteamID, message: string, command: NameAvatar, prefix: string): void {
         const example =
             'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f5/f57685d33224e32436f366d1acb4a1769bdfa60f_full.jpg';
         const input = CommandParser.removeCommand(message);
@@ -270,10 +270,7 @@ export default class ManagerCommands {
             );
         } else {
             if (!validUrl.isUri(input)) {
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ Your url is not valid. Example: "${this.bot.getPrefix(steamID)}avatar ${example}"`
-                );
+                return this.bot.sendMessage(steamID, `❌ Your url is not valid. Example: "${prefix}avatar ${example}"`);
             }
 
             this.bot.community.uploadAvatar(input, err => {

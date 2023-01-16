@@ -507,7 +507,7 @@ export default class PricelistManagerCommands {
         }
     }
 
-    autoAddCommand(steamID: SteamID, message: string): void {
+    autoAddCommand(steamID: SteamID, message: string, prefix: string): void {
         if (AutoAddQueue.isRunning()) {
             return this.bot.sendMessage(
                 steamID,
@@ -686,7 +686,7 @@ export default class PricelistManagerCommands {
                         : totalTime < anHour
                         ? `${Math.round(totalTime / aMin)} minutes`
                         : `${Math.round(totalTime / anHour)} hours`
-                } to complete. Send "${this.bot.getPrefix(steamID)}stopautoadd" to abort.`
+                } to complete. Send "${prefix}stopautoadd" to abort.`
         );
 
         const autoAdd = new AutoAddQueue(this.bot, steamID, skusFromPricelist, params, isPremium);
@@ -696,7 +696,7 @@ export default class PricelistManagerCommands {
         void autoAdd.executeAutoAdd();
     }
 
-    async updateCommand(steamID: SteamID, message: string): Promise<void> {
+    async updateCommand(steamID: SteamID, message: string, prefix: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
         if (params.isPartialPriced !== undefined && params.isPartialPriced === true) {
@@ -719,9 +719,7 @@ export default class PricelistManagerCommands {
                     return this.bot.sendMessage(
                         steamID,
                         `❌ Please specify "withgroup" or "withoutgroup" to change note.` +
-                            `\nExample: "${this.bot.getPrefix(
-                                steamID
-                            )}update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
+                            `\nExample: "${prefix}update all=true&withgroup=<groupName>&note.buy=<yourNote>"`
                     );
                 }
 
@@ -729,16 +727,14 @@ export default class PricelistManagerCommands {
                     return this.bot.sendMessage(
                         steamID,
                         `❌ Please specify "withgroup" or "withoutgroup" to change buying/selling price.\nExample:\n` +
-                            `"${this.bot.getPrefix(
-                                steamID
-                            )}update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
+                            `"${prefix}update all=true&withgroup=<groupName>&(buy.keys|buy.metal)=<buyingPrice>&(sell.keys|sell.metal)=<sellingPrice>"`
                     );
                 }
             }
             if (params.promoted) {
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ Parameter "promoted" can't be used with "${this.bot.getPrefix(steamID)}update all=true".`
+                    `❌ Parameter "promoted" can't be used with "${prefix}update all=true".`
                 );
             }
 

@@ -496,7 +496,7 @@ export default abstract class Cart {
             });
     }
 
-    toString(isDonating: boolean): string {
+    toString(isDonating: boolean, prefix: string): string {
         if (this.isEmpty) {
             return '❌ Your cart is empty.';
         }
@@ -530,9 +530,9 @@ export default abstract class Cart {
             }
         }
 
-        str += `\n\nType ${
-            isDonating ? `"${this.bot.getPrefix()}donatenow"` : `"${this.bot.getPrefix()}checkout"`
-        } to ${isDonating ? 'donate' : 'checkout'} and proceed trade, or "${this.bot.getPrefix()}clearcart" to cancel.`;
+        str += `\n\nType ${isDonating ? `"${prefix}donatenow"` : `"${prefix}checkout"`} to ${
+            isDonating ? 'donate' : 'checkout'
+        } and proceed trade, or "${prefix}clearcart" to cancel.`;
 
         return str;
     }
@@ -557,14 +557,14 @@ export default abstract class Cart {
         delete this.carts[steamID.getSteamID64()];
     }
 
-    static stringify(steamID: SteamID, isDonating: boolean): string {
+    static stringify(steamID: SteamID, isDonating: boolean, prefix: string): string {
         const cart = this.getCart(steamID);
 
         if (cart === null) {
             return '❌ Your cart is empty.';
         }
 
-        return cart.toString(isDonating);
+        return cart.toString(isDonating, prefix);
     }
 
     private async getTotalBackpackSlots(steamID64: string): Promise<number> {
