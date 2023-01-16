@@ -3,11 +3,9 @@ import { UnknownDictionaryKnownValues } from '../types/common';
 import { parseJSON } from '../lib/helpers';
 
 export default class CommandParser {
-    static getCommand(message: string): string | null {
-        if (message.startsWith('!')) {
-            const index = message.indexOf(' ');
-
-            return message.substring(1, index === -1 ? undefined : index);
+    static getCommand(message: string, prefix: string): string | null {
+        if (message.startsWith(prefix)) {
+            return message.slice(prefix.length).trim().split(/ +/g).shift()?.toLowerCase();
         }
 
         return null;

@@ -15,6 +15,7 @@ export function getItemAndAmount(
     steamID: SteamID,
     message: string,
     bot: Bot,
+    prefix: string,
     from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
 ): { match: Entry; priceKey: string; amount: number } | null {
     let name = removeLinkProtocol(message);
@@ -123,13 +124,13 @@ export function getItemAndAmount(
             }
         }
 
-        const notFound = (name: string) => {
+        const notFound = (name: string, prefix: string) => {
             return (
                 `❌ I could not find any item names in my pricelist that contain "${name}". I may not be trading the item you are looking for.` +
                 '\n\nAlternatively, please try to:\n• ' +
                 [
                     'Remove "Unusual", just put effect and name. Example: "Kill-a-Watt Vive La France".',
-                    'Remove plural (~s/~es/etc), example: "!buy 2 Mann Co. Supply Crate Key".',
+                    `Remove plural (~s/~es/etc), example: "${prefix}buy 2 Mann Co. Supply Crate Key".`,
                     'Check for a dash (-) i.e. "All-Father" or "Mini-Engy".',
                     `Check for a single quote (') i.e. "Orion's Belt" or "Chargin' Targe".`,
                     'Check for a dot (.) i.e. "Lucky No. 42" or "B.A.S.E. Jumper".',
@@ -143,7 +144,7 @@ export function getItemAndAmount(
         };
 
         if (closestMatch === null) {
-            bot.sendMessage(steamID, notFound(name));
+            bot.sendMessage(steamID, notFound(name, prefix));
 
             return null;
         }
@@ -181,7 +182,7 @@ export function getItemAndAmount(
                 match: closestMatch
             };
         } else {
-            bot.sendMessage(steamID, notFound(name));
+            bot.sendMessage(steamID, notFound(name, prefix));
 
             return null;
         }

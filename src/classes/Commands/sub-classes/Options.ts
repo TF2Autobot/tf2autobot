@@ -40,7 +40,7 @@ export default class OptionsCommands {
         this.bot = bot;
     }
 
-    async optionsCommand(steamID: SteamID, message: string): Promise<void> {
+    async optionsCommand(steamID: SteamID, message: string, prefix: string): Promise<void> {
         if (isSending) {
             return this.bot.sendMessage(steamID, '❌ Please wait.');
         }
@@ -56,7 +56,7 @@ export default class OptionsCommands {
         if (!optKey) {
             return this.bot.sendMessage(
                 steamID,
-                '❌ Wrong syntax. Please include any valid options parent key.\nExample: "!options miscSettings"' +
+                `❌ Wrong syntax. Please include any valid options parent key.\nExample: "${prefix}options miscSettings"` +
                     '\n\nValid options parent keys:\n• ' +
                     optionsKeys.join('\n• ')
             );

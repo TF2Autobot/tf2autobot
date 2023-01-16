@@ -61,6 +61,10 @@ export const DEFAULTS: JsonOptions = {
         },
         pricecheckAfterTrade: {
             enable: true
+        },
+        prefixes: {
+            steam: '!',
+            discord: '!'
         }
     },
 
@@ -1208,6 +1212,12 @@ interface MiscSettings {
     deleteUntradableJunk?: OnlyEnable;
     reputationCheck?: ReputationCheck;
     pricecheckAfterTrade?: OnlyEnable;
+    prefixes?: Prefixes;
+}
+
+interface Prefixes {
+    steam?: string;
+    discord?: string;
 }
 
 export interface ReputationCheck {

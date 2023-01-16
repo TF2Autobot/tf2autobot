@@ -783,12 +783,13 @@ export default class MyHandler extends Handler {
                 if (optDw.sendAlert.enable && optDw.sendAlert.url.main !== '') {
                     sendAlert('failed-processing-offer', this.bot, null, null, null, [partnerSteamID, offer.id]);
                 } else {
+                    const prefix = this.bot.getPrefix();
                     this.bot.messageAdmins(
                         '',
                         `Unable to process offer #${offer.id} with ${partnerSteamID}.` +
                             ' The offer data received was broken because our side and their side are both empty.' +
                             `\nPlease manually check the offer (login as me): https://steamcommunity.com/tradeoffer/${offer.id}/` +
-                            `\nSend "!faccept ${offer.id}" to force accept, or "!fdecline ${offer.id}" to decline.`,
+                            `\nSend "${prefix}faccept ${offer.id}" to force accept, or "${prefix}fdecline ${offer.id}" to decline.`,
                         []
                     );
                 }
