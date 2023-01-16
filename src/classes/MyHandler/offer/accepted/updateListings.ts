@@ -583,18 +583,38 @@ export default function updateListings(
                     if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 })
                 .catch(err => {
-                    const msg = `❌ Failed to automatically update prices for ${name} (${priceKey}): ${
+                    let msg = `❌ Failed to automatically update partially priced for ${name} (${priceKey}) and the item has been temporarily disabled.\n\nError: ${
                         (err as Error).message
                     }`;
                     log.error(`❌ Failed to automatically update prices for ${priceKey}`, err);
 
-                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
-                        if (dwEnabled) {
-                            sendAlert('autoUpdatePartialPriceFailed', bot, msg);
-                        } else {
-                            bot.messageAdmins(msg, []);
-                        }
-                    }
+                    entry.autoprice = false;
+                    entry.enabled = false;
+                    bot.pricelist
+                        .updatePrice({ priceKey: entry.sku, entryData: entry, emitChange: true })
+                        .then(() => {
+                            log.info(`${name} (${priceKey}) has been temporarily disabled.`);
+
+                            if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
+                                if (dwEnabled) {
+                                    sendAlert('autoUpdatePartialPriceFailed', bot, msg);
+                                } else {
+                                    bot.messageAdmins(msg, []);
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            log.error(`Error disabling ${name} (${priceKey}):`, err);
+
+                            if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onFailedUpdatePartialPriced) {
+                                if (dwEnabled) {
+                                    msg = `❌ Failed to automatically disable partially priced ${name} (${priceKey}) after failing to get the latest item price.`;
+                                    sendAlert('autoUpdatePartialPriceFailedToDisable', bot, msg);
+                                } else {
+                                    bot.messageAdmins(msg, []);
+                                }
+                            }
+                        });
 
                     if (isPricecheckRequestEnabled) addToQ(priceKey, isNotPure, existsInPricelist);
                 });
