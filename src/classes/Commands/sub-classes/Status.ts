@@ -136,7 +136,7 @@ export default class StatusCommands {
 
             this.bot.sendMessage(steamID, '✅ All stats have been deleted.');
 
-            this.bot.handler.commands.useUpdateOptionsCommand(
+            this.bot.handler.commandHandler.useUpdateOptionsCommand(
                 steamID,
                 '!config statistics.lastTotalTrades=0&statistics.startingTimeInUnix=0&statistics.lastTotalProfitMadeInRef=0&statistics.lastTotalProfitOverpayInRef=0&statistics.profitDataSinceInUnix=0'
             );

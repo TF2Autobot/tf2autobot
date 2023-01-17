@@ -779,7 +779,7 @@ export default class Bot {
                         void sendStats(this);
                     } else {
                         this.getAdmins.forEach(admin => {
-                            this.handler.commands.useStatsCommand(admin);
+                            this.handler.commandHandler.useStatsCommand(admin);
                         });
                     }
                 }
