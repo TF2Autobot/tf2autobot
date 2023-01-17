@@ -28,7 +28,6 @@ import { Blocked, BPTFGetUserInfo } from './interfaces';
 import Handler, { OnRun } from '../Handler';
 import Bot from '../Bot';
 import Pricelist, { Entry, PricesDataObject, PricesObject } from '../Pricelist';
-import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
 import Inventory from '../Inventory';
 import TF2Inventory from '../TF2Inventory';
@@ -60,8 +59,6 @@ const filterReasons = (reasons: string[]) => {
 };
 
 export default class MyHandler extends Handler {
-    readonly commands: Commands;
-
     readonly commandHandler: CommandHandler;
 
     readonly autokeys: Autokeys;
@@ -203,7 +200,6 @@ export default class MyHandler extends Handler {
     constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
 
-        this.commands = new Commands(bot, priceSource);
         this.commandHandler = new CommandHandler(bot, priceSource);
         this.cartQueue = new CartQueue(bot);
         this.autokeys = new Autokeys(bot);
@@ -502,7 +498,7 @@ export default class MyHandler extends Handler {
                     : this.recentlySentMessage[steamID.redirectAnswerTo.author.id]) + 1;
         }
 
-        await this.commands.processMessage(steamID, message);
+        await this.commandHandler.handleCommand(steamID, message);
     }
 
     onLoginKey(loginKey: string): void {
