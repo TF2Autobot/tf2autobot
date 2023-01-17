@@ -23,11 +23,11 @@ jobs:
     name: Tag Release (node:${{ matrix.node }})
 
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3.3.0
 
       - name: Docker meta
         id: docker_meta
-        uses: docker/metadata-action@v4.1.1
+        uses: docker/metadata-action@v4.3.0
         with:
           images: tf2autobot/tf2autobot
           tags: |
@@ -47,7 +47,7 @@ jobs:
 
       - name: Build and push (node:${{ matrix.node }})
         id: docker
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v3.3.0
         with:
           push: true
           context: .

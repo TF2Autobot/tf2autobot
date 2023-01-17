@@ -18,7 +18,8 @@
         },
         "counterOffer": {
             "enable": true,
-            "skipIncludeMessage": false
+            "skipIncludeMessage": false,
+            "autoDeclineLazyOffer": false
         },
         "skipItemsInTrade": {
             "enable": true
@@ -49,6 +50,10 @@
         },
         "pricecheckAfterTrade": {
             "enable": true
+        },
+        "prefixes": {
+            "steam": "!",
+            "discord": "!"
         }
     },
     "sendAlert": {
@@ -430,6 +435,14 @@
         },
         "additionalNotes": ""
     },
+    "inventoryApis": {
+        "steamSupply": {
+            "enable": false
+        },
+        "steamApis": {
+            "enable": false
+        }
+    },
     "discordChat": {
         "online": {
             "type": "LISTENING",
@@ -510,6 +523,29 @@
         "sendStats": {
             "enable": false,
             "url": ""
+        },
+        "sendTf2Events": {
+            "systemMessage": {
+                "enable": true,
+                "url": "",
+                "custom": {
+                    "content": ""
+                }
+            },
+            "displayNotification": {
+                "enable": true,
+                "url": "",
+                "custom": {
+                    "content": ""
+                }
+            },
+            "itemBroadcast": {
+                "enable": true,
+                "url": "",
+                "custom": {
+                    "content": ""
+                }
+            }
         }
     },
     "customMessage": {

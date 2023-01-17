@@ -256,4 +256,34 @@ export default abstract class Handler {
     onDeleteArchivedListingError(err: Error): void {
         // empty function
     }
+
+    /**
+     * Called when Team Fortress 2 emit a System Message event
+     * @param message - System message
+     */
+    onSystemMessage(message: string): void {
+        // empty function
+    }
+
+    /**
+     * Called when Team Fortress 2 emit a Display Notification event (currently only used when someone
+     * accepted the "Something Special For Someone Special")
+     * @param title - (Not currently used, based on node-tf2)
+     * @param body -
+     */
+    onDisplayNotification(title: string, body: string): void {
+        // empty function
+    }
+
+    /**
+     * Called when Team Fortress 2 emit a Item Broadcast event (currently only used when someone received
+     * or destroyed Golden Frying Pan)
+     * @param message -
+     * @param username -
+     * @param wasDestruction -
+     * @param defindex -
+     */
+    onItemBroadcast(message: string, username: string, wasDestruction: boolean, defindex: number): void {
+        // empty function
+    }
 }

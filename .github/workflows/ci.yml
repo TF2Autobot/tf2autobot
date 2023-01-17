@@ -12,9 +12,9 @@ jobs:
         node-version: [16.x, 18.x]
 
     steps:
-    - uses: actions/checkout@v3.1.0
+    - uses: actions/checkout@v3.3.0
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3.5.1
+      uses: actions/setup-node@v3.6.0
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm install

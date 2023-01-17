@@ -24,6 +24,8 @@ if (process.env.BOT_VERSION !== pjson.version) {
     process.exit(1);
 }
 
+import 'bluebird-global';
+
 import dotenv from 'dotenv';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -142,46 +144,40 @@ process.on('message', message => {
     }
 });
 
-botManager
-    .start(options)
-    .then(async () => {
-        if (options.enableHttpApi) {
-            const { default: HttpManager } = await import('./classes/HttpManager');
+void botManager.start(options).asCallback(err => {
+    if (err) {
+        /*eslint-disable */
+        if (err.response || err.name === 'AxiosError') {
+            // if it's Axios error, filter the error
+
+            const e = new Error(err.message);
+
+            e['code'] = err.code;
+            e['status'] = err.response?.status ?? err.status;
+            e['method'] = err.config?.method ?? err.method;
+            e['url'] = err.config?.url?.replace(/\?.+/, '') ?? err.baseURL?.replace(/\?.+/, ''); // Ignore parameters
+
+            if (typeof err.response?.data === 'string' && err.response?.data?.includes('<html>')) {
+                throw e;
+            }
+
+            e['data'] = err.response?.data;
+
+            throw e;
+        }
+        /*eslint-enable */
+
+        throw err;
+    }
+
+    if (options.enableHttpApi) {
+        void import('./classes/HttpManager').then(({ default: HttpManager }) => {
             const httpManager = new HttpManager(options);
-            await httpManager.start();
-        }
-    })
-    .catch(err => {
-        if (err) {
-            // https://stackoverflow.com/questions/30715367/why-can-i-not-throw-inside-a-promise-catch-handler
-            setTimeout(() => {
-                /*eslint-disable */
-                if (err.response || err.name === 'AxiosError') {
-                    // if it's Axios error, filter the error
-
-                    const e = new Error(err.message);
-
-                    e['code'] = err.code;
-                    e['status'] = err.response?.status ?? err.status;
-                    e['method'] = err.config?.method ?? err.method;
-                    e['url'] = err.config?.url?.replace(/\?.+/, '') ?? err.baseURL?.replace(/\?.+/, ''); // Ignore parameters
-
-                    if (typeof err.response?.data === 'string' && err.response?.data?.includes('<html>')) {
-                        return throwErr(e);
-                    }
-
-                    e['data'] = err.response?.data;
-
-                    return throwErr(e);
+            void httpManager.start().asCallback(err => {
+                if (err) {
+                    throw err;
                 }
-                /*eslint-enable */
-
-                return throwErr(err);
-            }, 10);
-        }
-    });
-
-function throwErr(err): void {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    process.emit('uncaughtException', err);
-}
+            });
+        });
+    }
+});
