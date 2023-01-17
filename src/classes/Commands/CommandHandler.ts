@@ -7,6 +7,7 @@ import CartQueue from '../Carts/CartQueue';
 import Cart from '../Carts/Cart';
 import { UnknownDictionary } from '../../types/common';
 import Inventory from '../Inventory';
+import * as c from './sub-classes/export';
 
 // Import all commands
 import InformationCommands from './commands/information';
@@ -69,6 +70,24 @@ function hasAliases(command: ICommand): command is ICommand & { aliases: string[
 }
 
 export default class CommandHandler {
+    private manager: c.ManagerCommands;
+
+    private message: c.MessageCommand;
+
+    private misc: c.MiscCommands;
+
+    private opt: c.OptionsCommand;
+
+    private pManager: c.PricelistManager;
+
+    private request: c.RequestCommands;
+
+    private review: c.ReviewCommands;
+
+    private status: c.StatusCommands;
+
+    private crafting: c.CraftingCommands;
+
     isDonating = false;
 
     adminInventoryReset: NodeJS.Timeout;
@@ -82,6 +101,15 @@ export default class CommandHandler {
     constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
         this.commands = new Map();
         this.commandsPointAliases = new Map();
+        this.manager = new c.ManagerCommands(bot);
+        this.message = new c.MessageCommand(bot);
+        this.misc = new c.MiscCommands(bot);
+        this.opt = new c.OptionsCommand(bot);
+        this.pManager = new c.PricelistManager(bot, pricer);
+        this.request = new c.RequestCommands(bot, pricer);
+        this.review = new c.ReviewCommands(bot);
+        this.status = new c.StatusCommands(bot);
+        this.crafting = new c.CraftingCommands(bot);
     }
 
     public registerCommands(): void {
@@ -210,5 +238,13 @@ export default class CommandHandler {
                           ` ${position} in front of you.`
             );
         }
+    }
+
+    useStatsCommand(steamID: SteamID): void {
+        void this.status.statsCommand(steamID);
+    }
+
+    useUpdateOptionsCommand(steamID: SteamID | null, message: string): void {
+        this.opt.updateOptionsCommand(steamID, message);
     }
 }
