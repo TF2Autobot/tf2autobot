@@ -163,6 +163,7 @@ export async function sendToAdmin(
     const cTTotalItems = cT.totalItems.steamChat ? cT.totalItems.steamChat : '🎒 Total items:';
 
     const customInitializer = bot.options.steamChat.customInitializer.review;
+    const prefix = bot.getPrefix();
 
     const message1 =
         `${customInitializer ? customInitializer + ' ' : ''}⚠️ Offer #${
@@ -189,7 +190,7 @@ export async function sendToAdmin(
         ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
         `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
         `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
-        `\n\n⚠️ Send "!accept ${offer.id}" to accept or "!decline ${offer.id}" to decline this offer.` +
+        `\n\n⚠️ Send "${prefix}accept ${offer.id}" to accept or "${prefix}decline ${offer.id}" to decline this offer.` +
         `\n\nVersion ${process.env.BOT_VERSION}`;
 
     const message = message1 + message2 + message3 + message4;

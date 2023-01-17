@@ -354,6 +354,13 @@ export default class Bot {
             .forEach(steamID => this.sendMessage(steamID, message));
     }
 
+    getPrefix(steamID?: SteamID): string {
+        if (steamID && steamID.redirectAnswerTo) {
+            return this.options.miscSettings?.prefixes?.discord ?? '!';
+        }
+        return this.options.miscSettings?.prefixes?.steam ?? '!';
+    }
+
     set setReady(isReady: boolean) {
         this.ready = isReady;
     }
@@ -461,7 +468,7 @@ export default class Bot {
     }> {
         return this.getLatestVersion.then(async content => {
             const latestVersion = content.version;
-            const canUpdateRepo = content.canUpdateRepo;
+            const canUpdateRepo = semver.compare(process.env.BOT_VERSION, '5.6.0') !== -1 && content.canUpdateRepo;
             const updateMessage = content.updateMessage;
 
             const hasNewVersion = semver.lt(process.env.BOT_VERSION, latestVersion);

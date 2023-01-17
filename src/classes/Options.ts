@@ -26,7 +26,8 @@ export const DEFAULTS: JsonOptions = {
         },
         counterOffer: {
             enable: true,
-            skipIncludeMessage: false
+            skipIncludeMessage: false,
+            autoDeclineLazyOffer: false
         },
         skipItemsInTrade: {
             enable: true
@@ -60,6 +61,10 @@ export const DEFAULTS: JsonOptions = {
         },
         pricecheckAfterTrade: {
             enable: true
+        },
+        prefixes: {
+            steam: '!',
+            discord: '!'
         }
     },
 
@@ -1187,6 +1192,7 @@ interface Game {
 
 interface Counteroffer extends OnlyEnable {
     skipIncludeMessage?: boolean;
+    autoDeclineLazyOffer?: boolean;
 }
 
 // --------- Misc Settings ----------
@@ -1206,6 +1212,12 @@ interface MiscSettings {
     deleteUntradableJunk?: OnlyEnable;
     reputationCheck?: ReputationCheck;
     pricecheckAfterTrade?: OnlyEnable;
+    prefixes?: Prefixes;
+}
+
+interface Prefixes {
+    steam?: string;
+    discord?: string;
 }
 
 export interface ReputationCheck {

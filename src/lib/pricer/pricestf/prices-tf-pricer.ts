@@ -23,8 +23,22 @@ export default class PricesTfPricer implements IPricer {
     }
 
     async getPrice(sku: string): Promise<GetItemPriceResponse> {
-        const response = await this.api.getPrice(sku);
-        return this.parsePrices2Item(response);
+        try {
+            const response = await this.api.getPrice(sku);
+            return this.parsePrices2Item(response);
+        } catch (err) {
+            log.warn('Error getting item prices from prices.tf, trying to get from autobot.tf...');
+            const response = await PricesTfApi.apiRequest(
+                'GET',
+                `/json/items/${sku}`,
+                undefined,
+                undefined,
+                undefined,
+                'https://autobot.tf'
+            );
+
+            return response;
+        }
     }
 
     async getPricelist(): Promise<GetPricelistResponse> {

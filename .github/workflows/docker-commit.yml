@@ -28,7 +28,7 @@ jobs:
     name: Tag Commit (node:${{ matrix.node }})
 
     steps:
-      - uses: actions/checkout@v3.2.0
+      - uses: actions/checkout@v3.3.0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2.1.0
@@ -43,7 +43,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build final image
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v3.3.0
         with:
           push: true
           tags: tf2autobot/tf2autobot:${{ github.sha }}-${{ matrix.node }}

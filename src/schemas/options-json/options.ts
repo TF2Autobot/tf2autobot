@@ -409,9 +409,12 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         skipIncludeMessage: {
                             type: 'boolean'
+                        },
+                        autoDeclineLazyOffer: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['enable', 'skipIncludeMessage'],
+                    required: ['enable', 'skipIncludeMessage', 'autoDeclineLazyOffer'],
                     additionalProperties: false
                 },
                 skipItemsInTrade: {
@@ -488,6 +491,18 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 pricecheckAfterTrade: {
                     $ref: '#/definitions/only-enable'
+                },
+                prefixes: {
+                    type: 'object',
+                    properties: {
+                        steam: {
+                            type: 'string'
+                        },
+                        discord: {
+                            type: 'string'
+                        }
+                    },
+                    additionalProperties: false
                 }
             },
             required: [
