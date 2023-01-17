@@ -1,12 +1,12 @@
 import SteamID from 'steamid';
-import { ICommand } from '../../CommandHandler';
-import Bot from 'src/classes/Bot';
-import IPricer from 'src/classes/IPricer';
+import CommandHandler, { ICommand } from '../../CommandHandler';
 import { getItemAndAmount } from '../../functions/utils';
-import CommandParser from 'src/classes/CommandParser';
 import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import dayjs from 'dayjs';
+import Bot from '../../../Bot';
+import IPricer from '../../../IPricer';
+import CommandParser from '../../../CommandParser';
 
 export default class PriceCommand implements ICommand {
     name = 'price';
@@ -17,9 +17,14 @@ export default class PriceCommand implements ICommand {
 
     description = 'Get the price and stock of an item.';
 
-    constructor(public readonly bot: Bot, public readonly pricer: IPricer) {
+    constructor(
+        public readonly bot: Bot,
+        public readonly pricer: IPricer,
+        public readonly commandHandler: CommandHandler
+    ) {
         this.bot = bot;
         this.pricer = pricer;
+        this.commandHandler = commandHandler;
     }
 
     execute = (steamID: SteamID, message: string) => {
