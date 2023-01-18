@@ -74,7 +74,9 @@ export default class CommandHandler {
 
     private message: c.MessageCommand;
 
-    private misc: c.MiscCommands;
+    help: c.HelpCommands;
+
+    misc: c.MiscCommands;
 
     private opt: c.OptionsCommand;
 
@@ -101,6 +103,7 @@ export default class CommandHandler {
     constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
         this.commands = new Map();
         this.commandsPointAliases = new Map();
+        this.help = new c.HelpCommands(this.bot);
         this.manager = new c.ManagerCommands(bot);
         this.message = new c.MessageCommand(bot);
         this.misc = new c.MiscCommands(bot);
