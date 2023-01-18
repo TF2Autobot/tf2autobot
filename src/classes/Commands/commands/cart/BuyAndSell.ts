@@ -15,7 +15,7 @@ export default class BuyAndSellCommand implements ICommand {
 
     description = 'Instantly buy an item 💲';
 
-    allowInvalidType = false;
+    dontAllowInvalidType = true;
 
     constructor(
         public readonly bot: Bot,

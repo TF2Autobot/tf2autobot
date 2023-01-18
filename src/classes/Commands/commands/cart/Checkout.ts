@@ -9,7 +9,7 @@ export default class CheckoutCommand implements ICommand {
 
     description = 'Have the bot send an offer with the items in your cart ✅🛒\n\n✨=== Trade actions ===✨';
 
-    allowInvalidType = false;
+    dontAllowInvalidType = true;
 
     constructor(
         public readonly bot: Bot,

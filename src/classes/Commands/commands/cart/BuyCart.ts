@@ -15,7 +15,7 @@ export default class BuyCartCommand implements ICommand {
 
     usage = '[amount] <name>';
 
-    allowInvalidType = false;
+    dontAllowInvalidType = true;
 
     constructor(
         public readonly bot: Bot,

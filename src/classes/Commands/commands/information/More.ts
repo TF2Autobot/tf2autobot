@@ -2,14 +2,11 @@ import SteamID from 'steamid';
 import CommandHandler, { ICommand } from '../../CommandHandler';
 import Bot from '../../../Bot';
 import IPricer from '../../../IPricer';
-import Cart from '../../../Carts/Cart';
 
-export default class ClearCartCommand implements ICommand {
-    name = 'clearcart';
+export default class MoreCommand implements ICommand {
+    name = 'more';
 
-    description = 'View your cart 🛒';
-
-    dontAllowInvalidType = true;
+    description = 'Show the advanced commands list';
 
     constructor(
         public readonly bot: Bot,
@@ -22,8 +19,7 @@ export default class ClearCartCommand implements ICommand {
     }
 
     execute = (steamID: SteamID, message: string) => {
-        Cart.removeCart(steamID);
-        const custom = this.bot.options.commands.clearcart.customReply.reply;
-        this.bot.sendMessage(steamID, custom ? custom : '🛒 Your cart has been cleared.');
+        const prefix = this.bot.getPrefix(steamID);
+        void this.commandHandler.help.moreCommand(steamID, prefix);
     };
 }

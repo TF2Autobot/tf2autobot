@@ -9,7 +9,7 @@ export default class CancelCommand implements ICommand {
 
     description = 'Cancel the trade offer ❌';
 
-    allowInvalidType = false;
+    dontAllowInvalidType = true;
 
     constructor(
         public readonly bot: Bot,

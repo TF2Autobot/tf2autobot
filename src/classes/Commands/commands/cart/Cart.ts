@@ -9,7 +9,7 @@ export default class CartCommand implements ICommand {
 
     description = 'View your cart 🛒';
 
-    allowInvalidType = false;
+    dontAllowInvalidType = true;
 
     constructor(
         public readonly bot: Bot,
