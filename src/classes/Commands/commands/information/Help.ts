@@ -19,7 +19,7 @@ export default class HelpCommand implements ICommand {
     }
 
     execute = (steamID: SteamID, message: string) => {
-        const isAdmin = this.bot.isAdmin(steamID);
-        const isCustomPricer = this.bot.pricelist.isUseCustomPricer;
+        const prefix = this.bot.getPrefix(steamID);
+        void this.commandHandler.help.helpCommand(steamID, prefix);
     };
 }
