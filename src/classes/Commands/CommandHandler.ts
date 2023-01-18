@@ -12,6 +12,7 @@ import * as c from './sub-classes/export';
 // Import all commands
 import InformationCommands from './commands/information';
 import CartCommands from './commands/cart';
+import InventoryCommands from './commands/inventory';
 
 export interface ICommand {
     /**
@@ -41,7 +42,7 @@ export interface ICommand {
     /**
      * Allow the steamID to be invalid
      */
-    allowInvalidType?: boolean;
+    dontAllowInvalidType?: boolean;
     /**
      * Is only allowed for admins
      */
@@ -70,7 +71,7 @@ function hasAliases(command: ICommand): command is ICommand & { aliases: string[
 }
 
 export default class CommandHandler {
-    private manager: c.ManagerCommands;
+    manager: c.ManagerCommands;
 
     private message: c.MessageCommand;
 
@@ -121,7 +122,7 @@ export default class CommandHandler {
         // We will also include aliases and point them to the command
 
         // We want to initialize all our commands
-        const commands = [...InformationCommands, ...CartCommands];
+        const commands = [...InformationCommands, ...CartCommands, ...InventoryCommands];
         for (const command of commands) {
             const cmd = new command(this.bot, this.pricer, this);
             this.commands.set(cmd.name, cmd);
@@ -149,6 +150,12 @@ export default class CommandHandler {
         log.debug(`Received command ${command} from ${steamID.getSteamID64()}`);
 
         if (command === null) {
+            const custom = this.bot.options.customMessage.commandNotFound;
+
+            this.bot.sendMessage(
+                steamID,
+                custom ? custom.replace('%command%', command) : `❌ Command "${command}" not found!`
+            );
             return;
         }
 
@@ -167,7 +174,8 @@ export default class CommandHandler {
             return;
         }
 
-        if (!cmd.allowInvalidType && isInvalidType) {
+        // By default dontAllowInvalidType is false
+        if (cmd.dontAllowInvalidType && isInvalidType) {
             return this.bot.sendMessage(steamID, '❌ Command not available.');
         }
 
