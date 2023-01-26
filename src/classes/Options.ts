@@ -18,6 +18,9 @@ export const DEFAULTS: JsonOptions = {
         createListings: {
             enable: true
         },
+        startHalted: {
+            enable: false
+        },
         addFriends: {
             enable: true
         },
@@ -1201,6 +1204,7 @@ interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
+    startHalted?: OnlyEnable;
     counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;

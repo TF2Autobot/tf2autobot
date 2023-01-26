@@ -395,6 +395,9 @@ export const optionsSchema: jsonschema.Schema = {
                 createListings: {
                     $ref: '#/definitions/only-enable'
                 },
+                startHalted: {
+                    $ref: '#/definitions/only-enable'
+                },
                 addFriends: {
                     $ref: '#/definitions/only-enable'
                 },
