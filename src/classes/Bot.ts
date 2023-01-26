@@ -1003,7 +1003,7 @@ export default class Bot {
                     (callback): void => {
                         log.info('Initializing halt mode, inventory, bptf-listings, and profile settings');
                         if (this.options.miscSettings.startHalted.enable) {
-                            this.halt();
+                            void this.halt();
                         }
                         this.setProperties();
                         async.parallel(
