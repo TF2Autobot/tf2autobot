@@ -129,6 +129,22 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['enable', 'url'],
             additionalProperties: false
         },
+        'webhook-enable-url': {
+            type: 'object',
+            properties: {
+                enable: {
+                    type: 'boolean'
+                },
+                url: {
+                    type: 'array',
+                    items: {
+                        type: 'string'
+                    }
+                }
+            },
+            required: ['enable', 'url'],
+            additionalProperties: false
+        },
         'discord-webhook-enable-url-custom': {
             type: 'object',
             properties: {
@@ -2719,6 +2735,84 @@ export const optionsSchema: jsonschema.Schema = {
             },
             required: ['spells', 'sheens', 'killstreakers', 'painted', 'strangeParts'],
             additionalProperties: false
+        },
+        webhooks: {
+            type: 'object',
+            properties: {
+                webhookSecret: {
+                    type: 'string'
+                },
+                tradeSummary: {
+                    $ref: '#/definitions/webhook-enable-url'
+                },
+                declinedTrade: {
+                    $ref: '#/definitions/webhook-enable-url'
+                },
+                messages: {
+                    $ref: '#/definitions/webhook-enable-url'
+                },
+                priceUpdate: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        showOnlyInStock: {
+                            type: 'boolean'
+                        },
+                        showFailedToUpdate: {
+                            type: 'boolean'
+                        },
+                        url: {
+                            type: 'string'
+                        }
+                    },
+                    required: ['enable', 'showOnlyInStock', 'showFailedToUpdate', 'url'],
+                    additionalProperties: false
+                },
+                sendAlert: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        url: {
+                            type: 'object',
+                            properties: {
+                                main: {
+                                    type: 'string'
+                                },
+                                partialPriceUpdate: {
+                                    type: 'string'
+                                }
+                            },
+                            required: ['main', 'partialPriceUpdate'],
+                            additionalProperties: false
+                        }
+                    },
+                    required: ['enable', 'url'],
+                    additionalProperties: false
+                },
+                sendStats: {
+                    $ref: '#/definitions/webhook-enable-url'
+                },
+                sendTf2Events: {
+                    type: 'object',
+                    properties: {
+                        systemMessage: {
+                            $ref: '#/definitions/webhook-enable-url'
+                        },
+                        displayNotification: {
+                            $ref: '#/definitions/webhook-enable-url'
+                        },
+                        itemBroadcast: {
+                            $ref: '#/definitions/webhook-enable-url'
+                        }
+                    },
+                    required: ['systemMessage', 'displayNotification', 'itemBroadcast'],
+                    additionalProperties: false
+                }
+            }
         }
     },
     required: [
@@ -2739,7 +2833,8 @@ export const optionsSchema: jsonschema.Schema = {
         'discordWebhook',
         'customMessage',
         'commands',
-        'detailsExtra'
+        'detailsExtra',
+        'webhooks'
     ],
     additionalProperties: false
 };
