@@ -175,6 +175,15 @@ export default function processAccepted(
         offer.data('processOfferTime')) as number;
     const timeTakenToCounterOffer = offer.data('processCounterTime') as number | undefined;
 
+    bot.handler.webhookHandler.tradeSummery(
+        offer,
+        accepted,
+        bot,
+        timeTakenToComplete,
+        timeTakenToProcessOrConstruct,
+        timeTakenToCounterOffer,
+        isOfferSent
+    );
     if (isWebhookEnabled) {
         void sendTradeSummary(
             offer,
