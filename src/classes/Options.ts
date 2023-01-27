@@ -2116,6 +2116,17 @@ interface StrangeParts {
     'Robots Killed During Halloween'?: string;
 }
 
+interface Webhooks {
+    tradeSummary?: Omit<TradeSummaryDW, 'mentionOwner' | 'misc'>;
+    declinedTrade?: DeclinedTradeDW;
+    messages?: Omit<MessagesDW, 'isMention'>;
+    priceUpdate?: PriceUpdateDW;
+    sendAlert?: Omit<SendAlertStatsDW, 'isMention'>;
+    sendStats?: SendStatsDW;
+    sendTf2Events?: SendTf2Events;
+    webhookSecret?: string;
+}
+
 // ------------ JsonOptions ------------
 
 export interface JsonOptions {
@@ -2139,6 +2150,7 @@ export interface JsonOptions {
     customMessage?: CustomMessage;
     commands?: Commands;
     detailsExtra?: DetailsExtra;
+    webhooks?: Webhooks;
 }
 
 export default interface Options extends JsonOptions {
