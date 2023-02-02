@@ -48,9 +48,13 @@ export async function tradeSummery(
     const status = autokeys.getOverallStatus;
 
     const message = t.replace.specialChar(offer.message);
-    const isDonate = t.isDonate(offer);
+    const itemsToGiveCount = offer.itemsToGive.length;
+    const isDonate = t.isDonate(offer) && itemsToGiveCount === 0;
+
+    const botInfo = bot.handler.getBotInfo;
 
     const data = {
+        bot: botInfo,
         value,
         links,
         slots,
