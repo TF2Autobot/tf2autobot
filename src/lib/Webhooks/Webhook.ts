@@ -129,7 +129,7 @@ class WebhookHandler {
                         url,
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Secret': this.webhookSecret ?? ''
+                            'x-webhook-secret': this.webhookSecret ?? ''
                         },
                         data: JSON.stringify(data)
                     })
