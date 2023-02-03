@@ -49,7 +49,8 @@ export async function tradeSummery(
 
     const message = t.replace.specialChar(offer.message);
     const itemsToGiveCount = offer.itemsToGive.length;
-    const isDonate = t.isDonate(offer) && itemsToGiveCount === 0;
+    const isAdmin = bot.isAdmin(offer.partner);
+    const isDonate = t.isDonate(offer) && itemsToGiveCount === 0 && !isAdmin;
 
     const botInfo = bot.handler.getBotInfo;
 
