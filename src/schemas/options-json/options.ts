@@ -2246,7 +2246,7 @@ export const optionsSchema: jsonschema.Schema = {
                         'Sinister Staining': {
                             type: 'string'
                         },
-                        'Voices From Below': {
+                        'Voices from Below': {
                             type: 'string'
                         },
                         'Team Spirit Footprints': {
@@ -2286,7 +2286,7 @@ export const optionsSchema: jsonschema.Schema = {
                         'Chromatic Corruption',
                         'Spectral Spectrum',
                         'Sinister Staining',
-                        'Voices From Below',
+                        'Voices from Below',
                         'Team Spirit Footprints',
                         'Gangreen Footprints',
                         'Corpse Gray Footprints',
