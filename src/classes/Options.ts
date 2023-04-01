@@ -2158,7 +2158,7 @@ export interface JsonOptions {
  *
  */
 export interface DeprecatedJsonOptions extends JsonOptions {
-    detailsExtra?: DeprecatedDetailsExtra
+    detailsExtra?: DeprecatedDetailsExtra;
 }
 
 export default interface Options extends JsonOptions {
@@ -2453,9 +2453,9 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
     }
 
     // "Voices From Below" renamed to "Voices from Below"
-    if(options.detailsExtra?.spells?.["Voices From Below"] !== undefined) {
-        options.detailsExtra.spells["Voices from Below"] = options.detailsExtra?.spells?.["Voices From Below"];
-        delete options.detailsExtra.spells["Voices From Below"];
+    if (options.detailsExtra?.spells?.['Voices From Below'] !== undefined) {
+        options.detailsExtra.spells['Voices from Below'] = options.detailsExtra?.spells?.['Voices From Below'];
+        delete options.detailsExtra.spells['Voices From Below'];
         isChanged = true;
     }
 
