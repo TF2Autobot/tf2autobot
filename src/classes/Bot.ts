@@ -1001,7 +1001,10 @@ export default class Bot {
                         callback(null);
                     },
                     (callback): void => {
-                        log.info('Initializing inventory, bptf-listings, and profile settings');
+                        log.info('Initializing halt mode, inventory, bptf-listings, and profile settings');
+                        if (this.options.miscSettings.startHalted.enable) {
+                            void this.halt();
+                        }
                         this.setProperties();
                         async.parallel(
                             [
@@ -1182,10 +1185,6 @@ export default class Bot {
                         return resolve();
                     }
 
-                    if (this.options.discordBotToken && this.discordBot) {
-                        this.discordBot?.setPresence('online');
-                    }
-
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
@@ -1193,7 +1192,7 @@ export default class Bot {
                     this.startVersionChecker();
                     this.initResetCacheInterval();
 
-                    if (this.options.discordBotToken && this.discordBot) {
+                    if (this.options.discordBotToken && this.discordBot && !this.halted) {
                         this.discordBot?.setPresence('online');
                     }
 
