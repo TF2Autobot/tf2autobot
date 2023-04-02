@@ -1185,11 +1185,6 @@ export default class Bot {
                         return resolve();
                     }
 
-                    // TODO: was it necessary?
-                    // if (this.options.discordBotToken && this.discordBot && !this.halted) {
-                    //     this.discordBot?.setPresence('online');
-                    // }
-
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
