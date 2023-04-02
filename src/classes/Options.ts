@@ -628,7 +628,8 @@ export const DEFAULTS: JsonOptions = {
             manual: '',
             failedToCounter: '',
             takingItemsWithIntentBuy: '',
-            givingItemsWithIntentSell: ''
+            givingItemsWithIntentSell: '',
+            containsKeysOnBothSides: ''
         },
         accepted: {
             automatic: {
@@ -1762,6 +1763,7 @@ interface DeclineNote {
     failedToCounter?: string;
     takingItemsWithIntentBuy?: string;
     givingItemsWithIntentSell?: string;
+    containsKeysOnBothSides?: string;
 }
 
 interface AcceptedNote {

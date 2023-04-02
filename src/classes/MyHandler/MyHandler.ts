@@ -618,6 +618,8 @@ export default class MyHandler extends Handler {
         let isNoiseMakerNotFullUses = false;
         const noiseMakerNotFullSKUs: string[] = [];
         let hasNonTF2Items = false;
+        let keyOurSide = false;
+        let keyOnBothSide = false;
 
         const states = [false, true];
         for (let i = 0; i < states.length; i++) {
@@ -678,6 +680,12 @@ export default class MyHandler extends Handler {
                     } else if (sku === '5021;6') {
                         exchange.contains.keys = true;
                         exchange[which].contains.keys = true;
+                        if (which === 'our') {
+                            keyOurSide = true;
+                        } else if (which === 'their' && keyOurSide === true) {
+                            // Consider this as an invalid offer
+                            keyOnBothSide = true;
+                        }
                     } else {
                         exchange.contains.items = true;
                         exchange[which].contains.items = true;
@@ -723,6 +731,7 @@ export default class MyHandler extends Handler {
         }
 
         offer.data('dict', itemsDict);
+        offer.data('keyOurSide', keyOurSide);
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
@@ -754,6 +763,16 @@ export default class MyHandler extends Handler {
             return {
                 action: 'accept',
                 reason: 'ADMIN',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
+        }
+
+        // Check if the offer has keys on both sides
+        if (keyOnBothSide) {
+            offer.log('info', 'offer contains keys on both sides');
+            return {
+                action: 'decline',
+                reason: 'CONTAINS_KEYS_ON_BOTH_SIDES',
                 meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
             };
         }
@@ -1096,7 +1115,7 @@ export default class MyHandler extends Handler {
 
         const itemPrices: Prices = {};
 
-        const keyPrice = this.bot.pricelist.getKeyPrice;
+        const keyPrice = this.bot.pricelist.getKeyPrices[keyOurSide ? 'sell' : 'buy'];
         let hasOverstockAndIsPartialPriced = false;
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];

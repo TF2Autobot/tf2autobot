@@ -93,6 +93,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             handleTimestamp?: number;
             notify?: boolean;
             dict?: ItemsDict;
+            keyOurSide?: boolean;
             value?: ItemsValue;
             prices?: Prices;
             handledByUs?: boolean;
