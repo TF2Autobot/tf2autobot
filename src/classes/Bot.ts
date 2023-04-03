@@ -883,20 +883,20 @@ export default class Bot {
                     (callback): void => {
                         log.info('Signing in to Steam...');
 
-                        const loginResponse = (err: CustomError): void => {
-                            if (err) {
-                                log.warn('Failed to sign in to Steam: ', err);
+                        this.login()
+                            .then(() => {
+                                log.info('Signed in to Steam!');
+
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                                return callback(err);
-                            }
-
-                            log.info('Signed in to Steam!');
-
-                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                            return callback(null);
-                        };
-
-                        void this.login().asCallback(loginResponse);
+                                return callback(null);
+                            })
+                            .catch(err => {
+                                if (err) {
+                                    log.warn('Failed to sign in to Steam: ', err);
+                                    /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                    return callback(err);
+                                }
+                            });
                     },
                     async (callback): Promise<void> => {
                         if (this.options.discordBotToken) {
@@ -1671,7 +1671,7 @@ export default class Bot {
 
             log.warn('Login session replaced, relogging...');
 
-            void this.login().asCallback(err => {
+            this.login().catch(err => {
                 if (err) {
                     throw err;
                 }
