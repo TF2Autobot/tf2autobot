@@ -1377,11 +1377,11 @@ export default class Bot {
             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
             log.warn(`Failed to read tokens: ${err.message}`);
             return null;
-        })) as string;
+        })) as SteamTokens;
 
         if (oldTokens !== null) {
             // Figure out if the refresh token expired
-            const { refreshToken, accessToken } = JSON.parse(oldTokens) as SteamTokens;
+            const { refreshToken, accessToken } = oldTokens;
 
             this.session.refreshToken = refreshToken;
             this.session.accessToken = accessToken;
