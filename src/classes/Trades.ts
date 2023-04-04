@@ -424,7 +424,6 @@ export default class Trades {
             const opt = this.bot.options;
 
             if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
-                const keyPrices = this.bot.pricelist.getKeyPrices;
                 const value = t.valueDiff(offer);
 
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
@@ -615,7 +614,6 @@ export default class Trades {
                                 const opt = this.bot.options;
 
                                 if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
-                                    const keyPrices = this.bot.pricelist.getKeyPrices;
                                     const value = t.valueDiff(offer);
 
                                     if (
