@@ -71,7 +71,7 @@
         "winston": "^3.8.2",
         "winston-daily-rotate-file": "^4.7.1",
         "write-file-atomic": "^5.0.0",
-        "ws": "^7.5.9"
+        "ws": "^8.13.0"
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.21.4",
@@ -90,7 +90,7 @@
         "@types/semver": "^7.3.13",
         "@types/valid-url": "^1.0.4",
         "@types/write-file-atomic": "^4.0.0",
-        "@types/ws": "^8.5.3",
+        "@types/ws": "^8.5.4",
         "@typescript-eslint/eslint-plugin": "^5.57.1",
         "@typescript-eslint/parser": "^5.57.1",
         "eslint": "^8.37.0",
