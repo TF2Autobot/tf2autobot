@@ -225,7 +225,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
     }
 
     const invalidValueSummary =
-        summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true) +
+        summarizeToChat(offer, bot, 'declined', false, value, true) +
         "\n[You're missing: " +
         (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
 

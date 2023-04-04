@@ -66,7 +66,7 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
                 `⚠️ Your offer is pending review.\nReasons: ${reasons}` +
                     (opt.manualReview.showOfferSummary
                         ? t
-                              .summarizeToChat(offer, bot, 'review-partner', false, content.value, keyPrices, true)
+                              .summarizeToChat(offer, bot, 'review-partner', false, content.value, true)
                               .replace('Asked', '  My side')
                               .replace('Offered', 'Your side') +
                           (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
@@ -179,7 +179,7 @@ export async function sendToAdmin(
             : '');
 
     const message2 =
-        t.summarizeToChat(offer, bot, 'review-admin', false, value, keyPrices, true) +
+        t.summarizeToChat(offer, bot, 'review-admin', false, value, true) +
         (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '');
 
     const message3 = list !== '-' ? `\n\nItem lists:\n${list}` : '';

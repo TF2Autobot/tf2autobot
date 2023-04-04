@@ -44,7 +44,7 @@ export default async function sendTradeSummary(
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer);
-    const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, keyPrices, false, isOfferSent);
+    const summary = t.summarizeToChat(offer, bot, 'summary-accepted', true, value, false, isOfferSent);
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
     const enableMentionOnSpecificSKU = optDW.tradeSummary.mentionOwner.enable;

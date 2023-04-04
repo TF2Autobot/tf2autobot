@@ -1,6 +1,7 @@
-import { KeyPrices } from '../../classes/Pricelist';
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../../classes/Bot';
+import SKU from '@tf2autobot/tf2-sku';
+import { ValueDiff, replace, testPriceKey } from '../tools/export';
 
 const pureEmoji = new Map<string, string>();
 pureEmoji
@@ -9,19 +10,12 @@ pureEmoji
     .set('5001;6', '<:tf2reclaimed:813048057352421417>')
     .set('5000;6', '<:tf2scrap:813048057577996348>');
 
-interface ValueDiff {
-    diff: number;
-    diffRef: number;
-    diffKey: string;
-}
-
 export function summarizeToChat(
     offer: TradeOffer,
     bot: Bot,
     type: SummarizeType,
     withLink: boolean,
     value: ValueDiff,
-    keyPrice: KeyPrices,
     isSteamChat: boolean,
     isOfferSent: boolean | undefined = undefined
 ): string {
@@ -78,11 +72,9 @@ export function summarizeToChat(
         '\n──────────────────────' +
         (['summary-accepted', 'review-admin'].includes(type) && !isOfferSent
             ? value.diff > 0
-                ? `\n${cTProfit} ${value.diffRef} ref` +
-                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                ? `\n${cTProfit} ${value.diffRef} ref` + (value.diffRef >= value.rate ? ` (${value.diffKey})` : '')
                 : value.diff < 0
-                ? `\n${cTLoss} ${value.diffRef} ref` +
-                  (value.diffRef >= keyPrice.sell.metal ? ` (${value.diffKey})` : '')
+                ? `\n${cTLoss} ${value.diffRef} ref` + (value.diffRef >= value.rate ? ` (${value.diffKey})` : '')
                 : ''
             : '');
 
@@ -150,9 +142,6 @@ export default function summarize(
         };
     }
 }
-
-import SKU from '@tf2autobot/tf2-sku';
-import { replace, testPriceKey } from '../tools/export';
 
 function getSummary(
     dict: OurTheirItemsDict,

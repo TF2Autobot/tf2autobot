@@ -5,7 +5,7 @@ export default function valueDiff(offer: TradeOffer): ValueDiff {
     const value = offer.data('value') as ItemsValue;
 
     if (!value) {
-        return { ourValue: 0, theirValue: 0, diff: 0, diffRef: 0, diffKey: '' };
+        return { ourValue: 0, theirValue: 0, diff: 0, diffRef: 0, diffKey: '', rate: 0 };
     }
 
     const diff = value.their.total - value.our.total;
@@ -16,7 +16,8 @@ export default function valueDiff(offer: TradeOffer): ValueDiff {
         theirValue: value.their.total,
         diff,
         diffRef: Currencies.toRefined(absoluteValue),
-        diffKey: Currencies.toCurrencies(absoluteValue, value.rate).toString()
+        diffKey: Currencies.toCurrencies(absoluteValue, value.rate).toString(),
+        rate: value.rate
     };
 }
 
@@ -26,4 +27,5 @@ export interface ValueDiff {
     diff: number;
     diffRef: number;
     diffKey: string;
+    rate: number;
 }
