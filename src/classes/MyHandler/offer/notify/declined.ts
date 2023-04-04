@@ -212,6 +212,11 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
     } else if (offerReason.reason === 'HALTED') {
         const custom = opt.customMessage.decline.halted;
         reply = custom ? custom : declined + ' because I am not operational right now. Please come back later.';
+    } else if (offerReason.reason === 'CONTAINS_KEYS_ON_BOTH_SIDES') {
+        const custom = opt.customMessage.decline.containsKeysOnBothSides;
+        reply = custom
+            ? custom
+            : declined + ' because the offer sent contains Mann Co. Supply Crate Key on both sides.';
     } else {
         //
         const custom = opt.customMessage.decline.general;
@@ -220,7 +225,7 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
     }
 
     const invalidValueSummary =
-        summarizeToChat(offer, bot, 'declined', false, value, keyPrices, true) +
+        summarizeToChat(offer, bot, 'declined', false, value, true) +
         "\n[You're missing: " +
         (value.diffRef > keyPrices.sell.metal ? `${value.diffKey}]` : `${value.diffRef} ref]`);
 

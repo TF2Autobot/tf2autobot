@@ -10,6 +10,8 @@ import log from '../../lib/logger';
 import { noiseMakers } from '../../lib/data';
 import { pure } from '../../lib/tools/export';
 
+// TODO: https://github.com/TF2Autobot/tf2autobot/pull/1520#issuecomment-1496466629
+
 type WhichHighValue = 'our' | 'their';
 
 type HighValueAttachments = 's' | 'sp' | 'ks' | 'ke' | 'p';

@@ -1857,6 +1857,9 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         givingItemsWithIntentSell: {
                             type: 'string'
+                        },
+                        containsKeysOnBothSides: {
+                            type: 'string'
                         }
                     },
                     required: [
@@ -1876,7 +1879,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'manual',
                         'failedToCounter',
                         'takingItemsWithIntentBuy',
-                        'givingItemsWithIntentSell'
+                        'givingItemsWithIntentSell',
+                        'containsKeysOnBothSides'
                     ],
                     additionalProperties: false
                 },
