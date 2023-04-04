@@ -1,10 +1,9 @@
 import SKU from '@tf2autobot/tf2-sku';
 import axios, { AxiosError } from 'axios';
-import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
+import { EClanRelationship, EFriendRelationship, EPersonaState } from 'steam-user';
 import TradeOfferManager, {
     TradeOffer,
     PollData,
-    CustomError,
     ItemsDict,
     Meta,
     WrongAboutOffer,
@@ -26,7 +25,7 @@ import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './uti
 import { Blocked, BPTFGetUserInfo } from './interfaces';
 
 import Handler, { OnRun } from '../Handler';
-import Bot from '../Bot';
+import Bot, { SteamTokens } from '../Bot';
 import Pricelist, { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
@@ -216,20 +215,13 @@ export default class MyHandler extends Handler {
         }, 1000);
 
         return Promise.all([
-            files.readFile(this.paths.files.loginKey, false),
             files.readFile(this.paths.files.pricelist, true),
             files.readFile(this.paths.files.loginAttempts, true),
             files.readFile(this.paths.files.pollData, true),
             files.readFile(this.paths.files.blockedList, true)
         ]).then(
-            ([loginKey, pricelist, loginAttempts, pollData, blockedList]: [
-                string,
-                PricesDataObject,
-                number[],
-                PollData,
-                Blocked
-            ]) => {
-                return { loginKey, pricelist, loginAttempts, pollData, blockedList };
+            ([pricelist, loginAttempts, pollData, blockedList]: [PricesDataObject, number[], PollData, Blocked]) => {
+                return { pricelist, loginAttempts, pollData, blockedList };
             }
         );
     }
@@ -500,20 +492,12 @@ export default class MyHandler extends Handler {
         await this.commands.processMessage(steamID, message);
     }
 
-    onLoginKey(loginKey: string): void {
+    onLoginToken(loginToken: SteamTokens): void {
         log.debug('New login key');
 
-        files.writeFile(this.paths.files.loginKey, loginKey, false).catch(err => {
-            log.warn('Failed to save login key: ', err);
+        files.writeFile(this.paths.files.loginToken, loginToken, true).catch(err => {
+            log.warn('Failed to save login token: ', err);
         });
-    }
-
-    onLoginError(err: CustomError): void {
-        if (err.eresult === EResult.InvalidPassword) {
-            files.deleteFile(this.paths.files.loginKey).catch(err => {
-                log.warn('Failed to delete login key: ', err);
-            });
-        }
     }
 
     onLoginAttempts(attempts: number[]): void {
@@ -618,6 +602,8 @@ export default class MyHandler extends Handler {
         let isNoiseMakerNotFullUses = false;
         const noiseMakerNotFullSKUs: string[] = [];
         let hasNonTF2Items = false;
+        let keyOurSide = false;
+        let keyOnBothSide = false;
 
         const states = [false, true];
         for (let i = 0; i < states.length; i++) {
@@ -678,6 +664,12 @@ export default class MyHandler extends Handler {
                     } else if (sku === '5021;6') {
                         exchange.contains.keys = true;
                         exchange[which].contains.keys = true;
+                        if (which === 'our') {
+                            keyOurSide = true;
+                        } else if (which === 'their' && keyOurSide === true) {
+                            // Consider this as an invalid offer
+                            keyOnBothSide = true;
+                        }
                     } else {
                         exchange.contains.items = true;
                         exchange[which].contains.items = true;
@@ -723,6 +715,7 @@ export default class MyHandler extends Handler {
         }
 
         offer.data('dict', itemsDict);
+        offer.data('keyOurSide', keyOurSide);
 
         // Always check if trade partner is taking higher value items (such as spelled or strange parts) that are not in our pricelist
 
@@ -754,6 +747,16 @@ export default class MyHandler extends Handler {
             return {
                 action: 'accept',
                 reason: 'ADMIN',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
+        }
+
+        // Check if the offer has keys on both sides
+        if (keyOnBothSide) {
+            offer.log('info', 'offer contains keys on both sides');
+            return {
+                action: 'decline',
+                reason: 'CONTAINS_KEYS_ON_BOTH_SIDES',
                 meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
             };
         }
@@ -1096,7 +1099,7 @@ export default class MyHandler extends Handler {
 
         const itemPrices: Prices = {};
 
-        const keyPrice = this.bot.pricelist.getKeyPrice;
+        const keyPrice = this.bot.pricelist.getKeyPrices[keyOurSide ? 'sell' : 'buy'];
         let hasOverstockAndIsPartialPriced = false;
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];

@@ -18,6 +18,9 @@ export const DEFAULTS: JsonOptions = {
         createListings: {
             enable: true
         },
+        startHalted: {
+            enable: false
+        },
         addFriends: {
             enable: true
         },
@@ -625,7 +628,8 @@ export const DEFAULTS: JsonOptions = {
             manual: '',
             failedToCounter: '',
             takingItemsWithIntentBuy: '',
-            givingItemsWithIntentSell: ''
+            givingItemsWithIntentSell: '',
+            containsKeysOnBothSides: ''
         },
         accepted: {
             automatic: {
@@ -846,7 +850,7 @@ export const DEFAULTS: JsonOptions = {
             'Chromatic Corruption': 'CC 🪀',
             'Spectral Spectrum': 'Spec 🔵🔴',
             'Sinister Staining': 'Sin 🍈',
-            'Voices From Below': 'VFB 🗣️',
+            'Voices from Below': 'VFB 🗣️',
             'Team Spirit Footprints': 'TS-FP 🔵🔴',
             'Gangreen Footprints': 'GG-FP 🟡',
             'Corpse Gray Footprints': 'CG-FP 👽',
@@ -1201,6 +1205,7 @@ interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
+    startHalted?: OnlyEnable;
     counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
     sendGroupInvite?: OnlyEnable;
@@ -1758,6 +1763,7 @@ interface DeclineNote {
     failedToCounter?: string;
     takingItemsWithIntentBuy?: string;
     givingItemsWithIntentSell?: string;
+    containsKeysOnBothSides?: string;
 }
 
 interface AcceptedNote {
@@ -1952,13 +1958,18 @@ interface DetailsExtra {
     strangeParts?: StrangeParts;
 }
 
+/** bridge Deprecated DetailsExtra values */
+interface DeprecatedDetailsExtra extends DetailsExtra {
+    spells?: DeprecatedSpells;
+}
+
 interface Spells {
     'Putrescent Pigmentation'?: string;
     'Die Job'?: string;
     'Chromatic Corruption'?: string;
     'Spectral Spectrum'?: string;
     'Sinister Staining'?: string;
-    'Voices From Below'?: string;
+    'Voices from Below'?: string;
     'Team Spirit Footprints'?: string;
     'Gangreen Footprints'?: string;
     'Corpse Gray Footprints'?: string;
@@ -1969,6 +1980,11 @@ interface Spells {
     Exorcism?: string;
     'Pumpkin Bombs'?: string;
     'Halloween Fire'?: string;
+}
+
+/** these were renamed and are only used for migration */
+interface DeprecatedSpells extends Spells {
+    'Voices From Below'?: string;
 }
 
 interface Sheens {
@@ -2141,6 +2157,16 @@ export interface JsonOptions {
     detailsExtra?: DetailsExtra;
 }
 
+/** old options that are migrated out of current JsonOptions
+ *
+ * this structure are all the current options with anything
+ * that has been migrated out
+ *
+ */
+export interface DeprecatedJsonOptions extends JsonOptions {
+    detailsExtra?: DeprecatedDetailsExtra;
+}
+
 export default interface Options extends JsonOptions {
     steamAccountName?: string;
     steamPassword?: string;
@@ -2237,7 +2263,7 @@ function loadJsonOptions(optionsPath: string, options?: Options): JsonOptions {
     try {
         const rawOptions = readFileSync(optionsPath, { encoding: 'utf8' });
         try {
-            const parsedRaw = JSON.parse(rawOptions) as JsonOptions;
+            const parsedRaw = JSON.parse(rawOptions) as DeprecatedJsonOptions;
             if (replaceOldProperties(parsedRaw)) {
                 writeFileSync(optionsPath, JSON.stringify(parsedRaw, null, 4), { encoding: 'utf8' });
             }
@@ -2284,7 +2310,8 @@ export function removeCliOptions(incomingOptions: Options): void {
     }
 }
 
-function replaceOldProperties(options: Options): boolean {
+/** take a JsonOptions that had potentially deprecated options and update appropriately */
+function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
     // Automatically replace old properties
     let isChanged = false;
 
@@ -2428,6 +2455,13 @@ function replaceOldProperties(options: Options): boolean {
         //@ts-ignore
         delete options.customMessage.iDontKnowWhatYouMean;
         options.customMessage['commandNotFound'] = '';
+        isChanged = true;
+    }
+
+    // "Voices From Below" renamed to "Voices from Below"
+    if (options.detailsExtra?.spells?.['Voices From Below'] !== undefined) {
+        options.detailsExtra.spells['Voices from Below'] = options.detailsExtra?.spells?.['Voices From Below'];
+        delete options.detailsExtra.spells['Voices From Below'];
         isChanged = true;
     }
 

@@ -16,6 +16,17 @@ import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
+import * as files from '../lib/files';
+
+// Reference: https://github.com/tf2-automatic/tf2-automatic/commit/cf7b807cae11eb172a78ef184bbafdb4ebe86501#diff-58f39591209025b16105c9f25a34c119332983a0d8cea7819b534d9d408324c4L329
+// Credit to @Nicklason
+import { LoginSession, EAuthTokenPlatformType, EAuthSessionGuardType } from 'steam-session';
+import jwt from 'jsonwebtoken';
+
+export interface SteamTokens {
+    refreshToken: string;
+    accessToken: string;
+}
 
 import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
@@ -53,6 +64,8 @@ export default class Bot {
     readonly client: SteamUser;
 
     readonly manager: TradeOfferManager;
+
+    session: LoginSession | null = null;
 
     readonly community: SteamCommunity;
 
@@ -809,7 +822,6 @@ export default class Bot {
         let data: {
             loginAttempts?: number[];
             pricelist?: PricesDataObject;
-            loginKey?: string;
             pollData?: TradeOfferManager.PollData;
             blockedList?: Blocked;
         };
@@ -822,7 +834,6 @@ export default class Bot {
         this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
         this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
-        this.addListener(this.client, 'loginKey', this.handler.onLoginKey.bind(this.handler), false);
         this.addListener(this.client, 'error', this.onError.bind(this), false);
 
         this.addListener(this.community, 'sessionExpired', this.onSessionExpired.bind(this), false);
@@ -872,30 +883,20 @@ export default class Bot {
                     (callback): void => {
                         log.info('Signing in to Steam...');
 
-                        let lastLoginFailed = false;
-                        const loginResponse = (err: CustomError): void => {
-                            if (err) {
-                                this.handler.onLoginError(err);
-                                if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
-                                    lastLoginFailed = true;
-                                    // Try and sign in without login key
-                                    log.warn('Failed to sign in to Steam, retrying without login key...');
-                                    void this.login(null).asCallback(loginResponse);
-                                    return;
-                                } else {
+                        this.login()
+                            .then(() => {
+                                log.info('Signed in to Steam!');
+
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                return callback(null);
+                            })
+                            .catch(err => {
+                                if (err) {
                                     log.warn('Failed to sign in to Steam: ', err);
                                     /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                     return callback(err);
                                 }
-                            }
-
-                            log.info('Signed in to Steam!');
-
-                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                            return callback(null);
-                        };
-
-                        void this.login(data.loginKey || null).asCallback(loginResponse);
+                            });
                     },
                     async (callback): Promise<void> => {
                         if (this.options.discordBotToken) {
@@ -1001,7 +1002,10 @@ export default class Bot {
                         callback(null);
                     },
                     (callback): void => {
-                        log.info('Initializing inventory, bptf-listings, and profile settings');
+                        log.info('Initializing halt mode, inventory, bptf-listings, and profile settings');
+                        if (this.options.miscSettings.startHalted.enable) {
+                            void this.halt();
+                        }
                         this.setProperties();
                         async.parallel(
                             [
@@ -1182,10 +1186,6 @@ export default class Bot {
                         return resolve();
                     }
 
-                    if (this.options.discordBotToken && this.discordBot) {
-                        this.discordBot?.setPresence('online');
-                    }
-
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
@@ -1193,7 +1193,7 @@ export default class Bot {
                     this.startVersionChecker();
                     this.initResetCacheInterval();
 
-                    if (this.options.discordBotToken && this.discordBot) {
+                    if (this.options.discordBotToken && this.discordBot && !this.halted) {
                         this.discordBot?.setPresence('online');
                     }
 
@@ -1362,7 +1362,113 @@ export default class Bot {
         });
     }
 
-    login(loginKey?: string): Promise<void> {
+    private async startSession(): Promise<string> {
+        this.session = new LoginSession(EAuthTokenPlatformType.SteamClient);
+        // will think about proxy later
+        //,{
+        //     httpProxy: this.configService.getOrThrow<SteamAccountConfig>('steam').proxyUrl
+        // });
+
+        this.session.on('debug', (message: string) => {
+            log.debug(`Session debug: ${message}`);
+        });
+
+        const oldTokens = (await files.readFile(this.handler.getPaths.files.loginToken, true).catch(err => {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
+            log.warn(`Failed to read tokens: ${err.message}`);
+            return null;
+        })) as SteamTokens;
+
+        if (oldTokens !== null) {
+            // Figure out if the refresh token expired
+            const { refreshToken, accessToken } = oldTokens;
+
+            this.session.refreshToken = refreshToken;
+            this.session.accessToken = accessToken;
+
+            const decoded = jwt.decode(refreshToken, {
+                complete: true
+            });
+
+            if (decoded) {
+                const { exp } = decoded.payload as { exp: number };
+
+                if (exp < Date.now() / 1000) {
+                    // Refresh token expired, log in again
+                    log.debug('Refresh token expired, logging in again');
+                } else {
+                    // Refresh token is still valid, use it
+                    return refreshToken;
+                }
+            }
+        }
+
+        const result = await this.session.startWithCredentials({
+            accountName: this.options.steamAccountName,
+            password: this.options.steamPassword
+        });
+
+        if (result.actionRequired) {
+            const actions = result.validActions ?? [];
+
+            if (actions.length !== 1) {
+                throw new Error(`Unexpected number of valid actions: ${actions.length}`);
+            }
+
+            const action = actions[0];
+
+            if (action.type !== EAuthSessionGuardType.DeviceCode) {
+                throw new Error(`Unexpected action type: ${action.type}`);
+            }
+
+            await this.session.submitSteamGuardCode(SteamTotp.generateAuthCode(this.options.steamSharedSecret));
+        }
+
+        this.session.on('error', err => {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
+            log.warn(`Error in session: ${err.message}`);
+        });
+
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+        return new Promise<void>((resolve, reject) => {
+            const handleAuth = () => {
+                log.debug('Session authenticated');
+                removeListeners();
+                resolve();
+            };
+
+            const handleTimeout = () => {
+                removeListeners();
+                reject(new Error('Login session timed out'));
+            };
+
+            const handleError = (err: Error) => {
+                removeListeners();
+                reject(err);
+            };
+
+            const removeListeners = () => {
+                this.session.removeListener('authenticated', handleAuth);
+                this.session.removeListener('timeout', handleTimeout);
+                this.session.removeListener('error', handleError);
+            };
+
+            this.session.once('authenticated', handleAuth);
+            this.session.once('error', handleError);
+        }).then(() => {
+            const refreshToken = this.session.refreshToken;
+
+            this.handler.onLoginToken({ refreshToken, accessToken: this.session.accessToken });
+
+            this.session.removeAllListeners();
+            this.session = null;
+
+            return refreshToken;
+        });
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
+    }
+
+    private async login(): Promise<void> {
         log.debug('Starting login attempt');
         // loginKey: loginKey,
         // private: true
@@ -1372,31 +1478,15 @@ export default class Bot {
             this.handler.onLoginThrottle(wait);
         }
 
+        const refreshToken = await this.startSession();
+
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 const listeners = this.client.listeners('error');
 
                 this.client.removeAllListeners('error');
 
-                const details: {
-                    accountName: string;
-                    logonID: number;
-                    rememberPassword: boolean;
-                    password?: string;
-                    loginKey?: string;
-                } = {
-                    accountName: this.options.steamAccountName,
-                    logonID: 69420,
-                    rememberPassword: true
-                };
-
-                if (loginKey) {
-                    log.debug('Signing in using login key');
-                    details.loginKey = loginKey;
-                } else {
-                    log.debug('Signing in using password');
-                    details.password = this.options.steamPassword;
-                }
+                const details = { refreshToken };
 
                 this.newLoginAttempt();
                 this.client.logOn(details);
@@ -1581,7 +1671,7 @@ export default class Bot {
 
             log.warn('Login session replaced, relogging...');
 
-            void this.login().asCallback(err => {
+            this.login().catch(err => {
                 if (err) {
                     throw err;
                 }

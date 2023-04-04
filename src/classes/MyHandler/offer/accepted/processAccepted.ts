@@ -254,7 +254,7 @@ export async function sendToAdmin(
     } with ${offer.partner.getSteamID64()} is accepted. ✅`;
 
     const message2 =
-        t.summarizeToChat(offer, bot, 'summary-accepted', false, value, keyPrices, true, isOfferSent) +
+        t.summarizeToChat(offer, bot, 'summary-accepted', false, value, true, isOfferSent) +
         (isShowOfferMessage
             ? (cTOfferMessage && offer.message ? `\n\n${cTOfferMessage}` : '\n\n💬 Offer message:') +
               ` "${offer.message}"`
