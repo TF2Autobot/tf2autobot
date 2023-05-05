@@ -484,12 +484,9 @@ export const optionsSchema: jsonschema.Schema = {
                     properties: {
                         checkMptfBanned: {
                             type: 'boolean'
-                        },
-                        reptfAsPrimarySource: {
-                            type: 'boolean'
                         }
                     },
-                    required: ['checkMptfBanned', 'reptfAsPrimarySource'],
+                    required: ['checkMptfBanned'],
                     additionalProperties: false
                 },
                 pricecheckAfterTrade: {

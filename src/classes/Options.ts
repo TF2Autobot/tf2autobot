@@ -59,8 +59,7 @@ export const DEFAULTS: JsonOptions = {
             enable: false
         },
         reputationCheck: {
-            checkMptfBanned: false,
-            reptfAsPrimarySource: false
+            checkMptfBanned: false
         },
         pricecheckAfterTrade: {
             enable: true
@@ -1227,7 +1226,6 @@ interface Prefixes {
 
 export interface ReputationCheck {
     checkMptfBanned?: boolean;
-    reptfAsPrimarySource?: boolean;
 }
 
 interface AlwaysRemoveItemAttributes {
@@ -2436,7 +2434,6 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
         } else {
             options.miscSettings['reputationCheck'] = {
                 checkMptfBanned: process.env.MPTF_API_KEY !== undefined ? mptfCheckValue : false, // below v4.13.0 -> v4.13.1
-                reptfAsPrimarySource: true
             };
         }
 

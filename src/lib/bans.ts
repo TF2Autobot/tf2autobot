@@ -72,37 +72,6 @@ export default class Bans {
             return toReturn;
         };
 
-        if (this.repOpt.reptfAsPrimarySource) {
-            // If rep.tf as primary, get from reptf first
-            return await this.getFromReptf()
-                .catch(async () => {
-                    // If error, get from each website
-                    const [untrusted, mptf, steamrep, bptf] = await Promise.all([
-                        this.isListedUntrusted(),
-                        this.isMptfBanned(),
-                        this.isSteamRepMarked(),
-                        this.isBptfBanned()
-                    ]);
-
-                    return finalize(bptf, mptf, steamrep, untrusted);
-                })
-                .catch(err => {
-                    // but if still got an error, try check if any cached is true
-                    if (
-                        this._isBptfBanned ||
-                        this._isBptfSteamRepBanned ||
-                        this._isSteamRepBanned ||
-                        this._isCommunityBanned ||
-                        (this.repOpt.checkMptfBanned && this._isMptfBanned)
-                    ) {
-                        return { isBanned: true };
-                    }
-
-                    // if non is true, we are unsure so then throw error
-                    throw err;
-                });
-        }
-
         // Else if rep.tf is not as primary, check from each website first
         return await Promise.all([
             this.isListedUntrusted(),
@@ -114,7 +83,7 @@ export default class Bans {
                 // If all success, proceed
                 return finalize(bptf, mptf, steamrep, untrusted);
             })
-            .catch(async () => {
+            .catch(() => {
                 // Else if an error occured, check if any cached is true
                 if (
                     this._isBptfBanned ||
@@ -125,105 +94,7 @@ export default class Bans {
                 ) {
                     return { isBanned: true };
                 }
-
-                // Else, try get data from Rep.tf, if still error, this will automatically be throw
-                // and should be catch by other
-                return await this.getFromReptf();
             });
-    }
-
-    private async getFromReptf(): Promise<IsBanned> {
-        return new Promise((resolve, reject) => {
-            void axios({
-                method: 'POST',
-                url: 'https://rep.tf/api/bans?str=' + this.steamID,
-                headers: {
-                    'User-Agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
-                }
-            })
-                .then(response => {
-                    const bans = response.data as RepTF;
-
-                    const v = ['bptfBans', 'srBans'];
-                    for (let i = 0; i < v.length; i++) {
-                        if (bans[v[i] as 'bptfBans' | 'srBans']?.message?.includes('Failed to get data')) {
-                            throw `Failed to get data (${v[i]})`;
-                        }
-                    }
-
-                    if (this.repOpt.checkMptfBanned) {
-                        if (bans.mpBans.message === 'Failed to get data') {
-                            throw `Failed to get data (mpBans)`;
-                        }
-                    }
-
-                    const isBptfBanned = bans.bptfBans ? bans.bptfBans.banned === 'bad' : false;
-                    this._isBptfBanned = isBptfBanned;
-                    const isSteamRepBanned = bans.srBans ? bans.srBans.banned === 'bad' : false;
-                    this._isBptfSteamRepBanned = isSteamRepBanned;
-
-                    const isMptfBanned = bans.mpBans ? bans.mpBans.banned === 'bad' : false;
-
-                    const bansResult = {
-                        'Backpack.tf': isBptfBanned ? `banned - ${removeHTMLTags(bans.bptfBans.message)}` : 'clean',
-                        'Steamrep.com': isSteamRepBanned ? `banned - ${removeHTMLTags(bans.srBans.message)}` : 'clean'
-                    };
-
-                    if (this.repOpt.checkMptfBanned) {
-                        this._isMptfBanned = isMptfBanned;
-                        bansResult['Marketplace.tf'] = isMptfBanned
-                            ? `banned - ${removeHTMLTags(bans.mpBans.message)}`
-                            : 'clean';
-                    }
-
-                    void this.isListedUntrusted()
-                        .then(isListed => {
-                            const isListedUntrusted = isListed.isBanned;
-                            bansResult['TF2Autobot'] = isListedUntrusted ? `banned - ${isListed.content}` : 'clean';
-
-                            if (this.showLog) {
-                                log[
-                                    isBptfBanned ||
-                                    isSteamRepBanned ||
-                                    (this.repOpt.checkMptfBanned && isMptfBanned) ||
-                                    isListedUntrusted
-                                        ? 'warn'
-                                        : 'debug'
-                                ]('Bans result:', bansResult);
-                            }
-
-                            return resolve({
-                                isBanned:
-                                    isBptfBanned ||
-                                    isSteamRepBanned ||
-                                    (this.repOpt.checkMptfBanned ? isMptfBanned : false) ||
-                                    isListedUntrusted,
-                                contents: bansResult
-                            });
-                        })
-                        .catch(err => {
-                            if (this.showLog) log.warn('Failed to obtain data from Github: ', err);
-                            return reject(err);
-                        });
-                })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        if (this.showLog) log.warn('Failed to obtain data from Rep.tf');
-                        if (this.repOpt.reptfAsPrimarySource) {
-                            if (this.showLog) {
-                                log.debug(
-                                    `Getting data from Backpack.tf${
-                                        !this.repOpt.checkMptfBanned ? ' and ' : ', Marketplace.tf and '
-                                    } Steamrep.com...`
-                                );
-                            }
-                        }
-
-                        return reject(filterAxiosError(err));
-                    }
-                });
-        });
     }
 
     private isBptfBanned(): Promise<SiteResult> {
@@ -401,16 +272,6 @@ export function isBptfBanned(steamID: string, bptfApiKey: string, userID: string
     });
 }
 
-// https://www.geeksforgeeks.org/how-to-strip-out-html-tags-from-a-string-using-javascript/
-function removeHTMLTags(str: string): string {
-    if (str === null || str === '') {
-        return '';
-    }
-
-    str = str.toString();
-    return str.replace(/(<([^>]+)>)/gi, '');
-}
-
 interface MptfGetUserBan {
     success: boolean;
     results: MptfResult[];
@@ -449,29 +310,6 @@ interface Flags {
 interface Reputation {
     full?: string;
     summary?: string;
-}
-
-interface RepTF {
-    success: boolean;
-    message: string;
-    steamBans: BansInfo; // Steam
-    srBans: BansInfo; // SteamRep
-    stfBans: BansInfo; // Scrap.tf
-    bptfBans: BansInfo; // Backpack.tf
-    mpBans: BansInfo; // Marketplace.tf
-    bzBans: BansInfo; // Bazaar.tf
-    ppmBans: BansInfo; // PPM
-    hgBans: BansInfo; // Harpoon Gaming
-    nhsBans: BansInfo; // NeonHeights Servers
-    stBans: BansInfo; // SMT Gaming
-    fogBans: BansInfo; // FoG Trade
-    etf2lBans: BansInfo; // ETF2L
-}
-
-interface BansInfo {
-    banned: 'good' | 'bad';
-    message: string;
-    icons: string;
 }
 
 interface UntrustedJson {
