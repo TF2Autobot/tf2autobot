@@ -59,8 +59,7 @@ export const DEFAULTS: JsonOptions = {
             enable: false
         },
         reputationCheck: {
-            checkMptfBanned: false,
-            reptfAsPrimarySource: false
+            checkMptfBanned: false
         },
         pricecheckAfterTrade: {
             enable: true
@@ -1227,7 +1226,6 @@ interface Prefixes {
 
 export interface ReputationCheck {
     checkMptfBanned?: boolean;
-    reptfAsPrimarySource?: boolean;
 }
 
 interface AlwaysRemoveItemAttributes {
@@ -2435,8 +2433,7 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
                 typeof mptfCheckValue === 'boolean' ? mptfCheckValue : true;
         } else {
             options.miscSettings['reputationCheck'] = {
-                checkMptfBanned: process.env.MPTF_API_KEY !== undefined ? mptfCheckValue : false, // below v4.13.0 -> v4.13.1
-                reptfAsPrimarySource: true
+                checkMptfBanned: process.env.MPTF_API_KEY !== undefined ? mptfCheckValue : false // below v4.13.0 -> v4.13.1
             };
         }
 
@@ -2462,6 +2459,12 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
     if (options.detailsExtra?.spells?.['Voices From Below'] !== undefined) {
         options.detailsExtra.spells['Voices from Below'] = options.detailsExtra?.spells?.['Voices From Below'];
         delete options.detailsExtra.spells['Voices From Below'];
+        isChanged = true;
+    }
+
+    // <=v5.7.0 to latest
+    if (options.miscSettings.reputationCheck?.['reptfAsPrimarySource'] !== undefined) {
+        delete options.miscSettings.reputationCheck?.['reptfAsPrimarySource'];
         isChanged = true;
     }
 
