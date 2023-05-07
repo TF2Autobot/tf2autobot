@@ -187,6 +187,8 @@ export default class Commands {
                 this.withdrawCommand(steamID, message, prefix);
             } else if (command === 'withdrawmptf' && isAdmin) {
                 void this.withdrawMptfCommand(steamID, message);
+            } else if (command === 'withdrawall' && isAdmin) {
+                void this.withdrawAllCommand(steamID, message);
             } else if (command === 'add' && isAdmin) {
                 await this.pManager.addCommand(steamID, message);
             } else if (command === 'addbulk' && isAdmin) {
@@ -1146,6 +1148,89 @@ export default class Commands {
             log.error('Error on !withdrawMptf:', err);
             return this.bot.sendMessage(steamID, `❌ Error: ${(err as Error)?.message}`);
         }
+    }
+
+    private withdrawAllCommand(steamID: SteamID, message: string): void {
+        const currentCart = Cart.getCart(steamID);
+        if (currentCart !== null && !(currentCart instanceof AdminCart)) {
+            return this.bot.sendMessage(
+                steamID,
+                '❌ You already have an active cart, please finalize it before making a new one. 🛒'
+            );
+        }
+
+        const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
+
+        const max = typeof params.max === 'number' ? params.max : 1;
+        if (!Number.isInteger(max)) {
+            return this.bot.sendMessage(steamID, `❌ max should only be an integer.`);
+        }
+
+        const withGroup =
+            params.withgroup === '' || typeof params.withgroup !== 'string'
+                ? typeof params.withgroup === 'number'
+                    ? String(params.withgroup)
+                    : undefined
+                : params.withgroup;
+
+        const dict = this.bot.inventoryManager.getInventory.getItems;
+        const clonedDict = Object.assign({}, dict);
+
+        const weaponsAsCurrency = this.bot.options.miscSettings.weaponsAsCurrency;
+
+        const pureAndWeapons = weaponsAsCurrency.enable
+            ? ['5021;6', '5000;6', '5001;6', '5002;6'].concat(
+                  weaponsAsCurrency.withUncraft
+                      ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
+                      : this.bot.craftWeapons
+              )
+            : ['5021;6', '5000;6', '5001;6', '5002;6'];
+
+        for (const sku in clonedDict) {
+            if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
+                continue;
+            }
+
+            let isWithinGroup = false;
+
+            if (withGroup) {
+                if (withGroup !== this.bot.pricelist.getPrice({ priceKey: sku })?.group) {
+                    delete clonedDict[sku];
+                    continue;
+                }
+                isWithinGroup = true;
+            }
+
+            if (pureAndWeapons.includes(sku) && !isWithinGroup) {
+                delete clonedDict[sku];
+                continue;
+            }
+        }
+
+        if (Object.keys(clonedDict).length === 0) {
+            return this.bot.sendMessage(steamID, `❌ Nothing to withdraw.`);
+        }
+
+        const cart =
+            AdminCart.getCart(steamID) ||
+            new AdminCart(
+                steamID,
+                this.bot,
+                this.weaponsAsCurrency.enable ? this.bot.craftWeapons : [],
+                this.weaponsAsCurrency.enable && this.weaponsAsCurrency.withUncraft ? this.bot.uncraftWeapons : []
+            );
+
+        for (const sku in clonedDict) {
+            if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
+                continue;
+            }
+
+            const amountInInventory = clonedDict[sku].length;
+            cart.addOurItem(sku, amountInInventory >= max ? max - amountInInventory : amountInInventory);
+        }
+
+        Cart.addCart(cart);
+        this.addCartToQueue(cart, false, false);
     }
 
     private donateBPTFCommand(steamID: SteamID, message: string, prefix: string): void {
