@@ -1161,7 +1161,7 @@ export default class Commands {
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
 
-        const max = typeof params.max === 'number' ? params.max : 1;
+        const max = typeof params.max === 'number' ? params.max : Infinity;
         if (!Number.isInteger(max)) {
             return this.bot.sendMessage(steamID, `❌ max should only be an integer.`);
         }
