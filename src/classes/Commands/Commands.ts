@@ -1176,34 +1176,16 @@ export default class Commands {
         const dict = this.bot.inventoryManager.getInventory.getItems;
         const clonedDict = Object.assign({}, dict);
 
-        const weaponsAsCurrency = this.bot.options.miscSettings.weaponsAsCurrency;
+        if (withGroup) {
+            for (const sku in clonedDict) {
+                if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
+                    continue;
+                }
 
-        const pureAndWeapons = weaponsAsCurrency.enable
-            ? ['5021;6', '5000;6', '5001;6', '5002;6'].concat(
-                  weaponsAsCurrency.withUncraft
-                      ? this.bot.craftWeapons.concat(this.bot.uncraftWeapons)
-                      : this.bot.craftWeapons
-              )
-            : ['5021;6', '5000;6', '5001;6', '5002;6'];
-
-        for (const sku in clonedDict) {
-            if (!Object.prototype.hasOwnProperty.call(clonedDict, sku)) {
-                continue;
-            }
-
-            let isWithinGroup = false;
-
-            if (withGroup) {
                 if (withGroup !== this.bot.pricelist.getPrice({ priceKey: sku })?.group) {
                     delete clonedDict[sku];
                     continue;
                 }
-                isWithinGroup = true;
-            }
-
-            if (pureAndWeapons.includes(sku) && !isWithinGroup) {
-                delete clonedDict[sku];
-                continue;
             }
         }
 
