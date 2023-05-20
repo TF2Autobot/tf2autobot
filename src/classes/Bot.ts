@@ -883,20 +883,24 @@ export default class Bot {
                     (callback): void => {
                         log.info('Signing in to Steam...');
 
-                        this.login()
-                            .then(() => {
-                                log.info('Signed in to Steam!');
-
-                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                                return callback(null);
-                            })
-                            .catch(err => {
-                                if (err) {
+                        let lastLoginFailed = false;
+                        const loginResponse = (err: CustomError): void => {
+                            if (err) {
+                                this.handler.onLoginError(err);
+                                if (!lastLoginFailed && err.eresult === EResult.AccessDenied) {
+                                    lastLoginFailed = true;
+                                    // Try sign in again
+                                    void this.login().asCallback(loginResponse);
+                                    return;
+                                } else {
                                     log.warn('Failed to sign in to Steam: ', err);
                                     /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                     return callback(err);
                                 }
-                            });
+                            }
+                        };
+
+                        void this.login().asCallback(loginResponse);
                     },
                     async (callback): Promise<void> => {
                         if (this.options.discordBotToken) {
@@ -1468,7 +1472,7 @@ export default class Bot {
         /* eslint-enable @typescript-eslint/no-non-null-assertion */
     }
 
-    private async login(): Promise<void> {
+    private login(): Promise<void> {
         log.debug('Starting login attempt');
         // loginKey: loginKey,
         // private: true
@@ -1478,59 +1482,61 @@ export default class Bot {
             this.handler.onLoginThrottle(wait);
         }
 
-        const refreshToken = await this.startSession();
-
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                const listeners = this.client.listeners('error');
+            this.startSession()
+                .then(refreshToken => {
+                    setTimeout(() => {
+                        const listeners = this.client.listeners('error');
 
-                this.client.removeAllListeners('error');
+                        this.client.removeAllListeners('error');
 
-                const details = { refreshToken };
+                        const details = { refreshToken };
 
-                this.newLoginAttempt();
-                this.client.logOn(details);
+                        this.newLoginAttempt();
+                        this.client.logOn(details);
 
-                const gotEvent = (): void => {
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    listeners.forEach(listener => this.client.on('error', listener));
-                };
+                        const gotEvent = (): void => {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            listeners.forEach(listener => this.client.on('error', listener));
+                        };
 
-                const loggedOnEvent = (): void => {
-                    gotEvent();
+                        const loggedOnEvent = (): void => {
+                            gotEvent();
 
-                    this.client.removeListener('error', errorEvent);
-                    clearTimeout(timeout);
+                            this.client.removeListener('error', errorEvent);
+                            clearTimeout(timeout);
 
-                    resolve(null);
-                };
+                            resolve(null);
+                        };
 
-                const errorEvent = (err): void => {
-                    gotEvent();
+                        const errorEvent = (err): void => {
+                            gotEvent();
 
-                    this.client.removeListener('loggedOn', loggedOnEvent);
-                    clearTimeout(timeout);
+                            this.client.removeListener('loggedOn', loggedOnEvent);
+                            clearTimeout(timeout);
 
-                    log.error('Failed to sign in to Steam: ', err);
+                            log.error('Failed to sign in to Steam: ', err);
 
-                    reject(err);
-                };
+                            reject(err);
+                        };
 
-                const timeout = setTimeout(() => {
-                    gotEvent();
+                        const timeout = setTimeout(() => {
+                            gotEvent();
 
-                    this.client.removeListener('loggedOn', loggedOnEvent);
-                    this.client.removeListener('error', errorEvent);
+                            this.client.removeListener('loggedOn', loggedOnEvent);
+                            this.client.removeListener('error', errorEvent);
 
-                    log.debug('Did not get login response from Steam');
+                            log.debug('Did not get login response from Steam');
 
-                    reject(new Error('Did not get login response (Steam might be down)'));
-                }, 60 * 1000);
+                            reject(new Error('Did not get login response (Steam might be down)'));
+                        }, 60 * 1000);
 
-                this.client.once('loggedOn', loggedOnEvent);
-                this.client.once('error', errorEvent);
-            }, wait);
+                        this.client.once('loggedOn', loggedOnEvent);
+                        this.client.once('error', errorEvent);
+                    }, wait);
+                })
+                .catch(err => reject(err));
         });
     }
 
