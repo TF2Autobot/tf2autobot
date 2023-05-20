@@ -532,7 +532,7 @@ export default class Inventory {
                 const spellName = content.value.substring(10, content.value.length - 32).trim();
 
                 // push for storage, example: s-1000
-                s[spellsData[spellName]] =
+                s[spellsData[spellName.replace('From', 'from')]] =
                     (this.spellsExceptionNotEmpty // check if exception not empty
                         ? !this.spellsExceptionSkus.some(exSku => sku.includes(exSku)) // if this true, make it false
                         : true) && this.spellsOptions.includes(spellName.toLowerCase());
