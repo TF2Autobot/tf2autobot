@@ -1,3 +1,6 @@
+// This is a template for your ecosystem.json file. Refer to the wiki to learn how to set it up. 
+// (Note: you must delete "template." for it to work)
+
 {
     "apps": [
         {
