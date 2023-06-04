@@ -153,7 +153,8 @@ export default class Bot {
 
     private ready = false;
 
-    public userID: string;
+    /** the user id of bp.tf */
+    public userID?: string;
 
     private halted = false;
 
@@ -255,7 +256,7 @@ export default class Bot {
             return this.repCache[steamID64];
         }
 
-        const v = new Bans(this, this.userID, steamID64);
+        const v = new Bans({ bot: this, userID: this.userID, steamID: steamID64 });
         const isBanned = await v.isBanned();
 
         this.repCache[steamID64] = isBanned;
@@ -271,11 +272,12 @@ export default class Bot {
     }
 
     private async checkAdminBanned(): Promise<boolean> {
-        let banned = false;
+        // guilty until proven otherwise
+        let banned = true;
         const check = async (steamid: string) => {
-            const v = new Bans(this, this.userID, steamid, false);
+            const v = new Bans({ bot: this, userID: this.userID, steamID: steamid, showLog: 'banned' });
             const result = await v.isBanned();
-            banned = banned ? true : result.isBanned;
+            banned = result.isBanned;
         };
 
         const steamids = this.admins.map(steamID => steamID.getSteamID64());
@@ -303,7 +305,7 @@ export default class Bot {
             void this.checkAdminBanned()
                 .then(banned => {
                     if (banned) {
-                        return this.botManager.stop(new Error('Not allowed'));
+                        return this.botManager.stop(new Error('Not allowed by periodic checkAdminBanned'));
                     }
                 })
                 .catch(() => {
@@ -960,7 +962,7 @@ export default class Bot {
                             .then(banned => {
                                 if (banned) {
                                     /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                                    return callback(new Error('Not allowed'));
+                                    return callback(new Error('Not allowed by start up checkAdminBanned'));
                                 }
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(null);
