@@ -153,8 +153,7 @@ export default class Bans {
     }
 
     private isBptfBanned(): Promise<SiteResult | undefined> {
-        // this ban check user id is unknown at this time
-        if (!this.userID) {
+        if (!this.bot.options.bptfApiKey) {
             return;
         }
         return new Promise(resolve => {
