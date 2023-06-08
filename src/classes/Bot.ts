@@ -305,7 +305,7 @@ export default class Bot {
             void this.checkAdminBanned()
                 .then(banned => {
                     if (banned) {
-                        return this.botManager.stop(new Error('Not allowed by periodic checkAdminBanned'));
+                        return this.botManager.stop(new Error('Not allowed'));
                     }
                 })
                 .catch(() => {
@@ -962,7 +962,7 @@ export default class Bot {
                             .then(banned => {
                                 if (banned) {
                                     /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                                    return callback(new Error('Not allowed by start up checkAdminBanned'));
+                                    return callback(new Error('Not allowed'));
                                 }
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(null);
