@@ -493,11 +493,12 @@ declare module 'steam-user' {
         _playingAppIds: number[];
 
         logOn(details: {
-            accountName: string;
+            accountName?: string;
             password?: string;
             loginKey?: string;
             twoFactorCode?: string;
             rememberPassword?: boolean;
+            refreshToken?: string;
         }): void;
 
         webLogOn(): void;

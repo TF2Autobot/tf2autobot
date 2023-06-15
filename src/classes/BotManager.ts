@@ -195,6 +195,11 @@ export default class BotManager {
             this.bot.client.setPersona(EPersonaState.Snooze);
             this.bot.client.autoRelogin = false;
 
+            if (this.bot.session) {
+                this.bot.session.removeAllListeners();
+                this.bot.session.cancelLoginAttempt();
+            }
+
             // Stop polling offers
             this.bot.manager.pollInterval = -1;
 

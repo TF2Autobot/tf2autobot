@@ -845,7 +845,7 @@ export default class ManagerCommands {
                           keyPrices.sell.toValue() - (scrapAdjustmentEnabled ? scrapAdjustmentValue : 0)
                       ).toString() +
                       ' ref' +
-                      (scrapAdjustmentEnabled ? ` (-${scrapAdjustmentValue} scrap)` : '')
+                      (scrapAdjustmentEnabled ? ` (${scrapAdjustmentValue} scrap)` : '')
                 : 'Not active'
         }`;
         /*

@@ -72,7 +72,7 @@ export default function sendOfferReview(
     const currentItems = bot.inventoryManager.getInventory.getTotalItems;
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
-    const summary = summarizeToChat(offer, bot, 'review-admin', true, value, keyPrices, false);
+    const summary = summarizeToChat(offer, bot, 'review-admin', true, value, false);
     const itemList = listItems(offer, bot, itemsName, false);
 
     const cT = bot.options.tradeSummary.customText;
