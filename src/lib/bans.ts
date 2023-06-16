@@ -5,6 +5,7 @@ import filterAxiosError from '@tf2autobot/filter-axios-error';
 import Bot from '../classes/Bot';
 import { ReputationCheck } from '../classes/Options';
 import { LeveledLogMethod } from 'winston';
+import { axiosAbortSignal } from './helpers';
 
 export type Contents = { [website: string]: string };
 export interface IsBanned {
@@ -276,11 +277,12 @@ export default class Bans {
         });
     }
 
-    private isListedUntrusted(): Promise<SiteResult | undefined> {
+    private isListedUntrusted(attempt: 'first' | 'retry' = 'first'): Promise<SiteResult | undefined> {
         return new Promise(resolve => {
             void axios({
                 method: 'GET',
-                url: 'https://raw.githubusercontent.com/TF2Autobot/untrusted-steam-ids/master/untrusted.min.json'
+                url: 'https://raw.githubusercontent.com/TF2Autobot/untrusted-steam-ids/master/untrusted.min.json',
+                signal: axiosAbortSignal(60000)
             })
                 .then(response => {
                     const results = (response.data as UntrustedJson).steamids[this.steamID];
@@ -296,6 +298,9 @@ export default class Bans {
                     });
                 })
                 .catch((err: AxiosError) => {
+                    if (err instanceof AbortSignal && attempt !== 'retry') {
+                        return this.isListedUntrusted('retry');
+                    }
                     if (err) {
                         if (this.showLog) {
                             log.warn('Failed to get data from Github');
