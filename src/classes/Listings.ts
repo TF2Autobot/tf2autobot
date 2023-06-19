@@ -14,6 +14,19 @@ import ListingManager from '@tf2autobot/bptf-listings';
 import getAttachmentName from '../lib/tools/getAttachmentName';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 
+/**
+ * used when remove all listings has failed once
+ *
+ * this gives the system more context to make a decision about how
+ * to try to remove all listings
+ */
+interface RemoveAllListingsParams {
+    /** how many remove all tries have occurred? */
+    tries?: number;
+    /** how many listings did we have last time we tried delete */
+    lastListingsLength?: number;
+}
+
 export default class Listings {
     private checkingAllListings = false;
 
@@ -439,7 +452,9 @@ export default class Listings {
         });
     }
 
-    private removeAllListings(): Promise<void> {
+    private removeAllListings(retry?: RemoveAllListingsParams): Promise<void> {
+        const tries = retry?.tries || 0;
+        const lastLength = retry?.lastListingsLength;
         return new Promise((resolve, reject) => {
             this.removingAllListings = true;
 
@@ -455,16 +470,47 @@ export default class Listings {
                         return resolve();
                     }
 
-                    log.debug('Removing all listings...');
+                    if (!retry) {
+                        log.debug('Removing all listings...');
 
-                    this.bot.listingManager.deleteAllListings(err => {
-                        if (err) {
-                            return reject(err);
-                        }
+                        this.bot.listingManager.deleteAllListings(err => {
+                            if (err) {
+                                return reject(err);
+                            }
 
-                        // The request might fail, if it does we will try again
-                        return resolve(this.removeAllListings());
-                    });
+                            // The request might fail, if it does, try again
+                            return resolve(
+                                this.removeAllListings({
+                                    tries: tries + 1,
+                                    lastListingsLength: this.bot.listingManager.listings.length
+                                })
+                            );
+                        });
+                    } else if (retry && lastLength != null && lastLength === this.bot.listingManager.listings.length) {
+                        log.debug('Retrying remove all listings with individual removeListings calls');
+                        // if this isn't our first try, and seems our delete didn't work, try a different way
+                        const listings = this.bot.listingManager.listings.slice();
+                        const successListener = () => {
+                            log.debug('Remove all listings individual success...');
+                            // remove our one time delete handler since we had success
+                            this.bot.listingManager.removeListener('deleteListingsError', successListener);
+                            return resolve(
+                                this.removeAllListings({
+                                    tries: tries + 1,
+                                    lastListingsLength: this.bot.listingManager.listings.length
+                                })
+                            );
+                        };
+                        const errorListener = err => {
+                            log.error('Remove all listings individual failed', err);
+                            // it was an error, so we don't listen for success anymore
+                            this.bot.listingManager.removeListener('deleteListingsSuccessful', successListener);
+                            reject(err);
+                        };
+                        this.bot.listingManager.once('deleteListingsSuccessful', successListener);
+                        this.bot.listingManager.once('deleteListingsError', errorListener);
+                        this.bot.listingManager.removeListings(...listings);
+                    }
                 })
                 .catch(err => {
                     // if an error occurred, we bypass checking listings and just call delete all listings

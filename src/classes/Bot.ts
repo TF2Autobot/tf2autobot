@@ -1,6 +1,5 @@
 import SteamID from 'steamid';
-import SteamUser from 'steam-user';
-import { EResult, EPersonaState } from 'steam-user';
+import SteamUser, { EPersonaState, EResult } from 'steam-user';
 import TradeOfferManager, { CustomError, EconItem } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
@@ -20,14 +19,8 @@ import * as files from '../lib/files';
 
 // Reference: https://github.com/tf2-automatic/tf2-automatic/commit/cf7b807cae11eb172a78ef184bbafdb4ebe86501#diff-58f39591209025b16105c9f25a34c119332983a0d8cea7819b534d9d408324c4L329
 // Credit to @Nicklason
-import { LoginSession, EAuthTokenPlatformType, EAuthSessionGuardType } from 'steam-session';
+import { EAuthSessionGuardType, EAuthTokenPlatformType, LoginSession } from 'steam-session';
 import jwt from 'jsonwebtoken';
-
-export interface SteamTokens {
-    refreshToken: string;
-    accessToken: string;
-}
-
 import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
 
@@ -52,6 +45,12 @@ import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { axiosAbortSignal } from '../lib/helpers';
+
+export interface SteamTokens {
+    refreshToken: string;
+    accessToken: string;
+}
 
 export default class Bot {
     // Modules and classes
@@ -153,7 +152,8 @@ export default class Bot {
 
     private ready = false;
 
-    public userID: string;
+    /** the user id of bp.tf */
+    public userID?: string;
 
     private halted = false;
 
@@ -255,7 +255,7 @@ export default class Bot {
             return this.repCache[steamID64];
         }
 
-        const v = new Bans(this, this.userID, steamID64);
+        const v = new Bans({ bot: this, userID: this.userID, steamID: steamID64 });
         const isBanned = await v.isBanned();
 
         this.repCache[steamID64] = isBanned;
@@ -271,11 +271,12 @@ export default class Bot {
     }
 
     private async checkAdminBanned(): Promise<boolean> {
-        let banned = false;
+        // guilty until proven otherwise
+        let banned = true;
         const check = async (steamid: string) => {
-            const v = new Bans(this, this.userID, steamid, false);
+            const v = new Bans({ bot: this, userID: this.userID, steamID: steamid, showLog: 'banned' });
             const result = await v.isBanned();
-            banned = banned ? true : result.isBanned;
+            banned = result.isBanned;
         };
 
         const steamids = this.admins.map(steamID => steamID.getSteamID64());
@@ -312,11 +313,12 @@ export default class Bot {
         }, 12 * 60 * 60 * 1000);
     }
 
-    private getLocalizationFile(): Promise<void> {
+    private getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
         return new Promise((resolve, reject) => {
             axios({
                 method: 'get',
-                url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`
+                url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`,
+                signal: axiosAbortSignal(60000)
             })
                 .then(response => {
                     const content = response.data as string;
@@ -324,6 +326,9 @@ export default class Bot {
                     return resolve();
                 })
                 .catch(err => {
+                    if (err instanceof AbortSignal && attempt !== 'retry') {
+                        return this.getLocalizationFile('retry');
+                    }
                     // Just log, do nothing.
                     log.warn('Error getting TF2 Localization file.');
                     return reject(err);
@@ -476,7 +481,7 @@ export default class Bot {
         updateMessage: string;
         newVersionIsMajor: boolean;
     }> {
-        return this.getLatestVersion.then(async content => {
+        return this.getLatestVersion().then(async content => {
             const latestVersion = content.version;
             const canUpdateRepo = semver.compare(process.env.BOT_VERSION, '5.6.0') !== -1 && content.canUpdateRepo;
             const updateMessage = content.updateMessage;
@@ -545,11 +550,14 @@ export default class Bot {
         return this.options.statistics.sendStats.enable;
     }
 
-    private get getLatestVersion(): Promise<{ version: string; canUpdateRepo: boolean; updateMessage: string }> {
+    private getLatestVersion(
+        attempt: 'first' | 'retry' = 'first'
+    ): Promise<{ version: string; canUpdateRepo: boolean; updateMessage: string }> {
         return new Promise((resolve, reject) => {
             void axios({
                 method: 'GET',
-                url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json'
+                url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
+                signal: axiosAbortSignal(60000)
             })
                 .then(response => {
                     /*eslint-disable */
@@ -562,9 +570,10 @@ export default class Bot {
                     /*eslint-enable */
                 })
                 .catch((err: AxiosError) => {
-                    if (err) {
-                        return reject(filterAxiosError(err));
+                    if (err instanceof AbortSignal && attempt !== 'retry') {
+                        return this.getLatestVersion('retry');
                     }
+                    reject(filterAxiosError(err));
                 });
         });
     }
