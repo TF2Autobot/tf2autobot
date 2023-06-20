@@ -87,7 +87,7 @@ export default class Bans {
             const contents = Object.keys(fromRepAutobot.contents).reduce((obj, site) => {
                 if (
                     fromRepAutobot.contents[site as Sites] !== 'Error' &&
-                    (fromRepAutobot.contents[site as Sites] as SiteResult)?.isBanned
+                    (fromRepAutobot.contents[site as Sites] as SiteResult)?.isBanned // can also be null
                 ) {
                     obj[site] = (fromRepAutobot.contents[site as Sites] as SiteResult).content;
                 }
@@ -155,7 +155,7 @@ export default class Bans {
                     // If all success, proceed
                     return finalize({ bptf, mptf, steamrep, untrusted });
                 })
-                .catch(() => {
+                .catch(err => {
                     // Else if an error occurred, check if all cache say you are okay
                     if (
                         ![
@@ -168,9 +168,9 @@ export default class Bans {
                     ) {
                         return { isBanned: false };
                     }
-                    // else default to banned
-                    this.logIsBanned(result);
-                    return result;
+
+                    // else throw error
+                    throw err;
                 });
         }
     }
