@@ -32,6 +32,24 @@ export interface ResultSources {
     untrusted?: SiteResult;
 }
 
+type Sites = 'TF2Autobot' | 'Marketplace.tf' | 'Backpack.tf' | 'Steamrep.com';
+
+interface RepAutobotTfContents {
+    TF2Autobot: SiteResult | 'Error';
+    'Marketplace.tf': SiteResult | 'Error';
+    'Backpack.tf': SiteResult | 'Error';
+    'Steamrep.com': SiteResult | 'Error';
+}
+
+interface RepAutobotTf {
+    isBanned: boolean;
+    contents: RepAutobotTfContents;
+    isBannedExcludeMptf: boolean;
+    obtained_time: number;
+    last_update: number;
+    with_error: boolean;
+}
+
 export default class Bans {
     private _isBptfBanned: boolean = null;
 
@@ -63,79 +81,98 @@ export default class Bans {
     }
 
     async isBanned(): Promise<IsBanned> {
-        // always deny by default
-        let result: IsBanned = {
-            isBanned: true,
-            contents: {
-                'default-rule': 'all offline and online ban checks failed. internet issues?'
-            }
-        };
-        const finalize = (results: ResultSources): IsBanned => {
-            const { bptf, mptf, steamrep, untrusted } = results;
-            const validResults = [bptf, mptf, steamrep, untrusted].filter(r => !!r);
-            const haveResults = validResults.length > 0;
-            if (haveResults) {
-                result = {
-                    isBanned: validResults.some(r => r.isBanned),
-                    contents: {}
-                };
-
-                if (bptf) {
-                    result.contents['Backpack.tf'] = bptf.isBanned
-                        ? `banned${bptf.content !== '' ? ` - ${bptf.content}` : ''}`
-                        : 'clean';
-                }
-
-                if (this.repOpt.checkMptfBanned && mptf) {
-                    result.contents['Marketplace.tf'] = mptf.isBanned
-                        ? `banned${mptf.content !== '' ? ` - ${mptf.content}` : ''}`
-                        : 'clean';
-                }
-
-                if (untrusted) {
-                    result.contents['TF2Autobot'] = untrusted.isBanned
-                        ? `banned${untrusted.content !== '' ? ` - ${untrusted.content}` : ''}`
-                        : 'clean';
-                }
-
-                if (steamrep) {
-                    result.contents['Steamrep.com:'] = steamrep.isBanned
-                        ? `banned${steamrep.content !== '' ? ` - ${steamrep.content}` : ''}`
-                        : 'clean';
-                }
-            }
-            this.logIsBanned(result);
-            return result;
-        };
-
-        // Else if rep.tf is not as primary, check from each website first
-        return await Promise.all([
-            this.isListedUntrusted(),
-            this.isMptfBanned(),
-            this.isSteamRepMarked(),
-            this.isBptfBanned()
-        ])
-            .then(([untrusted, mptf, steamrep, bptf]) => {
-                // If all success, proceed
-                return finalize({ bptf, mptf, steamrep, untrusted });
-            })
-            .catch(() => {
-                // Else if an error occurred, check if all cache say you are okay
+        try {
+            const fromRepAutobot = await this.resultsFromAutobot();
+            const isBanned = this.repOpt.checkMptfBanned ? fromRepAutobot.isBanned : fromRepAutobot.isBannedExcludeMptf;
+            const contents = Object.keys(fromRepAutobot.contents).reduce((obj, site) => {
                 if (
-                    ![
-                        this._isBptfBanned,
-                        this._isBptfSteamRepBanned,
-                        this._isSteamRepBanned,
-                        this._isCommunityBanned,
-                        this.repOpt.checkMptfBanned && this._isMptfBanned
-                    ].some(b => b)
+                    fromRepAutobot.contents[site as Sites] !== 'Error' &&
+                    (fromRepAutobot.contents[site as Sites] as SiteResult)?.isBanned
                 ) {
-                    return { isBanned: false };
+                    obj[site] = (fromRepAutobot.contents[site as Sites] as SiteResult).content;
                 }
-                // else default to banned
+                return obj;
+            }, {}) as Contents;
+
+            return {
+                isBanned,
+                contents
+            };
+        } catch {
+            // always deny by default
+            let result: IsBanned = {
+                isBanned: true,
+                contents: {
+                    'default-rule': 'all offline and online ban checks failed. internet issues?'
+                }
+            };
+            const finalize = (results: ResultSources): IsBanned => {
+                const { bptf, mptf, steamrep, untrusted } = results;
+                const validResults = [bptf, mptf, steamrep, untrusted].filter(r => !!r);
+                const haveResults = validResults.length > 0;
+                if (haveResults) {
+                    result = {
+                        isBanned: validResults.some(r => r.isBanned),
+                        contents: {}
+                    };
+
+                    if (bptf) {
+                        result.contents['Backpack.tf'] = bptf.isBanned
+                            ? `banned${bptf.content !== '' ? ` - ${bptf.content}` : ''}`
+                            : 'clean';
+                    }
+
+                    if (this.repOpt.checkMptfBanned && mptf) {
+                        result.contents['Marketplace.tf'] = mptf.isBanned
+                            ? `banned${mptf.content !== '' ? ` - ${mptf.content}` : ''}`
+                            : 'clean';
+                    }
+
+                    if (untrusted) {
+                        result.contents['TF2Autobot'] = untrusted.isBanned
+                            ? `banned${untrusted.content !== '' ? ` - ${untrusted.content}` : ''}`
+                            : 'clean';
+                    }
+
+                    if (steamrep) {
+                        result.contents['Steamrep.com:'] = steamrep.isBanned
+                            ? `banned${steamrep.content !== '' ? ` - ${steamrep.content}` : ''}`
+                            : 'clean';
+                    }
+                }
                 this.logIsBanned(result);
                 return result;
-            });
+            };
+
+            // Else if rep.tf is not as primary, check from each website first
+            return await Promise.all([
+                this.isListedUntrusted(),
+                this.isMptfBanned(),
+                this.isSteamRepMarked(),
+                this.isBptfBanned()
+            ])
+                .then(([untrusted, mptf, steamrep, bptf]) => {
+                    // If all success, proceed
+                    return finalize({ bptf, mptf, steamrep, untrusted });
+                })
+                .catch(() => {
+                    // Else if an error occurred, check if all cache say you are okay
+                    if (
+                        ![
+                            this._isBptfBanned,
+                            this._isBptfSteamRepBanned,
+                            this._isSteamRepBanned,
+                            this._isCommunityBanned,
+                            this.repOpt.checkMptfBanned && this._isMptfBanned
+                        ].some(b => b)
+                    ) {
+                        return { isBanned: false };
+                    }
+                    // else default to banned
+                    this.logIsBanned(result);
+                    return result;
+                });
+        }
     }
 
     /** may or may not print results depending on showLog setting and ban result */
@@ -151,6 +188,24 @@ export default class Bans {
                 _log(`Bans result for ${this.steamID}:`, result.contents);
             }
         }
+    }
+
+    private resultsFromAutobot(): Promise<RepAutobotTf> {
+        return new Promise((resolve, reject) => {
+            axios({
+                method: 'GET',
+                url: `https://rep.autobot.tf/json/${this.steamID}`,
+                params: {
+                    checkMptf: this.repOpt.checkMptfBanned
+                }
+            })
+                .then(res => {
+                    return resolve(res.data as RepAutobotTf);
+                })
+                .catch(err => {
+                    return reject(err);
+                });
+        });
     }
 
     private isBptfBanned(): Promise<SiteResult | undefined> {
