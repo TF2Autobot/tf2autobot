@@ -105,7 +105,7 @@ export default class BotManager {
     }
 
     stop(err: Error | null, checkIfReady = true, rudely = false): void {
-        log.debug('Shutdown has been initialized, stopping...', { err: err });
+        log.debug('Shutdown has been initialized, stopping...', err ? { err: err.message } : undefined);
 
         this.stopRequested = true;
         this.stopRequestCount++;

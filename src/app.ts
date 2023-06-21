@@ -1,3 +1,12 @@
+try {
+    // only installed in dev mode
+    // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
+    const { bootstrap } = require('global-agent');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    bootstrap();
+} catch (e) {
+    // no worries
+}
 import 'module-alias/register';
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const { version: BOT_VERSION } = require('../package.json');
@@ -63,17 +72,21 @@ import axios, { AxiosError } from 'axios';
 import { uptime } from './lib/tools/time';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 
-ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
+ON_DEATH({ uncaughtException: true })((signalOrErr, origin: string | Error) => {
     const crashed = !['SIGINT', 'SIGTERM'].includes(signalOrErr as 'SIGINT' | 'SIGTERM' | 'SIGQUIT');
 
-    if (crashed) {
+    // finds error in case signal is uncaughtException
+    const error = origin instanceof Error ? origin : signalOrErr instanceof Error ? signalOrErr : undefined;
+    const message =
+        typeof origin === 'string' ? origin : typeof signalOrErr === 'string' ? origin.message : signalOrErr.message;
+    if (crashed && error) {
         const botReady = botManager.isBotReady;
 
-        const stackTrace = inspect.inspect(origin);
+        const stackTrace = inspect.inspect(error);
 
         if (stackTrace.includes('Error: Not allowed')) {
             log.error('Not Allowed');
-            return botManager.stop(null, true, true);
+            return botManager.stop(error, true, true);
         }
 
         const errorMessage = [
@@ -128,10 +141,10 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin) => {
             );
         }
     } else {
-        log.warn('Received kill signal `' + (signalOrErr as string) + '`');
+        log.warn('Received kill signal `' + message + '`');
     }
 
-    botManager.stop(crashed ? (signalOrErr as Error) : null, true, false);
+    botManager.stop(crashed ? error : null, true, false);
 });
 
 process.on('message', message => {
