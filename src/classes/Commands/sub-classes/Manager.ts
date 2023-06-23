@@ -945,7 +945,7 @@ export default class ManagerCommands {
                 const exec = (command: string): Promise<void> => {
                     return new Promise((resolve, reject) => {
                         child.exec(command, { cwd }, err => {
-                            if (err && !['npm run build', 'pm2 restart ecosystem.json'].includes(command)) {
+                            if (err && !['npm run build'].includes(command)) {
                                 // not sure why this error always appeared: https://prnt.sc/9eVBx95h9uT_
                                 log.error(`Error on updaterepo (executing ${command}):`, err);
                                 return reject(err);
@@ -975,7 +975,7 @@ export default class ManagerCommands {
                     await exec('npm run build');
 
                     this.bot.sendMessage(steamID, '⌛ Restarting...');
-                    await exec('pm2 restart ecosystem.json');
+                    return await this.bot.botManager.restartProcess();
                 } catch (err) {
                     this.bot.sendMessage(steamID, `❌ Error while updating the bot: ${JSON.stringify(err)}`);
                     // Bring back to online
