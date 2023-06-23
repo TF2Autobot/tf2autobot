@@ -1,5 +1,6 @@
 import SteamID from 'steamid';
-import SteamUser, { EPersonaState, EResult } from 'steam-user';
+import SteamUser from 'steam-user';
+import { EResult, EPersonaState } from 'steam-user';
 import TradeOfferManager, { CustomError, EconItem } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
