@@ -975,7 +975,7 @@ export default class ManagerCommands {
                     await exec('npm run build');
 
                     this.bot.sendMessage(steamID, '⌛ Restarting...');
-                    return await this.bot.botManager.restartProcess();
+                    await this.bot.botManager.restartProcess();
                 } catch (err) {
                     this.bot.sendMessage(steamID, `❌ Error while updating the bot: ${JSON.stringify(err)}`);
                     // Bring back to online
