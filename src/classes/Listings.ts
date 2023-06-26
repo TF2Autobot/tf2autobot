@@ -698,6 +698,7 @@ export default class Listings {
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
                 .replace(/%name%/g, entry.id ?? entry.name)
+                .replace(/%easy_copy_paste%/g, this.bot.helper.getEasyCopyPasteStr(entry.id ?? entry.name, key))
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
