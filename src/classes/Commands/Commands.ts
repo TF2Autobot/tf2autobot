@@ -105,6 +105,28 @@ export default class Commands {
             return this.bot.sendMessage(steamID, "⛔ Don't spam");
         }
 
+        // Handling easy copy-paste buy command
+        if (message.startsWith('buy_')) {
+            this.buyOrSellCommand(
+                steamID,
+                this.bot.helper.getNormalizedItemName(message.replace('buy_', '')),
+                'buy' as Instant,
+                null
+            );
+            return;
+        }
+
+        // Handling easy copy-paste sell command
+        if (message.startsWith('sell_')) {
+            this.buyOrSellCommand(
+                steamID,
+                this.bot.helper.getNormalizedItemName(message.replace('sell_', '')),
+                'sell' as Instant,
+                null
+            );
+            return;
+        }
+
         if (message.startsWith(prefix)) {
             if (command === 'help') {
                 void this.help.helpCommand(steamID, prefix);
