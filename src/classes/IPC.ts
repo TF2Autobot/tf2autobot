@@ -7,12 +7,17 @@ import fs, { promises as fsp } from 'fs';
 import path from 'path';
 import Options, { getOptionsPath, JsonOptions, removeCliOptions } from './Options';
 import generateCert from '../lib/tools/generateCert';
-import { EntryData } from './Pricelist';
+import { Entry, EntryData } from './Pricelist';
 import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
 
+interface Item extends Entry {
+    statslink?: any;
+    style?: any;
+}
+
 export default class ipcHandler extends IPC {
-    ourServer: any;
+    ourServer: Client;
 
     bot: Bot;
 
@@ -92,7 +97,7 @@ export default class ipcHandler extends IPC {
         else this.connectTo('autobot_gui_dev', onConnected);
     }
 
-    private static cleanItem(item): void {
+    private static cleanItem(item: Item): void {
         if (item?.name) delete item.name;
         if (item?.time) delete item.time;
         if (item?.statslink) delete item.statslink;
@@ -100,14 +105,14 @@ export default class ipcHandler extends IPC {
     }
 
     /* HANDLERS */
-    private addItem(item: any): void {
+    private addItem(item: Item): void {
         ipcHandler.cleanItem(item);
 
         let priceKey: string = undefined;
         if (item.id) {
-            priceKey = item.id as string;
+            priceKey = item.id;
         }
-        priceKey = priceKey ? priceKey : (item.sku as string);
+        priceKey = priceKey ? priceKey : item.sku;
         this.bot.pricelist
             .addPrice({ entryData: item as EntryData, emitChange: true })
             .then(item => {
@@ -118,14 +123,14 @@ export default class ipcHandler extends IPC {
             });
     }
 
-    private updateItem(item): void {
+    private updateItem(item: Item): void {
         ipcHandler.cleanItem(item);
 
         let priceKey: string = undefined;
         if (item.id) {
-            priceKey = item.id as string;
+            priceKey = item.id;
         }
-        priceKey = priceKey ? priceKey : (item.sku as string);
+        priceKey = priceKey ? priceKey : item.sku;
         this.bot.pricelist
             .updatePrice({ priceKey, entryData: item as EntryData, emitChange: true })
             .then(item => {
@@ -232,4 +237,36 @@ export default class ipcHandler extends IPC {
                 return;
             });
     }
+}
+
+import { Socket } from 'net';
+interface Client {
+    /**
+     * triggered when a JSON message is received. The event name will be the type string from your message
+     * and the param will be the data object from your message eg : \{ type:'myEvent',data:\{a:1\}\}
+     */
+    on(event: string, callback: (...args: any[]) => void): Client;
+    /**
+     * triggered when an error has occured
+     */
+    on(event: 'error', callback: (err: any) => void): Client;
+    /**
+     * connect - triggered when socket connected
+     * disconnect - triggered by client when socket has disconnected from server
+     * destroy - triggered when socket has been totally destroyed, no further auto retries will happen and all references are gone
+     */
+    on(event: 'connect' | 'disconnect' | 'destroy', callback: () => void): Client;
+    /**
+     * triggered by server when a client socket has disconnected
+     */
+    on(event: 'socket.disconnected', callback: (socket: Socket, destroyedSocketID: string) => void): Client;
+    /**
+     * triggered when ipc.config.rawBuffer is true and a message is received
+     */
+    on(event: 'data', callback: (buffer: Buffer) => void): Client;
+    emit(event: string, value?: any): Client;
+    /**
+     * Unbind subscribed events
+     */
+    off(event: string, handler: any): Client;
 }
