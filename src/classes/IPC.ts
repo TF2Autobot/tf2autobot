@@ -19,19 +19,19 @@ interface Item extends Entry {
 export default class ipcHandler extends IPC {
     private IpcClient = 'autobot_gui_local';
 
-    ourServer: Client;
+    private ourServer: Client;
 
-    bot: Bot;
+    private bot: Bot;
 
-    options: Options;
+    private options: Options;
 
-    privateKey?: string;
+    private privateKey?: string;
 
-    publicKey?: string;
+    private publicKey?: string;
 
-    serverCert?: string;
+    private serverCert?: string;
 
-    caCert?: string;
+    private caCert?: string;
 
     constructor(bot: Bot) {
         super();
