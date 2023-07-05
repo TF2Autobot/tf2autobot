@@ -47,7 +47,7 @@ export default class ipcHandler extends IPC {
     init(): void {
         this.config.id = this.bot.client.steamID.getSteamID64();
         this.config.retry = 15000;
-        //this.config.silent = true;
+        this.config.silent = true;
 
         if (this.options.tls) {
             this.config.networkHost = this.options.tlsHost;
