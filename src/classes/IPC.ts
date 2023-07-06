@@ -17,8 +17,6 @@ interface Item extends Entry {
 }
 
 export default class ipcHandler extends IPC {
-    private IpcClient = 'autobot_gui_local';
-
     private ourServer: Client;
 
     private bot: Bot;
@@ -78,10 +76,7 @@ export default class ipcHandler extends IPC {
         // eslint-disable-next-line
         const onConnected = () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
-            if (this.options.tls) {
-                this.IpcClient = 'autobot_gui';
-            }
-            this.ourServer = this.of[this.IpcClient];
+            this.ourServer = this.of.autobot_gui;
             log.debug('connected IPC');
 
             //bind handlers
@@ -98,8 +93,7 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('getOptions', this.sendOptions.bind(this));
             this.ourServer.on('updateOptions', this.updateOptions.bind(this));
         };
-        if (this.options.tls) this.connectToNet(this.IpcClient, onConnected);
-        else this.connectTo(this.IpcClient, onConnected);
+        this[this.options.tls ? 'connectToNet' : 'connectTo']('autobot_gui', onConnected);
     }
 
     private static cleanItem(item: Item): void {
