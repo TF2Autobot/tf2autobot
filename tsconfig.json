@@ -9,6 +9,7 @@
         "outDir": "./dist",
         "rootDir": "./src",
         "removeComments": true,
+        "skipLibCheck": true,
         "strict": true,
         "noImplicitAny": false,
         "noImplicitThis": false,

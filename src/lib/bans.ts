@@ -4,15 +4,50 @@ import log from '../lib/logger';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 import Bot from '../classes/Bot';
 import { ReputationCheck } from '../classes/Options';
+import { LeveledLogMethod } from 'winston';
+import { axiosAbortSignal } from './helpers';
 
+export type Contents = { [website: string]: string };
 export interface IsBanned {
     isBanned: boolean;
-    contents?: { [website: string]: string };
+    contents?: Contents;
 }
 
 interface SiteResult {
     isBanned: boolean;
     content?: string;
+}
+
+interface BansEntry {
+    bot: Bot;
+    userID?: string;
+    steamID: string;
+    showLog?: 'all' | 'banned';
+}
+
+export interface ResultSources {
+    bptf?: SiteResult;
+    mptf?: SiteResult;
+    steamrep?: SiteResult;
+    untrusted?: SiteResult;
+}
+
+type Sites = 'TF2Autobot' | 'Marketplace.tf' | 'Backpack.tf' | 'Steamrep.com';
+
+interface RepAutobotTfContents {
+    TF2Autobot: SiteResult | 'Error';
+    'Marketplace.tf': SiteResult | 'Error';
+    'Backpack.tf': SiteResult | 'Error';
+    'Steamrep.com': SiteResult | 'Error';
+}
+
+interface RepAutobotTf {
+    isBanned: boolean;
+    contents: RepAutobotTfContents;
+    isBannedExcludeMptf: boolean;
+    obtained_time: number;
+    last_update: number;
+    with_error: boolean;
 }
 
 export default class Bans {
@@ -26,13 +61,19 @@ export default class Bans {
 
     private _isMptfBanned: boolean = null;
 
-    constructor(
-        private readonly bot: Bot,
-        private readonly userID: string,
-        private readonly steamID: string,
-        private readonly showLog = true
-    ) {
-        //
+    private readonly bot: Bot;
+
+    private readonly userID?: string;
+
+    private readonly steamID: string;
+
+    private readonly showLog: 'all' | 'banned';
+
+    constructor({ bot, userID, steamID, showLog = 'all' }: BansEntry) {
+        this.showLog = showLog;
+        this.steamID = steamID;
+        this.userID = userID;
+        this.bot = bot;
     }
 
     private get repOpt(): ReputationCheck {
@@ -40,194 +81,138 @@ export default class Bans {
     }
 
     async isBanned(): Promise<IsBanned> {
-        const finalize = (
-            bptf: SiteResult,
-            mptf: SiteResult,
-            steamrep: SiteResult,
-            untrusted: SiteResult
-        ): IsBanned => {
-            const toReturn = {
-                isBanned: bptf.isBanned || mptf.isBanned || steamrep.isBanned || untrusted.isBanned,
+        try {
+            const fromRepAutobot = await this.resultsFromAutobot();
+            const isBanned = this.repOpt.checkMptfBanned ? fromRepAutobot.isBanned : fromRepAutobot.isBannedExcludeMptf;
+            const contents = Object.keys(fromRepAutobot.contents).reduce((obj, site) => {
+                if (
+                    fromRepAutobot.contents[site as Sites] !== 'Error' &&
+                    (fromRepAutobot.contents[site as Sites] as SiteResult)?.isBanned // can also be null
+                ) {
+                    obj[site] = (fromRepAutobot.contents[site as Sites] as SiteResult).content;
+                }
+                return obj;
+            }, {}) as Contents;
+
+            return {
+                isBanned,
+                contents
+            };
+        } catch {
+            // always deny by default
+            let result: IsBanned = {
+                isBanned: true,
                 contents: {
-                    'Backpack.tf': bptf.isBanned ? `banned${bptf.content !== '' ? ` - ${bptf.content}` : ''}` : 'clean',
-                    'Steamrep.com:': steamrep.isBanned
-                        ? `banned${steamrep.content !== '' ? ` - ${steamrep.content}` : ''}`
-                        : 'clean'
+                    'default-rule': 'all offline and online ban checks failed. internet issues?'
                 }
             };
-
-            if (this.repOpt.checkMptfBanned) {
-                toReturn.contents['Marketplace.tf'] = mptf.isBanned
-                    ? `banned${mptf.content !== '' ? ` - ${mptf.content}` : ''}`
-                    : 'clean';
-            }
-
-            toReturn.contents['TF2Autobot'] = untrusted.isBanned
-                ? `banned${untrusted.content !== '' ? ` - ${untrusted.content}` : ''}`
-                : 'clean';
-
-            if (this.showLog)
-                log[toReturn.isBanned ? 'warn' : 'debug'](`Bans result for ${this.steamID}:`, toReturn.contents);
-
-            return toReturn;
-        };
-
-        if (this.repOpt.reptfAsPrimarySource) {
-            // If rep.tf as primary, get from reptf first
-            return await this.getFromReptf()
-                .catch(async () => {
-                    // If error, get from each website
-                    const [untrusted, mptf, steamrep, bptf] = await Promise.all([
-                        this.isListedUntrusted(),
-                        this.isMptfBanned(),
-                        this.isSteamRepMarked(),
-                        this.isBptfBanned()
-                    ]);
-
-                    return finalize(bptf, mptf, steamrep, untrusted);
-                })
-                .catch(err => {
-                    // but if still got an error, try check if any cached is true
-                    if (
-                        this._isBptfBanned ||
-                        this._isBptfSteamRepBanned ||
-                        this._isSteamRepBanned ||
-                        this._isCommunityBanned ||
-                        (this.repOpt.checkMptfBanned && this._isMptfBanned)
-                    ) {
-                        return { isBanned: true };
-                    }
-
-                    // if non is true, we are unsure so then throw error
-                    throw err;
-                });
-        }
-
-        // Else if rep.tf is not as primary, check from each website first
-        return await Promise.all([
-            this.isListedUntrusted(),
-            this.isMptfBanned(),
-            this.isSteamRepMarked(),
-            this.isBptfBanned()
-        ])
-            .then(([untrusted, mptf, steamrep, bptf]) => {
-                // If all success, proceed
-                return finalize(bptf, mptf, steamrep, untrusted);
-            })
-            .catch(async () => {
-                // Else if an error occured, check if any cached is true
-                if (
-                    this._isBptfBanned ||
-                    this._isBptfSteamRepBanned ||
-                    this._isSteamRepBanned ||
-                    this._isCommunityBanned ||
-                    (this.repOpt.checkMptfBanned && this._isMptfBanned)
-                ) {
-                    return { isBanned: true };
-                }
-
-                // Else, try get data from Rep.tf, if still error, this will automatically be throw
-                // and should be catch by other
-                return await this.getFromReptf();
-            });
-    }
-
-    private async getFromReptf(): Promise<IsBanned> {
-        return new Promise((resolve, reject) => {
-            void axios({
-                method: 'POST',
-                url: 'https://rep.tf/api/bans?str=' + this.steamID,
-                headers: {
-                    'User-Agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
-                }
-            })
-                .then(response => {
-                    const bans = response.data as RepTF;
-
-                    const v = ['bptfBans', 'srBans'];
-                    for (let i = 0; i < v.length; i++) {
-                        if (bans[v[i] as 'bptfBans' | 'srBans']?.message?.includes('Failed to get data')) {
-                            throw `Failed to get data (${v[i]})`;
-                        }
-                    }
-
-                    if (this.repOpt.checkMptfBanned) {
-                        if (bans.mpBans.message === 'Failed to get data') {
-                            throw `Failed to get data (mpBans)`;
-                        }
-                    }
-
-                    const isBptfBanned = bans.bptfBans ? bans.bptfBans.banned === 'bad' : false;
-                    this._isBptfBanned = isBptfBanned;
-                    const isSteamRepBanned = bans.srBans ? bans.srBans.banned === 'bad' : false;
-                    this._isBptfSteamRepBanned = isSteamRepBanned;
-
-                    const isMptfBanned = bans.mpBans ? bans.mpBans.banned === 'bad' : false;
-
-                    const bansResult = {
-                        'Backpack.tf': isBptfBanned ? `banned - ${removeHTMLTags(bans.bptfBans.message)}` : 'clean',
-                        'Steamrep.com': isSteamRepBanned ? `banned - ${removeHTMLTags(bans.srBans.message)}` : 'clean'
+            const finalize = (results: ResultSources): IsBanned => {
+                const { bptf, mptf, steamrep, untrusted } = results;
+                const validResults = [bptf, mptf, steamrep, untrusted].filter(r => !!r);
+                const haveResults = validResults.length > 0;
+                if (haveResults) {
+                    result = {
+                        isBanned: validResults.some(r => r.isBanned),
+                        contents: {}
                     };
 
-                    if (this.repOpt.checkMptfBanned) {
-                        this._isMptfBanned = isMptfBanned;
-                        bansResult['Marketplace.tf'] = isMptfBanned
-                            ? `banned - ${removeHTMLTags(bans.mpBans.message)}`
+                    if (bptf) {
+                        result.contents['Backpack.tf'] = bptf.isBanned
+                            ? `banned${bptf.content !== '' ? ` - ${bptf.content}` : ''}`
                             : 'clean';
                     }
 
-                    void this.isListedUntrusted()
-                        .then(isListed => {
-                            const isListedUntrusted = isListed.isBanned;
-                            bansResult['TF2Autobot'] = isListedUntrusted ? `banned - ${isListed.content}` : 'clean';
-
-                            if (this.showLog) {
-                                log[
-                                    isBptfBanned ||
-                                    isSteamRepBanned ||
-                                    (this.repOpt.checkMptfBanned && isMptfBanned) ||
-                                    isListedUntrusted
-                                        ? 'warn'
-                                        : 'debug'
-                                ]('Bans result:', bansResult);
-                            }
-
-                            return resolve({
-                                isBanned:
-                                    isBptfBanned ||
-                                    isSteamRepBanned ||
-                                    (this.repOpt.checkMptfBanned ? isMptfBanned : false) ||
-                                    isListedUntrusted,
-                                contents: bansResult
-                            });
-                        })
-                        .catch(err => {
-                            if (this.showLog) log.warn('Failed to obtain data from Github: ', err);
-                            return reject(err);
-                        });
-                })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        if (this.showLog) log.warn('Failed to obtain data from Rep.tf');
-                        if (this.repOpt.reptfAsPrimarySource) {
-                            if (this.showLog) {
-                                log.debug(
-                                    `Getting data from Backpack.tf${
-                                        !this.repOpt.checkMptfBanned ? ' and ' : ', Marketplace.tf and '
-                                    } Steamrep.com...`
-                                );
-                            }
-                        }
-
-                        return reject(filterAxiosError(err));
+                    if (this.repOpt.checkMptfBanned && mptf) {
+                        result.contents['Marketplace.tf'] = mptf.isBanned
+                            ? `banned${mptf.content !== '' ? ` - ${mptf.content}` : ''}`
+                            : 'clean';
                     }
+
+                    if (untrusted) {
+                        result.contents['TF2Autobot'] = untrusted.isBanned
+                            ? `banned${untrusted.content !== '' ? ` - ${untrusted.content}` : ''}`
+                            : 'clean';
+                    }
+
+                    if (steamrep) {
+                        result.contents['Steamrep.com:'] = steamrep.isBanned
+                            ? `banned${steamrep.content !== '' ? ` - ${steamrep.content}` : ''}`
+                            : 'clean';
+                    }
+                }
+                this.logIsBanned(result);
+                return result;
+            };
+
+            // Else if rep.tf is not as primary, check from each website first
+            return await Promise.all([
+                this.isListedUntrusted(),
+                this.isMptfBanned(),
+                this.isSteamRepMarked(),
+                this.isBptfBanned()
+            ])
+                .then(([untrusted, mptf, steamrep, bptf]) => {
+                    // If all success, proceed
+                    return finalize({ bptf, mptf, steamrep, untrusted });
+                })
+                .catch(err => {
+                    // Else if an error occurred, check if all cache say you are okay
+                    if (
+                        ![
+                            this._isBptfBanned,
+                            this._isBptfSteamRepBanned,
+                            this._isSteamRepBanned,
+                            this._isCommunityBanned,
+                            this.repOpt.checkMptfBanned && this._isMptfBanned
+                        ].some(b => b)
+                    ) {
+                        return { isBanned: false };
+                    }
+
+                    // else throw error
+                    throw err;
+                });
+        }
+    }
+
+    /** may or may not print results depending on showLog setting and ban result */
+    private logIsBanned(result: IsBanned) {
+        if (this.showLog) {
+            let _log: LeveledLogMethod;
+            if (result.isBanned) {
+                _log = log['warn'];
+            } else if (this.showLog === 'all') {
+                _log = log['debug'];
+            }
+            if (_log) {
+                _log(`Bans result for ${this.steamID}:`, result.contents);
+            }
+        }
+    }
+
+    private resultsFromAutobot(): Promise<RepAutobotTf> {
+        return new Promise((resolve, reject) => {
+            axios({
+                method: 'GET',
+                url: `https://rep.autobot.tf/json/${this.steamID}`,
+                params: {
+                    checkMptf: this.repOpt.checkMptfBanned
+                }
+            })
+                .then(res => {
+                    return resolve(res.data as RepAutobotTf);
+                })
+                .catch(err => {
+                    return reject(err);
                 });
         });
     }
 
-    private isBptfBanned(): Promise<SiteResult> {
-        return new Promise((resolve, reject) => {
+    private isBptfBanned(): Promise<SiteResult | undefined> {
+        if (!this.bot.options.bptfApiKey) {
+            return;
+        }
+        return new Promise(resolve => {
             void axios({
                 url: 'https://api.backpack.tf/api/users/info/v1',
                 headers: {
@@ -253,15 +238,18 @@ export default class Bans {
                 })
                 .catch((err: AxiosError) => {
                     if (err) {
-                        if (this.showLog) log.warn('Failed to get data from backpack.tf');
-                        return reject(filterAxiosError(err));
+                        if (this.showLog) {
+                            log.warn('Failed to get data from backpack.tf');
+                            log.debug(filterAxiosError(err));
+                        }
+                        return resolve(undefined);
                     }
                 });
         });
     }
 
-    private isSteamRepMarked(): Promise<SiteResult> {
-        return new Promise((resolve, reject) => {
+    private isSteamRepMarked(): Promise<SiteResult | undefined> {
+        return new Promise(resolve => {
             void axios({
                 url: 'https://steamrep.com/api/beta4/reputation/' + this.steamID,
                 params: {
@@ -279,21 +267,23 @@ export default class Bans {
                 })
                 .catch((err: AxiosError) => {
                     if (err) {
-                        if (this.showLog) log.warn('Failed to get data from SteamRep');
+                        if (this.showLog) {
+                            log.warn('Failed to get data from SteamRep');
+                            log.debug(filterAxiosError(err));
+                        }
                         if (this._isBptfSteamRepBanned !== null) {
                             return resolve({ isBanned: this._isBptfSteamRepBanned });
                         }
-
-                        return reject(filterAxiosError(err));
+                        return resolve(undefined);
                     }
                 });
         });
     }
 
-    private isMptfBanned(): Promise<SiteResult> {
+    private isMptfBanned(): Promise<SiteResult | undefined> {
         return new Promise((resolve, reject) => {
             if (!this.repOpt.checkMptfBanned) {
-                return resolve({ isBanned: false });
+                return resolve(undefined);
             }
 
             if (this.bot.options.mptfApiKey === '') {
@@ -315,7 +305,8 @@ export default class Bans {
                     const results = (response.data as MptfGetUserBan)?.results;
 
                     if (!Array.isArray(results)) {
-                        return reject(new Error('Marketplace.tf returned invalid data'));
+                        log.debug('Marketplace.tf returned invalid data', results);
+                        return resolve(undefined);
                     }
 
                     const resultSize = results.length;
@@ -334,18 +325,19 @@ export default class Bans {
                 })
                 .catch((err: AxiosError) => {
                     if (err) {
-                        if (this.showLog) log.warn('Failed to get data from Marketplace.tf');
-                        return reject(filterAxiosError(err));
+                        if (this.showLog) log.warn('Failed to get data from Marketplace.tf', err);
+                        return resolve(undefined);
                     }
                 });
         });
     }
 
-    private isListedUntrusted(): Promise<SiteResult> {
-        return new Promise((resolve, reject) => {
+    private isListedUntrusted(attempt: 'first' | 'retry' = 'first'): Promise<SiteResult | undefined> {
+        return new Promise(resolve => {
             void axios({
                 method: 'GET',
-                url: 'https://raw.githubusercontent.com/TF2Autobot/untrusted-steam-ids/master/untrusted.min.json'
+                url: 'https://raw.githubusercontent.com/TF2Autobot/untrusted-steam-ids/master/untrusted.min.json',
+                signal: axiosAbortSignal(60000)
             })
                 .then(response => {
                     const results = (response.data as UntrustedJson).steamids[this.steamID];
@@ -361,10 +353,16 @@ export default class Bans {
                     });
                 })
                 .catch((err: AxiosError) => {
-                    if (err) {
-                        if (this.showLog) log.warn('Failed to get data from Github');
-                        return reject(filterAxiosError(err));
+                    if (err instanceof AbortSignal && attempt !== 'retry') {
+                        return this.isListedUntrusted('retry');
                     }
+                    if (err) {
+                        if (this.showLog) {
+                            log.warn('Failed to get data from Github');
+                            log.debug(err instanceof AxiosError ? filterAxiosError(err) : err);
+                        }
+                    }
+                    resolve(undefined);
                 });
         });
     }
@@ -399,16 +397,6 @@ export function isBptfBanned(steamID: string, bptfApiKey: string, userID: string
                 }
             });
     });
-}
-
-// https://www.geeksforgeeks.org/how-to-strip-out-html-tags-from-a-string-using-javascript/
-function removeHTMLTags(str: string): string {
-    if (str === null || str === '') {
-        return '';
-    }
-
-    str = str.toString();
-    return str.replace(/(<([^>]+)>)/gi, '');
 }
 
 interface MptfGetUserBan {
@@ -449,29 +437,6 @@ interface Flags {
 interface Reputation {
     full?: string;
     summary?: string;
-}
-
-interface RepTF {
-    success: boolean;
-    message: string;
-    steamBans: BansInfo; // Steam
-    srBans: BansInfo; // SteamRep
-    stfBans: BansInfo; // Scrap.tf
-    bptfBans: BansInfo; // Backpack.tf
-    mpBans: BansInfo; // Marketplace.tf
-    bzBans: BansInfo; // Bazaar.tf
-    ppmBans: BansInfo; // PPM
-    hgBans: BansInfo; // Harpoon Gaming
-    nhsBans: BansInfo; // NeonHeights Servers
-    stBans: BansInfo; // SMT Gaming
-    fogBans: BansInfo; // FoG Trade
-    etf2lBans: BansInfo; // ETF2L
-}
-
-interface BansInfo {
-    banned: 'good' | 'bad';
-    message: string;
-    icons: string;
 }
 
 interface UntrustedJson {

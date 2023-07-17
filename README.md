@@ -7,8 +7,8 @@ A free and open source fully automated TF2 trading bot advertising on [backpack.
 **TF2Autobot** is an improved and feature rich version of the original **tf2-automatic** made by [Nicklason](https://github.com/Nicklason). You can find out more about the original repository [here](https://github.com/Nicklason/tf2-automatic).
 
 ![GitHub package version](https://img.shields.io/github/package-json/v/idinium96/tf2autobot.svg)
-[![Build Status](https://img.shields.io/github/workflow/status/idinium96/tf2autobot/CI/development)](https://github.com/idinium96/tf2autobot/actions)
-[![Docker Build Status](https://img.shields.io/github/workflow/status/idinium96/tf2autobot/Docker/development?label=docker%20build)](https://github.com/idinium96/tf2autobot/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/TF2Autobot/tf2autobot/ci.yml?branch=development)](https://github.com/idinium96/tf2autobot/actions)
+[![Docker Build Status](https://img.shields.io/github/actions/workflow/status/TF2Autobot/tf2autobot/docker-latest-tag.yml?label=docker%20build)](https://github.com/idinium96/tf2autobot/actions)
 [![GitHub issues](https://img.shields.io/github/issues/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/issues)
 [![GitHub forks](https://img.shields.io/github/forks/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/network/members)
 [![GitHub stars](https://img.shields.io/github/stars/idinium96/tf2autobot)](https://github.com/idinium96/tf2autobot/stargazers)

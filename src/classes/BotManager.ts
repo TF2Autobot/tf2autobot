@@ -105,7 +105,7 @@ export default class BotManager {
     }
 
     stop(err: Error | null, checkIfReady = true, rudely = false): void {
-        log.debug('Shutdown has been initialized, stopping...', { err: err });
+        log.debug('Shutdown has been initialized, stopping...', err ? { err: err.message } : undefined);
 
         this.stopRequested = true;
         this.stopRequestCount++;
@@ -194,6 +194,11 @@ export default class BotManager {
             // Make the bot snooze on Steam, that way people will know it is not running
             this.bot.client.setPersona(EPersonaState.Snooze);
             this.bot.client.autoRelogin = false;
+
+            if (this.bot.session) {
+                this.bot.session.removeAllListeners();
+                this.bot.session.cancelLoginAttempt();
+            }
 
             // Stop polling offers
             this.bot.manager.pollInterval = -1;

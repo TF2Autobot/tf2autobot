@@ -17,7 +17,12 @@ import * as timersPromises from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
 import { BackpackParser } from 'tf2-backpack';
+import * as files from '../lib/files';
 
+// Reference: https://github.com/tf2-automatic/tf2-automatic/commit/cf7b807cae11eb172a78ef184bbafdb4ebe86501#diff-58f39591209025b16105c9f25a34c119332983a0d8cea7819b534d9d408324c4L329
+// Credit to @Nicklason
+import { EAuthSessionGuardType, EAuthTokenPlatformType, LoginSession } from 'steam-session';
+import jwt from 'jsonwebtoken';
 import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
 
@@ -42,6 +47,12 @@ import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { axiosAbortSignal } from '../lib/helpers';
+
+export interface SteamTokens {
+    refreshToken: string;
+    accessToken: string;
+}
 
 export default class Bot {
     // Modules and classes
@@ -54,6 +65,8 @@ export default class Bot {
     readonly client: SteamUser;
 
     readonly manager: TradeOfferManager;
+
+    session: LoginSession | null = null;
 
     readonly community: SteamCommunity;
 
@@ -143,7 +156,8 @@ export default class Bot {
 
     private ready = false;
 
-    public userID: string;
+    /** the user id of bp.tf */
+    public userID?: string;
 
     private halted = false;
 
@@ -245,7 +259,7 @@ export default class Bot {
             return this.repCache[steamID64];
         }
 
-        const v = new Bans(this, this.userID, steamID64);
+        const v = new Bans({ bot: this, userID: this.userID, steamID: steamID64 });
         const isBanned = await v.isBanned();
 
         this.repCache[steamID64] = isBanned;
@@ -261,11 +275,12 @@ export default class Bot {
     }
 
     private async checkAdminBanned(): Promise<boolean> {
-        let banned = false;
+        // guilty until proven otherwise
+        let banned = true;
         const check = async (steamid: string) => {
-            const v = new Bans(this, this.userID, steamid, false);
+            const v = new Bans({ bot: this, userID: this.userID, steamID: steamid, showLog: 'banned' });
             const result = await v.isBanned();
-            banned = banned ? true : result.isBanned;
+            banned = result.isBanned;
         };
 
         const steamids = this.admins.map(steamID => steamID.getSteamID64());
@@ -302,11 +317,12 @@ export default class Bot {
         }, 12 * 60 * 60 * 1000);
     }
 
-    private getLocalizationFile(): Promise<void> {
+    private getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
         return new Promise((resolve, reject) => {
             axios({
                 method: 'get',
-                url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`
+                url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`,
+                signal: axiosAbortSignal(60000)
             })
                 .then(response => {
                     const content = response.data as string;
@@ -314,6 +330,9 @@ export default class Bot {
                     return resolve();
                 })
                 .catch(err => {
+                    if (err instanceof AbortSignal && attempt !== 'retry') {
+                        return this.getLocalizationFile('retry');
+                    }
                     // Just log, do nothing.
                     log.warn('Error getting TF2 Localization file.');
                     return reject(err);
@@ -466,7 +485,7 @@ export default class Bot {
         updateMessage: string;
         newVersionIsMajor: boolean;
     }> {
-        return this.getLatestVersion.then(async content => {
+        return this.getLatestVersion().then(async content => {
             const latestVersion = content.version;
             const canUpdateRepo = semver.compare(process.env.BOT_VERSION, '5.6.0') !== -1 && content.canUpdateRepo;
             const updateMessage = content.updateMessage;
@@ -535,11 +554,14 @@ export default class Bot {
         return this.options.statistics.sendStats.enable;
     }
 
-    private get getLatestVersion(): Promise<{ version: string; canUpdateRepo: boolean; updateMessage: string }> {
+    private getLatestVersion(
+        attempt: 'first' | 'retry' = 'first'
+    ): Promise<{ version: string; canUpdateRepo: boolean; updateMessage: string }> {
         return new Promise((resolve, reject) => {
             void axios({
                 method: 'GET',
-                url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json'
+                url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
+                signal: axiosAbortSignal(60000)
             })
                 .then(response => {
                     /*eslint-disable */
@@ -552,9 +574,10 @@ export default class Bot {
                     /*eslint-enable */
                 })
                 .catch((err: AxiosError) => {
-                    if (err) {
-                        return reject(filterAxiosError(err));
+                    if (err instanceof AbortSignal && attempt !== 'retry') {
+                        return this.getLatestVersion('retry');
                     }
+                    reject(filterAxiosError(err));
                 });
         });
     }
@@ -812,7 +835,6 @@ export default class Bot {
         let data: {
             loginAttempts?: number[];
             pricelist?: PricesDataObject;
-            loginKey?: string;
             pollData?: TradeOfferManager.PollData;
             blockedList?: Blocked;
         };
@@ -825,7 +847,6 @@ export default class Bot {
         this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
         this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
-        this.addListener(this.client, 'loginKey', this.handler.onLoginKey.bind(this.handler), false);
         this.addListener(this.client, 'error', this.onError.bind(this), false);
 
         this.addListener(this.community, 'sessionExpired', this.onSessionExpired.bind(this), false);
@@ -875,30 +896,20 @@ export default class Bot {
                     (callback): void => {
                         log.info('Signing in to Steam...');
 
-                        let lastLoginFailed = false;
-                        const loginResponse = (err: CustomError): void => {
-                            if (err) {
-                                this.handler.onLoginError(err);
-                                if (!lastLoginFailed && err.eresult === EResult.InvalidPassword) {
-                                    lastLoginFailed = true;
-                                    // Try and sign in without login key
-                                    log.warn('Failed to sign in to Steam, retrying without login key...');
-                                    void this.login(null).asCallback(loginResponse);
-                                    return;
-                                } else {
+                        this.login()
+                            .then(() => {
+                                log.info('Signed in to Steam!');
+
+                                /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                                return callback(null);
+                            })
+                            .catch(err => {
+                                if (err) {
                                     log.warn('Failed to sign in to Steam: ', err);
                                     /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                     return callback(err);
                                 }
-                            }
-
-                            log.info('Signed in to Steam!');
-
-                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
-                            return callback(null);
-                        };
-
-                        void this.login(data.loginKey || null).asCallback(loginResponse);
+                            });
                     },
                     async (callback): Promise<void> => {
                         if (this.options.discordBotToken) {
@@ -1015,7 +1026,11 @@ export default class Bot {
                         callback(null);
                     },
                     (callback): void => {
-                        log.info('Initializing inventory, bptf-listings, and profile settings');
+                        log.info('Initializing halt mode, inventory, bptf-listings, and profile settings');
+                        if (this.options.miscSettings.startHalted.enable) {
+                            void this.halt();
+                        }
+                        this.setProperties();
                         async.parallel(
                             [
                                 (callback): void => {
@@ -1195,10 +1210,6 @@ export default class Bot {
                         return resolve();
                     }
 
-                    if (this.options.discordBotToken && this.discordBot) {
-                        this.discordBot?.setPresence('online');
-                    }
-
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
@@ -1206,7 +1217,7 @@ export default class Bot {
                     this.startVersionChecker();
                     this.initResetCacheInterval();
 
-                    if (this.options.discordBotToken && this.discordBot) {
+                    if (this.options.discordBotToken && this.discordBot && !this.halted) {
                         this.discordBot?.setPresence('online');
                     }
 
@@ -1366,7 +1377,113 @@ export default class Bot {
         });
     }
 
-    login(loginKey?: string): Promise<void> {
+    private async startSession(): Promise<string> {
+        this.session = new LoginSession(EAuthTokenPlatformType.SteamClient);
+        // will think about proxy later
+        //,{
+        //     httpProxy: this.configService.getOrThrow<SteamAccountConfig>('steam').proxyUrl
+        // });
+
+        this.session.on('debug', (message: string) => {
+            log.debug(`Session debug: ${message}`);
+        });
+
+        const oldTokens = (await files.readFile(this.handler.getPaths.files.loginToken, true).catch(err => {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
+            log.warn(`Failed to read tokens: ${err.message}`);
+            return null;
+        })) as SteamTokens;
+
+        if (oldTokens !== null) {
+            // Figure out if the refresh token expired
+            const { refreshToken, accessToken } = oldTokens;
+
+            this.session.refreshToken = refreshToken;
+            this.session.accessToken = accessToken;
+
+            const decoded = jwt.decode(refreshToken, {
+                complete: true
+            });
+
+            if (decoded) {
+                const { exp } = decoded.payload as { exp: number };
+
+                if (exp < Date.now() / 1000) {
+                    // Refresh token expired, log in again
+                    log.debug('Refresh token expired, logging in again');
+                } else {
+                    // Refresh token is still valid, use it
+                    return refreshToken;
+                }
+            }
+        }
+
+        const result = await this.session.startWithCredentials({
+            accountName: this.options.steamAccountName,
+            password: this.options.steamPassword
+        });
+
+        if (result.actionRequired) {
+            const actions = result.validActions ?? [];
+
+            if (actions.length !== 1) {
+                throw new Error(`Unexpected number of valid actions: ${actions.length}`);
+            }
+
+            const action = actions[0];
+
+            if (action.type !== EAuthSessionGuardType.DeviceCode) {
+                throw new Error(`Unexpected action type: ${action.type}`);
+            }
+
+            await this.session.submitSteamGuardCode(SteamTotp.generateAuthCode(this.options.steamSharedSecret));
+        }
+
+        this.session.on('error', err => {
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
+            log.warn(`Error in session: ${err.message}`);
+        });
+
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+        return new Promise<void>((resolve, reject) => {
+            const handleAuth = () => {
+                log.debug('Session authenticated');
+                removeListeners();
+                resolve();
+            };
+
+            const handleTimeout = () => {
+                removeListeners();
+                reject(new Error('Login session timed out'));
+            };
+
+            const handleError = (err: Error) => {
+                removeListeners();
+                reject(err);
+            };
+
+            const removeListeners = () => {
+                this.session.removeListener('authenticated', handleAuth);
+                this.session.removeListener('timeout', handleTimeout);
+                this.session.removeListener('error', handleError);
+            };
+
+            this.session.once('authenticated', handleAuth);
+            this.session.once('error', handleError);
+        }).then(() => {
+            const refreshToken = this.session.refreshToken;
+
+            this.handler.onLoginToken({ refreshToken, accessToken: this.session.accessToken });
+
+            this.session.removeAllListeners();
+            this.session = null;
+
+            return refreshToken;
+        });
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
+    }
+
+    private async login(): Promise<void> {
         log.debug('Starting login attempt');
         // loginKey: loginKey,
         // private: true
@@ -1376,31 +1493,15 @@ export default class Bot {
             this.handler.onLoginThrottle(wait);
         }
 
+        const refreshToken = await this.startSession();
+
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 const listeners = this.client.listeners('error');
 
                 this.client.removeAllListeners('error');
 
-                const details: {
-                    accountName: string;
-                    logonID: number;
-                    rememberPassword: boolean;
-                    password?: string;
-                    loginKey?: string;
-                } = {
-                    accountName: this.options.steamAccountName,
-                    logonID: 69420,
-                    rememberPassword: true
-                };
-
-                if (loginKey) {
-                    log.debug('Signing in using login key');
-                    details.loginKey = loginKey;
-                } else {
-                    log.debug('Signing in using password');
-                    details.password = this.options.steamPassword;
-                }
+                const details = { refreshToken };
 
                 this.newLoginAttempt();
                 this.client.logOn(details);
@@ -1585,7 +1686,7 @@ export default class Bot {
 
             log.warn('Login session replaced, relogging...');
 
-            void this.login().asCallback(err => {
+            this.login().catch(err => {
                 if (err) {
                     throw err;
                 }

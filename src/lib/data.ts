@@ -60,7 +60,7 @@ export const spellsData: { [name: string]: string } = {
     'Putrescent Pigmentation': 's-1004-2',
     'Spectral Spectrum': 's-1004-3',
     'Sinister Staining': 's-1004-4',
-    'Voices From Below': 's-1006-1',
+    'Voices from Below': 's-1006-1',
     'Pumpkin Bombs': 's-1007-1',
     'Halloween Fire': 's-1008-1',
     Exorcism: 's-1009-1'

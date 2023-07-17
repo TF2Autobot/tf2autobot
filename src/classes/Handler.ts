@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import SteamID from 'steamid';
-import TradeOfferManager, { PollData, Meta } from '@tf2autobot/tradeoffer-manager';
-import Bot from './Bot';
+import TradeOfferManager, { PollData, Meta, CustomError } from '@tf2autobot/tradeoffer-manager';
+import Bot, { SteamTokens } from './Bot';
 import { Entry, PricesDataObject, PricesObject } from './Pricelist';
 import { Blocked } from './MyHandler/interfaces';
 
@@ -47,7 +47,7 @@ export default abstract class Handler {
      * Called when a new login key has been issued
      * @param loginKey - The new login key
      */
-    abstract onLoginKey(loginKey: string): void;
+    abstract onLoginToken(loginToken: SteamTokens): void;
 
     /**
      * Called when a new trade offer is being processed
@@ -109,7 +109,7 @@ export default abstract class Handler {
      * Called when a login attempt has failed
      * @param err - Error object
      */
-    onLoginError(err: Error): void {
+    onLoginError(err: CustomError): void {
         // empty function
     }
 

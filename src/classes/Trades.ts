@@ -424,20 +424,10 @@ export default class Trades {
             const opt = this.bot.options;
 
             if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
-                const keyPrices = this.bot.pricelist.getKeyPrices;
                 const value = t.valueDiff(offer);
 
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
-                    const summary = t.summarizeToChat(
-                        offer,
-                        this.bot,
-                        'summary-accepting',
-                        true,
-                        value,
-                        keyPrices,
-                        false,
-                        false
-                    );
+                    const summary = t.summarizeToChat(offer, this.bot, 'summary-accepting', true, value, false, false);
                     sendAlert(
                         `failed-${action}` as FailedActions,
                         this.bot,
@@ -453,16 +443,7 @@ export default class Trades {
                         [offer.id]
                     );
                 } else {
-                    const summary = t.summarizeToChat(
-                        offer,
-                        this.bot,
-                        'summary-accepting',
-                        false,
-                        value,
-                        keyPrices,
-                        true,
-                        false
-                    );
+                    const summary = t.summarizeToChat(offer, this.bot, 'summary-accepting', false, value, true, false);
 
                     this.bot.messageAdmins(
                         `Failed to ${action} on the offer #${offer.id}:` +
@@ -633,7 +614,6 @@ export default class Trades {
                                 const opt = this.bot.options;
 
                                 if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
-                                    const keyPrices = this.bot.pricelist.getKeyPrices;
                                     const value = t.valueDiff(offer);
 
                                     if (
@@ -646,7 +626,6 @@ export default class Trades {
                                             'summary-accepting',
                                             true,
                                             value,
-                                            keyPrices,
                                             false,
                                             false
                                         );
@@ -668,7 +647,6 @@ export default class Trades {
                                             'summary-accepting',
                                             false,
                                             value,
-                                            keyPrices,
                                             true,
                                             false
                                         );

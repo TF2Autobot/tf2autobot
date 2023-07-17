@@ -524,8 +524,8 @@ export default class Inventory {
                 content.value.endsWith('(spell only active during event)') &&
                 content.color === '7ea9d1'
             ) {
-                // Example: "Halloween: Voices From Below (spell only active during event)"
-                // where "Voices From Below" is the spell name.
+                // Example: "Halloween: Voices from Below (spell only active during event)"
+                // where "Voices from Below" is the spell name.
                 // Color of this description must be rgb(126, 169, 209) or 7ea9d1
                 // https://www.spycolor.com/7ea9d1#
                 // Get the spell name
@@ -534,7 +534,7 @@ export default class Inventory {
                 const spellName = content.value.substring(10, content.value.length - 32).trim();
 
                 // push for storage, example: s-1000
-                s[spellsData[spellName]] =
+                s[spellsData[spellName.replace('From', 'from')]] =
                     (this.spellsExceptionNotEmpty // check if exception not empty
                         ? !this.spellsExceptionSkus.some(exSku => sku.includes(exSku)) // if this true, make it false
                         : true) && this.spellsOptions.includes(spellName.toLowerCase());
