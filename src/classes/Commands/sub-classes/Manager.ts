@@ -732,11 +732,14 @@ export default class ManagerCommands {
                         'Refreshing listings for ' + pluralize('item', pricelistCount, true) + '...'
                     );
 
+                    this.bot.isRecentlyExecuteRefreshlistCommand = true;
+                    this.bot.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
                     this.pricelistCount = pricelistCount;
                     this.executedRefreshList = true;
                     this.executeRefreshListTimeout = setTimeout(() => {
                         this.lastExecutedRefreshListTime = null;
                         this.executedRefreshList = false;
+                        this.bot.isRecentlyExecuteRefreshlistCommand = false;
                         clearTimeout(this.executeRefreshListTimeout);
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 

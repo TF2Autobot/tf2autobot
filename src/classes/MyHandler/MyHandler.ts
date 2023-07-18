@@ -282,6 +282,11 @@ export default class MyHandler extends Handler {
         // Initialize send stats
         this.bot.sendStats();
 
+        // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
+        this.refreshTimeout = setTimeout(() => {
+            this.bot.startAutoRefreshListings();
+        }, 5 * 60 * 1000);
+
         this.pollDataInterval = setInterval(this.refreshPollDataPath.bind(this), 24 * 60 * 60 * 1000);
 
         // Send notification to admin/Discord Webhook if there's any item failed to go through updateOldPrices
@@ -367,6 +372,10 @@ export default class MyHandler extends Handler {
 
         if (this.bot.sendStatsInterval) {
             clearInterval(this.bot.sendStatsInterval);
+        }
+
+        if (this.bot.autoRefreshListingsInterval) {
+            clearInterval(this.bot.autoRefreshListingsInterval);
         }
 
         if (this.classWeaponsTimeout) {
