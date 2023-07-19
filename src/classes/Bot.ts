@@ -4,7 +4,7 @@ import { EResult, EPersonaState } from 'steam-user';
 import TradeOfferManager, { CustomError, EconItem } from '@tf2autobot/tradeoffer-manager';
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
-import ListingManager, { Listing } from '@tf2autobot/bptf-listings';
+import ListingManager from '@tf2autobot/bptf-listings';
 import SchemaManager, { Effect, StrangeParts } from '@tf2autobot/tf2-schema';
 import BptfLogin from '@tf2autobot/bptf-login';
 import TF2 from '@tf2autobot/tf2';
@@ -12,7 +12,6 @@ import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
 import axios, { AxiosError } from 'axios';
-import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
@@ -27,7 +26,7 @@ import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
 
 import InventoryManager from './InventoryManager';
-import Pricelist, { Entry, EntryData, PricesDataObject } from './Pricelist';
+import Pricelist, { EntryData, PricesDataObject } from './Pricelist';
 import Friends from './Friends';
 import Trades from './Trades';
 import Listings from './Listings';
@@ -160,20 +159,6 @@ export default class Bot {
     public userID?: string;
 
     private halted = false;
-
-    public autoRefreshListingsInterval: NodeJS.Timeout;
-
-    private alreadyExecutedRefreshlist = false;
-
-    set isRecentlyExecuteRefreshlistCommand(setExecuted: boolean) {
-        this.alreadyExecutedRefreshlist = setExecuted;
-    }
-
-    private executedDelayTime = 30 * 60 * 1000;
-
-    set setRefreshlistExecutedDelay(delay: number) {
-        this.executedDelayTime = delay;
-    }
 
     public sendStatsInterval: NodeJS.Timeout;
 
@@ -404,9 +389,6 @@ export default class Bot {
         log.debug('Settings status in Discord to "idle"');
         this.discordBot?.halt();
 
-        // disable auto-check for missing/mismatching listings
-        clearInterval(this.autoRefreshListingsInterval);
-
         log.debug('Removing all listings due to halt mode turned on');
         await this.listings.removeAll().catch((err: Error) => {
             log.warn('Failed to remove all listings on enabling halt mode: ', err);
@@ -432,8 +414,6 @@ export default class Bot {
         log.debug('Settings status in Discord to "online"');
         this.discordBot?.unhalt();
 
-        // Re-initialize auto-check for missing/mismatching listings
-        this.startAutoRefreshListings();
         return recrateListingsFailed;
     }
 
@@ -580,204 +560,6 @@ export default class Bot {
                     reject(filterAxiosError(err));
                 });
         });
-    }
-
-    startAutoRefreshListings(): void {
-        // Automatically check for missing listings every 30 minutes
-        let pricelistLength = 0;
-
-        this.autoRefreshListingsInterval = setInterval(
-            () => {
-                const createListingsEnabled = this.options.miscSettings.createListings.enable;
-
-                if (this.halted) {
-                    // Make sure not to run if halted
-                    return;
-                }
-
-                if (this.alreadyExecutedRefreshlist || !createListingsEnabled) {
-                    log.debug(
-                        `❌ ${
-                            this.alreadyExecutedRefreshlist
-                                ? 'Just recently executed refreshlist command'
-                                : 'miscSettings.createListings.enable is set to false'
-                        }, will not run automatic check for missing listings.`
-                    );
-
-                    setTimeout(() => {
-                        this.startAutoRefreshListings();
-                    }, this.executedDelayTime);
-
-                    // reset to default
-                    this.setRefreshlistExecutedDelay = 30 * 60 * 1000;
-                    clearInterval(this.autoRefreshListingsInterval);
-                    return;
-                }
-
-                pricelistLength = 0;
-                log.debug('Running automatic check for missing/mismatch listings...');
-
-                const listings: { [sku: string]: Listing[] } = {};
-                this.listingManager.getListings(false, async (err: AxiosError) => {
-                    if (err) {
-                        log.warn('Error getting listings on auto-refresh listings operation:', filterAxiosError(err));
-                        setTimeout(() => {
-                            this.startAutoRefreshListings();
-                        }, 30 * 60 * 1000);
-                        clearInterval(this.autoRefreshListingsInterval);
-                        return;
-                    }
-
-                    const inventoryManager = this.inventoryManager;
-                    const inventory = inventoryManager.getInventory;
-                    const isFilterCantAfford = this.options.pricelist.filterCantAfford.enable;
-
-                    this.listingManager.listings.forEach(listing => {
-                        let listingSKU = listing.getSKU();
-                        if (listing.intent === 1) {
-                            if (this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-
-                            if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
-                                listingSKU = listingSKU.replace(';festive', '');
-                            }
-
-                            if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                                listingSKU = listingSKU.replace(';strange', '');
-                            }
-                        } else {
-                            if (/;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-                        }
-
-                        let match: Entry | null;
-                        const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                        if (null !== assetIdPrice) {
-                            match = assetIdPrice;
-                        } else {
-                            match = this.pricelist.getPrice({ priceKey: listingSKU });
-                        }
-
-                        if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
-                            if (!canAffordToBuy) {
-                                // Listing for buying exist but we can't afford to buy, remove.
-                                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
-                                listing.remove();
-                            }
-                        }
-
-                        if (listing.intent === 1 && match !== null && !match.enabled) {
-                            // Listings for selling exist, but the item is currently disabled, remove it.
-                            log.debug(`Intent sell, removed because not selling: ${match.sku}`);
-                            listing.remove();
-                        }
-
-                        listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
-                    });
-
-                    const pricelist = Object.assign({}, this.pricelist.getPrices);
-                    const keyPrice = this.pricelist.getKeyPrice.metal;
-
-                    for (const priceKey in pricelist) {
-                        if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey)) {
-                            continue;
-                        }
-
-                        const entry = pricelist[priceKey];
-                        const _listings = listings[priceKey];
-
-                        const amountCanBuy = inventoryManager.amountCanTrade({ priceKey, tradeIntent: 'buying' });
-                        const amountAvailable = inventory.getAmount({
-                            priceKey,
-                            includeNonNormalized: false,
-                            tradableOnly: true
-                        });
-
-                        if (_listings) {
-                            _listings.forEach(listing => {
-                                if (
-                                    _listings.length === 1 &&
-                                    listing.intent === 0 && // We only check if the only listing exist is buy order
-                                    entry.max > 1 &&
-                                    amountAvailable > 0 &&
-                                    amountAvailable > entry.min
-                                ) {
-                                    // here we only check if the bot already have that item
-                                    log.debug(`Missing sell order listings: ${priceKey}`);
-                                } else if (
-                                    listing.intent === 0 &&
-                                    listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
-                                ) {
-                                    // if intent is buy, we check if the buying price is not same
-                                    log.debug(`Buying price for ${priceKey} not updated`);
-                                } else if (
-                                    listing.intent === 1 &&
-                                    listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
-                                ) {
-                                    // if intent is sell, we check if the selling price is not same
-                                    log.debug(`Selling price for ${priceKey} not updated`);
-                                } else {
-                                    delete pricelist[priceKey];
-                                }
-                            });
-
-                            continue;
-                        }
-
-                        // listing not exist
-
-                        if (!entry.enabled) {
-                            delete pricelist[priceKey];
-                            log.debug(`${priceKey} disabled, skipping...`);
-                            continue;
-                        }
-
-                        if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
-                            amountAvailable > 0
-                        ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
-                            // return this entry
-                            log.debug(
-                                `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${priceKey}`
-                            );
-                        } else {
-                            delete pricelist[priceKey];
-                        }
-                    }
-
-                    const priceKeysToCheck = Object.keys(pricelist);
-                    const pricelistCount = priceKeysToCheck.length;
-
-                    if (pricelistCount > 0) {
-                        log.debug(
-                            'Checking listings for ' +
-                                pluralize('item', pricelistCount, true) +
-                                ` [${priceKeysToCheck.join(', ')}]...`
-                        );
-
-                        await this.listings.recursiveCheckPricelist(
-                            priceKeysToCheck,
-                            pricelist,
-                            true,
-                            pricelistCount > 4000 ? 400 : 200,
-                            true
-                        );
-
-                        log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
-                    } else {
-                        log.debug('❌ Nothing to refresh.');
-                    }
-
-                    pricelistLength = pricelistCount;
-                });
-            },
-            // set check every 60 minutes if pricelist to check was more than 4000 items
-            (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
-        );
     }
 
     sendStats(): void {
