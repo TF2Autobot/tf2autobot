@@ -47,7 +47,7 @@
         "dayjs": "^1.11.7",
         "death": "^1.1.0",
         "discord.js": "^14.12.1",
-        "dot-prop": "^6.0.1",
+        "dot-prop": "^8.0.2",
         "dotenv": "^16.3.1",
         "express": "^4.18.2",
         "isobject": "^4.0.0",
