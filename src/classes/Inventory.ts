@@ -1,11 +1,12 @@
 import SteamID from 'steamid';
 import { EconItem, ItemAttributes, PartialSKUWithMention } from '@tf2autobot/tradeoffer-manager';
-import { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import SchemaManager, { Item, Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 import SKU from '@tf2autobot/tf2-sku';
 import { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import Pricelist from './Pricelist';
+import * as bp from 'tf2-backpack';
 
 export default class Inventory {
     private readonly steamID: SteamID;
@@ -70,7 +71,7 @@ export default class Inventory {
         ) => void
     ): Inventory {
         const inventory = new Inventory(steamID, bot, which, boundInventoryGetter);
-        inventory.setItems = items;
+        inventory.setItemsEcon({ items });
         return inventory;
     }
 
@@ -134,13 +135,13 @@ export default class Inventory {
                     return reject(err);
                 }
 
-                this.setItems = items;
+                this.setItemsEcon({ items });
                 resolve();
             });
         });
     }
 
-    private set setItems(items: EconItem[]) {
+    private setItemsEcon({ items }: { items: EconItem[] }) {
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
             this.bot,
@@ -595,6 +596,73 @@ export default class Inventory {
         });
 
         return attributes;
+    }
+
+    // For tf2-backpack
+    private static getSKU({
+        item,
+        schema,
+        normalizeFestivizedItems,
+        normalizeStrangeAsSecondQuality,
+        normalizePainted,
+        normalizeCraftNumber,
+        paintsInOptions
+    }: {
+        item: bp.Item<number>;
+        schema: SchemaManager.Schema;
+        normalizeFestivizedItems: boolean;
+        normalizeStrangeAsSecondQuality: boolean;
+        normalizePainted: boolean;
+        normalizeCraftNumber: boolean;
+        paintsInOptions: string[];
+    }): { sku: string; isPainted: boolean } {
+        const paint = this.getPaint(schema, item, normalizePainted, paintsInOptions);
+
+        const itemData: Item = {
+            defindex: item.defindex,
+            quality: item.quality,
+            craftable: item.craftable,
+            killstreak: item.killstreakTier || null,
+            australium: item.australium || null,
+            festive: !normalizeFestivizedItems ? item.festivized : false,
+            effect: item.effect || null,
+            wear: item.wear || null,
+            paintkit: item.paintkit || null,
+            quality2: !normalizeStrangeAsSecondQuality ? (item.elevated ? 11 : null) : null,
+            crateseries: item.crateNo || null,
+            target: item.target || null,
+            output: item.outputItem?.defindex,
+            outputQuality: item.outputItem?.quality,
+            paint: paint.decimalValue,
+            craftnumber: !normalizeCraftNumber ? item.craft : null
+        };
+
+        return { sku: SKU.fromObject(itemData), isPainted: paint.isPainted };
+    }
+
+    // For tf2-backpack
+    private static getPaint(
+        schema: SchemaManager.Schema,
+        item: bp.Item<number>,
+        normalize: boolean,
+        inOptions: string[]
+    ): { decimalValue: number; isPainted: boolean } {
+        if (!item.paint) {
+            return null;
+        }
+
+        if (!normalize) {
+            if (item.paint === 'B8383B' && item.paint_other !== '5885A2' && inOptions.includes('legacy paint')) {
+                // legacy paint for Team Spirit
+                return { decimalValue: 5801378, isPainted: true };
+            }
+
+            if (inOptions.includes(item.paint.toLowerCase())) {
+                return { decimalValue: schema.paints[bp.paints[item.paint]], isPainted: true };
+            }
+        }
+
+        return { decimalValue: null, isPainted: false };
     }
 
     clearFetch(): void {
