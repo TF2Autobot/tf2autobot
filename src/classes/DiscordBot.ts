@@ -78,7 +78,7 @@ export default class DiscordBot {
 
     public stop(): void {
         log.info('Logging out from Discord...');
-        this.client.destroy();
+        void this.client.destroy();
     }
 
     public async onMessage(message: Message): Promise<void> {
