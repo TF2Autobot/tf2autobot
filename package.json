@@ -61,7 +61,7 @@
         "pretty-ms": "^7.0.1",
         "reconnecting-websocket": "^4.4.0",
         "retry": "^0.13.1",
-        "socket.io-client": "^4.5.4",
+        "socket.io-client": "^4.7.1",
         "steam-session": "^1.1.0",
         "steam-totp": "^2.1.2",
         "steam-user": "^4.28.6",
