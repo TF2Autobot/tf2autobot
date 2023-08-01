@@ -53,7 +53,7 @@
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",
         "jsonschema": "^1.4.1",
-        "jsonwebtoken": "^9.0.0",
+        "jsonwebtoken": "^9.0.1",
         "module-alias": "^2.2.2",
         "pjson": "^1.0.9",
         "pluralize": "^8.0.0",
