@@ -107,7 +107,7 @@ export default class Commands {
         }
 
         // Handling easy copy-paste buy & sell cmd
-        if (message.startsWith('buy_') || message.startsWith('sell_')) {
+        if (message.includes('_')) {
             const desc = this.bot.helper.getEasyCopyPasteDescriptor(message);
             this.buyOrSellCommand(steamID, desc.itemName, desc.command as Instant, null);
             return;
