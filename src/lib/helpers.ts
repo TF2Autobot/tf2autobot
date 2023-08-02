@@ -1,4 +1,4 @@
-import EasyCopyPaste from 'easycopypaste';
+import EasyCopyPaste, { TransactionDescriptor } from 'easycopypaste';
 import { UnknownDictionaryKnownValues } from '../types/common';
 
 export function exponentialBackoff(n: number, base = 1000): number {
@@ -16,20 +16,11 @@ export function parseJSON(json: string): UnknownDictionaryKnownValues | null {
 export default class Helper {
     private readonly ecp = new EasyCopyPaste();
 
-    public getEasyCopyPasteStr(itemName: string, intent: 'buy' | 'sell'): string {
-        let intentStr = '';
-        if (intent === 'buy') {
-            intentStr = 'sell_';
-        } else {
-            intentStr = 'buy_';
-        }
-
-        const easyCopyPasteString = this.ecp.toEasyCopyPasteString(itemName);
-
-        return `${intentStr}${easyCopyPasteString}`;
+    public getEasyCopyPasteString(itemName: string, intent: 'buy' | 'sell'): string {
+        return this.ecp.toEasyCopyPasteString(itemName, intent, true);
     }
 
-    public getNormalizedItemName(easyCopyPasteString: string): string {
+    public getEasyCopyPasteDescriptor(easyCopyPasteString: string): TransactionDescriptor {
         return this.ecp.fromEasyCopyPasteString(easyCopyPasteString);
     }
 }

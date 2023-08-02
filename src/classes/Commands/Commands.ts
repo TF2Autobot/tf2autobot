@@ -23,6 +23,7 @@ import log from '../../lib/logger';
 import { testPriceKey } from '../../lib/tools/export';
 import axios, { AxiosError } from 'axios';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { TransactionDescriptor } from 'easycopypaste';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -105,25 +106,10 @@ export default class Commands {
             return this.bot.sendMessage(steamID, "⛔ Don't spam");
         }
 
-        // Handling easy copy-paste buy command
-        if (message.startsWith('buy_')) {
-            this.buyOrSellCommand(
-                steamID,
-                this.bot.helper.getNormalizedItemName(message.replace('buy_', '')),
-                'buy' as Instant,
-                null
-            );
-            return;
-        }
-
-        // Handling easy copy-paste sell command
-        if (message.startsWith('sell_')) {
-            this.buyOrSellCommand(
-                steamID,
-                this.bot.helper.getNormalizedItemName(message.replace('sell_', '')),
-                'sell' as Instant,
-                null
-            );
+        // Handling easy copy-paste buy & sell cmd
+        if (message.startsWith('buy_') || message.startsWith('sell_')) {
+            const desc = this.bot.helper.getEasyCopyPasteDescriptor(message);
+            this.buyOrSellCommand(steamID, desc.itemName, desc.command as Instant, null);
             return;
         }
 
