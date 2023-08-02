@@ -84,7 +84,7 @@
         "@types/jest": "^29.5.3",
         "@types/jsonwebtoken": "^9.0.1",
         "@types/node": "^18.17.1",
-        "@types/pluralize": "0.0.29",
+        "@types/pluralize": "0.0.30",
         "@types/request": "^2.48.8",
         "@types/retry": "^0.12.2",
         "@types/semver": "^7.3.13",
