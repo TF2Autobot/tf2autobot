@@ -431,6 +431,7 @@ export default class Bot {
 
         // Re-initialize auto-check for missing/mismatching listings
         this.startAutoRefreshListings();
+
         return recrateListingsFailed;
     }
 
@@ -523,17 +524,17 @@ export default class Bot {
                 if (process.platform === 'win32') {
                     messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
-                        '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && node dist/app.js'
+                        '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && node dist/app.js'
                     ];
                 } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
                     messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory:\n',
-                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
+                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && pm2 restart ecosystem.json'
                     ];
                 } else {
                     messages = [
                         '❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n',
-                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
+                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && pm2 restart ecosystem.json'
                     ];
                 }
 
@@ -545,10 +546,6 @@ export default class Bot {
 
             return { hasNewVersion, latestVersion, canUpdateRepo, updateMessage, newVersionIsMajor };
         });
-    }
-
-    private get sendStatsEnabled(): boolean {
-        return this.options.statistics.sendStats.enable;
     }
 
     private getLatestVersion(
@@ -775,6 +772,10 @@ export default class Bot {
             // set check every 60 minutes if pricelist to check was more than 4000 items
             (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
         );
+    }
+
+    private get sendStatsEnabled(): boolean {
+        return this.options.statistics.sendStats.enable;
     }
 
     sendStats(): void {

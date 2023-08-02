@@ -444,17 +444,17 @@ export default class StatusCommands {
                     if (process.platform === 'win32') {
                         messages.concat([
                             '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
-                            '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && node dist/app.js'
+                            '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && node dist/app.js'
                         ]);
                     } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
                         messages.concat([
                             '\n💻 To update run the following command inside your tf2autobot directory:\n',
-                            '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
+                            '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && pm2 restart ecosystem.json'
                         ]);
                     } else {
                         messages.concat([
                             '❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n',
-                            '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install && npm run build && pm2 restart ecosystem.json'
+                            '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && pm2 restart ecosystem.json'
                         ]);
                     }
 
