@@ -906,7 +906,7 @@ export default class ManagerCommands {
                 steamID,
                 `❌ You're not running the bot with PM2!` +
                     `\n\nNavigate to your bot folder and run ` +
-                    `[git reset HEAD --hard && git pull && npm install && npm run build] ` +
+                    `[git reset HEAD --hard && git pull && npm install --no-audit && npm run build] ` +
                     `and then restart your bot.`
             );
         }
@@ -969,7 +969,11 @@ export default class ManagerCommands {
                     );
 
                     this.bot.sendMessage(steamID, '⌛ Installing packages...');
-                    await exec(`npm install${process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''}`);
+                    await exec(
+                        `npm install${
+                            process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''
+                        } --no-audit`
+                    );
 
                     this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
                     await exec('npm run build');
