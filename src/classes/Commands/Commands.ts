@@ -23,7 +23,6 @@ import log from '../../lib/logger';
 import { testPriceKey } from '../../lib/tools/export';
 import axios, { AxiosError } from 'axios';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
-import { TransactionDescriptor } from 'easycopypaste';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -104,13 +103,6 @@ export default class Commands {
 
         if (checkMessage > 1 && !isAdmin) {
             return this.bot.sendMessage(steamID, "⛔ Don't spam");
-        }
-
-        // Handling easy copy-paste buy & sell cmd
-        if (message.includes('_')) {
-            const desc = this.bot.helper.getEasyCopyPasteDescriptor(message);
-            this.buyOrSellCommand(steamID, desc.itemName, desc.command as Instant, null);
-            return;
         }
 
         if (message.startsWith(prefix)) {
@@ -306,6 +298,13 @@ export default class Commands {
                     steamID,
                     custom ? custom.replace('%command%', command) : `❌ Command "${command}" not found!`
                 );
+            }
+        } else {
+            // Will be called if the message is not starting with the cmd prefix char
+            // and the message contains underscores.
+            if (message.includes('_')) {
+                const desc = this.bot.helper.getEasyCopyPasteDescriptor(message);
+                this.buyOrSellCommand(steamID, desc.itemName, desc.command as Instant, null);
             }
         }
     }
