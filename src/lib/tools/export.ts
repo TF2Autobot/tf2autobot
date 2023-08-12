@@ -10,6 +10,7 @@ import summarize, { summarizeToChat } from './summarizeOffer';
 import profit from './profit';
 import itemStats from './itemStats';
 import testPriceKey from './testPriceKey';
+import isDonate from './isDonate';
 
 export {
     getHighValueItems,
@@ -28,5 +29,6 @@ export {
     convertTime,
     profit,
     itemStats,
-    testPriceKey
+    testPriceKey,
+    isDonate
 };

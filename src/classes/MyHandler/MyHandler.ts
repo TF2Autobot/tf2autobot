@@ -52,6 +52,7 @@ import filterAxiosError from '@tf2autobot/filter-axios-error';
 import sendTf2SystemMessage from '../../lib/DiscordWebhook/sendTf2SystemMessage';
 import sendTf2DisplayNotification from '../../lib/DiscordWebhook/sendTf2DisplayNotification';
 import sendTf2ItemBroadcast from '../../lib/DiscordWebhook/sendTf2ItemBroadcast';
+import WebhookHandler from '../../lib/Webhooks/Webhook';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -64,6 +65,8 @@ export default class MyHandler extends Handler {
     readonly autokeys: Autokeys;
 
     readonly cartQueue: CartQueue;
+
+    readonly webhookHandler: WebhookHandler;
 
     private groupsStore: string[];
 
@@ -203,6 +206,7 @@ export default class MyHandler extends Handler {
         this.commands = new Commands(bot, priceSource);
         this.cartQueue = new CartQueue(bot);
         this.autokeys = new Autokeys(bot);
+        this.webhookHandler = new WebhookHandler(bot);
 
         this.paths = genPaths(this.opt.steamAccountName);
 
