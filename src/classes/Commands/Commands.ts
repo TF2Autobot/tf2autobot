@@ -304,7 +304,7 @@ export default class Commands {
             // and the message contains underscores.
             if (message.includes('_')) {
                 const desc = this.bot.helper.getEasyCopyPasteDescriptor(message);
-                this.buyOrSellCommand(steamID, desc.itemName, desc.command as Instant, null);
+                this.buyOrSellCommand(steamID, desc.itemName, desc.command as Instant, null, true);
             }
         }
     }
@@ -448,7 +448,7 @@ export default class Commands {
 
     // Instant item trade
 
-    private buyOrSellCommand(steamID: SteamID, message: string, command: Instant, prefix: string): void {
+    private buyOrSellCommand(steamID: SteamID, message: string, command: Instant, prefix: string, ecp = false): void {
         const opt = this.bot.options.commands[command === 'b' ? 'buy' : command === 's' ? 'sell' : command];
 
         if (!opt.enable) {
@@ -460,7 +460,7 @@ export default class Commands {
 
         const info = getItemAndAmount(
             steamID,
-            CommandParser.removeCommand(message),
+            ecp ? message : CommandParser.removeCommand(message),
             this.bot,
             prefix,
             command === 'b' ? 'buy' : command === 's' ? 'sell' : command
