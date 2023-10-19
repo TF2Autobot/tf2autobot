@@ -26,7 +26,7 @@
     "updateMessage": "",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
-        "@tf2autobot/bptf-listings": "^5.7.5",
+        "@tf2autobot/bptf-listings": "^5.7.6",
         "@tf2autobot/bptf-login": "^2.3.6",
         "@tf2autobot/filter-axios-error": "^1.5.2",
         "@tf2autobot/jsonlint": "^1.0.0",
