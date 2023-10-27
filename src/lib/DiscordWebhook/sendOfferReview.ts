@@ -20,8 +20,9 @@ export default function sendOfferReview(
 ): void {
     const opt = bot.options.discordWebhook;
 
+    // TODO: APPLY MENTIONS ON OTHER REASONS
     let noMentionOnInvalidValue = false;
-    if (!opt.offerReview.mentionInvalidValue) {
+    if (!opt.offerReview.mentions.invalidValue) {
         noMentionOnInvalidValue =
             reasons.includes('🟥_INVALID_VALUE') &&
             !(
@@ -37,7 +38,7 @@ export default function sendOfferReview(
         noMentionOnInvalidValue && !reasons.includes('⬜_REVIEW_FORCED')
             ? `${offer.id}`
             : `${
-                  opt.offerReview.isMention && opt.ownerID.length > 0
+                  opt.offerReview.mentions.enable && opt.ownerID.length > 0
                       ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, `
                       : ''
               }check this! - ${offer.id}`;
