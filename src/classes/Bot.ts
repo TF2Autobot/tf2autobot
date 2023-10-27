@@ -16,6 +16,7 @@ import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
+import { BackpackParser } from 'tf2-backpack';
 import * as files from '../lib/files';
 
 // Reference: https://github.com/tf2-automatic/tf2-automatic/commit/cf7b807cae11eb172a78ef184bbafdb4ebe86501#diff-58f39591209025b16105c9f25a34c119332983a0d8cea7819b534d9d408324c4L329
@@ -87,6 +88,10 @@ export default class Bot {
 
     readonly inventoryGetter: InventoryGetter;
 
+    backpackParser: BackpackParser;
+
+    needSave = false;
+
     readonly boundInventoryGetter: (
         steamID: SteamID | string,
         appid: number,
@@ -122,8 +127,6 @@ export default class Bot {
         sniper: string[];
         spy: string[];
     };
-
-    public updateSchemaPropertiesInterval: NodeJS.Timeout;
 
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
@@ -995,6 +998,17 @@ export default class Bot {
                         log.info('Getting TF2 schema...');
                         void this.initializeSchema().asCallback(callback);
                     },
+                    (callback): void => {
+                        log.info('Initializing Backpack parser...');
+                        this.setProperties();
+                        this.backpackParser = new BackpackParser(this.schema.raw.items_game);
+                        this.schemaManager.on('schema', () => {
+                            this.backpackParser = new BackpackParser(this.schema.raw.items_game);
+                            this.setProperties();
+                        });
+                        /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                        return callback(null);
+                    },
                     (callback: (err?) => void): void => {
                         log.info('Initializing pricelist...');
 
@@ -1230,15 +1244,6 @@ export default class Bot {
             sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
             spy: this.schema.getWeaponsForCraftingByClass('Spy')
         };
-
-        clearInterval(this.updateSchemaPropertiesInterval);
-        this.refreshSchemaProperties();
-    }
-
-    private refreshSchemaProperties(): void {
-        this.updateSchemaPropertiesInterval = setInterval(() => {
-            this.setProperties();
-        }, 24 * 60 * 60 * 1000);
     }
 
     setCookies(cookies: string[]): Promise<void> {

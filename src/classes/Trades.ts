@@ -46,9 +46,9 @@ export default class Trades {
 
     private resetRetryAcceptOfferTimeout: NodeJS.Timeout;
 
-    private retryFetchInventoryTimeout: NodeJS.Timeout;
+    private retryRefreshInventoryTimeout: NodeJS.Timeout;
 
-    private calledRetryFetchFreq = 0;
+    private calledRetryRefreshFreq = 0;
 
     private offerChangedAcc: { offer: TradeOffer; oldState: number; timeTakenToComplete: number }[] = [];
 
@@ -1655,42 +1655,33 @@ export default class Trades {
             // Just handle changes
             this.bot.handler.onTradeOfferChanged(offer, oldState, timeTakenToComplete);
         } else {
-            // Exit all running apps ("TF2Autobot" or custom, and Team Fortress 2)
-            // Will play again after craft/smelt/sort inventory job
-            // https://github.com/TF2Autobot/tf2autobot/issues/527
-            this.bot.client.gamesPlayed([]);
-
             this.offerChangedAcc.push({ offer, oldState, timeTakenToComplete });
             log.debug('Accumulated offerChanged: ', this.offerChangedAcc.length);
 
             if (this.offerChangedAcc.length <= 1) {
-                // Only call `fetch` if accumulated offerChanged is less than or equal to 1
-                // Prevent never ending "The request is a duplicate and the action has already occurred in the past, ignored this time"
+                log.debug('Refreshing our inventory...');
+                return void this.bot.tf2gc.waitForBackpackLoaded(err => {
+                    if (err) {
+                        log.warn('Error running "waitForBackpackLoaded": ', err);
+                        log.debug('Retrying to in 30 seconds...');
+                        this.calledRetryRefreshFreq++;
 
-                // Accepted, Invalid trade (possible) => new item assetid
-                log.debug('Fetching our inventory...');
-                return void this.bot.inventoryManager.getInventory
-                    .fetch()
-                    .then(() => {
-                        this.onSuccessfulFetch();
-                    })
-                    .catch(err => {
-                        log.warn('Error fetching inventory: ', err);
-                        log.debug('Retrying to fetch inventory in 30 seconds...');
-                        this.calledRetryFetchFreq++;
-
-                        if (this.calledRetryFetchFreq === 1) {
+                        if (this.calledRetryRefreshFreq === 1) {
                             // Only call this once (before reset)
-                            this.retryFetchInventory();
+                            this.retryRefreshInventory();
                         }
-                    });
+                        return;
+                    }
+
+                    this.onSuccessfulRefresh();
+                });
             }
 
-            log.debug('Not fetching inventory this time...');
+            log.debug('Not refreshing inventory this time...');
         }
     }
 
-    private onSuccessfulFetch(): void {
+    private onSuccessfulRefresh(): void {
         if (this.offerChangedAcc.length > 0) {
             this.offerChangedAcc.forEach(el => {
                 this.bot.handler.onTradeOfferChanged(el.offer, el.oldState, el.timeTakenToComplete);
@@ -1701,34 +1692,33 @@ export default class Trades {
         }
     }
 
-    private retryFetchInventory(): void {
-        clearTimeout(this.retryFetchInventoryTimeout);
-        this.retryFetchInventoryTimeout = setTimeout(() => {
-            this.bot.inventoryManager.getInventory
-                .fetch()
-                .then(() => {
-                    this.onSuccessfulFetch();
+    private retryRefreshInventory(): void {
+        clearTimeout(this.retryRefreshInventoryTimeout);
+        this.retryRefreshInventoryTimeout = setTimeout(() => {
+            this.bot.tf2gc.waitForBackpackLoaded(err => {
+                if (err) {
+                    log.warn('Error refreshing inventory: ', err);
 
-                    // Reset to 0
-                    this.calledRetryFetchFreq = 0;
-                })
-                .catch(err => {
-                    log.warn('Error fetching inventory: ', err);
-
-                    if (this.calledRetryFetchFreq > 3) {
+                    if (this.calledRetryRefreshFreq > 3) {
                         // If more than 3 times failed, then just proceed with an outdated inventory
-                        this.onSuccessfulFetch();
+                        this.onSuccessfulRefresh();
 
                         // Reset to 0
-                        this.calledRetryFetchFreq = 0;
+                        this.calledRetryRefreshFreq = 0;
 
                         return;
                     }
 
-                    log.debug('Retrying to fetch inventory in 30 seconds...');
-                    this.calledRetryFetchFreq++;
-                    this.retryFetchInventory();
-                });
+                    log.debug('Retrying to refresh inventory in 30 seconds...');
+                    this.calledRetryRefreshFreq++;
+                    return this.retryRefreshInventory();
+                }
+
+                this.onSuccessfulRefresh();
+
+                // Reset to 0
+                this.calledRetryRefreshFreq = 0;
+            });
         }, 30 * 1000);
     }
 
