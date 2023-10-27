@@ -4,7 +4,7 @@ import Bot from '../Bot';
 import { EntryData, KeyPrices, PricelistChangedSource } from '../Pricelist';
 import log from '../../lib/logger';
 import { currPure } from '../../lib/tools/pure';
-import sendAlert from '../../lib/DiscordWebhook/sendAlert';
+import sendAlert from '../DiscordWebhook/sendAlert';
 
 export interface OverallStatus {
     isBuyingKeys: boolean;

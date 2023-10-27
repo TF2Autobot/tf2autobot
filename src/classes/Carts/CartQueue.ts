@@ -5,7 +5,7 @@ import pluralize from 'pluralize';
 import Cart from './Cart';
 import Bot from '../Bot';
 import log from '../../lib/logger';
-import { sendAlert } from '../../lib/DiscordWebhook/export';
+import { sendAlert } from '../DiscordWebhook/export';
 import { uptime } from '../../lib/tools/export';
 import { isBptfBanned } from '../../lib/bans';
 

@@ -8,7 +8,7 @@ import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
+import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from './DiscordWebhook/export';
 import IPricer, { GetItemPriceResponse, Item } from './IPricer';
 
 export enum PricelistChangedSource {
@@ -1143,7 +1143,13 @@ export default class Pricelist extends EventEmitter {
             });
 
             if (isDwEnabled && dw.showFailedToUpdate) {
-                sendFailedPriceUpdate(data, err as Error, this.isUseCustomPricer, this.options);
+                sendFailedPriceUpdate(
+                    data,
+                    err as Error,
+                    this.isUseCustomPricer,
+                    this.options,
+                    this.bot.handler.getBotInfo
+                );
             }
 
             return;
@@ -1330,7 +1336,8 @@ export default class Pricelist extends EventEmitter {
                         match.sku === '5021;6' ? undefined : keyPrice,
                         buyChangesValue,
                         sellChangesValue,
-                        this.isUseCustomPricer
+                        this.isUseCustomPricer,
+                        this.bot.handler.getBotInfo
                     );
                 }
             }

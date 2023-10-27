@@ -3,10 +3,10 @@ import pluralize from 'pluralize';
 import Currencies from '@tf2autobot/tf2-currencies';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
-import * as t from '../tools/export';
-import Bot from '../../classes/Bot';
-import { sendToAdmin } from '../../classes/MyHandler/offer/accepted/processAccepted';
+import log from '../../lib/logger';
+import * as t from '../../lib/tools/export';
+import Bot from '../Bot';
+import { sendToAdmin } from '../MyHandler/offer/accepted/processAccepted';
 
 export default async function sendTradeSummary(
     offer: TradeOffer,
@@ -121,8 +121,8 @@ export default async function sendTradeSummary(
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
     const acceptedTradeSummary: Webhook = {
-        username: optDW.displayName ? optDW.displayName : botInfo.name,
-        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName || botInfo.name,
+        avatar_url: optDW.avatarURL || botInfo.avatarURL,
         content: mentionOwner,
         embeds: [
             {

@@ -67,7 +67,7 @@ const botManager = new BotManager(
 
 import ON_DEATH from 'death';
 import * as inspect from 'util';
-import { Webhook } from './lib/DiscordWebhook/interfaces';
+import { Webhook } from './classes/DiscordWebhook/interfaces';
 import axios, { AxiosError } from 'axios';
 import { uptime } from './lib/tools/time';
 import filterAxiosError from '@tf2autobot/filter-axios-error';

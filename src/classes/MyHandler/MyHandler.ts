@@ -40,7 +40,7 @@ import * as files from '../../lib/files';
 import { exponentialBackoff } from '../../lib/helpers';
 
 import { noiseMakers } from '../../lib/data';
-import { sendAlert } from '../../lib/DiscordWebhook/export';
+import { sendAlert } from '../DiscordWebhook/export';
 import { summarize, uptime, getHighValueItems, testPriceKey } from '../../lib/tools/export';
 
 import genPaths from '../../resources/paths';
@@ -49,9 +49,9 @@ import Options, { OfferType } from '../Options';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 
-import sendTf2SystemMessage from '../../lib/DiscordWebhook/sendTf2SystemMessage';
-import sendTf2DisplayNotification from '../../lib/DiscordWebhook/sendTf2DisplayNotification';
-import sendTf2ItemBroadcast from '../../lib/DiscordWebhook/sendTf2ItemBroadcast';
+import sendTf2SystemMessage from '../DiscordWebhook/sendTf2SystemMessage';
+import sendTf2DisplayNotification from '../DiscordWebhook/sendTf2DisplayNotification';
+import sendTf2ItemBroadcast from '../DiscordWebhook/sendTf2ItemBroadcast';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -2760,7 +2760,7 @@ interface OnNewTradeOffer {
     meta?: Meta;
 }
 
-interface BotInfo {
+export interface BotInfo {
     name: string;
     avatarURL: string;
     steamID: SteamID;

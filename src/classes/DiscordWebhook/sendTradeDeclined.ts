@@ -1,10 +1,10 @@
 import { Action, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { getPartnerDetails, quickLinks, sendWebhook } from './utils';
-import Bot from '../../classes/Bot';
-import * as t from '../tools/export';
-import log from '../logger';
+import Bot from '../Bot';
+import * as t from '../../lib/tools/export';
+import log from '../../lib/logger';
 import { Webhook } from './export';
-import { sendToAdmin } from '../../classes/MyHandler/offer/processDeclined';
+import { sendToAdmin } from '../MyHandler/offer/processDeclined';
 
 export default async function sendTradeDeclined(
     offer: TradeOffer,
@@ -70,8 +70,8 @@ export default async function sendTradeDeclined(
 
     const declinedDescription = declined.reasonDescription;
     const declinedTradeSummary: Webhook = {
-        username: optDW.displayName ?? botInfo.name,
-        avatar_url: optDW.avatarURL ?? optDW.avatarURL,
+        username: optDW.displayName || botInfo.name,
+        avatar_url: optDW.avatarURL || optDW.avatarURL,
         content: '',
         embeds: [
             {
