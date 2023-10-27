@@ -533,7 +533,7 @@ export default class UserCart extends Cart {
             let theirAssetids: string[];
             let amount = this.getTheirCount(sku);
             if (findByPartialSku) {
-                theirAssetids = theirInventory.findByPartialSku(sku, true, elevatedStrange);
+                theirAssetids = theirInventory.findByPartialSku(sku, elevatedStrange);
                 if (theirAssetids.length > 0) {
                     sku = theirInventory.findByAssetid(theirAssetids[0]);
                 }
@@ -777,7 +777,7 @@ export default class UserCart extends Cart {
             let assetids: string[];
             const amount = this.their[sku];
             if (findByPartialSku) {
-                assetids = theirInventory.findByPartialSku(sku, true, elevatedStrange);
+                assetids = theirInventory.findByPartialSku(sku, elevatedStrange);
             } else {
                 assetids = theirInventory.findBySKU(sku, true);
             }

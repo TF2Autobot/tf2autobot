@@ -196,7 +196,7 @@ export default class Inventory {
         return nonTradable.concat(tradable).slice(0);
     }
 
-    findByPartialSku(partialSku: string, tradableOnly = true, elevatedStrange = false): string[] {
+    findByPartialSku(partialSku: string, elevatedStrange = false): string[] {
         const matchingSkus: string[] = [];
 
         if (elevatedStrange) {
@@ -207,27 +207,10 @@ export default class Inventory {
                     matchingSkus.push(...this.tradable[sku].map(item => item?.id));
                 }
             }
-
-            if (!tradableOnly) {
-                for (const sku in this.nonTradable) {
-                    if (sku.startsWith(partialSku) && sku.includes(';strange')) {
-                        matchingSkus.push(...this.nonTradable[sku].map(item => item?.id));
-                    }
-                }
-            }
-
         } else {
             for (const sku in this.tradable) {
                 if (sku.startsWith(partialSku)) {
                     matchingSkus.push(...this.tradable[sku].map(item => item?.id));
-                }
-            }
-
-            if (!tradableOnly) {
-                for (const sku in this.nonTradable) {
-                    if (sku.startsWith(partialSku)) {
-                        matchingSkus.push(...this.nonTradable[sku].map(item => item?.id));
-                    }
                 }
             }
         }
