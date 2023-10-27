@@ -1,8 +1,8 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import { sendWebhook, WebhookError } from './utils';
 import { Webhook } from './interfaces';
-import { timeNow, uptime } from '../tools/time';
-import Bot from '../../classes/Bot';
+import { timeNow, uptime } from '../../lib/tools/time';
+import Bot from '../Bot';
 import * as timersPromises from 'timers/promises';
 
 type AlertType =

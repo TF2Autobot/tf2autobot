@@ -9,7 +9,7 @@ import Bot from '../Bot';
 import Pricelist from '../Pricelist';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
-import { sendAlert } from '../../lib/DiscordWebhook/export';
+import { sendAlert } from '../DiscordWebhook/export';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 /**

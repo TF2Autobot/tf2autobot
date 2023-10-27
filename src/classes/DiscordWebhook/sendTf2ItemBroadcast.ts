@@ -1,8 +1,8 @@
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
-import Bot from '../../classes/Bot';
-import { timeNow } from '../tools/time';
+import log from '../../lib/logger';
+import Bot from '../Bot';
+import { timeNow } from '../../lib/tools/time';
 
 export default function sendTf2ItemBroadcast(
     bot: Bot,

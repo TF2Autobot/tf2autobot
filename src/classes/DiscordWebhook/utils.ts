@@ -1,8 +1,8 @@
 import TradeOfferManager, { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import axios, { AxiosError } from 'axios';
 import { Webhook } from './interfaces';
-import Bot from '../../classes/Bot';
-import log from '../logger';
+import Bot from '../Bot';
+import log from '../../lib/logger';
 import filterAxiosError, { ErrorFiltered } from '@tf2autobot/filter-axios-error';
 
 export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ personaName: string; avatarFull: any }> {

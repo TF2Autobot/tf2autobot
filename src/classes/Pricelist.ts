@@ -8,7 +8,7 @@ import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
+import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from './DiscordWebhook/export';
 import IPricer, { GetItemPriceResponse, Item } from './IPricer';
 
 export enum PricelistChangedSource {

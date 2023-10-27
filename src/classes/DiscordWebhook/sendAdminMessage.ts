@@ -1,7 +1,7 @@
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
-import Bot from '../../classes/Bot';
+import log from '../../lib/logger';
+import Bot from '../Bot';
 
 export default function sendAdminMessage(
     steamID: string,

@@ -1,11 +1,11 @@
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
-import { GetItemPriceResponse } from '../../classes/IPricer';
+import log from '../../lib/logger';
+import { GetItemPriceResponse } from '../IPricer';
 import * as timersPromises from 'timers/promises';
 import { UnknownDictionary } from '../../types/common';
-import Options from '../../classes/Options';
-import { BotInfo } from '../../classes/MyHandler/MyHandler';
+import Options from '../Options';
+import { BotInfo } from '../MyHandler/MyHandler';
 
 export default function sendFailedPriceUpdate(
     data: GetItemPriceResponse,
