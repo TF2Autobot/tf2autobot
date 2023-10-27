@@ -37,14 +37,14 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
         : '';
 
     const discordStats: Webhook = {
-        username: optDW.displayName ? optDW.displayName : botInfo.name,
-        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName || botInfo.name,
+        avatar_url: optDW.avatarURL || botInfo.avatarURL,
         content: '',
         embeds: [
             {
                 footer: {
                     text: `${timeNow(bot.options).time} • v${process.env.BOT_VERSION}`,
-                    icon_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL
+                    icon_url: optDW.avatarURL || botInfo.avatarURL
                 },
                 title: '📊 Statistics 📊',
                 description:

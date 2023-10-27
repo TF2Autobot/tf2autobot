@@ -121,8 +121,8 @@ export default async function sendTradeSummary(
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
     const acceptedTradeSummary: Webhook = {
-        username: optDW.displayName ? optDW.displayName : botInfo.name,
-        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName || botInfo.name,
+        avatar_url: optDW.avatarURL || botInfo.avatarURL,
         content: mentionOwner,
         embeds: [
             {

@@ -5,17 +5,19 @@ import { GetItemPriceResponse } from '../../classes/IPricer';
 import * as timersPromises from 'timers/promises';
 import { UnknownDictionary } from '../../types/common';
 import Options from '../../classes/Options';
+import { BotInfo } from '../../classes/MyHandler/MyHandler';
 
 export default function sendFailedPriceUpdate(
     data: GetItemPriceResponse,
     err: Error,
     isCustomPricer: boolean,
-    options: Options
+    options: Options,
+    botInfo: BotInfo
 ): void {
     const opt = options.discordWebhook;
     const priceUpdate: Webhook = {
-        username: opt.displayName,
-        avatar_url: opt.avatarURL,
+        username: opt.displayName || botInfo.name,
+        avatar_url: opt.avatarURL || botInfo.avatarURL,
         content: '',
         embeds: [
             {

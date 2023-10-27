@@ -239,8 +239,8 @@ export default function sendAlert(
     const optDW = bot.options.discordWebhook;
 
     const sendAlertWebhook: Webhook = {
-        username: optDW.displayName ? optDW.displayName : botInfo.name,
-        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName || botInfo.name,
+        avatar_url: optDW.avatarURL || botInfo.avatarURL,
         content:
             ([
                 'highValue',

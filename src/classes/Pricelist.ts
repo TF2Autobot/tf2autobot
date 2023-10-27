@@ -1143,7 +1143,13 @@ export default class Pricelist extends EventEmitter {
             });
 
             if (isDwEnabled && dw.showFailedToUpdate) {
-                sendFailedPriceUpdate(data, err as Error, this.isUseCustomPricer, this.options);
+                sendFailedPriceUpdate(
+                    data,
+                    err as Error,
+                    this.isUseCustomPricer,
+                    this.options,
+                    this.bot.handler.getBotInfo
+                );
             }
 
             return;
@@ -1330,7 +1336,8 @@ export default class Pricelist extends EventEmitter {
                         match.sku === '5021;6' ? undefined : keyPrice,
                         buyChangesValue,
                         sellChangesValue,
-                        this.isUseCustomPricer
+                        this.isUseCustomPricer,
+                        this.bot.handler.getBotInfo
                     );
                 }
             }

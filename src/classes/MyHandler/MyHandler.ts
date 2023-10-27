@@ -2760,7 +2760,7 @@ interface OnNewTradeOffer {
     meta?: Meta;
 }
 
-interface BotInfo {
+export interface BotInfo {
     name: string;
     avatarURL: string;
     steamID: SteamID;

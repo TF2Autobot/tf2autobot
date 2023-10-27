@@ -15,8 +15,8 @@ export default function sendTf2ItemBroadcast(
     const botInfo = bot.handler.getBotInfo;
 
     const webhook: Webhook = {
-        username: opt.displayName ? opt.displayName : botInfo.name,
-        avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
+        username: opt.displayName || botInfo.name,
+        avatar_url: opt.avatarURL || botInfo.avatarURL,
         content: opt.sendTf2Events.itemBroadcast.custom.content || '',
         embeds: [
             {
