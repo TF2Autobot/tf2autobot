@@ -230,6 +230,8 @@ export default class Pricelist extends EventEmitter {
 
     autoResetPartialPriceBulk: string[] = [];
 
+    private priceChangeCounter = 0;
+
     assetidInPricelist: AssetidInPricelist = {};
 
     checkAssetidInPricelistInterval: NodeJS.Timeout;
@@ -1337,7 +1339,13 @@ export default class Pricelist extends EventEmitter {
 
     private priceChanged(priceKey: string | number, entry: Entry): void {
         this.emit('price', priceKey, entry);
-        this.emit('pricelist', this.prices);
+
+        if (++this.priceChangeCounter % this.options.pricelist.rewriteFile.count === 0) {
+            // reference: https://github.com/Hhanuska/tf2autobot/commit/54c408936cc923d56d525f01726c042a84e1ec75
+            this.emit('pricelist', this.prices);
+
+            this.priceChangeCounter = 0;
+        }
     }
 
     private get getOld(): PricesObject {
