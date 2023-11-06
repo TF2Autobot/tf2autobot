@@ -3,7 +3,7 @@ import processReview from './process-review';
 import * as timersPromises from 'timers/promises';
 import Bot from '../../../Bot';
 import log from '../../../../lib/logger';
-import { sendOfferReview } from '../../../../lib/DiscordWebhook/export';
+import { sendOfferReview } from '../../../DiscordWebhook/export';
 import * as t from '../../../../lib/tools/export';
 import { KeyPrices } from 'src/classes/Pricelist';
 import { Links } from '../../../../lib/tools/export';

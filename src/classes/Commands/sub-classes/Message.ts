@@ -3,7 +3,7 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { generateLinks, timeNow } from '../../../lib/tools/export';
-import { sendPartnerMessage, sendAdminMessage } from '../../../lib/DiscordWebhook/export';
+import { sendPartnerMessage, sendAdminMessage } from '../../DiscordWebhook/export';
 
 export default class MessageCommand {
     constructor(private readonly bot: Bot) {

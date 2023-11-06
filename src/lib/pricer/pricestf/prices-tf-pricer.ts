@@ -1,4 +1,3 @@
-import timersPromises from 'timers/promises';
 import Currencies from '@tf2autobot/tf2-currencies';
 import PricesTfSocketManager from './prices-tf-socket-manager';
 import IPricer, {
@@ -8,11 +7,13 @@ import IPricer, {
     PricerOptions,
     RequestCheckResponse
 } from '../../../classes/IPricer';
-import PricesTfApi, { PricesTfItem, PricesTfItemMessageEvent } from './prices-tf-api';
+import PricesTfApi, { PricesTfGetPricesResponse, PricesTfItem, PricesTfItemMessageEvent } from './prices-tf-api';
 import log from '../../logger';
 
 export default class PricesTfPricer implements IPricer {
     private socketManager: PricesTfSocketManager;
+
+    private attempts = 0;
 
     public constructor(private api: PricesTfApi) {
         this.socketManager = new PricesTfSocketManager(api);
@@ -42,19 +43,21 @@ export default class PricesTfPricer implements IPricer {
     }
 
     async getPricelist(): Promise<GetPricelistResponse> {
-        try {
-            const pricelist = await PricesTfApi.apiRequest(
-                'GET',
-                '/json/pricelist-array',
-                undefined,
-                undefined,
-                undefined,
-                'https://autobot.tf'
-            );
+        if (JSON.parse(process.env.DEV) === true) {
+            try {
+                const pricelist = await PricesTfApi.apiRequest(
+                    'GET',
+                    '/json/pricelist-array',
+                    undefined,
+                    undefined,
+                    undefined,
+                    'https://autobot.tf'
+                );
 
-            return pricelist;
-        } catch (err) {
-            log.error('Failed to get pricelist from autobot.tf: ', err);
+                return pricelist;
+            } catch (err) {
+                log.error('Failed to get pricelist from autobot.tf: ', err);
+            }
         }
 
         let prices: PricesTfItem[] = [];
@@ -62,15 +65,34 @@ export default class PricesTfPricer implements IPricer {
         let totalPages = 0;
 
         let delay = 0;
-        const minDelay = 200;
+        const minDelay = 100;
+        let response: PricesTfGetPricesResponse;
+
+        log.debug('Requesting pricelist pages...');
 
         do {
-            await timersPromises.setTimeout(delay);
+            await new Promise(resolve => setTimeout(resolve, delay));
             const start = new Date().getTime();
-            log.debug('Requesting pricelist pages...');
-            const response = await this.api.getPricelistPage(currentPage);
-            totalPages = response.meta.totalPages;
-            currentPage++;
+
+            try {
+                log.debug(`Getting page ${currentPage}${totalPages === 0 ? '' : ` of ${totalPages}`}...`);
+                response = await this.api.getPricelistPage(currentPage);
+                currentPage++;
+                totalPages = response.meta.totalPages;
+            } catch (e) {
+                if (currentPage > 1) {
+                    await new Promise(resolve => setTimeout(resolve, 60 * 1000));
+                    continue;
+                } else {
+                    if (this.attempts < 3) {
+                        this.attempts++;
+                        return this.getPricelist();
+                    }
+
+                    this.attempts = 0;
+                    throw e;
+                }
+            }
 
             prices = prices.concat(response.items);
             const time = new Date().getTime() - start;

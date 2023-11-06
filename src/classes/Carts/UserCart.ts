@@ -514,15 +514,34 @@ export default class UserCart extends Cart {
         };
 
         // Add their items
-        for (const sku in this.their) {
+        for (let sku in this.their) {
             if (!Object.prototype.hasOwnProperty.call(this.their, sku)) {
                 continue;
             }
 
-            let alteredMessage: string;
+            let findByPartialSku = false;
+            let elevatedStrange = false;
+            const item_object = SKU.fromString(sku);
+            if (item_object.quality == 5 && !item_object.effect) {
+                log.debug('Generic Unusual in their cart, finding by partial sku');
+                findByPartialSku = true;
+                if (item_object.quality2 == 11) {
+                    elevatedStrange = true;
+                }
+            }
 
+            let theirAssetids: string[];
             let amount = this.getTheirCount(sku);
-            const theirAssetids = theirInventory.findBySKU(sku, true);
+            if (findByPartialSku) {
+                theirAssetids = theirInventory.findByPartialSku(sku, elevatedStrange);
+                if (theirAssetids.length > 0) {
+                    sku = theirInventory.findByAssetid(theirAssetids[0]);
+                }
+            } else {
+                theirAssetids = theirInventory.findBySKU(sku, true);
+            }
+
+            let alteredMessage: string;
             const theirAssetidsCount = theirAssetids.length;
 
             if (amount > theirAssetidsCount) {
@@ -745,8 +764,23 @@ export default class UserCart extends Cart {
                 continue;
             }
 
+            const item_object = SKU.fromString(sku);
+            let findByPartialSku = false;
+            let elevatedStrange = false;
+            if (item_object.quality == 5 && !item_object.effect) {
+                findByPartialSku = true;
+                if (item_object.quality2 == 11) {
+                    elevatedStrange = true;
+                }
+            }
+
+            let assetids: string[];
             const amount = this.their[sku];
-            let assetids = theirInventory.findBySKU(sku, true);
+            if (findByPartialSku) {
+                assetids = theirInventory.findByPartialSku(sku, elevatedStrange);
+            } else {
+                assetids = theirInventory.findBySKU(sku, true);
+            }
 
             const addToDupeCheckList =
                 this.bot.pricelist

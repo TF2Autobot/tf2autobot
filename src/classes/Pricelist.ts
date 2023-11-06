@@ -8,7 +8,7 @@ import Options from './Options';
 import Bot from './Bot';
 import log from '../lib/logger';
 import validator from '../lib/validator';
-import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from '../lib/DiscordWebhook/export';
+import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from './DiscordWebhook/export';
 import IPricer, { GetItemPriceResponse, Item } from './IPricer';
 
 export enum PricelistChangedSource {
@@ -229,6 +229,8 @@ export default class Pricelist extends EventEmitter {
     partialPricedUpdateBulk: string[] = [];
 
     autoResetPartialPriceBulk: string[] = [];
+
+    private priceChangeCounter = 0;
 
     assetidInPricelist: AssetidInPricelist = {};
 
@@ -1141,7 +1143,13 @@ export default class Pricelist extends EventEmitter {
             });
 
             if (isDwEnabled && dw.showFailedToUpdate) {
-                sendFailedPriceUpdate(data, err as Error, this.isUseCustomPricer, this.options);
+                sendFailedPriceUpdate(
+                    data,
+                    err as Error,
+                    this.isUseCustomPricer,
+                    this.options,
+                    this.bot.handler.getBotInfo
+                );
             }
 
             return;
@@ -1328,7 +1336,8 @@ export default class Pricelist extends EventEmitter {
                         match.sku === '5021;6' ? undefined : keyPrice,
                         buyChangesValue,
                         sellChangesValue,
-                        this.isUseCustomPricer
+                        this.isUseCustomPricer,
+                        this.bot.handler.getBotInfo
                     );
                 }
             }
@@ -1337,7 +1346,13 @@ export default class Pricelist extends EventEmitter {
 
     private priceChanged(priceKey: string | number, entry: Entry): void {
         this.emit('price', priceKey, entry);
-        this.emit('pricelist', this.prices);
+
+        if (++this.priceChangeCounter % this.options.pricelist.rewriteFile.count === 0) {
+            // reference: https://github.com/Hhanuska/tf2autobot/commit/54c408936cc923d56d525f01726c042a84e1ec75
+            this.emit('pricelist', this.prices);
+
+            this.priceChangeCounter = 0;
+        }
     }
 
     private get getOld(): PricesObject {

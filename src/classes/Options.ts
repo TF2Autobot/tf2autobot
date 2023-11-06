@@ -129,6 +129,9 @@ export const DEFAULTS: JsonOptions = {
         },
         priceAge: {
             maxInSeconds: 28800
+        },
+        rewriteFile: {
+            count: 1
         }
     },
 
@@ -1284,6 +1287,7 @@ interface Pricelist {
     autoAddInvalidUnusual?: OnlyEnable;
     autoAddPaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
+    rewriteFile?: RewriteFile;
 }
 
 interface PartialPriceUpdate extends OnlyEnable {
@@ -1293,6 +1297,10 @@ interface PartialPriceUpdate extends OnlyEnable {
 
 interface PriceAge {
     maxInSeconds?: number;
+}
+
+interface RewriteFile {
+    count: number;
 }
 
 // ------------ Bypass ------------
