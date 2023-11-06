@@ -21,7 +21,7 @@ import Inventory, { Dict } from './Inventory';
 
 import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
-import { sendAlert } from '../lib/DiscordWebhook/export';
+import { sendAlert } from './DiscordWebhook/export';
 import { isBptfBanned } from '../lib/bans';
 import * as t from '../lib/tools/export';
 

@@ -5,10 +5,11 @@ import * as timersPromises from 'timers/promises';
 import { UnknownDictionary } from '../../types/common';
 import { Webhook, sendWebhook } from './export';
 
-import log from '../logger';
-import { BuyAndSell } from '../../classes/Pricelist';
-import Options from '../../classes/Options';
+import log from '../../lib/logger';
+import { BuyAndSell } from '../Pricelist';
+import Options from '../Options';
 import { WebhookError } from './utils';
+import { BotInfo } from '../MyHandler/MyHandler';
 
 const australiumImageURL: { [defindex: number]: string } = {
     // Australium Ambassador
@@ -1789,7 +1790,8 @@ export default function sendWebHookPriceUpdateV1(
     conversion: number,
     buyChangesValue: number | null,
     sellChangesValue: number | null,
-    isCustomPricer: boolean
+    isCustomPricer: boolean,
+    botInfo: BotInfo
 ): void {
     const baseItemData = schema.getItemBySKU(sku);
     const item = SKU.fromString(sku);
@@ -1884,8 +1886,8 @@ export default function sendWebHookPriceUpdateV1(
 
     const opt = options.discordWebhook;
     const priceUpdate: Webhook = {
-        username: opt.displayName,
-        avatar_url: opt.avatarURL,
+        username: opt.displayName || botInfo.name,
+        avatar_url: opt.avatarURL || botInfo.avatarURL,
         content: '',
         embeds: [
             {

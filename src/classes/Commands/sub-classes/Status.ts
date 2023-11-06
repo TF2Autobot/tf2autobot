@@ -6,7 +6,7 @@ import * as timersPromises from 'timers/promises';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import { stats, profit, itemStats, testPriceKey } from '../../../lib/tools/export';
-import { sendStats } from '../../../lib/DiscordWebhook/export';
+import { sendStats } from '../../DiscordWebhook/export';
 import loadPollData, { deletePollData } from '../../../lib/tools/polldata';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 

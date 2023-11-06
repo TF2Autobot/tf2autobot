@@ -6,6 +6,7 @@ import { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import Pricelist from './Pricelist';
+import log from '../lib/logger';
 
 export default class Inventory {
     private readonly steamID: SteamID;
@@ -193,6 +194,27 @@ export default class Inventory {
         const nonTradable = (this.nonTradable[sku] || []).map(item => item?.id);
 
         return nonTradable.concat(tradable).slice(0);
+    }
+
+    findByPartialSku(partialSku: string, elevatedStrange = false): string[] {
+        const matchingSkus: string[] = [];
+
+        if (elevatedStrange) {
+            partialSku = partialSku.replace(';strange', '');
+
+            for (const sku in this.tradable) {
+                if (sku.startsWith(partialSku) && sku.includes(';strange')) {
+                    matchingSkus.push(...this.tradable[sku].map(item => item?.id));
+                }
+            }
+        } else {
+            for (const sku in this.tradable) {
+                if (sku.startsWith(partialSku)) {
+                    matchingSkus.push(...this.tradable[sku].map(item => item?.id));
+                }
+            }
+        }
+        return matchingSkus.slice(0);
     }
 
     getAmount({

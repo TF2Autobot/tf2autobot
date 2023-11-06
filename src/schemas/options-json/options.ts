@@ -693,6 +693,17 @@ export const optionsSchema: jsonschema.Schema = {
                     },
                     required: ['maxInSeconds'],
                     additionalProperties: false
+                },
+                rewriteFile: {
+                    type: 'object',
+                    properties: {
+                        count: {
+                            type: 'integer',
+                            minimum: 1
+                        }
+                    },
+                    required: ['count'],
+                    additionalProperties: false
                 }
             },
             required: [
@@ -703,7 +714,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoAddInvalidItems',
                 'autoAddInvalidUnusual',
                 'autoAddPaintedItems',
-                'priceAge'
+                'priceAge',
+                'rewriteFile'
             ],
             additionalProperties: false
         },

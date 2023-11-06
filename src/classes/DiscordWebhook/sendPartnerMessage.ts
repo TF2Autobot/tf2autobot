@@ -1,7 +1,7 @@
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
-import Bot from '../../classes/Bot';
+import log from '../../lib/logger';
+import Bot from '../Bot';
 
 export default function sendPartnerMessage(
     steamID: string,
@@ -15,8 +15,8 @@ export default function sendPartnerMessage(
     const botInfo = bot.handler.getBotInfo;
 
     const discordPartnerMsg: Webhook = {
-        username: opt.displayName ? opt.displayName : botInfo.name,
-        avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
+        username: opt.displayName || botInfo.name,
+        avatar_url: opt.avatarURL || botInfo.avatarURL,
         content: `${
             opt.messages.isMention && opt.ownerID.length > 0 ? opt.ownerID.map(id => `<@!${id}>`).join(', ') + `, ` : ''
         }new message! - ${steamID}`,

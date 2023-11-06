@@ -1,8 +1,8 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
 import { sendWebhook, WebhookError } from './utils';
 import { Webhook } from './interfaces';
-import { timeNow, uptime } from '../tools/time';
-import Bot from '../../classes/Bot';
+import { timeNow, uptime } from '../../lib/tools/time';
+import Bot from '../Bot';
 import * as timersPromises from 'timers/promises';
 
 type AlertType =
@@ -239,8 +239,8 @@ export default function sendAlert(
     const optDW = bot.options.discordWebhook;
 
     const sendAlertWebhook: Webhook = {
-        username: optDW.displayName ? optDW.displayName : botInfo.name,
-        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName || botInfo.name,
+        avatar_url: optDW.avatarURL || botInfo.avatarURL,
         content:
             ([
                 'highValue',
