@@ -117,6 +117,9 @@
         },
         "priceAge": {
             "maxInSeconds": 28800
+        },
+        "rewriteFile": {
+            "count": 1
         }
     },
     "bypass": {
