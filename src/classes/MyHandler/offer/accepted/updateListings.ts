@@ -9,7 +9,7 @@ import Bot from '../../../Bot';
 import Pricelist, { EntryData } from '../../../Pricelist';
 import { Attributes } from '../../../TF2GC';
 import log from '../../../../lib/logger';
-import { sendAlert } from '../../../../lib/DiscordWebhook/export';
+import { sendAlert } from '../../../DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';
 import { testPriceKey } from '../../../../lib/tools/export';
 

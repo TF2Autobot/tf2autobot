@@ -3,10 +3,10 @@ import pluralize from 'pluralize';
 import SteamID from 'steamid';
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
+import log from '../../lib/logger';
 import { stats, profit, timeNow } from '../../lib/tools/export';
-import Bot from '../../classes/Bot';
-import loadPollData from '../tools/polldata';
+import Bot from '../Bot';
+import loadPollData from '../../lib/tools/polldata';
 
 export default async function sendStats(bot: Bot, forceSend = false, steamID?: SteamID): Promise<void> {
     const optDW = bot.options.discordWebhook;
@@ -37,14 +37,14 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
         : '';
 
     const discordStats: Webhook = {
-        username: optDW.displayName ? optDW.displayName : botInfo.name,
-        avatar_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL,
+        username: optDW.displayName || botInfo.name,
+        avatar_url: optDW.avatarURL || botInfo.avatarURL,
         content: '',
         embeds: [
             {
                 footer: {
                     text: `${timeNow(bot.options).time} • v${process.env.BOT_VERSION}`,
-                    icon_url: optDW.avatarURL ? optDW.avatarURL : botInfo.avatarURL
+                    icon_url: optDW.avatarURL || botInfo.avatarURL
                 },
                 title: '📊 Statistics 📊',
                 description:

@@ -1,8 +1,8 @@
 import { sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
-import Bot from '../../classes/Bot';
-import { timeNow } from '../tools/time';
+import log from '../../lib/logger';
+import Bot from '../Bot';
+import { timeNow } from '../../lib/tools/time';
 
 export default function sendTf2ItemBroadcast(
     bot: Bot,
@@ -15,8 +15,8 @@ export default function sendTf2ItemBroadcast(
     const botInfo = bot.handler.getBotInfo;
 
     const webhook: Webhook = {
-        username: opt.displayName ? opt.displayName : botInfo.name,
-        avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
+        username: opt.displayName || botInfo.name,
+        avatar_url: opt.avatarURL || botInfo.avatarURL,
         content: opt.sendTf2Events.itemBroadcast.custom.content || '',
         embeds: [
             {

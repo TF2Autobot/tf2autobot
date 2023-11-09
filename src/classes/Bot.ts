@@ -39,7 +39,7 @@ import Groups from './Groups';
 
 import log from '../lib/logger';
 import Bans, { IsBanned } from '../lib/bans';
-import { sendStats } from '../lib/DiscordWebhook/export';
+import { sendStats } from './DiscordWebhook/export';
 
 import Options from './Options';
 import IPricer from './IPricer';

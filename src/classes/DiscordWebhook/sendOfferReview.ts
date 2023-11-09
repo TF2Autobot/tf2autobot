@@ -1,12 +1,12 @@
 import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
-import log from '../logger';
-import { pure, summarizeToChat, listItems, replace, ValueDiff } from '../tools/export';
+import log from '../../lib/logger';
+import { pure, summarizeToChat, listItems, replace, ValueDiff } from '../../lib/tools/export';
 
-import Bot from '../../classes/Bot';
-import { KeyPrices } from '../../classes/Pricelist';
-import { sendToAdmin } from '../../classes/MyHandler/offer/review/send-review';
+import Bot from '../Bot';
+import { KeyPrices } from '../Pricelist';
+import { sendToAdmin } from '../MyHandler/offer/review/send-review';
 
 export default function sendOfferReview(
     offer: TradeOffer,
@@ -101,8 +101,8 @@ export default function sendOfferReview(
         const isShowInventory = opt.offerReview.misc.showInventory;
 
         const webhookReview: Webhook = {
-            username: opt.displayName ? opt.displayName : botInfo.name,
-            avatar_url: opt.avatarURL ? opt.avatarURL : botInfo.avatarURL,
+            username: opt.displayName || botInfo.name,
+            avatar_url: opt.avatarURL || botInfo.avatarURL,
             content: mentionOwner,
             embeds: [
                 {

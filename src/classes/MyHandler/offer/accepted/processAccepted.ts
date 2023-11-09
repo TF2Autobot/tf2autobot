@@ -5,7 +5,7 @@ import Bot from '../../../Bot';
 import { KeyPrices } from '../../../Pricelist';
 import log from '../../../../lib/logger';
 import * as t from '../../../../lib/tools/export';
-import { sendTradeSummary } from '../../../../lib/DiscordWebhook/export';
+import { sendTradeSummary } from '../../../DiscordWebhook/export';
 
 export default function processAccepted(
     offer: i.TradeOffer,
