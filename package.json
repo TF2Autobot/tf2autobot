@@ -36,7 +36,7 @@
         "@tf2autobot/tf2-schema": "^4.3.0",
         "@tf2autobot/tf2-sku": "^2.0.4",
         "@tf2autobot/tradeoffer-manager": "^2.15.2",
-        "async": "^3.2.4",
+        "async": "^3.2.5",
         "axios": "^1.4.0",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
