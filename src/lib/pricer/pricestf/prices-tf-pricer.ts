@@ -43,21 +43,19 @@ export default class PricesTfPricer implements IPricer {
     }
 
     async getPricelist(): Promise<GetPricelistResponse> {
-        if (JSON.parse(process.env.DEV) === true) {
-            try {
-                const pricelist = await PricesTfApi.apiRequest(
-                    'GET',
-                    '/json/pricelist-array',
-                    undefined,
-                    undefined,
-                    undefined,
-                    'https://autobot.tf'
-                );
+        try {
+            const pricelist = await PricesTfApi.apiRequest(
+                'GET',
+                '/json/pricelist-array',
+                undefined,
+                undefined,
+                undefined,
+                'https://autobot.tf'
+            );
 
-                return pricelist;
-            } catch (err) {
-                log.error('Failed to get pricelist from autobot.tf: ', err);
-            }
+            return pricelist;
+        } catch (err) {
+            log.error('Failed to get pricelist from autobot.tf: ', err);
         }
 
         let prices: PricesTfItem[] = [];
