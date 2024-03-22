@@ -506,7 +506,7 @@ function getCraftNumber(item: EconItem, schema: Schema, normalizeCraftNumber: bo
         return null;
     }
 
-    const name = item.market_hash_name;
+    const name = item.name;
     const withoutNumber = name.replace(/#\d+/, '');
     if (name === withoutNumber) {
         // no change
