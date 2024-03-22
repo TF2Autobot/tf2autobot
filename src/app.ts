@@ -57,6 +57,24 @@ if (process.env.DOCKER !== undefined) {
     );
 }
 
+import SchemaManager from '@tf2autobot/tf2-schema';
+import { apiRequest } from './lib/apiRequest';
+
+// Make the schema manager request the schema from schema.autobot.tf
+
+/*eslint-disable */
+SchemaManager.prototype.getSchema = function (callback): void {
+    apiRequest('GET', 'https://schema.autobot.tf/schema')
+        .then(schema => {
+            this.setSchema(schema, true);
+            callback(null, this.schema);
+        })
+        .catch(err => {
+            callback(err);
+        });
+};
+/*eslint-enable */
+
 import BotManager from './classes/BotManager';
 const botManager = new BotManager(
     getPricer({
