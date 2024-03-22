@@ -37,6 +37,9 @@ export const pricesDataObject: jsonschema.Schema = {
                     sell: {
                         $ref: 'tf2-currencies'
                     },
+                    limit: {
+                        $ref: 'pricelist-limit'
+                    },
                     promoted: {
                         type: 'number',
                         enum: [0, 1]
