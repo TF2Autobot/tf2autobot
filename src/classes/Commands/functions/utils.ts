@@ -18,21 +18,9 @@ export function getItemAndAmount(
     prefix: string,
     from?: 'buy' | 'sell' | 'buycart' | 'sellcart'
 ): { match: Entry; priceKey: string; amount: number } | null {
-    let name = removeLinkProtocol(message);
-    let amount = 1;
-    const args = name.split(' ');
-    if (/^[-]?\d+$/.test(args[0]) && args.length > 2) {
-        // Check if the first part of the name is a number, if so, then that is the amount the user wants to trade
-        amount = parseInt(args[0]);
-        name = name.replace(amount.toString(), '').trim();
-    } else if (Pricelist.isAssetId(args[0]) && args.length === 1) {
-        // Check if the only parameter is an assetid
-        name = args[0];
-    }
-
-    if (1 > amount) {
-        amount = 1;
-    }
+    const parsedMessage = parseItemAndAmountFromMessage(message);
+    const name = parsedMessage.name;
+    let amount = parsedMessage.amount;
 
     if (['!price', '!sellcart', '!buycart', '!sell', '!buy', '!pc', '!s', '!b'].includes(name)) {
         bot.sendMessage(
@@ -208,6 +196,26 @@ export function getItemAndAmount(
         priceKey: priceKey,
         match: match
     };
+}
+
+export function parseItemAndAmountFromMessage(message: string): { name: string; amount: number } {
+    let name = removeLinkProtocol(message);
+    let amount = 1;
+    const args = name.split(' ');
+    if (/^[-]?\d+$/.test(args[0]) && args.length > 1) {
+        // Check if the first part of the name is a number, if so, then that is the amount the user wants to trade
+        amount = parseInt(args[0]);
+        name = name.replace(amount.toString(), '').trim();
+    } else if (Pricelist.isAssetId(args[0]) && args.length === 1) {
+        // Check if the only parameter is an assetid
+        name = args[0];
+    }
+
+    if (1 > amount) {
+        amount = 1;
+    }
+
+    return { name: name, amount: amount };
 }
 
 export function getItemFromParams(
