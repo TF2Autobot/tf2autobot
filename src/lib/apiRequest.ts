@@ -3,8 +3,7 @@ import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 export async function apiRequest<B>(
     httpMethod: string,
-    domain: string,
-    path: string,
+    url: string,
     params?: Record<string, any>,
     data?: Record<string, any>,
     headers?: Record<string, unknown>
@@ -15,8 +14,7 @@ export async function apiRequest<B>(
 
     const options: AxiosRequestConfig = {
         method: httpMethod as Method,
-        url: path,
-        baseURL: domain,
+        url,
         headers: {
             'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
             ...headers
