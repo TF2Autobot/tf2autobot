@@ -18,9 +18,6 @@ import fs from 'fs';
 import path from 'path';
 import * as files from '../lib/files';
 
-// Reference: https://github.com/tf2-automatic/tf2-automatic/commit/cf7b807cae11eb172a78ef184bbafdb4ebe86501#diff-58f39591209025b16105c9f25a34c119332983a0d8cea7819b534d9d408324c4L329
-// Credit to @Nicklason
-import { EAuthSessionGuardType, EAuthTokenPlatformType, LoginSession } from 'steam-session';
 import jwt from 'jsonwebtoken';
 import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
@@ -64,8 +61,6 @@ export default class Bot {
     readonly client: SteamUser;
 
     readonly manager: TradeOfferManager;
-
-    session: LoginSession | null = null;
 
     readonly community: SteamCommunity;
 
@@ -839,13 +834,14 @@ export default class Bot {
         let cookies: string[];
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
+        this.addListener(this.client, 'refreshToken', this.handler.onRefreshToken.bind(this.handler), false);
         this.addAsyncListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
         this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
         this.addListener(this.client, 'newItems', this.onNewItems.bind(this), true);
         this.addListener(this.client, 'webSession', this.onWebSession.bind(this), false);
         this.addListener(this.client, 'steamGuard', this.onSteamGuard.bind(this), false);
-        this.addListener(this.client, 'error', this.onError.bind(this), false);
+        this.addAsyncListener(this.client, 'error', this.onError.bind(this), false);
 
         this.addListener(this.community, 'sessionExpired', this.onSessionExpired.bind(this), false);
         this.addListener(this.community, 'confKeyNeeded', this.onConfKeyNeeded.bind(this), false);
@@ -1373,113 +1369,7 @@ export default class Bot {
         });
     }
 
-    private async startSession(): Promise<string> {
-        this.session = new LoginSession(EAuthTokenPlatformType.SteamClient);
-        // will think about proxy later
-        //,{
-        //     httpProxy: this.configService.getOrThrow<SteamAccountConfig>('steam').proxyUrl
-        // });
-
-        this.session.on('debug', (message: string) => {
-            log.debug(`Session debug: ${message}`);
-        });
-
-        const oldTokens = (await files.readFile(this.handler.getPaths.files.loginToken, true).catch(err => {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
-            log.warn(`Failed to read tokens: ${err.message}`);
-            return null;
-        })) as SteamTokens;
-
-        if (oldTokens !== null) {
-            // Figure out if the refresh token expired
-            const { refreshToken, accessToken } = oldTokens;
-
-            this.session.refreshToken = refreshToken;
-            this.session.accessToken = accessToken;
-
-            const decoded = jwt.decode(refreshToken, {
-                complete: true
-            });
-
-            if (decoded) {
-                const { exp } = decoded.payload as { exp: number };
-
-                if (exp < Date.now() / 1000) {
-                    // Refresh token expired, log in again
-                    log.debug('Refresh token expired, logging in again');
-                } else {
-                    // Refresh token is still valid, use it
-                    return refreshToken;
-                }
-            }
-        }
-
-        const result = await this.session.startWithCredentials({
-            accountName: this.options.steamAccountName,
-            password: this.options.steamPassword
-        });
-
-        if (result.actionRequired) {
-            const actions = result.validActions ?? [];
-
-            if (actions.length !== 1) {
-                throw new Error(`Unexpected number of valid actions: ${actions.length}`);
-            }
-
-            const action = actions[0];
-
-            if (action.type !== EAuthSessionGuardType.DeviceCode) {
-                throw new Error(`Unexpected action type: ${action.type}`);
-            }
-
-            await this.session.submitSteamGuardCode(SteamTotp.generateAuthCode(this.options.steamSharedSecret));
-        }
-
-        this.session.on('error', err => {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
-            log.warn(`Error in session: ${err.message}`);
-        });
-
-        /* eslint-disable @typescript-eslint/no-non-null-assertion */
-        return new Promise<void>((resolve, reject) => {
-            const handleAuth = () => {
-                log.debug('Session authenticated');
-                removeListeners();
-                resolve();
-            };
-
-            const handleTimeout = () => {
-                removeListeners();
-                reject(new Error('Login session timed out'));
-            };
-
-            const handleError = (err: Error) => {
-                removeListeners();
-                reject(err);
-            };
-
-            const removeListeners = () => {
-                this.session.removeListener('authenticated', handleAuth);
-                this.session.removeListener('timeout', handleTimeout);
-                this.session.removeListener('error', handleError);
-            };
-
-            this.session.once('authenticated', handleAuth);
-            this.session.once('error', handleError);
-        }).then(() => {
-            const refreshToken = this.session.refreshToken;
-
-            this.handler.onLoginToken({ refreshToken, accessToken: this.session.accessToken });
-
-            this.session.removeAllListeners();
-            this.session = null;
-
-            return refreshToken;
-        });
-        /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    }
-
-    private async login(): Promise<void> {
+    private async login(refreshToken?: string): Promise<void> {
         log.debug('Starting login attempt');
         // loginKey: loginKey,
         // private: true
@@ -1489,18 +1379,11 @@ export default class Bot {
             this.handler.onLoginThrottle(wait);
         }
 
-        const refreshToken = await this.startSession();
-
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 const listeners = this.client.listeners('error');
 
                 this.client.removeAllListeners('error');
-
-                const details = { refreshToken };
-
-                this.newLoginAttempt();
-                this.client.logOn(details);
 
                 const gotEvent = (): void => {
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -1535,13 +1418,71 @@ export default class Bot {
                     this.client.removeListener('error', errorEvent);
 
                     log.debug('Did not get login response from Steam');
+                    this.client.logOff();
 
                     reject(new Error('Did not get login response (Steam might be down)'));
                 }, 60 * 1000);
 
                 this.client.once('loggedOn', loggedOnEvent);
                 this.client.once('error', errorEvent);
+
+                let loginDetails: { refreshToken: string } | { accountName: string; password: string };
+
+                if (refreshToken) {
+                    log.debug('Attempting to login to Steam with refresh token...');
+                    loginDetails = { refreshToken };
+                } else {
+                    log.debug('Attempting to login to Steam...');
+                    loginDetails = {
+                        accountName: this.options.steamAccountName,
+                        password: this.options.steamPassword
+                    };
+                }
+
+                this.newLoginAttempt();
+                this.client.logOn(loginDetails);
             }, wait);
+        });
+    }
+
+    private calculateBackoff(delay: number, attempts: number): number {
+        return delay * Math.pow(2, attempts - 1) + Math.floor(Math.random() * 1000);
+    }
+
+    private async getRefreshToken(): Promise<string | null> {
+        const tokenPath = this.handler.getPaths.files.refreshToken;
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const refreshToken = (await files.readFile(tokenPath, false).catch(err => null)) as string;
+
+        if (!refreshToken) {
+            return null;
+        }
+
+        const decoded = jwt.decode(refreshToken, {
+            complete: true
+        });
+
+        if (!decoded) {
+            // Invalid token
+            return null;
+        }
+
+        const { exp } = decoded.payload as { exp: number };
+
+        if (exp < Date.now() / 1000) {
+            // Refresh token expired
+            return null;
+        }
+
+        return refreshToken;
+    }
+
+    private async deleteRefreshToken(): Promise<void> {
+        const tokenPath = this.handler.getPaths.files.refreshToken;
+
+        await files.writeFile(tokenPath, '', false).catch(() => {
+            // Ignore error
         });
     }
 
@@ -1667,7 +1608,7 @@ export default class Bot {
             });
     }
 
-    private onError(err: CustomError): void {
+    private async onError(err: CustomError): Promise<void> {
         if (err.eresult === EResult.LoggedInElsewhere) {
             log.warn('Signed in elsewhere, stopping the bot...');
             this.botManager.stop(err, false, true);
@@ -1682,7 +1623,9 @@ export default class Bot {
 
             log.warn('Login session replaced, relogging...');
 
-            this.login().catch(err => {
+            await this.deleteRefreshToken();
+
+            this.login(await this.getRefreshToken()).catch(err => {
                 if (err) {
                     throw err;
                 }
