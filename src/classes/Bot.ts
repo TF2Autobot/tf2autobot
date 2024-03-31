@@ -887,10 +887,10 @@ export default class Bot {
                             return callback(null);
                         });
                     },
-                    (callback): void => {
+                    async (callback): Promise<void> => {
                         log.info('Signing in to Steam...');
 
-                        this.login()
+                        this.login(await this.getRefreshToken())
                             .then(() => {
                                 log.info('Signed in to Steam!');
 
