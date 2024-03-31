@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 
 interface FilePaths {
-    loginToken: string;
+    refreshToken: string;
     pollData: string;
     loginAttempts: string;
     pricelist: string;
@@ -35,7 +35,7 @@ export default function genPaths(steamAccountName: string, maxPollDataSizeMB = 5
 
     return {
         files: {
-            loginToken: path.join(__dirname, `../../files/${steamAccountName}/loginToken.json`),
+            refreshToken: path.join(__dirname, `../../files/${steamAccountName}/refreshToken.txt`),
             pollData: pollDataPath,
             loginAttempts: path.join(__dirname, `../../files/${steamAccountName}/loginattempts.json`),
             pricelist: path.join(__dirname, `../../files/${steamAccountName}/pricelist.json`),

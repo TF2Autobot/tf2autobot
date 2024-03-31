@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot",
-    "version": "5.10.0",
+    "version": "5.11.0",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
@@ -65,7 +65,6 @@
         "retry": "^0.13.1",
         "semver": "^7.5.4",
         "socket.io-client": "^4.7.2",
-        "steam-session": "^1.7.1",
         "steam-totp": "^2.1.2",
         "steam-user": "^5.0.4",
         "steamid": "^2.0.0",
