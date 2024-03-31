@@ -181,8 +181,6 @@ export default class Bot {
             community: this.community,
             language: 'en',
             pollInterval: -1,
-            pollFullUpdateInterval: 5 * 60 * 1000, // default is 2 minutes
-            minimumPollInterval: 10 * 1000, // default is 1 second
             cancelTime: 15 * 60 * 1000,
             pendingCancelTime: 1.5 * 60 * 1000,
             globalAssetCache: true,
