@@ -176,6 +176,8 @@ export default class PricelistManagerCommands {
         if (params.id) {
             priceKey = String(params.id);
             params.id = String(params.id);
+            // force intent sell for assetid added
+            params.intent = 1;
         }
         priceKey = priceKey ? priceKey : params.sku;
         return this.bot.pricelist
