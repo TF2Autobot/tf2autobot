@@ -35,7 +35,7 @@
         "@tf2autobot/tf2-currencies": "^2.0.1",
         "@tf2autobot/tf2-schema": "^4.3.1",
         "@tf2autobot/tf2-sku": "^2.0.4",
-        "@tf2autobot/tradeoffer-manager": "^2.15.2",
+        "@tf2autobot/tradeoffer-manager": "^2.17.4",
         "async": "^3.2.5",
         "axios": "^1.6.1",
         "bluebird": "^3.7.2",
