@@ -179,6 +179,7 @@ export default class Bot {
         this.manager = new TradeOfferManager({
             steam: this.client,
             community: this.community,
+            // useAccessToken: false, // https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/Access-Tokens
             language: 'en',
             pollInterval: -1,
             cancelTime: 15 * 60 * 1000,
