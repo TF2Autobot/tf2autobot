@@ -522,7 +522,7 @@ export default class UserCart extends Cart {
             let findByPartialSku = false;
             let elevatedStrange = false;
             const item_object = SKU.fromString(sku);
-            if (item_object.quality == 5 && !item_object.effect) {
+            if (item_object.quality == 5 && !item_object.effect && item_object.craftable) {
                 log.debug('Generic Unusual in their cart, finding by partial sku');
                 findByPartialSku = true;
                 if (item_object.quality2 == 11) {
@@ -767,7 +767,7 @@ export default class UserCart extends Cart {
             const item_object = SKU.fromString(sku);
             let findByPartialSku = false;
             let elevatedStrange = false;
-            if (item_object.quality == 5 && !item_object.effect) {
+            if (item_object.quality == 5 && !item_object.effect && item_object.craftable) {
                 findByPartialSku = true;
                 if (item_object.quality2 == 11) {
                     elevatedStrange = true;
