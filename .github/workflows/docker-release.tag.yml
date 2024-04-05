@@ -25,7 +25,7 @@ jobs:
 
       - name: Docker meta
         id: docker_meta
-        uses: docker/metadata-action@v4.6.0
+        uses: docker/metadata-action@v5.5.1
         with:
           images: tf2autobot/tf2autobot
           tags: |
