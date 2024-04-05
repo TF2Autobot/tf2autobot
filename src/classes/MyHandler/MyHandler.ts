@@ -1,10 +1,9 @@
 import SKU from '@tf2autobot/tf2-sku';
 import axios, { AxiosError } from 'axios';
-import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
+import { EClanRelationship, EFriendRelationship, EPersonaState } from 'steam-user';
 import TradeOfferManager, {
     TradeOffer,
     PollData,
-    CustomError,
     ItemsDict,
     Meta,
     WrongAboutOffer,
@@ -499,15 +498,6 @@ export default class MyHandler extends Handler {
         files.writeFile(this.paths.files.refreshToken, token, false).catch(err => {
             log.warn('Failed to save refresh token: ', err);
         });
-    }
-
-    onLoginError(err: CustomError): void {
-        if (err.eresult === EResult.AccessDenied) {
-            // Access denied during login
-            files.deleteFile(this.paths.files.refreshToken).catch(err => {
-                log.warn('Failed to delete refresh token file: ', err);
-            });
-        }
     }
 
     onLoginAttempts(attempts: number[]): void {
