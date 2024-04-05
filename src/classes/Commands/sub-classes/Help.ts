@@ -131,7 +131,7 @@ export default class HelpCommands {
                 '.\n✨=== Crafting ===✨\n- ' +
                     [
                         `${prefix}craftToken <info|check> - Check the availability to craft tokens ℹ️🔨`,
-                        `${prefix}craftToken <tokenType> <subTokenType> <amount> - Craft Class or Slot Tokens 🔨`
+                        `${prefix}craftToken <tokenName> <amount> - Craft Class or Slot Tokens 🔨`
                     ].join('\n- ')
             );
 
