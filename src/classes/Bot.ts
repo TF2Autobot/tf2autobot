@@ -1613,6 +1613,9 @@ export default class Bot {
         if (err.eresult === EResult.LoggedInElsewhere) {
             log.warn('Signed in elsewhere, stopping the bot...');
             this.botManager.stop(err, false, true);
+        } else if (err.eresult === EResult.AccessDenied) {
+            // Access denied during login
+            await this.deleteRefreshToken();
         } else if (err.eresult === EResult.LogonSessionReplaced) {
             this.sessionReplaceCount++;
 

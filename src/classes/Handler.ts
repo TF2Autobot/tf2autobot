@@ -106,14 +106,6 @@ export default abstract class Handler {
     }
 
     /**
-     * Called when a login attempt has failed
-     * @param err - Error object
-     */
-    onLoginError(err: CustomError): void {
-        // empty function
-    }
-
-    /**
      * Called when a friend message has been sent to the bot
      * @param steamID - SteamID object of the sender
      * @param message - The message from the sender
