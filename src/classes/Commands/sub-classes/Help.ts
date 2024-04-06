@@ -25,7 +25,7 @@ export default class HelpCommands {
                         `sku <Full Item Name|Item's sku> - Get the sku of an item.`,
                         `owner - Get the owner's Steam profile and Backpack.tf links.`,
                         `discord - Get a link to join TF2Autobot and/or the owner's discord server.`,
-                        `$more - Show more available commands list.`
+                        `more - Show more available commands list.`
                     ].join(`\n- ${prefix}`)
             );
         }
@@ -131,7 +131,7 @@ export default class HelpCommands {
                 '.\n✨=== Crafting ===✨\n- ' +
                     [
                         `${prefix}craftToken <info|check> - Check the availability to craft tokens ℹ️🔨`,
-                        `${prefix}craftToken <tokenType> <subTokenType> <amount> - Craft Class or Slot Tokens 🔨`
+                        `${prefix}craftToken <tokenName> <amount> - Craft Class or Slot Tokens 🔨`
                     ].join('\n- ')
             );
 
