@@ -25,7 +25,7 @@ export default class HelpCommands {
                         `sku <Full Item Name|Item's sku> - Get the sku of an item.`,
                         `owner - Get the owner's Steam profile and Backpack.tf links.`,
                         `discord - Get a link to join TF2Autobot and/or the owner's discord server.`,
-                        `$more - Show more available commands list.`
+                        `more - Show more available commands list.`
                     ].join(`\n- ${prefix}`)
             );
         }
