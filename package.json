@@ -88,7 +88,7 @@
         "@types/request": "^2.48.12",
         "@types/retry": "^0.12.5",
         "@types/semver": "^7.5.8",
-        "@types/valid-url": "^1.0.4",
+        "@types/valid-url": "^1.0.7",
         "@types/write-file-atomic": "^4.0.0",
         "@types/ws": "^8.5.5",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
