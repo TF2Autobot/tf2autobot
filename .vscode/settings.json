@@ -15,7 +15,7 @@
     },
     "editor.formatOnPaste": false,
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
+        "source.fixAll.eslint": "explicit"
     },
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
