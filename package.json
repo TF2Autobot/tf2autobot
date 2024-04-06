@@ -85,7 +85,7 @@
         "@types/jsonwebtoken": "^9.0.6",
         "@types/node": "^18.17.1",
         "@types/pluralize": "0.0.29",
-        "@types/request": "^2.48.8",
+        "@types/request": "^2.48.12",
         "@types/retry": "^0.12.2",
         "@types/semver": "^7.3.13",
         "@types/valid-url": "^1.0.4",
