@@ -289,7 +289,7 @@ export default class Commands {
                 this.buyBPTFPremiumCommand(steamID, message);
             } else if (command === 'refreshschema' && isAdmin) {
                 this.manager.refreshSchema(steamID);
-            } else if (command === 'crafttoken' && isAdmin) {
+            } else if (['crafttoken', 'ct'].includes(command) && isAdmin) {
                 this.crafting.craftTokenCommand(steamID, message);
             } else {
                 const custom = this.bot.options.customMessage.commandNotFound;

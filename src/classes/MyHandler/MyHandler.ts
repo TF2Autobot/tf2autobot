@@ -1,10 +1,9 @@
 import SKU from '@tf2autobot/tf2-sku';
 import axios, { AxiosError } from 'axios';
-import { EClanRelationship, EFriendRelationship, EPersonaState, EResult } from 'steam-user';
+import { EClanRelationship, EFriendRelationship, EPersonaState } from 'steam-user';
 import TradeOfferManager, {
     TradeOffer,
     PollData,
-    CustomError,
     ItemsDict,
     Meta,
     WrongAboutOffer,
@@ -26,7 +25,7 @@ import { keepMetalSupply, craftDuplicateWeapons, craftClassWeapons } from './uti
 import { Blocked, BPTFGetUserInfo } from './interfaces';
 
 import Handler, { OnRun } from '../Handler';
-import Bot, { SteamTokens } from '../Bot';
+import Bot from '../Bot';
 import Pricelist, { Entry, PricesDataObject, PricesObject } from '../Pricelist';
 import Commands from '../Commands/Commands';
 import CartQueue from '../Carts/CartQueue';
@@ -493,21 +492,12 @@ export default class MyHandler extends Handler {
         await this.commands.processMessage(steamID, message);
     }
 
-    onLoginToken(loginToken: SteamTokens): void {
-        log.debug('New login key');
+    onRefreshToken(token: string): void {
+        log.debug('New refresh key');
 
-        files.writeFile(this.paths.files.loginToken, loginToken, true).catch(err => {
-            log.warn('Failed to save login token: ', err);
+        files.writeFile(this.paths.files.refreshToken, token, false).catch(err => {
+            log.warn('Failed to save refresh token: ', err);
         });
-    }
-
-    onLoginError(err: CustomError): void {
-        if (err.eresult === EResult.AccessDenied) {
-            // Access denied during login
-            files.deleteFile(this.paths.files.loginToken).catch(err => {
-                log.warn('Failed to delete login token file: ', err);
-            });
-        }
     }
 
     onLoginAttempts(attempts: number[]): void {
