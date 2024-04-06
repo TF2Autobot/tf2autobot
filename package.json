@@ -90,7 +90,7 @@
         "@types/semver": "^7.5.8",
         "@types/valid-url": "^1.0.7",
         "@types/write-file-atomic": "^4.0.3",
-        "@types/ws": "^8.5.5",
+        "@types/ws": "^8.5.10",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
         "@typescript-eslint/parser": "^5.62.0",
         "eslint": "^8.46.0",
