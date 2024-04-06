@@ -74,7 +74,7 @@
         "ws": "^7.5.9"
     },
     "devDependencies": {
-        "@babel/preset-typescript": "^7.22.5",
+        "@babel/preset-typescript": "^7.24.1",
         "@types/async": "^3.2.24",
         "@types/bluebird-global": "^3.5.18",
         "@types/cheerio": "^0.22.35",
