@@ -42,7 +42,7 @@
         "bluebird-global": "^1.0.1",
         "body-parser": "^1.20.2",
         "callback-queue": "^3.0.0",
-        "change-case": "^4.1.2",
+        "change-case": "^5.4.4",
         "cheerio": "^1.0.0-rc.12",
         "dayjs": "^1.11.10",
         "death": "^1.1.0",
