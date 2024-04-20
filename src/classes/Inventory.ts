@@ -6,7 +6,6 @@ import { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import Pricelist from './Pricelist';
-import log from '../lib/logger';
 
 export default class Inventory {
     private readonly steamID: SteamID;
