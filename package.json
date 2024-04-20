@@ -64,7 +64,7 @@
         "semver": "^7.6.0",
         "socket.io-client": "^4.7.5",
         "steam-totp": "^2.1.2",
-        "steam-user": "^5.0.8",
+        "steam-user": "^5.0.9",
         "steamid": "^2.0.0",
         "url": "^0.11.3",
         "valid-url": "^1.0.9",
