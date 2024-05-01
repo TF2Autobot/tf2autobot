@@ -1247,14 +1247,14 @@ export default class Bot {
             this.listingManager.setUserID(this.userID);
         }
 
+        if (process.env.STEAM_API_KEY) {
+            this.manager.apiKey = process.env.STEAM_API_KEY;
+        }
+
         return new Promise((resolve, reject) => {
             this.manager.setCookies(cookies, err => {
                 if (err) {
                     return reject(err);
-                }
-
-                if (process.env.STEAM_API_KEY) {
-                    this.manager.apiKey = process.env.STEAM_API_KEY;
                 }
 
                 resolve();
