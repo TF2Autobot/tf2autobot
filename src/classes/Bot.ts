@@ -1253,6 +1253,10 @@ export default class Bot {
                     return reject(err);
                 }
 
+                if (process.env.STEAM_API_KEY) {
+                    this.manager.apiKey = process.env.STEAM_API_KEY;
+                }
+
                 resolve();
             });
         });
