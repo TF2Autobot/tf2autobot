@@ -17,6 +17,7 @@
                 "STEAM_PASSWORD": "",
                 "STEAM_SHARED_SECRET": "",
                 "STEAM_IDENTITY_SECRET": "",
+                "STEAM_API_KEY": "",
 
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
@@ -28,9 +29,7 @@
                 "STEAMSUPPLY_API_KEY": "",
                 "STEAMAPIS_API_KEY": "",
 
-                "ADMINS": [
-                    { "steam": "<your steamid 64>", "discord": null }
-                ],
+                "ADMINS": [{ "steam": "<your steamid 64>", "discord": null }],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
                 "ITEM_STATS_WHITELIST": [],
                 "GROUPS": ["103582791469033930"],
