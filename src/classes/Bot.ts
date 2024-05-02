@@ -182,7 +182,7 @@ export default class Bot {
         this.manager = new TradeOfferManager({
             steam: this.client,
             community: this.community,
-            // useAccessToken: false, // https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/Access-Tokens
+            useAccessToken: !this.options.steamApiKey, // https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/Access-Tokens
             language: 'en',
             pollInterval: -1,
             cancelTime: 15 * 60 * 1000,
@@ -964,7 +964,7 @@ export default class Bot {
                         });
                     },
                     (callback): void => {
-                        log.info('Getting Steam API key...');
+                        log.info('Setting cookies...');
                         void this.setCookies(cookies).asCallback(callback);
                     },
                     (callback): void => {
@@ -988,8 +988,7 @@ export default class Bot {
                     },
                     (callback): void => {
                         this.schemaManager = new SchemaManager({
-                            apiKey: this.manager.apiKey,
-                            updateTime: 24 * 60 * 60 * 1000,
+                            updateTime: 1 * 60 * 60 * 1000,
                             lite: true
                         });
 
@@ -1253,6 +1252,10 @@ export default class Bot {
             this.bptf.setCookies(cookies);
             this.userID = this.bptf._getUserID();
             this.listingManager.setUserID(this.userID);
+        }
+
+        if (this.options.steamApiKey) {
+            this.manager.apiKey = this.options.steamApiKey;
         }
 
         return new Promise((resolve, reject) => {
