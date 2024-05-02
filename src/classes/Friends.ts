@@ -43,16 +43,26 @@ export default class Friends {
 
     get getMaxFriends(): Promise<number> {
         return new Promise((resolve, reject) => {
+            const params: {
+                steamid: string;
+                key?: string;
+                access_token?: string;
+            } = {
+                steamid: (this.bot.client.steamID === null
+                    ? this.bot.handler.getBotInfo.steamID
+                    : this.bot.client.steamID
+                ).getSteamID64()
+            };
+
+            if (this.bot.manager.apiKey) {
+                params.key = this.bot.manager.apiKey;
+            } else {
+                params.access_token = this.bot.manager.accessToken;
+            }
             void axios({
                 url: 'https://api.steampowered.com/IPlayerService/GetBadges/v1/',
                 method: 'GET',
-                params: {
-                    key: this.bot.manager.apiKey,
-                    steamid: (this.bot.client.steamID === null
-                        ? this.bot.handler.getBotInfo.steamID
-                        : this.bot.client.steamID
-                    ).getSteamID64()
-                }
+                params
             })
                 .then(response => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
