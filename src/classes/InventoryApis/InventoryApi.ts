@@ -91,6 +91,11 @@ export default class InventoryApi {
                         return;
                     }
 
+                    if (result?.fake_redirect === 0) {
+                        // fake redirect caused by steam erros on the proxy's side
+                        return callback(new Error('Received fake redirect 0'));
+                    }
+
                     if (result && result.success && result.total_inventory_count === 0) {
                         // Empty inventory
                         callback(null, [], [], 0);
@@ -177,4 +182,5 @@ interface GetUserInventoryContentsResult {
     more_items?: number;
     total_inventory_count?: number;
     success?: number;
+    fake_redirect?: 1 | 0;
 }
