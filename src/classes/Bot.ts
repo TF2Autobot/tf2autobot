@@ -1246,16 +1246,14 @@ export default class Bot {
             this.listingManager.setUserID(this.userID);
         }
 
+        if (this.options.steamApiKey) {
+            this.manager.apiKey = this.options.steamApiKey;
+        }
+
         return new Promise((resolve, reject) => {
             this.manager.setCookies(cookies, err => {
                 if (err) {
                     return reject(err);
-                }
-
-                // Steam API key likely become 0000s after calling setCookies
-                // if useAccessToken is false (STEAM_API_KEY is defined)
-                if (this.options.steamApiKey) {
-                    this.manager.apiKey = this.options.steamApiKey;
                 }
 
                 resolve();
