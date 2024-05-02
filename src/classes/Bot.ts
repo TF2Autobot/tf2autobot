@@ -1247,8 +1247,8 @@ export default class Bot {
             this.listingManager.setUserID(this.userID);
         }
 
-        if (process.env.STEAM_API_KEY) {
-            this.manager.apiKey = process.env.STEAM_API_KEY;
+        if (this.options.steamApiKey) {
+            this.manager.apiKey = this.options.steamApiKey;
         }
 
         return new Promise((resolve, reject) => {
