@@ -105,13 +105,10 @@ export default class TF2Inventory {
                 access_token?: string;
             } = { steamid: this.getSteamID.toString() };
 
-            if (this.manager.apiKey) {
-                params.key = this.manager.apiKey;
-            } else {
-                params.access_token = this.manager.accessToken;
-            }
+            const hasApiKey = !!this.manager.apiKey;
+            params[hasApiKey ? 'key' : 'access_token'] = this.manager[hasApiKey ? 'apiKey' : 'accessToken'];
 
-            void axios({
+            axios({
                 url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
                 method: 'GET',
                 params

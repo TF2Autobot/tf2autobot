@@ -54,12 +54,10 @@ export default class Friends {
                 ).getSteamID64()
             };
 
-            if (this.bot.manager.apiKey) {
-                params.key = this.bot.manager.apiKey;
-            } else {
-                params.access_token = this.bot.manager.accessToken;
-            }
-            void axios({
+            const hasApiKey = !!this.bot.manager.apiKey;
+            params[hasApiKey ? 'key' : 'access_token'] = this.bot.manager[hasApiKey ? 'apiKey' : 'accessToken'];
+
+            axios({
                 url: 'https://api.steampowered.com/IPlayerService/GetBadges/v1/',
                 method: 'GET',
                 params
