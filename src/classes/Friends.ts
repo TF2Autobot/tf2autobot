@@ -3,6 +3,7 @@ import SteamID from 'steamid';
 import axios, { AxiosError } from 'axios';
 import Bot from './Bot';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { SteamRequestParams } from '../types/common';
 
 export default class Friends {
     maxFriends: number | undefined;
@@ -43,17 +44,12 @@ export default class Friends {
 
     get getMaxFriends(): Promise<number> {
         return new Promise((resolve, reject) => {
-            const params: {
-                steamid: string;
-                key?: string;
-                access_token?: string;
-            } = {
+            const params: SteamRequestParams = {
                 steamid: (this.bot.client.steamID === null
                     ? this.bot.handler.getBotInfo.steamID
                     : this.bot.client.steamID
                 ).getSteamID64()
             };
-
             const hasApiKey = !!this.bot.manager.apiKey;
             params[hasApiKey ? 'key' : 'access_token'] = this.bot.manager[hasApiKey ? 'apiKey' : 'accessToken'];
 

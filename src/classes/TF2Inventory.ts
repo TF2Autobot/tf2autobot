@@ -3,6 +3,7 @@ import TradeOfferManager from '@tf2autobot/tradeoffer-manager';
 import axios, { AxiosError } from 'axios';
 import cheerio from 'cheerio';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { SteamRequestParams } from '../types/common';
 // import { uid } from 'rand-token';
 
 type TF2Attribute = {
@@ -99,12 +100,7 @@ export default class TF2Inventory {
 
     private fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const params: {
-                steamid: string;
-                key?: string;
-                access_token?: string;
-            } = { steamid: this.getSteamID.toString() };
-
+            const params: SteamRequestParams = { steamid: this.getSteamID.toString() };
             const hasApiKey = !!this.manager.apiKey;
             params[hasApiKey ? 'key' : 'access_token'] = this.manager[hasApiKey ? 'apiKey' : 'accessToken'];
 
