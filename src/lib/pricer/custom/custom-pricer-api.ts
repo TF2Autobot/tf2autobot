@@ -88,7 +88,7 @@ export default class CustomPricerApi {
         };
 
         if (this.apiToken) {
-            options.headers = { Authorization: `Token ${this.apiToken}` };
+            options.headers['Authorization'] = `Token ${this.apiToken}`;
         }
 
         if (params) {
@@ -100,7 +100,7 @@ export default class CustomPricerApi {
         }
 
         return new Promise((resolve, reject) => {
-            void axios(options)
+            axios(options)
                 .then(response => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     resolve(response.data);

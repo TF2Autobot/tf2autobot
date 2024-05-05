@@ -4,7 +4,6 @@ import { UnknownDictionary, UnknownDictionaryKnownValues } from 'src/types/commo
 import SteamID from 'steamid';
 import CEconItem from '@tf2autobot/steamcommunity/classes/CEconItem';
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
-
 import Bot from '../Bot';
 
 export default class InventoryApi {
@@ -52,9 +51,9 @@ export default class InventoryApi {
 
         const userSteamID64 = typeof userID === 'string' ? userID : userID.getSteamID64();
 
-        const [apiCallURL, apiCallParams] = this.getURLAndParams(userSteamID64, appID, contextID);
+        const [apiCallUrl, apiCallParams] = this.getURLAndParams(userSteamID64, appID, contextID);
 
-        if (apiCallURL === '') {
+        if (apiCallUrl === '') {
             callback(new Error('Improper usage of InventoryAPI; descendant class should define getURLAndParams'));
             return;
         }
@@ -63,8 +62,8 @@ export default class InventoryApi {
         get([], []);
 
         function get(inventory: EconItem[], currency: EconItem[], start?: string) {
-            void axios({
-                url: apiCallURL,
+            axios({
+                url: apiCallUrl,
                 params: {
                     ...apiCallParams,
                     start_assetid: start

@@ -1,19 +1,28 @@
 import axios, { AxiosRequestConfig, Method, AxiosError } from 'axios';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 
-export async function apiRequest<B>(
-    httpMethod: string,
-    url: string,
-    params?: Record<string, any>,
-    data?: Record<string, any>,
-    headers?: Record<string, unknown>
-): Promise<B> {
+export async function apiRequest<B>({
+    method,
+    url,
+    params,
+    data,
+    headers,
+    apiToken
+}: {
+    method: Method;
+    url: string;
+    params?: Record<string, any>;
+    data?: Record<string, any>;
+    headers?: Record<string, unknown>;
+    signal?: AbortSignal;
+    apiToken?: string;
+}): Promise<B> {
     if (!headers) {
         headers = {};
     }
 
     const options: AxiosRequestConfig = {
-        method: httpMethod as Method,
+        method,
         url,
         headers: {
             'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
@@ -30,8 +39,12 @@ export async function apiRequest<B>(
         options.data = data;
     }
 
+    if (apiToken) {
+        options.headers['Authorization'] = `Token ${apiToken}`;
+    }
+
     return new Promise((resolve, reject) => {
-        void axios(options)
+        axios(options)
             .then(response => {
                 const body = response.data as B;
                 resolve(body);

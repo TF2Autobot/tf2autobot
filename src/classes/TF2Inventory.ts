@@ -1,9 +1,8 @@
 import SteamID from 'steamid';
 import TradeOfferManager from '@tf2autobot/tradeoffer-manager';
-import axios, { AxiosError } from 'axios';
 import cheerio from 'cheerio';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { SteamRequestParams } from '../types/common';
+import { apiRequest } from '../lib/apiRequest';
 // import { uid } from 'rand-token';
 
 type TF2Attribute = {
@@ -104,29 +103,23 @@ export default class TF2Inventory {
             const hasApiKey = !!this.manager.apiKey;
             params[hasApiKey ? 'key' : 'access_token'] = this.manager[hasApiKey ? 'apiKey' : 'accessToken'];
 
-            axios({
-                url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
+            apiRequest<GetPlayerItems>({
                 method: 'GET',
+                url: 'https://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/',
                 params
             })
-                .then(response => {
-                    const body = response.data as GetPlayerItems;
-
+                .then(body => {
                     if (body.result.status != 1) {
                         const err = new Error(body.result.statusDetail);
                         err['status'] = body.result.status;
                         return reject(err);
                     }
-
                     this.slots = body.result.num_backpack_slots;
                     this.items = body.result.items;
-
                     return resolve();
                 })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        return reject(filterAxiosError(err));
-                    }
+                .catch(err => {
+                    return reject(err);
                 });
         });
     }
@@ -140,17 +133,15 @@ export default class TF2Inventory {
         history?: [];
     }> {
         return new Promise((resolve, reject) => {
-            void axios({
-                url: 'https://old.backpack.tf/item/' + assetid,
+            apiRequest<string>({
                 method: 'GET',
+                url: 'https://backpack.tf/item/' + assetid,
                 headers: {
                     'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
                     Cookie: 'user-id=' + userID // uid(12)
                 }
             })
-                .then(response => {
-                    const body = response.data as string;
-
+                .then(body => {
                     const $ = cheerio.load(body);
 
                     if ($('table').length !== 1) {
@@ -169,10 +160,8 @@ export default class TF2Inventory {
                         history: []
                     });
                 })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        return reject(filterAxiosError(err));
-                    }
+                .catch(err => {
+                    return reject(err);
                 });
         });
     }

@@ -1,9 +1,8 @@
 import { EFriendRelationship } from 'steam-user';
 import SteamID from 'steamid';
-import axios, { AxiosError } from 'axios';
 import Bot from './Bot';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { SteamRequestParams } from '../types/common';
+import { apiRequest } from '../lib/apiRequest';
 
 export default class Friends {
     maxFriends: number | undefined;
@@ -53,28 +52,21 @@ export default class Friends {
             const hasApiKey = !!this.bot.manager.apiKey;
             params[hasApiKey ? 'key' : 'access_token'] = this.bot.manager[hasApiKey ? 'apiKey' : 'accessToken'];
 
-            axios({
-                url: 'https://api.steampowered.com/IPlayerService/GetBadges/v1/',
+            apiRequest<GetBadges>({
                 method: 'GET',
+                url: 'https://api.steampowered.com/IPlayerService/GetBadges/v1/',
                 params
             })
-                .then(response => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                    const result = response.data.response;
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                .then(body => {
+                    const result = body.response;
                     const level = result.player_level;
-
                     const base = 250;
                     const multiplier = 5;
-
                     this.maxFriends = base + level * multiplier;
-
                     resolve(this.maxFriends);
                 })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        return reject(filterAxiosError(err));
-                    }
+                .catch(err => {
+                    return reject(err);
                 });
         });
     }
@@ -90,4 +82,24 @@ interface Friend {
     avatar_url_icon: string;
     avatar_url_medium: string;
     avatar_url_full: string;
+}
+
+interface GetBadges {
+    response: ResponseGetBadges;
+}
+
+interface ResponseGetBadges {
+    badges: BadgesGetBadges[];
+    player_xp: number;
+    player_level: number;
+    player_xp_needed_to_level_up: number;
+    player_xp_needed_current_level: number;
+}
+
+interface BadgesGetBadges {
+    badgeid: number;
+    level: number;
+    completion_time: number;
+    xp: number;
+    scarcity: number;
 }
