@@ -87,7 +87,6 @@ export default class HelpCommands {
                         `find <Listing-parameters>=<value>[&limit=<value>] - Get the list of filtered items detail based on the parameters 🔍`,
                         `ppu [limit=<number>] - Get a list of items that is currently has Partial Price Update enabled`,
                         `getSlots or ${prefix}listings - Get current used listings slot per cap count.`,
-                        `getSlots or !listings - Get current used listings slot per cap count.`,
                         `groups - Get a list of groups in your pricelist 📜`
                     ].join(`\n- ${prefix}`)
             );
