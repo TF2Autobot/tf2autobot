@@ -1505,9 +1505,7 @@ function getMptfDashboardItems(mptfApiKey: string, ignorePainted = false): Promi
 
                 return resolve(toReturn);
             })
-            .catch(err => {
-                reject(err);
-            });
+            .catch(err => reject(err));
     });
 }
 

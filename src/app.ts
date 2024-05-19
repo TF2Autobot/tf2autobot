@@ -69,9 +69,7 @@ SchemaManager.prototype.getSchema = function (callback): void {
             this.setSchema(schema, true);
             callback(null, this.schema);
         })
-        .catch(err => {
-            callback(err);
-        });
+        .catch(err => callback(err));
 };
 /*eslint-enable */
 

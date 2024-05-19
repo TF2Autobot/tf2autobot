@@ -65,9 +65,7 @@ export default class Friends {
                     this.maxFriends = base + level * multiplier;
                     resolve(this.maxFriends);
                 })
-                .catch(err => {
-                    return reject(err);
-                });
+                .catch(err => reject(err));
         });
     }
 }

@@ -226,10 +226,8 @@ export default class Bans {
                     return resolve({ isBanned: this._isBptfBanned, content: result.content });
                 })
                 .catch(err => {
-                    if (this.showLog) {
-                        log.warn('Failed to get data from backpack.tf');
-                        log.debug(err);
-                    }
+                    log.warn('Failed to get data from backpack.tf');
+                    log.debug(err);
                     return resolve(undefined);
                 });
         });
@@ -252,10 +250,8 @@ export default class Bans {
                     return resolve({ isBanned: isSteamRepBanned, content: fullRepInfo });
                 })
                 .catch(err => {
-                    if (this.showLog) {
-                        log.warn('Failed to get data from SteamRep');
-                        log.debug(err);
-                    }
+                    log.warn('Failed to get data from SteamRep');
+                    log.debug(err);
                     if (this._isBptfSteamRepBanned !== null) {
                         return resolve({ isBanned: this._isBptfSteamRepBanned });
                     }
@@ -308,7 +304,7 @@ export default class Bans {
                     return resolve({ isBanned: false });
                 })
                 .catch(err => {
-                    if (this.showLog) log.warn('Failed to get data from Marketplace.tf', err);
+                    log.warn('Failed to get data from Marketplace.tf', err);
                     return resolve(undefined);
                 });
         });
@@ -338,12 +334,8 @@ export default class Bans {
                     if (err instanceof AbortSignal && attempt !== 'retry') {
                         return this.isListedUntrusted('retry');
                     }
-                    if (err) {
-                        if (this.showLog) {
-                            log.warn('Failed to get data from Github');
-                            log.debug(err);
-                        }
-                    }
+                    log.warn('Failed to get data from Github');
+                    log.debug(err);
                     resolve(undefined);
                 });
         });

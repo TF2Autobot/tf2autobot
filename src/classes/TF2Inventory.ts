@@ -118,9 +118,7 @@ export default class TF2Inventory {
                     this.items = body.result.items;
                     return resolve();
                 })
-                .catch(err => {
-                    return reject(err);
-                });
+                .catch(err => reject(err));
         });
     }
 
@@ -160,9 +158,7 @@ export default class TF2Inventory {
                         history: []
                     });
                 })
-                .catch(err => {
-                    return reject(err);
-                });
+                .catch(err => reject(err));
         });
     }
 }

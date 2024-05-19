@@ -101,15 +101,9 @@ export default class CustomPricerApi {
 
         return new Promise((resolve, reject) => {
             axios(options)
-                .then(response => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    resolve(response.data);
-                })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        reject(filterAxiosError(err));
-                    }
-                });
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                .then(response => resolve(response.data))
+                .catch((err: AxiosError) => reject(filterAxiosError(err)));
         });
     }
 

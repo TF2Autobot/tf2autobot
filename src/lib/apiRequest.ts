@@ -45,14 +45,7 @@ export async function apiRequest<B>({
 
     return new Promise((resolve, reject) => {
         axios(options)
-            .then(response => {
-                const body = response.data as B;
-                resolve(body);
-            })
-            .catch((err: AxiosError) => {
-                if (err) {
-                    reject(filterAxiosError(err));
-                }
-            });
+            .then(response => resolve(response.data as B))
+            .catch((err: AxiosError) => reject(filterAxiosError(err)));
     });
 }
