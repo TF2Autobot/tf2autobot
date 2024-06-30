@@ -2050,7 +2050,7 @@ export default class MyHandler extends Handler {
             `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
         );
 
-        if (opt.offerReceived.sendPreAcceptMessage.enable) {
+        if (opt.offerReceived.sendPreAcceptMessage.enable && this.bot.friends.isFriend(offer.partner)) {
             const preAcceptMessage = opt.customMessage.accepted.automatic;
 
             MyHandler.sendPreAcceptedMessage(
