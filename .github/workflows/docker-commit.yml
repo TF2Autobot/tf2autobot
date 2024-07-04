@@ -41,7 +41,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build final image
-        uses: docker/build-push-action@v5.3.0
+        uses: docker/build-push-action@v6.3.0
         with:
           push: true
           tags: tf2autobot/tf2autobot:${{ github.sha }}-${{ matrix.node }}
