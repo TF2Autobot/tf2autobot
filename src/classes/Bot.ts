@@ -1405,7 +1405,7 @@ export default class Bot {
                     resolve(null);
                 };
 
-                const errorEvent = (err): void => {
+                const errorEvent = (err: CustomError): void => {
                     gotEvent();
 
                     this.client.removeListener('loggedOn', loggedOnEvent);
@@ -1413,7 +1413,14 @@ export default class Bot {
 
                     log.error('Failed to sign in to Steam: ', err);
 
-                    reject(err);
+                    if (err.eresult === EResult.AccessDenied) {
+                        // Access denied during login
+                        this.deleteRefreshToken().finally(() => {
+                            reject(err);
+                        });
+                    } else {
+                        reject(err);
+                    }
                 };
 
                 const timeout = setTimeout(() => {
