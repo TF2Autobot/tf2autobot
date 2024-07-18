@@ -105,7 +105,7 @@ export default class PricesTfApi {
         }
 
         return new Promise((resolve, reject) => {
-            void axios(options)
+            axios(options)
                 .then(response => {
                     const body = response.data as B;
                     resolve(body);

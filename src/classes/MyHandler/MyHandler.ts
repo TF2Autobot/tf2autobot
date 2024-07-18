@@ -1,5 +1,4 @@
 import SKU from '@tf2autobot/tf2-sku';
-import axios, { AxiosError } from 'axios';
 import { EClanRelationship, EFriendRelationship, EPersonaState } from 'steam-user';
 import TradeOfferManager, {
     TradeOffer,
@@ -51,6 +50,7 @@ import filterAxiosError from '@tf2autobot/filter-axios-error';
 import sendTf2SystemMessage from '../DiscordWebhook/sendTf2SystemMessage';
 import sendTf2DisplayNotification from '../DiscordWebhook/sendTf2DisplayNotification';
 import sendTf2ItemBroadcast from '../DiscordWebhook/sendTf2ItemBroadcast';
+import { apiRequest } from '../../lib/apiRequest';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -2050,7 +2050,7 @@ export default class MyHandler extends Handler {
             `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
         );
 
-        if (opt.offerReceived.sendPreAcceptMessage.enable) {
+        if (opt.offerReceived.sendPreAcceptMessage.enable && this.bot.friends.isFriend(offer.partner)) {
             const preAcceptMessage = opt.customMessage.accepted.automatic;
 
             MyHandler.sendPreAcceptedMessage(
@@ -2498,7 +2498,7 @@ export default class MyHandler extends Handler {
         return new Promise((resolve, reject) => {
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
-            void axios({
+            apiRequest<BPTFGetUserInfo>({
                 url: 'https://api.backpack.tf/api/users/info/v1',
                 method: 'GET',
                 headers: {
@@ -2510,30 +2510,23 @@ export default class MyHandler extends Handler {
                     steamids: steamID64
                 }
             })
-                .then(response => {
-                    const body = response.data as BPTFGetUserInfo;
-
+                .then(body => {
                     const user = body.users[steamID64];
                     this.botName = user.name;
                     this.botAvatarURL = user.avatar;
                     this.isPremium = user.premium ? user.premium === 1 : false;
                     return resolve();
                 })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        log.error(
-                            'Failed requesting bot info from backpack.tf, retrying in 5 minutes: ',
-                            filterAxiosError(err)
-                        );
-                        clearTimeout(this.retryRequest);
+                .catch(err => {
+                    log.error('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
+                    clearTimeout(this.retryRequest);
 
-                        this.retryRequest = setTimeout(() => {
-                            this.getBPTFAccountInfo().catch(() => {
-                                // ignore error
-                            });
-                        }, 5 * 60 * 1000);
-                        return reject();
-                    }
+                    this.retryRequest = setTimeout(() => {
+                        this.getBPTFAccountInfo().catch(() => {
+                            // ignore error
+                        });
+                    }, 5 * 60 * 1000);
+                    return reject();
                 });
         });
     }

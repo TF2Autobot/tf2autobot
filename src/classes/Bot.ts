@@ -11,7 +11,7 @@ import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
 import fs from 'fs';
@@ -44,6 +44,7 @@ import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { axiosAbortSignal } from '../lib/helpers';
+import { apiRequest } from '../lib/apiRequest';
 
 export interface SteamTokens {
     refreshToken: string;
@@ -312,13 +313,12 @@ export default class Bot {
 
     private getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
         return new Promise((resolve, reject) => {
-            axios({
-                method: 'get',
+            apiRequest<string>({
+                method: 'GET',
                 url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`,
                 signal: axiosAbortSignal(60000)
             })
-                .then(response => {
-                    const content = response.data as string;
+                .then(content => {
                     this.tf2.setLang(content);
                     return resolve();
                 })
@@ -548,26 +548,23 @@ export default class Bot {
         attempt: 'first' | 'retry' = 'first'
     ): Promise<{ version: string; canUpdateRepo: boolean; updateMessage: string }> {
         return new Promise((resolve, reject) => {
-            void axios({
+            apiRequest<GithubPackageJson>({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
                 signal: axiosAbortSignal(60000)
             })
-                .then(response => {
-                    /*eslint-disable */
-                    const data = response.data;
+                .then(data => {
                     return resolve({
                         version: data.version,
                         canUpdateRepo: data.updaterepo,
                         updateMessage: data.updateMessage
                     });
-                    /*eslint-enable */
                 })
-                .catch((err: AxiosError) => {
+                .catch(err => {
                     if (err instanceof AbortSignal && attempt !== 'retry') {
                         return this.getLatestVersion('retry');
                     }
-                    reject(filterAxiosError(err));
+                    reject(err);
                 });
         });
     }
@@ -1728,4 +1725,10 @@ export default class Bot {
     isCloned(): boolean {
         return fs.existsSync(path.resolve(__dirname, '..', '..', '.git'));
     }
+}
+
+interface GithubPackageJson {
+    version: string;
+    updaterepo: boolean;
+    updateMessage: string;
 }

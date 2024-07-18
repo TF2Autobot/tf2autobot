@@ -64,14 +64,12 @@ import { apiRequest } from './lib/apiRequest';
 
 /*eslint-disable */
 SchemaManager.prototype.getSchema = function (callback): void {
-    apiRequest('GET', 'https://schema.autobot.tf/schema')
+    apiRequest({ method: 'GET', url: 'https://schema.autobot.tf/schema' })
         .then(schema => {
             this.setSchema(schema, true);
             callback(null, this.schema);
         })
-        .catch(err => {
-            callback(err);
-        });
+        .catch(err => callback(err));
 };
 /*eslint-enable */
 
@@ -86,9 +84,7 @@ const botManager = new BotManager(
 import ON_DEATH from 'death';
 import * as inspect from 'util';
 import { Webhook } from './classes/DiscordWebhook/interfaces';
-import axios, { AxiosError } from 'axios';
 import { uptime } from './lib/tools/time';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 ON_DEATH({ uncaughtException: true })((signalOrErr, origin: string | Error) => {
     const crashed = !['SIGINT', 'SIGTERM'].includes(signalOrErr as 'SIGINT' | 'SIGTERM' | 'SIGQUIT');
@@ -143,13 +139,9 @@ ON_DEATH({ uncaughtException: true })((signalOrErr, origin: string | Error) => {
                 ]
             };
 
-            void axios({
-                method: 'POST',
-                url: optDW.sendAlert.url.main,
-                data: sendAlertWebhook // axios should automatically set Content-Type header to application/json
-            }).catch((err: AxiosError) => {
-                log.error('Error sending webhook on crash', filterAxiosError(err));
-            });
+            apiRequest({ method: 'POST', url: optDW.sendAlert.url.main, data: sendAlertWebhook }).catch(err =>
+                log.error('Error sending webhook on crash', err)
+            );
         }
 
         if (botReady) {

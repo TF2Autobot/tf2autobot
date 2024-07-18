@@ -3,14 +3,13 @@ import dayjs from 'dayjs';
 import SKU from '@tf2autobot/tf2-sku';
 import TradeOfferManager, { OurTheirItemsDict, TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import pluralize from 'pluralize';
-import axios, { AxiosError } from 'axios';
 import { UnknownDictionary } from '../../types/common';
 import Bot from '../Bot';
 import Pricelist from '../Pricelist';
 import { BPTFGetUserInfo } from '../MyHandler/interfaces';
 import log from '../../lib/logger';
 import { sendAlert } from '../DiscordWebhook/export';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
+import { apiRequest } from '../../lib/apiRequest';
 
 /**
  * An abstract class used for sending offers
@@ -569,9 +568,9 @@ export default abstract class Cart {
 
     private async getTotalBackpackSlots(steamID64: string): Promise<number> {
         return new Promise(resolve => {
-            void axios({
-                url: 'https://api.backpack.tf/api/users/info/v1',
+            apiRequest<BPTFGetUserInfo>({
                 method: 'GET',
+                url: 'https://api.backpack.tf/api/users/info/v1',
                 headers: {
                     'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
                     Cookie: 'user-id=' + this.bot.userID
@@ -581,19 +580,15 @@ export default abstract class Cart {
                     steamids: steamID64
                 }
             })
-                .then(response => {
-                    const thisBody = response.data as BPTFGetUserInfo;
-
-                    const user = thisBody.users[steamID64];
+                .then(body => {
+                    const user = body.users[steamID64];
                     const totalBackpackSlots = user.inventory ? user.inventory['440'].slots.total : 0;
 
                     return resolve(totalBackpackSlots);
                 })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        log.error('Failed requesting user info from backpack.tf: ', filterAxiosError(err));
-                        return resolve(0);
-                    }
+                .catch(err => {
+                    log.error('Failed requesting user info from backpack.tf: ', err);
+                    return resolve(0);
                 });
         });
     }

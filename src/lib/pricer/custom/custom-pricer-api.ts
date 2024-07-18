@@ -88,7 +88,7 @@ export default class CustomPricerApi {
         };
 
         if (this.apiToken) {
-            options.headers = { Authorization: `Token ${this.apiToken}` };
+            options.headers['Authorization'] = `Token ${this.apiToken}`;
         }
 
         if (params) {
@@ -100,16 +100,10 @@ export default class CustomPricerApi {
         }
 
         return new Promise((resolve, reject) => {
-            void axios(options)
-                .then(response => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    resolve(response.data);
-                })
-                .catch((err: AxiosError) => {
-                    if (err) {
-                        reject(filterAxiosError(err));
-                    }
-                });
+            axios(options)
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                .then(response => resolve(response.data))
+                .catch((err: AxiosError) => reject(filterAxiosError(err)));
         });
     }
 
