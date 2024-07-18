@@ -3,3 +3,9 @@ export interface UnknownDictionary<T> {
 }
 
 type UnknownDictionaryKnownValues = UnknownDictionary<any>;
+
+export interface SteamRequestParams {
+    steamid: string;
+    key?: string;
+    access_token?: string;
+}

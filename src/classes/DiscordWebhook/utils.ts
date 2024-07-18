@@ -1,9 +1,10 @@
 import TradeOfferManager, { TradeOffer } from '@tf2autobot/tradeoffer-manager';
-import axios, { AxiosError } from 'axios';
 import { Webhook } from './interfaces';
 import Bot from '../Bot';
 import log from '../../lib/logger';
-import filterAxiosError, { ErrorFiltered } from '@tf2autobot/filter-axios-error';
+import { AxiosError } from 'axios';
+import { ErrorFiltered } from '@tf2autobot/filter-axios-error';
+import { apiRequest } from '../../lib/apiRequest';
 
 export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ personaName: string; avatarFull: any }> {
     return new Promise(resolve => {
@@ -58,17 +59,9 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
             });
         }
 
-        void axios({
-            method: 'POST',
-            url: url,
-            data: webhook
-        })
-            .then(() => {
-                resolve();
-            })
-            .catch((err: AxiosError) => {
-                reject({ err: filterAxiosError(err), webhook });
-            });
+        apiRequest({ method: 'POST', url, data: webhook })
+            .then(() => resolve())
+            .catch((err: AxiosError) => reject({ err, webhook }));
     });
 }
 
