@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot",
-    "version": "5.12.2",
+    "version": "5.13.0",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
@@ -23,7 +23,7 @@
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
     "updaterepo": true,
-    "updateMessage": "",
+    "updateMessage": "Steam/TF2 is quite unstable right now, update/restart at your own will.",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "^5.7.7",
