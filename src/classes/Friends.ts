@@ -49,8 +49,9 @@ export default class Friends {
                     : this.bot.client.steamID
                 ).getSteamID64()
             };
-            const hasApiKey = !!this.bot.manager.apiKey;
-            params[hasApiKey ? 'key' : 'access_token'] = this.bot.manager[hasApiKey ? 'apiKey' : 'accessToken'];
+
+            if (!!this.bot.manager.apiKey) params.key = this.bot.manager.apiKey;
+            else params.access_token = this.bot.manager.accessToken;
 
             apiRequest<GetBadges>({
                 method: 'GET',

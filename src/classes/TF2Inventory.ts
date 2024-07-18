@@ -100,8 +100,9 @@ export default class TF2Inventory {
     private fetch(): Promise<void> {
         return new Promise((resolve, reject) => {
             const params: SteamRequestParams = { steamid: this.getSteamID.toString() };
-            const hasApiKey = !!this.manager.apiKey;
-            params[hasApiKey ? 'key' : 'access_token'] = this.manager[hasApiKey ? 'apiKey' : 'accessToken'];
+
+            if (!!this.manager.apiKey) params.key = this.manager.apiKey;
+            else params.access_token = this.manager.accessToken;
 
             apiRequest<GetPlayerItems>({
                 method: 'GET',
