@@ -50,7 +50,7 @@ export default class Friends {
                 ).getSteamID64()
             };
 
-            if (!!this.bot.manager.apiKey) params.key = this.bot.manager.apiKey;
+            if (this.bot.manager.apiKey) params.key = this.bot.manager.apiKey;
             else params.access_token = this.bot.manager.accessToken;
 
             apiRequest<GetBadges>({
