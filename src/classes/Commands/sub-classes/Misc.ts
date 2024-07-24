@@ -66,21 +66,23 @@ export default class MiscCommands {
             );
         } else if (command === 'rate') {
             const key = this.bot.pricelist.getKeyPrices;
-            const keyRate = key.sell.toString();
+            const keySellRate = key.sell.toString();
+            const keyBuyRate = key.buy.toString();
 
             this.bot.sendMessage(
                 steamID,
                 custom
                     ? custom
-                          .replace(/%keyRate%/g, keyRate)
-                          .replace(/%keyPrices%/g, `${key.buy.metal} / ${key.sell.toString()}`)
+                          .replace(/%keySellRate%/g, keySellRate)
+                          .replace(/%keyBuyRate%/g, keyBuyRate)
+                          .replace(/%keyPrices%/g, `${keyBuyRate} / ${keySellRate}`)
                     : 'I value 🔑 Mann Co. Supply Crate Keys at ' +
-                          keyRate +
-                          '. This means that one key is the same as ' +
-                          keyRate +
-                          ', and ' +
-                          keyRate +
-                          ' is the same as one key.'
+                          `${keyBuyRate} / ${keySellRate}` +
+                          '. This means that I buy one key for ' +
+                          keyBuyRate +
+                          ', and I sell one key for ' +
+                          keySellRate +
+                          '.'
             );
         } else if (command === 'owner') {
             const firstAdmin = this.bot.getAdmins[0];
