@@ -71,7 +71,7 @@ export default async function sendTradeDeclined(
     const declinedDescription = declined.reasonDescription;
     const declinedTradeSummary: Webhook = {
         username: optDW.displayName || botInfo.name,
-        avatar_url: optDW.avatarURL || optDW.avatarURL,
+        avatar_url: optDW.avatarURL || botInfo.avatarURL,
         content: '',
         embeds: [
             {
