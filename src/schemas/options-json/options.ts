@@ -436,6 +436,16 @@ export const optionsSchema: jsonschema.Schema = {
                     required: ['enable', 'withUncraft'],
                     additionalProperties: false
                 },
+                itemsOnBothSides: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable'],
+                    additionalProperties: false
+                },
                 checkUses: {
                     type: 'object',
                     properties: {
@@ -1869,6 +1879,9 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         containsKeysOnBothSides: {
                             type: 'string'
+                        },
+                        containsItemsOnBothSides: {
+                            type: 'string'
                         }
                     },
                     required: [
@@ -1889,7 +1902,8 @@ export const optionsSchema: jsonschema.Schema = {
                         'failedToCounter',
                         'takingItemsWithIntentBuy',
                         'givingItemsWithIntentSell',
-                        'containsKeysOnBothSides'
+                        'containsKeysOnBothSides',
+                        'containsItemsOnBothSides'
                     ],
                     additionalProperties: false
                 },
