@@ -40,7 +40,7 @@ export const DEFAULTS: JsonOptions = {
             withUncraft: true
         },
         itemsOnBothSides: {
-            enable: false
+            enable: true
         },
         checkUses: {
             duel: true,
