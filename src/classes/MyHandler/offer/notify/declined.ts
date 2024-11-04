@@ -217,6 +217,9 @@ export default function declined(offer: TradeOffer, bot: Bot): void {
         reply = custom
             ? custom
             : declined + ' because the offer sent contains Mann Co. Supply Crate Key on both sides.';
+    } else if (offerReason.reason === 'CONTAINS_ITEMS_ON_BOTH_SIDES') {
+        const custom = opt.customMessage.decline.containsItemsOnBothSides;
+        reply = custom ? custom : declined + ' because the offer sent contains items on both sides.';
     } else {
         //
         const custom = opt.customMessage.decline.general;
