@@ -617,10 +617,6 @@ export default class ManagerCommands {
                         if (opt.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                             listingSKU = listingSKU.replace(';strange', '');
                         }
-                    } else {
-                        if (/;[p][0-9]+/.test(listingSKU)) {
-                            listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                        }
                     }
 
                     const match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
@@ -668,8 +664,6 @@ export default class ManagerCommands {
                             if (
                                 _listings.length === 1 &&
                                 listing.intent === 0 && // We only check if the only listing exist is buy order
-                                entry.max > 1 &&
-                                amountAvailable > 0 &&
                                 amountAvailable > entry.min
                             ) {
                                 // here we only check if the bot already have that item
