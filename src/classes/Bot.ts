@@ -570,7 +570,6 @@ export default class Bot {
     }
 
     startAutoRefreshListings(): void {
-        return;
         // Automatically check for missing listings every 30 minutes
         let pricelistLength = 0;
 
