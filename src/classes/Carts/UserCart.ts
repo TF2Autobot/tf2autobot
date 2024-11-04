@@ -71,7 +71,7 @@ export default class UserCart extends Cart {
                     'please enable Steam Guard Mobile Authenticator.' +
                     '\nRead:\n' +
                     '• Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=8625-WRAH-9030' +
-                    '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218'
+                    '\n• How to set up Steam Guard Mobile Authenticator - https://support.steampowered.com/kb_article.php?ref=4440-RTUI-9218 '
             );
         }
 
