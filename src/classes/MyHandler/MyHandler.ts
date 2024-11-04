@@ -761,6 +761,20 @@ export default class MyHandler extends Handler {
             };
         }
 
+        // Check if the offer has items on both sides
+        if (
+            !opt.miscSettings.itemsOnBothSides.enable &&
+            exchange['our'].contains.items &&
+            exchange['their'].contains.items
+        ) {
+            offer.log('info', 'offer has items on both sides');
+            return {
+                action: 'decline',
+                reason: 'CONTAINS_ITEMS_ON_BOTH_SIDES',
+                meta: isContainsHighValue ? { highValue: highValueMeta } : undefined
+            };
+        }
+
         const itemsToGiveCount = offer.itemsToGive.length;
         const itemsToReceiveCount = offer.itemsToReceive.length;
 
