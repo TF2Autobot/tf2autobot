@@ -26,7 +26,7 @@
     "updateMessage": "Steam/TF2 is quite unstable right now, update/restart at your own will.",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
-        "@tf2autobot/bptf-listings": "^5.7.7",
+        "@tf2autobot/bptf-listings": "^5.7.8",
         "@tf2autobot/bptf-login": "^2.3.7",
         "@tf2autobot/filter-axios-error": "^1.5.4",
         "@tf2autobot/jsonlint": "^1.0.0",
