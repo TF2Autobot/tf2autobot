@@ -18,6 +18,7 @@ import log from '../../../lib/logger';
 import { pure, testPriceKey } from '../../../lib/tools/export';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { AxiosError } from 'axios';
+import { Entry } from '../../Pricelist';
 
 // Bot manager commands
 
@@ -619,7 +620,13 @@ export default class ManagerCommands {
                         }
                     }
 
-                    const match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
+                    let match: Entry | null;
+                    const assetIdPrice = this.bot.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
+                    if (null !== assetIdPrice) {
+                        match = assetIdPrice;
+                    } else {
+                        match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
+                    }
 
                     if (isFilterCantAfford && listing.intent === 0 && match !== null) {
                         const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
@@ -708,8 +715,8 @@ export default class ManagerCommands {
                     }
                 }
 
-                const skusToCheck = Object.keys(pricelist);
-                const pricelistCount = skusToCheck.length;
+                const priceKeysToCheck = Object.keys(pricelist);
+                const pricelistCount = priceKeysToCheck.length;
 
                 if (pricelistCount > 0) {
                     clearTimeout(this.executeRefreshListTimeout);
@@ -718,7 +725,7 @@ export default class ManagerCommands {
                     log.debug(
                         'Checking listings for ' +
                             pluralize('item', pricelistCount, true) +
-                            ` [${skusToCheck.join(', ')}] ...`
+                            ` [${priceKeysToCheck.join(', ')}] ...`
                     );
 
                     this.bot.sendMessage(
@@ -738,7 +745,7 @@ export default class ManagerCommands {
                     }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
 
                     await this.bot.listings.recursiveCheckPricelist(
-                        skusToCheck,
+                        priceKeysToCheck,
                         pricelist,
                         true,
                         this.pricelistCount > 4000 ? 400 : 200,
