@@ -218,6 +218,8 @@ export default class Commands {
                 this.manager.TF2GCCommand(steamID, message, command as TF2GC);
             } else if (['name', 'avatar'].includes(command) && isAdmin) {
                 this.manager.nameAvatarCommand(steamID, message, command as NameAvatar, prefix);
+            } else if (command === 'changename' && isAdmin) {
+                this.manager.changeNameCommand(steamID, message, prefix);
             } else if (['block', 'unblock'].includes(command) && isAdmin) {
                 this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
             } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
