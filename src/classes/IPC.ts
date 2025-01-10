@@ -89,6 +89,7 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('removeItem', this.removeItem.bind(this));
             this.ourServer.on('getTrades', this.sendTrades.bind(this));
             this.ourServer.on('getInventory', this.sendInventory.bind(this));
+            this.ourServer.on('getUserInventory', this.sendUserInventory.bind(this));
             this.ourServer.on('sendChat', this.sendChat.bind(this));
             this.ourServer.on('getOptions', this.sendOptions.bind(this));
             this.ourServer.on('updateOptions', this.updateOptions.bind(this));
@@ -117,8 +118,8 @@ export default class ipcHandler extends IPC {
             .then(item => {
                 this.ourServer.emit('itemAdded', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
-            .catch((e: string) => {
-                this.ourServer.emit('itemAdded', e);
+            .catch((e: Error) => {
+                this.ourServer.emit('itemAdded', 'Error:' + e.message);
             });
     }
 
@@ -135,8 +136,8 @@ export default class ipcHandler extends IPC {
             .then(item => {
                 this.ourServer.emit('itemUpdated', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
-            .catch((e: string) => {
-                this.ourServer.emit('itemUpdated', e);
+            .catch((e: Error) => {
+                this.ourServer.emit('itemUpdated', 'Error:' + e.message);
             });
     }
 
@@ -146,8 +147,8 @@ export default class ipcHandler extends IPC {
             .then(item => {
                 this.ourServer.emit('itemRemoved', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
-            .catch((e: string) => {
-                this.ourServer.emit('itemRemoved', e);
+            .catch((e: Error) => {
+                this.ourServer.emit('itemRemoved', 'Error:' + e.message);
             });
     }
 
@@ -194,13 +195,25 @@ export default class ipcHandler extends IPC {
             .then(msg => {
                 this.ourServer.emit('chatResp', msg);
             })
-            .catch((e: string) => {
-                this.ourServer.emit('chatResp', e);
+            .catch((e: Error) => {
+                this.ourServer.emit('chatResp', 'Error:' + e.message);
             });
     }
 
     sendInventory(): void {
         this.ourServer.emit('inventory', this.bot.inventoryManager.getInventory.getItems);
+    }
+
+    sendUserInventory(id: string): void {
+        const inv = new Inventory(id, this.bot, 'their', this.bot.boundInventoryGetter);
+        inv.fetch()
+            .then(() => {
+                const theirInventoryItems = inv.getItems;
+                this.ourServer.emit('userInventory', theirInventoryItems);
+            })
+            .catch((e: Error) => {
+                this.ourServer.emit('userInventory', 'Error:' + e.message);
+            });
     }
 
     sendOptions(): void {
@@ -239,31 +252,39 @@ export default class ipcHandler extends IPC {
 }
 
 import { Socket } from 'net';
+import Inventory from './Inventory';
+
 interface Client {
     /**
      * triggered when a JSON message is received. The event name will be the type string from your message
      * and the param will be the data object from your message eg : \{ type:'myEvent',data:\{a:1\}\}
      */
     on(event: string, callback: (...args: any[]) => void): Client;
+
     /**
      * triggered when an error has occured
      */
     on(event: 'error', callback: (err: any) => void): Client;
+
     /**
      * connect - triggered when socket connected
      * disconnect - triggered by client when socket has disconnected from server
      * destroy - triggered when socket has been totally destroyed, no further auto retries will happen and all references are gone
      */
     on(event: 'connect' | 'disconnect' | 'destroy', callback: () => void): Client;
+
     /**
      * triggered by server when a client socket has disconnected
      */
     on(event: 'socket.disconnected', callback: (socket: Socket, destroyedSocketID: string) => void): Client;
+
     /**
      * triggered when ipc.config.rawBuffer is true and a message is received
      */
     on(event: 'data', callback: (buffer: Buffer) => void): Client;
+
     emit(event: string, value?: any): Client;
+
     /**
      * Unbind subscribed events
      */
