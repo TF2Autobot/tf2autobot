@@ -82,11 +82,12 @@ export default class ipcHandler extends IPC {
             //bind handlers
             this.ourServer.on('connect', this.connected.bind(this));
             this.ourServer.on('getInfo', this.sendInfo.bind(this));
-            this.ourServer.on('getPricelist', this.sendPricelist.bind(this));
             this.ourServer.on('disconnected', this.disconnected.bind(this));
             this.ourServer.on('addItem', this.addItem.bind(this));
             this.ourServer.on('updateItem', this.updateItem.bind(this));
             this.ourServer.on('removeItem', this.removeItem.bind(this));
+            this.ourServer.on('getKeyPrices', this.sendKeyPrices.bind(this));
+            this.ourServer.on('getPricelist', this.sendPricelist.bind(this));
             this.ourServer.on('getTrades', this.sendTrades.bind(this));
             this.ourServer.on('getInventory', this.sendInventory.bind(this));
             this.ourServer.on('getUserInventory', this.sendUserInventory.bind(this));
@@ -166,6 +167,11 @@ export default class ipcHandler extends IPC {
             admins: this.bot.getAdmins.map(id => id.getSteamID64()),
             name: this.bot.options.steamAccountName
         });
+    }
+
+    private sendKeyPrices(): void {
+        const keyPrices = this.bot.pricelist.getKeyPrices;
+        this.ourServer.emit('keyPrices', keyPrices);
     }
 
     sendPricelist(): void {
