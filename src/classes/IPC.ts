@@ -16,6 +16,10 @@ interface Item extends Entry {
     style?: any;
 }
 
+class IPCMessage {
+    constructor(private readonly success: boolean, private readonly data: unknown) {}
+}
+
 export default class ipcHandler extends IPC {
     private ourServer: Client;
 
@@ -84,6 +88,8 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('getInfo', this.sendInfo.bind(this));
             this.ourServer.on('disconnected', this.disconnected.bind(this));
             this.ourServer.on('addItem', this.addItem.bind(this));
+            this.ourServer.on('haltBot', this.onHaltBot.bind(this));
+            this.ourServer.on('getHaltStatus', this.onGetHaltStatus.bind(this));
             this.ourServer.on('updateItem', this.updateItem.bind(this));
             this.ourServer.on('removeItem', this.removeItem.bind(this));
             this.ourServer.on('getKeyPrices', this.sendKeyPrices.bind(this));
@@ -106,6 +112,53 @@ export default class ipcHandler extends IPC {
     }
 
     /* HANDLERS */
+    private onHaltBot(halt: boolean): void {
+        try {
+            if (this.bot.isHalted && halt) {
+                this.onGetHaltStatus();
+                return;
+            }
+            if (halt) {
+                this.bot
+                    .halt()
+                    .then(removeAllListingsFailed => {
+                        if (removeAllListingsFailed) {
+                            this.ourServer.emit('haltStatus', new IPCMessage(false, 'Failed to remove all listings'));
+                        } else {
+                            this.onGetHaltStatus();
+                        }
+                    })
+                    .catch((e: Error) => {
+                        this.ourServer.emit('haltStatus', new IPCMessage(false, e.message));
+                    });
+            } else {
+                this.bot
+                    .unhalt()
+                    .then(recreatedListingsFailed => {
+                        if (recreatedListingsFailed) {
+                            this.ourServer.emit('haltStatus', new IPCMessage(false, 'Failed to relist all listings'));
+                        } else {
+                            this.onGetHaltStatus();
+                        }
+                    })
+                    .catch((e: Error) => {
+                        this.ourServer.emit('haltStatus', new IPCMessage(false, e.message));
+                    });
+            }
+        } catch (error: unknown) {
+            let message: unknown;
+            if (error instanceof Error) {
+                message = error.message;
+            } else message = String(error);
+            this.ourServer.emit('haltStatus', new IPCMessage(false, message));
+        }
+    }
+
+    private onGetHaltStatus(): void {
+        const haltStatus = this.bot.isHalted;
+        this.ourServer.emit('haltStatus', new IPCMessage(true, haltStatus));
+    }
+
     private addItem(item: Item): void {
         ipcHandler.cleanItem(item);
 
@@ -117,10 +170,11 @@ export default class ipcHandler extends IPC {
         this.bot.pricelist
             .addPrice({ entryData: item as EntryData, emitChange: true })
             .then(item => {
-                this.ourServer.emit('itemAdded', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
+                const result = Object.assign(item, priceKey === item.sku ? {} : { id: priceKey });
+                this.ourServer.emit('itemAdded', new IPCMessage(true, result));
             })
             .catch((e: Error) => {
-                this.ourServer.emit('itemAdded', 'Error:' + e.message);
+                this.ourServer.emit('itemAdded', new IPCMessage(false, e.message));
             });
     }
 
@@ -135,10 +189,11 @@ export default class ipcHandler extends IPC {
         this.bot.pricelist
             .updatePrice({ priceKey, entryData: item as EntryData, emitChange: true })
             .then(item => {
-                this.ourServer.emit('itemUpdated', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
+                const result = Object.assign(item, priceKey === item.sku ? {} : { id: priceKey });
+                this.ourServer.emit('itemUpdated', new IPCMessage(true, result));
             })
             .catch((e: Error) => {
-                this.ourServer.emit('itemUpdated', 'Error:' + e.message);
+                this.ourServer.emit('itemUpdated', new IPCMessage(false, e.message));
             });
     }
 
@@ -146,10 +201,11 @@ export default class ipcHandler extends IPC {
         this.bot.pricelist
             .removePrice(priceKey, true)
             .then(item => {
-                this.ourServer.emit('itemRemoved', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
+                const result = Object.assign(item, priceKey === item.sku ? {} : { id: priceKey });
+                this.ourServer.emit('itemRemoved', new IPCMessage(true, result));
             })
             .catch((e: Error) => {
-                this.ourServer.emit('itemRemoved', 'Error:' + e.message);
+                this.ourServer.emit('itemRemoved', new IPCMessage(false, e.message));
             });
     }
 
@@ -162,16 +218,29 @@ export default class ipcHandler extends IPC {
     }
 
     private sendInfo(): void {
-        this.ourServer.emit('info', {
-            id: this.bot.client.steamID.getSteamID64(),
-            admins: this.bot.getAdmins.map(id => id.getSteamID64()),
-            name: this.bot.options.steamAccountName
-        });
+        try {
+            const data = {
+                id: this.bot.client.steamID.getSteamID64(),
+                admins: this.bot.getAdmins.map(id => id.getSteamID64()),
+                name: this.bot.options.steamAccountName
+            };
+            this.ourServer.emit('info', new IPCMessage(true, data));
+        } catch (error: unknown) {
+            let message: unknown;
+            if (error instanceof Error) {
+                message = error.message;
+            } else message = String(error);
+            this.ourServer.emit('info', new IPCMessage(false, message));
+        }
     }
 
     private sendKeyPrices(): void {
         const keyPrices = this.bot.pricelist.getKeyPrices;
-        this.ourServer.emit('keyPrices', keyPrices);
+        if (keyPrices) {
+            this.ourServer.emit('keyPrices', new IPCMessage(true, keyPrices));
+        } else {
+            this.ourServer.emit('keyPrices', new IPCMessage(false, 'Key prices not available'));
+        }
     }
 
     sendPricelist(): void {
@@ -185,29 +254,39 @@ export default class ipcHandler extends IPC {
                     return item;
                 }
             });
-            this.ourServer.emit('pricelist', pricelistMapped);
+            this.ourServer.emit('pricelist', new IPCMessage(true, pricelistMapped));
         } else {
-            this.ourServer.emit('pricelist', false);
+            this.ourServer.emit('pricelist', new IPCMessage(false, 'Price list not available'));
         }
     }
 
     sendTrades(): void {
-        this.ourServer.emit('polldata', this.bot.manager.pollData);
+        const pollData = this.bot.manager.pollData;
+        if (pollData) {
+            this.ourServer.emit('polldata', new IPCMessage(true, pollData));
+        } else {
+            this.ourServer.emit('polldata', new IPCMessage(false, 'Poll data not available'));
+        }
     }
 
     private sendChat(message: string): void {
         this.bot.handler
             .onMessage(this.bot.getAdmins[0], message, false)
             .then(msg => {
-                this.ourServer.emit('chatResp', msg);
+                this.ourServer.emit('chatResp', new IPCMessage(true, msg));
             })
             .catch((e: Error) => {
-                this.ourServer.emit('chatResp', 'Error:' + e.message);
+                this.ourServer.emit('chatResp', new IPCMessage(false, e.message));
             });
     }
 
     sendInventory(): void {
-        this.ourServer.emit('inventory', this.bot.inventoryManager.getInventory.getItems);
+        const items = this.bot.inventoryManager.getInventory.getItems;
+        if (items) {
+            this.ourServer.emit('inventory', new IPCMessage(true, items));
+        } else {
+            this.ourServer.emit('inventory', new IPCMessage(false, 'Inventory not available'));
+        }
     }
 
     sendUserInventory(id: string): void {
@@ -215,18 +294,26 @@ export default class ipcHandler extends IPC {
         inv.fetch()
             .then(() => {
                 const theirInventoryItems = inv.getItems;
-                this.ourServer.emit('userInventory', theirInventoryItems);
+                this.ourServer.emit('userInventory', new IPCMessage(true, theirInventoryItems));
             })
             .catch((e: Error) => {
-                this.ourServer.emit('userInventory', 'Error:' + e.message);
+                this.ourServer.emit('userInventory', new IPCMessage(false, e.message));
             });
     }
 
     sendOptions(): void {
-        const saveOptions = deepMerge({}, this.bot.options) as JsonOptions;
-        removeCliOptions(saveOptions);
+        try {
+            const saveOptions = deepMerge({}, this.bot.options) as JsonOptions;
+            removeCliOptions(saveOptions);
 
-        this.ourServer.emit('options', saveOptions);
+            this.ourServer.emit('options', new IPCMessage(true, saveOptions));
+        } catch (error: unknown) {
+            let message: unknown;
+            if (error instanceof Error) {
+                message = error.message;
+            } else message = String(error);
+            this.ourServer.emit('options', new IPCMessage(false, message));
+        }
     }
 
     updateOptions(newOptions): void {
@@ -235,7 +322,7 @@ export default class ipcHandler extends IPC {
         const errors = validator(newOptions, 'options');
         if (errors !== null) {
             const msg = '❌ Error updating options: ' + errors.join(', ');
-            this.ourServer.emit('optionsUpdated', msg);
+            this.ourServer.emit('optionsUpdated', new IPCMessage(false, msg));
             return;
         }
         const optionsPath = getOptionsPath(opt.steamAccountName);
@@ -245,13 +332,13 @@ export default class ipcHandler extends IPC {
                 deepMerge(opt, newOptions);
                 const msg = '✅ Updated options!';
 
-                this.ourServer.emit('optionsUpdated', msg);
+                this.ourServer.emit('optionsUpdated', new IPCMessage(true, msg));
             })
             .catch(err => {
                 const errStringify = JSON.stringify(err);
                 const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
                 const msg = `❌ Error saving options file to disk: ${errMessage}`;
-                this.ourServer.emit('optionsUpdated', msg);
+                this.ourServer.emit('optionsUpdated', new IPCMessage(false, msg));
                 return;
             });
     }
