@@ -94,6 +94,7 @@ export default class ipcHandler extends IPC {
             this.ourServer.on('removeItem', this.removeItem.bind(this));
             this.ourServer.on('getKeyPrices', this.sendKeyPrices.bind(this));
             this.ourServer.on('getPricelist', this.sendPricelist.bind(this));
+            this.ourServer.on('getListingData', this.sendListingData.bind(this));
             this.ourServer.on('getTrades', this.sendTrades.bind(this));
             this.ourServer.on('getInventory', this.sendInventory.bind(this));
             this.ourServer.on('getUserInventory', this.sendUserInventory.bind(this));
@@ -257,6 +258,27 @@ export default class ipcHandler extends IPC {
             this.ourServer.emit('pricelist', new IPCMessage(true, pricelistMapped));
         } else {
             this.ourServer.emit('pricelist', new IPCMessage(false, 'Price list not available'));
+        }
+    }
+
+    sendListingData(): void {
+        try {
+            const data = {
+                listingsCap: undefined,
+                active: undefined,
+                archived: undefined
+            };
+
+            data.listingsCap = this.bot.listingManager.cap;
+            data.active = this.bot.listingManager.listings.filter(listing => listing.archived !== true).length;
+            data.archived = this.bot.listingManager.listings.filter(listing => listing.archived === true).length;
+            this.ourServer.emit('listingData', new IPCMessage(true, data));
+        } catch (error) {
+            let message: unknown;
+            if (error instanceof Error) {
+                message = error.message;
+            } else message = String(error);
+            this.ourServer.emit('listingData', new IPCMessage(false, message));
         }
     }
 
