@@ -288,6 +288,8 @@ export default class Commands {
                 this.buyBPTFPremiumCommand(steamID, message);
             } else if (command === 'refreshschema' && isAdmin) {
                 this.manager.refreshSchema(steamID);
+            } else if (command === 'reloadpricelist' && isAdmin) {
+                void this.pManager.reloadCommand(steamID);
             } else if (['crafttoken', 'ct'].includes(command) && isAdmin) {
                 this.crafting.craftTokenCommand(steamID, message);
             } else {

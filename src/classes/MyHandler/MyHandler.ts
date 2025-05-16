@@ -2749,6 +2749,10 @@ export default class MyHandler extends Handler {
                 log.error('Failed to update polldata path:', err);
             });
     }
+
+    getPriceList(): Promise<PricesObject> {
+        return files.readFile(this.paths.files.pricelist, true);
+    }
 }
 
 interface OnNewTradeOffer {

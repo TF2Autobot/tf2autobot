@@ -2356,6 +2356,11 @@ export default class PricelistManagerCommands {
             PricelistManagerCommands.isSending = false;
         }
     }
+
+    async reloadCommand(steamID: SteamID): Promise<void> {
+        this.bot.pricelist.reloadPricelist();
+        this.bot.sendMessage(steamID, 'Pricelist reloaded successfully.');
+    }
 }
 
 function generateAddedReply(bot: Bot, isPremium: boolean, entry: Entry): string {

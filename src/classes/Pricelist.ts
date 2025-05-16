@@ -1382,6 +1382,11 @@ export default class Pricelist extends EventEmitter {
             return obj;
         }, {});
     }
+
+    async reloadPricelist(): Promise<void> {
+        const prices = await this.bot.handler.getPriceList();
+        this.setPricelist(prices, this.bot);
+    }
 }
 
 export interface KeyPrices {

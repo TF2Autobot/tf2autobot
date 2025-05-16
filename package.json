@@ -11,7 +11,8 @@
         "prelint": "npm run eslint-check",
         "lint": "eslint .",
         "prettier": "prettier --check src/**/* && prettier --check *.json",
-        "eslint-check": "npx eslint-config-prettier src/app.ts"
+        "eslint-check": "npx eslint-config-prettier src/app.ts",
+        "dev": "npm run build && node dist/app.js"
     },
     "repository": {
         "type": "git",
