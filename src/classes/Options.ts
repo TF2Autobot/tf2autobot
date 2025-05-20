@@ -135,6 +135,11 @@ export const DEFAULTS: JsonOptions = {
         },
         rewriteFile: {
             count: 1
+        },
+        advancedPricing: {
+            enable: true,
+            alertOnMaxPriceUndefined: true,
+            fallbackToManual: true
         }
     },
 
@@ -1293,6 +1298,11 @@ interface Pricelist {
     autoAddPaintedItems?: OnlyEnable;
     priceAge?: PriceAge;
     rewriteFile?: RewriteFile;
+    advancedPricing?: {
+        enable?: boolean;
+        alertOnMaxPriceUndefined?: boolean;
+        fallbackToManual?: boolean;
+    };
 }
 
 interface PartialPriceUpdate extends OnlyEnable {

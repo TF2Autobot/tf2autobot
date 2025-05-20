@@ -27,6 +27,15 @@ export const pricesDataObject: jsonschema.Schema = {
                     min: {
                         type: 'number'
                     },
+                    maxPrice: {
+                        $ref: 'tf2-currencies'
+                    },
+                    bankPrice: {
+                        type: 'boolean'
+                    },
+                    minPrice: {
+                        $ref: 'tf2-currencies'
+                    },
                     intent: {
                         type: 'number',
                         enum: [0, 1, 2]

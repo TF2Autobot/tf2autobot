@@ -36,6 +36,18 @@ export const addSchema: jsonschema.Schema = {
             // -1 is infinite
             minimum: -1
         },
+        maxPrice: {
+            // maximum price
+            $ref: 'tf2-currencies'
+        },
+        minPrice: {
+            // minimum price
+            $ref: 'tf2-currencies'
+        },
+        bankPrice: {
+            // bank price
+            type: 'boolean'
+        },
         buy: {
             // buy price
             $ref: 'tf2-currencies'
@@ -69,5 +81,5 @@ export const addSchema: jsonschema.Schema = {
         }
     },
     additionalProperties: false,
-    required: ['sku', 'enabled', 'intent', 'autoprice', 'max', 'min']
+    required: ['sku', 'enabled', 'intent', 'autoprice', 'max', 'min', 'bankPrice', 'maxPrice', 'minPrice']
 };

@@ -24,6 +24,9 @@ export interface EntryData {
     autoprice: boolean;
     min: number;
     max: number;
+    maxPrice?: Currency | null;
+    minPrice?: Currency | null;
+    bankPrice?: boolean;
     intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
     buy?: Currency | null;
     sell?: Currency | null;
@@ -44,6 +47,12 @@ export class Entry implements EntryData {
     enabled: boolean;
 
     autoprice: boolean;
+
+    bankPrice?: boolean;
+
+    maxPrice?: Currency | null;
+
+    minPrice?: Currency | null;
 
     min: number;
 
@@ -75,6 +84,9 @@ export class Entry implements EntryData {
         this.name = name;
         this.enabled = entry.enabled;
         this.autoprice = entry.autoprice;
+        this.bankPrice = entry.bankPrice;
+        this.maxPrice = entry.maxPrice;
+        this.minPrice = entry.minPrice;
         this.min = entry.min;
         this.max = entry.max;
 
@@ -170,6 +182,35 @@ export class Entry implements EntryData {
         }
 
         return obj;
+    }
+
+    calculateBuyPrice(autoprice: Currencies, keyPrice: number): Currencies {
+        if (!this.buy) return autoprice;
+        if (this.bankPrice) return autoprice;
+        // Return lower of custom maxPrice and autoprice
+
+        // const buyValue = this.buy.toValue(keyPrice);
+        const autopriceValue = autoprice.toValue(keyPrice);
+        const maxPriceValue = this.maxPrice ? new Currencies(this.maxPrice).toValue(keyPrice) : Infinity;
+
+        if (autopriceValue > maxPriceValue) return new Currencies(this.maxPrice);
+        // return buyValue < autopriceValue ? autoprice : this.buy;
+
+        return autoprice;
+    }
+
+    calculateSellPrice(autoprice: Currencies, keyPrice: number): Currencies {
+        if (!this.sell) return autoprice;
+        if (this.bankPrice) return autoprice;
+
+        // const sellValue = this.sell.toValue(keyPrice);
+        const autopriceValue = autoprice.toValue(keyPrice);
+        const minPriceValue = this.minPrice ? new Currencies(this.minPrice).toValue(keyPrice) : -Infinity;
+
+        if (autopriceValue < minPriceValue) return new Currencies(this.minPrice);
+        // return sellValue > autopriceValue ? this.sell : autoprice;
+
+        return autoprice;
     }
 }
 
@@ -1206,6 +1247,18 @@ export default class Pricelist extends EventEmitter {
             };
 
             const keyPrice = this.getKeyPrice.metal;
+            console.log('--------------------------------');
+            console.log('comingData', data, newPrices);
+            console.log('calculateBuyPrice', match.calculateBuyPrice(newPrices.buy, keyPrice));
+            console.log('calculateSellPrice', match.calculateSellPrice(newPrices.sell, keyPrice));
+
+            newPrices.buy = match.calculateBuyPrice(newPrices.buy, keyPrice);
+            newPrices.sell = match.calculateSellPrice(newPrices.sell, keyPrice);
+
+            console.log('match', match);
+            console.log('newPrices', newPrices);
+            console.log('--------------------------------');
+
             const oldBuyValue = oldPrice.buy.toValue(keyPrice);
             const newBuyValue = newPrices.buy.toValue(keyPrice);
             const oldSellValue = oldPrice.sell.toValue(keyPrice);
@@ -1218,6 +1271,10 @@ export default class Pricelist extends EventEmitter {
                 // Ignore
                 return;
             }
+
+            match.buy = newPrices.buy;
+            match.sell = newPrices.sell;
+            match.time = data.time;
 
             let pricesChanged = false;
             const currentStock = this.bot.inventoryManager.getInventory.getAmount({

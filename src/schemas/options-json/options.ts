@@ -658,6 +658,22 @@ export const optionsSchema: jsonschema.Schema = {
         pricelist: {
             type: 'object',
             properties: {
+                advancedPricing: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        alertOnMaxPriceUndefined: {
+                            type: 'boolean'
+                        },
+                        fallbackToManual: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable', 'alertOnMaxPriceUndefined', 'fallbackToManual'],
+                    additionalProperties: false
+                },
                 partialPriceUpdate: {
                     type: 'object',
                     properties: {
@@ -725,7 +741,8 @@ export const optionsSchema: jsonschema.Schema = {
                 'autoAddInvalidUnusual',
                 'autoAddPaintedItems',
                 'priceAge',
-                'rewriteFile'
+                'rewriteFile',
+                'advancedPricing'
             ],
             additionalProperties: false
         },

@@ -25,6 +25,15 @@ export const pricelistSchema: jsonschema.Schema = {
             type: 'integer',
             minimum: 0
         },
+        maxPrice: {
+            $ref: 'tf2-currencies'
+        },
+        minPrice: {
+            $ref: 'tf2-currencies'
+        },
+        bankPrice: {
+            type: 'boolean'
+        },
         intent: {
             type: 'integer',
             enum: [0, 1, 2]
