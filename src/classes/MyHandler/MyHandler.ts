@@ -1009,7 +1009,7 @@ export default class MyHandler extends Handler {
                 itemsToGiveCount > 0 &&
                 itemsToReceiveCount === 0 &&
                 !(
-                    (opt.miscSettings.counterOffer.enable
+                    (false && opt.miscSettings.counterOffer.enable
                         ? !opt.miscSettings.counterOffer.autoDeclineLazyOffer
                         : false) && exchange.contains.items
                 )
@@ -1914,11 +1914,11 @@ export default class MyHandler extends Handler {
                     meta: meta
                 };
             } else if (
-                (opt.offerReceived.invalidValue.autoDecline.enable || opt.miscSettings.counterOffer.enable) &&
+                (opt.offerReceived.invalidValue.autoDecline.enable || (false && opt.miscSettings.counterOffer.enable)) &&
                 isOnlyInvalidValue &&
                 this.hasInvalidValueException === false
             ) {
-                if (opt.miscSettings.counterOffer.enable) {
+                if (false && opt.miscSettings.counterOffer.enable) {
                     // if counteroffer enabled
                     if (manualReviewEnabled && opt.miscSettings.counterOffer.skipIncludeMessage && offerMessage) {
                         // if skipIncludeMessage is set to true and offer contains message, skip for review
