@@ -1256,8 +1256,17 @@ export default class Trades {
         });
     }
 
+    private validateItem(item: EconItem) {
+        if (BigInt(item.assetid) <= 0 || BigInt(item.contextid) <= 0) {
+            throw new Error('Invalid assetid or contextid');
+        }
+    }
+
     sendOffer(offer: TradeOffer): Promise<string> {
         return new Promise((resolve, reject) => {
+            offer.itemsToGive.forEach(item => this.validateItem(item));
+            offer.itemsToReceive.forEach(item => this.validateItem(item));
+
             offer.data('partner', offer.partner.getSteamID64());
 
             const ourItems: TradeOfferManager.TradeOfferItem[] = [];
