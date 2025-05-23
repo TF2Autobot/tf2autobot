@@ -26,7 +26,12 @@ export default class CSVExport {
     private tradedRecords: UnknownDictionary<TradeRecord[]> = {};
 
     constructor(private bot: Bot) {
-        const filesDir = this.bot.handler.getPaths.files.dir;
+        // Ensure the files directory exists
+        const filesDir = path.join(process.cwd(), 'files');
+        if (!fs.existsSync(filesDir)) {
+            fs.mkdirSync(filesDir, { recursive: true });
+        }
+
         this.boughtFilePath = path.join(filesDir, 'bought.csv');
         this.tradedFilePath = path.join(filesDir, 'traded.csv');
 
