@@ -33,6 +33,9 @@ export const pricesDataObject: jsonschema.Schema = {
                     bankPrice: {
                         type: 'boolean'
                     },
+                    custom_name: {
+                        type: 'string'
+                    },
                     minPrice: {
                         $ref: 'tf2-currencies'
                     },

@@ -26,6 +26,7 @@ export interface EntryData {
     max: number;
     maxPrice?: Currency | null;
     minPrice?: Currency | null;
+    custom_name?: string | null;
     bankPrice?: boolean;
     intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
     buy?: Currency | null;
@@ -49,6 +50,8 @@ export class Entry implements EntryData {
     autoprice: boolean;
 
     bankPrice?: boolean;
+
+    custom_name?: string | null;
 
     maxPrice?: Currency | null;
 
@@ -87,6 +90,7 @@ export class Entry implements EntryData {
         this.bankPrice = entry.bankPrice;
         this.maxPrice = entry.maxPrice;
         this.minPrice = entry.minPrice;
+        this.custom_name = entry.custom_name;
         this.min = entry.min;
         this.max = entry.max;
 

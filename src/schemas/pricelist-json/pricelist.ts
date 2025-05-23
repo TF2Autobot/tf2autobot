@@ -25,6 +25,9 @@ export const pricelistSchema: jsonschema.Schema = {
             type: 'integer',
             minimum: 0
         },
+        custom_name: {
+            type: 'string'
+        },
         maxPrice: {
             $ref: 'tf2-currencies'
         },
