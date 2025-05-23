@@ -6,7 +6,7 @@ LABEL maintainer="Renoki Co. <alex@renoki.org>"
 
 COPY . /app
 
-RUN npm install typescript@latest pm2 -g && \
+RUN npm install pm2 -g && \
     cd /app && \
     npm install && \
     npm run build && \
