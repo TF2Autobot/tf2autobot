@@ -52,6 +52,8 @@ import sendTf2DisplayNotification from '../DiscordWebhook/sendTf2DisplayNotifica
 import sendTf2ItemBroadcast from '../DiscordWebhook/sendTf2ItemBroadcast';
 import { apiRequest } from '../../lib/apiRequest';
 
+import CSVExport from '../CSVExport/CSVExporter';
+
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
     return [...filtered];
@@ -196,8 +198,14 @@ export default class MyHandler extends Handler {
 
     private pollDataInterval: NodeJS.Timeout;
 
+    // Add new property
+    private csvExport: CSVExport;
+
     constructor(public bot: Bot, private priceSource: IPricer) {
         super(bot);
+
+        // Initialize CSV export
+        this.csvExport = new CSVExport(bot);
 
         this.commands = new Commands(bot, priceSource);
         this.cartQueue = new CartQueue(bot);
@@ -2282,6 +2290,9 @@ export default class MyHandler extends Handler {
             this.resetSentSummaryTimeout = setTimeout(() => {
                 this.sentSummary = {};
             }, 2 * 60 * 1000);
+
+            // Add CSV export
+            this.csvExport.onTradeAccepted(offer);
         } else {
             this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
