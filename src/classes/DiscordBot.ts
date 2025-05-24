@@ -7,7 +7,8 @@ import {
     DiscordAPIError,
     Snowflake,
     ActivityType,
-    ApplicationCommandType
+    ApplicationCommandType,
+    TextChannel
 } from 'discord.js';
 import log from '../lib/logger';
 import Options from './Options';
@@ -120,11 +121,8 @@ export default class DiscordBot {
             await this.bot.handler.onMessage(adminID, message.content);
         } catch (err) {
             log.error(err);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-            message.channel
+            (message.channel as TextChannel)
                 .send(`❌ Error:\n${JSON.stringify(err)}`)
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
                 .catch(err => log.error('Failed to send error message to Discord:', err));
         }
     }
@@ -175,13 +173,10 @@ export default class DiscordBot {
             message = message + '.';
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        origMessage.channel
+        (origMessage.channel as TextChannel)
             .send(message)
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            .then(() => log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`));
-        // .catch((err: any) => log.error('Failed to send message to Discord:', err));
+            .then(() => log.info(`Message sent to ${origMessage.author.tag} (${origMessage.author.id}): ${message}`))
+            .catch((err: any) => log.error('Failed to send message to Discord:', err));
     }
 
     private async onClientReady() {
