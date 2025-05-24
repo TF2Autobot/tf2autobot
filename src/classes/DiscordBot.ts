@@ -63,7 +63,7 @@ export default class DiscordBot {
         } catch (err) {
             const error = err as DiscordAPIError;
 
-            if (error.code.toString() === 'TOKEN_INVALID') {
+            if (error.code && error.code.toString() === 'TOKEN_INVALID') {
                 log.error('Failed to login to Discord: bot token is invalid.');
                 throw error; // only "incorrect token" error should crash the bot, so "throw" is only here
             } else {
