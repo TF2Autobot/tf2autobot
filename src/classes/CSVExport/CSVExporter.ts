@@ -122,6 +122,7 @@ export default class CSVExport {
         const tradeId = offer.id;
         const partnerSteamId = offer.partner.getSteamID64();
         const partnerName = this.bot.friends.getFriend(partnerSteamId)?.player_name || 'Unknown';
+        const keyPrice = this.bot.pricelist.getKeyPrice.metal;
 
         // Get the offer data
         const offerData = offer.data('dict') as UnknownDictionary<{
@@ -129,8 +130,8 @@ export default class CSVExport {
             their: UnknownDictionary<number | { amount: number }>;
         }>;
         const prices = offer.data('prices') as UnknownDictionary<{
-            buy: { toValue: () => number };
-            sell: { toValue: () => number };
+            buy: { toValue: (keyPrice: number) => number };
+            sell: { toValue: (keyPrice: number) => number };
         }>;
 
         // Process items we bought
@@ -145,8 +146,8 @@ export default class CSVExport {
             if (!prices || !prices[sku]) continue;
 
             const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
-            const buyPrice = prices[sku].buy.toValue();
-            const sellPrice = prices[sku].sell.toValue();
+            const buyPrice = prices[sku].buy.toValue(keyPrice);
+            const sellPrice = prices[sku].sell.toValue(keyPrice);
             const profit = 0; // No profit yet since we just bought it
 
             const record: TradeRecord = {
@@ -180,7 +181,7 @@ export default class CSVExport {
             if (!prices || !prices[sku]) continue;
 
             const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
-            const sellPrice = prices[sku].sell.toValue();
+            const sellPrice = prices[sku].sell.toValue(keyPrice);
 
             // Find matching bought record
             let buyPrice = 0;
@@ -192,6 +193,9 @@ export default class CSVExport {
                 if (boughtRecord) {
                     buyPrice = boughtRecord.buyPrice;
                     profit = sellPrice - buyPrice;
+
+                    // Remove the sold item from bought.csv
+                    this.removeFromCSV(this.boughtFilePath, boughtRecord);
                 }
             }
 
@@ -214,6 +218,27 @@ export default class CSVExport {
             }
             this.tradedRecords[sku].push(record);
             this.appendToCSV(this.tradedFilePath, record);
+        }
+    }
+
+    private removeFromCSV(filePath: string, record: TradeRecord): void {
+        try {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const lines = content.split('\n');
+            const header = lines[0];
+            const dataLines = lines.slice(1);
+
+            // Find and remove the matching record
+            const updatedLines = dataLines.filter(line => {
+                if (!line.trim()) return true;
+                const [timestamp, tradeId] = line.split(',');
+                return !(timestamp === record.timestamp.toString() && tradeId === record.tradeId);
+            });
+
+            // Write back to file
+            fs.writeFileSync(filePath, header + '\n' + updatedLines.join('\n'));
+        } catch (err) {
+            log.error('Failed to remove record from CSV:', err);
         }
     }
 }
