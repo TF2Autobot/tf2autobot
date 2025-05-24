@@ -52,7 +52,7 @@
         "express": "^4.21.1",
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",
-        "jsonschema": "^1.4.1",
+        "jsonschema": "^1.5.0",
         "jsonwebtoken": "^9.0.2",
         "module-alias": "^2.2.2",
         "pjson": "^1.0.9",
