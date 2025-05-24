@@ -21,9 +21,11 @@ jobs:
     strategy:
       matrix:
         node:
-          - 18.17.0-alpine
-          - 18.17.0-buster
-          - 18.17.0-buster-slim
+          - 22-alpine
+          - 22-bookworm
+          - 22-bookworm-slim
+          - 22-bullseye
+          - 22-bullseye-slim
 
     name: Tag Latest (node:${{ matrix.node }})
 
