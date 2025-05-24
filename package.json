@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot",
-    "version": "5.13.0",
+    "version": "5.13.2",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.prices.tf, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
