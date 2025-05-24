@@ -79,7 +79,7 @@
         "@types/bluebird-global": "^3.5.18",
         "@types/cheerio": "^0.22.35",
         "@types/death": "^1.1.5",
-        "@types/express": "^4.17.21",
+        "@types/express": "^4.17.22",
         "@types/graceful-fs": "^4.1.9",
         "@types/jest": "^29.5.12",
         "@types/jsonwebtoken": "^9.0.6",
