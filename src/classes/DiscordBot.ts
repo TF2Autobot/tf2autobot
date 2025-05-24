@@ -120,6 +120,7 @@ export default class DiscordBot {
             await this.bot.handler.onMessage(adminID, message.content);
         } catch (err) {
             log.error(err);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             message.channel
                 .send(`❌ Error:\n${JSON.stringify(err)}`)
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -174,6 +175,7 @@ export default class DiscordBot {
             message = message + '.';
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         origMessage.channel
             .send(message)
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
