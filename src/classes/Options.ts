@@ -547,8 +547,19 @@ export const DEFAULTS: JsonOptions = {
         offerReview: {
             enable: true,
             url: '',
-            mentionInvalidValue: true,
-            isMention: true,
+            mentions: {
+                enable: true,
+                invalidValue: false,
+                invalidItems: true,
+                overstocked: true,
+                understocked: true,
+                duped: true,
+                dupedCheckFailed: true,
+                escrowCheckFailed: true,
+                bannedCheckFailed: true,
+                halted: true,
+                reviewForced: true
+            },
             misc: {
                 showQuickLinks: true,
                 showKeyRate: true,
@@ -1673,9 +1684,22 @@ interface MentionOwner extends OnlyEnable {
 
 interface OfferReviewDW extends OnlyEnable {
     url?: string;
-    mentionInvalidValue?: boolean;
-    isMention?: boolean;
+    mentions?: ReviewMentions;
     misc?: MiscOfferReview;
+}
+
+interface ReviewMentions {
+    enable: boolean;
+    invalidValue: boolean;
+    invalidItems: boolean;
+    overstocked: boolean;
+    understocked: boolean;
+    duped: boolean;
+    dupedCheckFailed: boolean;
+    escrowCheckFailed: boolean;
+    bannedCheckFailed: boolean;
+    halted: boolean;
+    reviewForced: boolean;
 }
 
 interface MiscOfferReview {
@@ -2482,6 +2506,30 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
         delete options.miscSettings.reputationCheck?.['reptfAsPrimarySource'];
         isChanged = true;
     }
+
+    // <=v5.8.4 -> v5.9.0
+    /*eslint-disable */
+    //@ts-ignore
+    if (options.discordWebhook?.offerReview?.isMention) {
+        //@ts-ignore
+        options.discordWebhook.offerReview.mentions.enable = options.discordWebhook.offerReview.isMention;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.discordWebhook.offerReview.isMention;
+        isChanged = true;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    if (options.discordWebhook?.offerReview?.mentionInvalidValue) {
+        options.discordWebhook.offerReview.mentions.invalidValue = //@ts-ignore
+            options.discordWebhook.offerReview.mentionInvalidValue;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete options.discordWebhook.offerReview.mentionInvalidValue;
+        isChanged = true;
+    }
+    /*eslint-enable */
 
     return isChanged;
 }
