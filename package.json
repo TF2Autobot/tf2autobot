@@ -28,7 +28,7 @@
     "dependencies": {
         "@tf2autobot/bptf-listings": "^5.7.8",
         "@tf2autobot/bptf-login": "^2.4.0",
-        "@tf2autobot/filter-axios-error": "^1.5.4",
+        "@tf2autobot/filter-axios-error": "^1.5.5",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/steamcommunity": "^3.48.3",
         "@tf2autobot/tf2": "^1.3.8",
