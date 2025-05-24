@@ -39,22 +39,28 @@ export default function processAccepted(
             if (meta?.uniqueReasons?.includes('🟨_INVALID_ITEMS')) {
                 // doing this so it will only executed if includes 🟨_INVALID_ITEMS reason.
 
-                (meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(el => {
-                    const name = t.testPriceKey(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
+                meta.reasons
+                    .filter(el => el.reason === '🟨_INVALID_ITEMS')
+                    .forEach(el => {
+                        const name = t.testPriceKey(el.sku)
+                            ? bot.schema.getName(SKU.fromString(el.sku), false)
+                            : el.sku;
 
-                    accepted.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
-                });
+                        accepted.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
+                    });
             }
             if (meta?.uniqueReasons?.includes('🟧_DISABLED_ITEMS')) {
                 // doing this so it will only executed if includes 🟧_DISABLED_ITEMS reason.
 
-                (meta.reasons.filter(el => el.reason === '🟧_DISABLED_ITEMS') as i.DisabledItems[]).forEach(el => {
-                    accepted.disabledItems.push(
-                        isWebhookEnabled
-                            ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                            : bot.schema.getName(SKU.fromString(el.sku), false)
-                    );
-                });
+                meta.reasons
+                    .filter(el => el.reason === '🟧_DISABLED_ITEMS')
+                    .forEach(el => {
+                        accepted.disabledItems.push(
+                            isWebhookEnabled
+                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                : bot.schema.getName(SKU.fromString(el.sku), false)
+                        );
+                    });
             }
             if (meta?.uniqueReasons?.includes('🟦_OVERSTOCKED')) {
                 // doing this so it will only executed if includes 🟦_OVERSTOCKED reason.

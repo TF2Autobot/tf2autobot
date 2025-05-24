@@ -19,7 +19,9 @@ export = function (): UnknownDictionary<number> | null {
         diff[priceKey] =
             (diff[priceKey] || 0) -
             (typeof dict.our[priceKey] === 'object'
-                ? (dict.our[priceKey]['amount'] as number) // compatible with polldata from before v3.0.0
+                ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore: Object is possibly 'null'.
+                  (dict.our[priceKey]['amount'] as number) // compatible with polldata from before v3.0.0
                 : dict.our[priceKey]); // before v2.2.0 and/or v3.0.0 or later
     }
 
@@ -31,7 +33,9 @@ export = function (): UnknownDictionary<number> | null {
         diff[priceKey] =
             (diff[priceKey] || 0) +
             (typeof dict.their[priceKey] === 'object'
-                ? (dict.their[priceKey]['amount'] as number) // compatible with polldata from before v3.0.0
+                ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                  // @ts-ignore: Object is possibly 'null'.
+                  (dict.their[priceKey]['amount'] as number) // compatible with polldata from before v3.0.0
                 : dict.their[priceKey]); // before v2.2.0 and/or v3.0.0 or later
     }
 

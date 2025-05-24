@@ -76,7 +76,9 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                     ) {
                         const itemCount =
                             typeof trade.dict.their[sku] === 'object'
-                                ? (trade.dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
+                                ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                  // @ts-ignore: Object is possibly 'null'.
+                                  (trade.dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
                                 : trade.dict.their[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
                         if (
@@ -108,7 +110,9 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                     ) {
                         const itemCount =
                             typeof trade.dict.our[sku] === 'object'
-                                ? (trade.dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
+                                ? // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                  // @ts-ignore: Object is possibly 'null'.
+                                  (trade.dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
                                 : trade.dict.our[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
                         if (

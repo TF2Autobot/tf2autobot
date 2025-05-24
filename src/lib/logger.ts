@@ -69,9 +69,9 @@ const consoleFormat = winston.format.combine(
         const splat = info[Symbol.for('splat') as unknown as string];
 
         if (splat) {
-            if (splat.length === 1) {
+            if ((splat as string).length === 1) {
                 msg += ` ${JSON.stringify(splat[0])}`;
-            } else if (splat.length > 1) {
+            } else if ((splat as string).length > 1) {
                 msg += ` ${JSON.stringify(info[Symbol.for('splat') as unknown as string])}`;
             }
         }
