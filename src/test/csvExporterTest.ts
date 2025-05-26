@@ -19,6 +19,12 @@ class MockBot {
     pricelist = {
         getKeyPrice: {
             metal: 90 // 90 ref for a key
+        },
+        getPriceBySkuOrAsset: ({ priceKey }: { priceKey: string }) => {
+            return {
+                custom_name: `Custom ${priceKey}`,
+                enabled: true
+            };
         }
     };
 }
@@ -105,8 +111,10 @@ async function testCSVExporter() {
     // Process each trade
     for (const trade of testTrades) {
         console.log(`\nProcessing trade ${trade.id}...`);
-        csvExporter.onTradeAccepted(trade as unknown as TradeOffer);
+        await csvExporter.onTradeAccepted(trade as unknown as TradeOffer);
     }
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     console.log('\nTest completed!');
     console.log('Check the files/bought.csv and files/traded.csv files for results.');

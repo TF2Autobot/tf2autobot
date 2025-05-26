@@ -2258,6 +2258,14 @@ export default class MyHandler extends Handler {
         if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
             // Offer is accepted
 
+            try {
+                void this.csvExport.onTradeAccepted(offer).catch(err => {
+                    log.error('Failed to export trade to CSV:', err);
+                });
+            } catch (err) {
+                log.error('Error in CSV export:', err);
+            }
+
             if (this.isCraftingManual === false) {
                 // Smelt / combine metal
                 keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
@@ -2290,9 +2298,6 @@ export default class MyHandler extends Handler {
             this.resetSentSummaryTimeout = setTimeout(() => {
                 this.sentSummary = {};
             }, 2 * 60 * 1000);
-
-            // Add CSV export
-            this.csvExport.onTradeAccepted(offer);
         } else {
             this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
