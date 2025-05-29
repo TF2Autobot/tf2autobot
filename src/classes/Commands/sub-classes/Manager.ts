@@ -245,30 +245,18 @@ export default class ManagerCommands {
             'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/f5/f57685d33224e32436f366d1acb4a1769bdfa60f_full.jpg';
         const input = CommandParser.removeCommand(message);
 
-        if (!input || input === `!${command}`) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ You forgot to add ${command === 'name' ? 'a name' : 'an image url'}. Example: "!${
-                    command === 'name' ? 'name IdiNium' : `avatar ${example}`
-                } "`
-            );
-        }
-
         if (command === 'name') {
-            this.bot.community.editProfile(
-                {
-                    name: input
-                },
-                err => {
-                    if (err) {
-                        log.warn('Error while changing name: ', err);
-                        return this.bot.sendMessage(steamID, `❌ Error while changing name: ${err.message}`);
-                    }
-
-                    this.bot.sendMessage(steamID, '✅ Successfully changed name.');
-                }
+            this.bot.sendMessage(
+                steamID,
+                `The ${prefix}name command has been updated to ${prefix}changeName. Please use the new command going forward!`
             );
         } else {
+            if (!input || input === `!${command}`) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ You forgot to add an image url'. Example: "!${`avatar ${example}`} "`
+                );
+            }
             if (!validUrl.isUri(input)) {
                 return this.bot.sendMessage(steamID, `❌ Your url is not valid. Example: "${prefix}avatar ${example}"`);
             }
@@ -281,6 +269,41 @@ export default class ManagerCommands {
 
                 this.bot.sendMessage(steamID, '✅ Successfully uploaded a new avatar.');
             });
+        }
+    }
+
+    changeNameCommand(steamID: SteamID, message: string, prefix: string): void {
+        const params = CommandParser.parseParams(CommandParser.removeCommand(message));
+        const inputName = params.name as string;
+
+        if (inputName !== undefined) {
+            if (params.i_am_sure !== 'yes_i_am') {
+                return this.bot.sendMessage(
+                    steamID,
+                    `⚠️ Are you sure that you want to change your bot's name?` +
+                        `\nChanging the name will result in a trading cooldown for a few hours on your bot's account` +
+                        `\nIf yes, retry by sending ${prefix}changeName name=${inputName}&i_am_sure=yes_i_am`
+                );
+            } else {
+                this.bot.community.editProfile(
+                    {
+                        name: inputName
+                    },
+                    err => {
+                        if (err) {
+                            log.warn('Error while changing name: ', err);
+                            return this.bot.sendMessage(steamID, `❌ Error while changing name: ${err.message}`);
+                        }
+
+                        this.bot.sendMessage(steamID, '✅ Successfully changed name.');
+                    }
+                );
+            }
+        } else {
+            return this.bot.sendMessage(
+                steamID,
+                `⚠️ Missing name property. Example: "${prefix}changeName name=IdiNium`
+            );
         }
     }
 
