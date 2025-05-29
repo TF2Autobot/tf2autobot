@@ -2,7 +2,7 @@ import SteamID from 'steamid';
 import { EconItem } from '@tf2autobot/tradeoffer-manager';
 
 import Bot from './Bot';
-import ExpressLoad from "./InventoryApis/ExpressLoad";
+import ExpressLoad from './InventoryApis/ExpressLoad';
 import InventoryApi from './InventoryApis/InventoryApi';
 import SteamSupply from './InventoryApis/SteamSupply';
 import SteamApis from './InventoryApis/SteamApis';

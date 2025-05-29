@@ -75,7 +75,7 @@ export default class InventoryApi {
                     ...apiCallParams,
                     start_assetid: start
                 },
-                headers: headers,
+                headers: headers
             }).then(
                 response => {
                     const result = response.data as GetUserInventoryContentsResult;

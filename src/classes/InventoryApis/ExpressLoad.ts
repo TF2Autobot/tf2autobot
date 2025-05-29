@@ -12,10 +12,7 @@ export default class ExpressLoad extends InventoryApi {
         appID: number,
         contextID: string
     ): [string, UnknownDictionaryKnownValues] {
-        return [
-            `https://api.express-load.com/inventory/${steamID}/${appID}/${contextID}`,
-            {}
-        ];
+        return [`https://api.express-load.com/inventory/${steamID}/${appID}/${contextID}`, {}];
     }
 
     protected getHeaders(): UnknownDictionaryKnownValues {
@@ -24,5 +21,4 @@ export default class ExpressLoad extends InventoryApi {
             'User-Agent': 'TF2Autobot'
         };
     }
-
 }
