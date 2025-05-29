@@ -155,22 +155,26 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
             checkedReasons[reason] = '.';
             switch (reason) {
                 case '🟨_INVALID_ITEMS':
-                    (meta.reasons.filter(el => el.reason === '🟨_INVALID_ITEMS') as i.InvalidItems[]).forEach(el => {
-                        const name = t.testPriceKey(el.sku)
-                            ? bot.schema.getName(SKU.fromString(el.sku), false)
-                            : el.sku;
+                    meta.reasons
+                        .filter(el => el.reason === '🟨_INVALID_ITEMS')
+                        .forEach(el => {
+                            const name = t.testPriceKey(el.sku)
+                                ? bot.schema.getName(SKU.fromString(el.sku), false)
+                                : el.sku;
 
-                        declined.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
-                    });
+                            declined.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
+                        });
                     break;
                 case '🟧_DISABLED_ITEMS':
-                    (meta.reasons.filter(el => el.reason == '🟧_DISABLED_ITEMS') as i.DisabledItems[]).forEach(el => {
-                        declined.disabledItems.push(
-                            isWebhookEnabled
-                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                : bot.schema.getName(SKU.fromString(el.sku), false)
-                        );
-                    });
+                    meta.reasons
+                        .filter(el => el.reason == '🟧_DISABLED_ITEMS')
+                        .forEach(el => {
+                            declined.disabledItems.push(
+                                isWebhookEnabled
+                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
+                                    : bot.schema.getName(SKU.fromString(el.sku), false)
+                            );
+                        });
                     break;
                 case '🟦_OVERSTOCKED':
                     (meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as i.Overstocked[]).forEach(el => {

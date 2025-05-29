@@ -168,6 +168,8 @@ function getSummary(
         const isTF2Items = testPriceKey(priceKey);
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: Object is possibly 'null'.
         const amount = typeof dict[priceKey] === 'object' ? (dict[priceKey]['amount'] as number) : dict[priceKey];
         const sku =
             type === 'summary-accepted' ? (entry?.sku ?? priceKey).replace(/;p\d+/, '') : entry?.sku ?? priceKey;
