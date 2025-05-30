@@ -11,6 +11,7 @@ interface TradeRecord {
     tradeId: string;
     partnerSteamId: string;
     partnerName: string;
+    k_r_ratio: string;
     sku: string;
     itemName: string;
     buyPrice: string;
@@ -50,7 +51,7 @@ export default class CSVExport {
 
     private writeCSVHeader(filePath: string, isSales: boolean = false): void {
         const header = isSales
-            ? 'buy_date,trade_id,custom_name,cost_k,cost_r,k/r_ratio,seller steamid64,original name (backpack.tf one),sku,sell_date,trade_id,custom_name,k/r_ratio,cost_k,cost_r,seller steamid64,original name (backpack.tf one),sku\n'
+            ? 'buy_date,trade_id,custom_name,cost_k,cost_r,k/r_ratio,seller steamid64,original name (backpack.tf one),sku,sell_date,trade_id,custom_name,k/r_ratio,cost_k,cost_r,buyer steamid64,original name (backpack.tf one),sku\n'
             : 'buy_date,trade_id,custom_name,cost_k,cost_r,k/r_ratio,seller steamid64,original name (backpack.tf one),sku\n';
         fs.writeFileSync(filePath, header);
     }
@@ -92,6 +93,7 @@ export default class CSVExport {
                 timestamp: new Date(buy_date).getTime(),
                 tradeId: trade_id,
                 partnerSteamId: seller_steamid64,
+                k_r_ratio: k_r_ratio,
                 partnerName: 'Unknown',
                 sku,
                 itemName: original_name,
@@ -104,24 +106,6 @@ export default class CSVExport {
         }
 
         return records;
-    }
-
-    private async appendToCSV(filePath: string, record: TradeRecord): Promise<void> {
-        // Add to write queue
-        this.writeQueue = this.writeQueue.then(async () => {
-            // Wait for any existing write operation to complete
-            while (this.writeLock[filePath]) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-
-            try {
-                this.writeLock[filePath] = true;
-                const line = `${record.timestamp},${record.tradeId},${record.partnerSteamId},${record.partnerName},${record.sku},${record.itemName},${record.buyPrice},${record.sellPrice}\n`;
-                await fs.promises.appendFile(filePath, line);
-            } finally {
-                this.writeLock[filePath] = false;
-            }
-        });
     }
 
     private async removeFromCSV(filePath: string, record: TradeRecord): Promise<void> {
@@ -139,11 +123,11 @@ export default class CSVExport {
                 const header = lines[0];
                 const dataLines = lines.slice(1);
 
-                // Find and remove the matching record by tradeID only
+                // Find and remove the matching record by both tradeID and SKU
                 const updatedLines = dataLines.filter(line => {
                     if (!line.trim()) return true;
-                    const [, trade_id] = line.split(',');
-                    return trade_id !== record.tradeId;
+                    const [, trade_id, , , , , , , sku] = line.split(',');
+                    return !(trade_id === record.tradeId && sku === record.sku);
                 });
 
                 // Write back to file
@@ -176,6 +160,28 @@ export default class CSVExport {
         return { keys, metal };
     }
 
+    private convertEconItemToSKUObject(item: any): any {
+        return {
+            defindex: item.defindex,
+            quality: item.quality,
+            craftable: item.craftable,
+            tradable: item.tradable,
+            killstreak: item.killstreak,
+            australium: item.australium,
+            effect: item.effect,
+            festive: item.festive,
+            paintkit: item.paintkit,
+            wear: item.wear,
+            quality2: item.quality2,
+            target: item.target,
+            craftnumber: item.craftnumber,
+            crateseries: item.crateseries,
+            output: item.output,
+            outputQuality: item.outputQuality,
+            paint: item.paint
+        };
+    }
+
     public async onTradeAccepted(offer: TradeOffer): Promise<void> {
         const timestamp = Date.now();
         const tradeId = offer.id;
@@ -183,26 +189,28 @@ export default class CSVExport {
         const partnerName = this.bot.friends.getFriend(partnerSteamId)?.player_name || 'Unknown';
         const keyPrice = this.bot.pricelist.getKeyPrice.metal;
 
-        // Get the offer data
-        const offerData = offer.data('dict') as UnknownDictionary<{
-            our: UnknownDictionary<number | { amount: number }>;
-            their: UnknownDictionary<number | { amount: number }>;
-        }>;
-        const prices = offer.data('prices') as UnknownDictionary<{
-            buy: { toValue: (keyPrice: number) => number; toString: () => string };
-            sell: { toValue: (keyPrice: number) => number; toString: () => string };
-        }>;
+        // Get items from the trade
+        const ourItems = offer.itemsToGive || [];
+        const theirItems = offer.itemsToReceive || [];
 
-        // Purchases (items we bought)
-        for (const sku in offerData.their) {
-            if (!Object.prototype.hasOwnProperty.call(offerData.their, sku)) continue;
-            if (!prices || !prices[sku]) continue;
+        // Process items we received (purchases)
+        for (const item of theirItems) {
+            if (!item) continue;
+
+            const skuObject = this.convertEconItemToSKUObject(item);
+            const sku = SKU.fromObject(skuObject);
+            if (!sku) continue;
+
+            const price = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey: sku, onlyEnabled: false });
+            if (!price) continue;
+
             const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
-            const buyPrice = prices[sku].buy.toString();
+            const buyPrice = price.buy.toString();
             const { keys: cost_k, metal: cost_r } = CSVExport.parseCurrenciesString(buyPrice);
             const custom_name = this.getCustomName(sku);
             const buy_date = new Date(timestamp).toISOString();
-            const row = `${buy_date},${tradeId},${custom_name},${cost_k},${cost_r},,${partnerSteamId},${itemName},${sku}\n`;
+
+            const row = `${buy_date},${tradeId},${custom_name},${cost_k},${cost_r},${keyPrice},${partnerSteamId},${itemName},${sku}\n`;
             await fs.promises.appendFile(this.boughtFilePath, row);
 
             if (!this.boughtRecords[sku]) {
@@ -213,6 +221,7 @@ export default class CSVExport {
                 tradeId,
                 partnerSteamId,
                 partnerName,
+                k_r_ratio: `${keyPrice}`,
                 sku,
                 itemName,
                 buyPrice,
@@ -221,12 +230,19 @@ export default class CSVExport {
             });
         }
 
-        // Sales (items we sold)
-        for (const sku in offerData.our) {
-            if (!Object.prototype.hasOwnProperty.call(offerData.our, sku)) continue;
-            if (!prices || !prices[sku]) continue;
+        // Process items we gave (sales)
+        for (const item of ourItems) {
+            if (!item) continue;
+
+            const skuObject = this.convertEconItemToSKUObject(item);
+            const sku = SKU.fromObject(skuObject);
+            if (!sku) continue;
+
+            const price = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey: sku, onlyEnabled: false });
+            if (!price) continue;
+
             const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
-            const sellPrice = prices[sku].sell.toString();
+            const sellPrice = price.sell.toString();
             const { keys: cost_k, metal: cost_r } = CSVExport.parseCurrenciesString(sellPrice);
             const custom_name = this.getCustomName(sku);
             const sell_date = new Date(timestamp).toISOString();
@@ -242,11 +258,13 @@ export default class CSVExport {
                     );
                     buyRow = `${new Date(boughtRecord.timestamp).toISOString()},${boughtRecord.tradeId},${
                         boughtRecord.custom_name || this.getCustomName(sku)
-                    },${buy_cost_k},${buy_cost_r},,${boughtRecord.partnerSteamId},${boughtRecord.itemName},${sku}`;
+                    },${buy_cost_k},${buy_cost_r},${keyPrice},${boughtRecord.partnerSteamId},${
+                        boughtRecord.itemName
+                    },${sku}`;
                 }
             }
 
-            const sellRow = `${sell_date},${tradeId},${custom_name},,${cost_k},${cost_r},${partnerSteamId},${itemName},${sku}`;
+            const sellRow = `${sell_date},${tradeId},${custom_name},${keyPrice},${cost_k},${cost_r},${partnerSteamId},${itemName},${sku}`;
             const row = `${buyRow},${sellRow}\n`;
             await fs.promises.appendFile(this.tradedFilePath, row);
         }

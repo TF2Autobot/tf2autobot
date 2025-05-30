@@ -7,6 +7,7 @@
         "release": "np --no-cleanup --no-publish",
         "build": "tsc -p .",
         "pretest": "npm run lint",
+        "trade-test": "npx ts-node src/test/csvExporterTest.ts",
         "test": "jest",
         "prelint": "npm run eslint-check",
         "lint": "eslint .",
