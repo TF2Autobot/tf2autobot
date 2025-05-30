@@ -14,18 +14,20 @@ jobs:
     strategy:
       matrix:
         node:
-          - 18.17.0-alpine
-          - 18.17.0-buster
-          - 18.17.0-buster-slim
+          - 22-alpine
+          - 22-bookworm
+          - 22-bookworm-slim
+          - 22-bullseye
+          - 22-bullseye-slim
 
     name: Tag Release (node:${{ matrix.node }})
 
     steps:
-      - uses: actions/checkout@v4.1.2
+      - uses: actions/checkout@v4.2.2
 
       - name: Docker meta
         id: docker_meta
-        uses: docker/metadata-action@v5.5.1
+        uses: docker/metadata-action@v5.7.0
         with:
           images: tf2autobot/tf2autobot
           tags: |
@@ -38,14 +40,14 @@ jobs:
         uses: docker/setup-buildx-action@v3.2.0
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2.2.0
+        uses: docker/login-action@v3.4.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push (node:${{ matrix.node }})
         id: docker
-        uses: docker/build-push-action@v5.3.0
+        uses: docker/build-push-action@v6.18.0
         with:
           push: true
           context: .
