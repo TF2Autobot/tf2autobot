@@ -11,10 +11,7 @@ export function getPricer(options: PricerOptions): IPricer {
     if (!options.pricerUrl || options.pricerUrl === '' || options.pricerUrl.startsWith('https://pricedb.io')) {
         const api = new PriceDbApi(options.pricerUrl || 'https://pricedb.io/api');
         return new PriceDbPricer(api);
-    } else if (
-        options.pricerUrl === 'https://api.prices.tf' ||
-        options.pricerUrl === 'https://api2.prices.tf'
-    ) {
+    } else if (options.pricerUrl === 'https://api.prices.tf' || options.pricerUrl === 'https://api2.prices.tf') {
         const api = new PricesTfApi();
         return new PricesTfPricer(api);
     } else {

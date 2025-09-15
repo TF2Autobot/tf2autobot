@@ -7,10 +7,18 @@ import IPricer, {
     RequestCheckResponse
 } from '../../../classes/IPricer';
 import PriceDbApi, { PriceDbPrice } from './pricedb-api';
+import PriceDbSocketManager from './pricedb-socket-manager';
 
 export default class PriceDbPricer implements IPricer {
-    public isPricerConnecting = false;
-    constructor(private api: PriceDbApi) {}
+    private socketManager: PriceDbSocketManager;
+
+    get isPricerConnecting(): boolean {
+        return this.socketManager.isConnecting;
+    }
+
+    constructor(private api: PriceDbApi) {
+        this.socketManager = new PriceDbSocketManager();
+    }
 
     getOptions(): PricerOptions {
         return {
@@ -54,25 +62,40 @@ export default class PriceDbPricer implements IPricer {
     }
 
     async requestCheck(sku: string): Promise<RequestCheckResponse> {
-        // pricedb.io does not support price check requests, so just return a stub
+        const result = await this.api.priceCheck(sku);
         return {
-            sku
+            sku: result.success ? sku : null
         };
     }
 
-    bindHandlePriceEvent(): void {
-        // No socket support for pricedb.io
+    bindHandlePriceEvent(onPriceChange: (item: GetItemPriceResponse) => void): void {
+        this.socketManager.on('price', (data: PriceDbPrice) => {
+            const priceUpdate: GetItemPriceResponse = {
+                sku: data.sku,
+                source: data.source,
+                time: data.time,
+                buy: new Currencies(data.buy),
+                sell: new Currencies(data.sell)
+            };
+            onPriceChange(priceUpdate);
+        });
     }
 
-    connect(): void {
-        // No connect logic needed
+    connect(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.connect();
+        }
     }
 
-    shutdown(): void {
-        // No shutdown logic needed
+    shutdown(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.shutdown();
+        }
     }
 
-    init(): void {
-        // No init logic needed
+    init(enabled: boolean): void {
+        if (enabled) {
+            this.socketManager.init();
+        }
     }
 }

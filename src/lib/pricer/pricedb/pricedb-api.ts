@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 export interface PriceDbPrice {
     name: string;
@@ -15,27 +15,47 @@ export interface PriceDbPrice {
     };
 }
 
+export interface PriceDbErrorResponse {
+    message?: string;
+}
+
 export default class PriceDbApi {
     private readonly baseUrl: string;
+
     constructor(baseUrl = 'https://pricedb.io/api') {
         this.baseUrl = baseUrl;
     }
 
     async getItemPrice(sku: string): Promise<PriceDbPrice> {
         const url = `${this.baseUrl}/item/${encodeURIComponent(sku)}`;
-        const { data } = await axios.get(url);
-        return data;
+        const response = await axios.get<PriceDbPrice>(url);
+        return response.data;
     }
 
     async getBulkPrices(skus: string[]): Promise<PriceDbPrice[]> {
         const url = `${this.baseUrl}/items-bulk`;
-        const { data } = await axios.post(url, { skus });
-        return data;
+        const response = await axios.post<PriceDbPrice[]>(url, { skus });
+        return response.data;
     }
 
     async getAllPrices(): Promise<PriceDbPrice[]> {
         const url = `${this.baseUrl}/latest-prices`;
-        const { data } = await axios.get(url);
-        return data;
+        const response = await axios.get<PriceDbPrice[]>(url);
+        return response.data;
+    }
+
+    async priceCheck(sku: string): Promise<{ success: boolean; message?: string }> {
+        const url = `${this.baseUrl}/autob/items/${encodeURIComponent(sku)}`;
+        try {
+            await axios.post<void>(url);
+            return { success: true };
+        } catch (error) {
+            const axiosError = error as AxiosError<PriceDbErrorResponse>;
+            const errorMessage = axiosError.response?.data?.message ?? 'Price check request failed';
+            return {
+                success: false,
+                message: errorMessage
+            };
+        }
     }
 }
