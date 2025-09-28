@@ -145,7 +145,7 @@ export default function sendOfferReview(
                                               ? 'manual'
                                               : isCustomPricer
                                               ? 'custom-pricer'
-                                              : 'prices.tf'
+                                              : 'PriceDB.IO'
                                       })`
                                     : '') +
                                 (isShowInventory

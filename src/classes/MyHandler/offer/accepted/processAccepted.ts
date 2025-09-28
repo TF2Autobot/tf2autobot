@@ -270,7 +270,7 @@ export async function sendToAdmin(
 
     const message4 =
         `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-        ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
+        ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'PriceDB.IO'})` +
         `${
             autokeys.isEnabled
                 ? ' | Autokeys: ' +

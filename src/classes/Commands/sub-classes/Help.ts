@@ -169,13 +169,13 @@ export default class HelpCommands {
                 '.\n✨=== Request ===✨\n- ' +
                     [
                         `${prefix}check (sku|name|defindex)=<a> - Request the current price for an item from ${
-                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                            isCustomPricer ? 'Custom Pricer' : 'PriceDB.IO'
                         }`,
                         `pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by ${
-                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                            isCustomPricer ? 'Custom Pricer' : 'PriceDB.IO'
                         }`,
                         `pricecheckall - Request all items in the bot's pricelist to be price checked by ${
-                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                            isCustomPricer ? 'Custom Pricer' : 'PriceDB.IO'
                         }`
                     ].join(`\n- ${prefix}`)
             );

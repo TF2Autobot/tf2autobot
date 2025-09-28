@@ -161,7 +161,7 @@ export default async function sendTradeSummary(
                                           ? 'manual'
                                           : isCustomPricer
                                           ? 'custom-pricer'
-                                          : 'prices.tf'
+                                          : 'PriceDB.IO'
                                   })` +
                                   `${
                                       autokeys.isEnabled

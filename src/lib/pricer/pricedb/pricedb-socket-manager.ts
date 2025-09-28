@@ -13,7 +13,7 @@ export default class PriceDbSocketManager extends EventEmitter {
 
     public isConnecting = false;
 
-    constructor(private url: string = 'ws://ws.pricedb.io:5500/') {
+    constructor(private url: string = 'ws://ws.pricedb.io/') {
         super();
     }
 

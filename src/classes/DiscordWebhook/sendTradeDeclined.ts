@@ -111,7 +111,7 @@ export default async function sendTradeDeclined(
                                           ? 'manual'
                                           : isCustomPricer
                                           ? 'custom-pricer'
-                                          : 'prices.tf'
+                                          : 'PriceDB.IO'
                                   })` +
                                   `${
                                       autokeys.isEnabled
