@@ -494,6 +494,9 @@ export const DEFAULTS: JsonOptions = {
         },
         steamApis: {
             enable: false
+        },
+        expressLoad: {
+            enable: false
         }
     },
 
@@ -1612,6 +1615,7 @@ interface ManualReview extends OnlyEnable {
 interface InventoryApis {
     steamSupply?: OnlyEnable;
     steamApis?: OnlyEnable;
+    expressLoad?: OnlyEnable;
 }
 
 // ------------ Discord Chat ---------------
@@ -2195,6 +2199,7 @@ export default interface Options extends JsonOptions {
     discordBotToken?: string;
     steamSupplyApiKey?: string;
     steamApisApiKey?: string;
+    expressLoadApiKey?: string;
 
     admins?: adminData[];
     keep?: string[];
@@ -2512,6 +2517,7 @@ export function loadOptions(options?: Options): Options {
         discordBotToken: getOption('discordBotToken', '', String, incomingOptions),
         steamSupplyApiKey: getOption('steamsupplyApiKey', '', String, incomingOptions),
         steamApisApiKey: getOption('steamapisApiKey', '', String, incomingOptions),
+        expressLoadApiKey: getOption('expressloadApiKey', '', String, incomingOptions),
 
         admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
