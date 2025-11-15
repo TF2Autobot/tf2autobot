@@ -493,7 +493,7 @@ export default class Bot {
                 this.messageAdmins(
                     'version',
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
-                        `\n\n📰 Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
+                        `\n\n📰 Release note: https://github.com/TF2-Price-DB/tf2autobot-pricedb/releases` +
                         (updateMessage ? `\n\n💬 Update message: ${updateMessage}` : ''),
                     []
                 );
@@ -550,7 +550,7 @@ export default class Bot {
         return new Promise((resolve, reject) => {
             apiRequest<GithubPackageJson>({
                 method: 'GET',
-                url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
+                url: 'https://raw.githubusercontent.com/TF2-Price-DB/tf2autobot-pricedb/master/package.json',
                 signal: axiosAbortSignal(60000)
             })
                 .then(data => {

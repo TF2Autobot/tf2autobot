@@ -446,6 +446,9 @@
         },
         "steamApis": {
             "enable": false
+        },
+        "expressLoad": {
+            "enable": false
         }
     },
     "discordChat": {

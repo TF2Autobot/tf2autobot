@@ -31,6 +31,11 @@ export default class InventoryApi {
         return ['', {}];
     }
 
+    // This method may be defined by a class extending InventoryAPI
+    protected getHeaders(): UnknownDictionaryKnownValues {
+        return {};
+    }
+
     // Adapted from node-steamcommunity
     public getUserInventoryContents(
         userID: SteamID | string,
@@ -58,6 +63,8 @@ export default class InventoryApi {
             return;
         }
 
+        const headers = this.getHeaders();
+
         let pos = 1;
         get([], []);
 
@@ -67,7 +74,8 @@ export default class InventoryApi {
                 params: {
                     ...apiCallParams,
                     start_assetid: start
-                }
+                },
+                headers: headers,
             }).then(
                 response => {
                     const result = response.data as GetUserInventoryContentsResult;
