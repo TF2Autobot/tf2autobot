@@ -15,6 +15,12 @@ export interface PriceDbPrice {
     };
 }
 
+export interface PriceDbGetAllPricesResponse {
+    success: boolean;
+    currency: string;
+    items: PriceDbPrice[];
+}
+
 export interface PriceDbErrorResponse {
     message?: string;
 }
@@ -39,9 +45,9 @@ export default class PriceDbApi {
     }
 
     async getAllPrices(): Promise<PriceDbPrice[]> {
-        const url = `${this.baseUrl}/latest-prices`;
-        const response = await axios.get<PriceDbPrice[]>(url);
-        return response.data;
+        const url = `${this.baseUrl}/autob/items`;
+        const response = await axios.get<PriceDbGetAllPricesResponse>(url);
+        return response.data.items;
     }
 
     async priceCheck(sku: string): Promise<{ success: boolean; message?: string }> {
