@@ -532,7 +532,6 @@ export const optionsSchema: jsonschema.Schema = {
                 'showOnlyMetal',
                 'sortInventory',
                 'createListings',
-                'pricedbStore',
                 'addFriends',
                 'sendGroupInvite',
                 'counterOffer',

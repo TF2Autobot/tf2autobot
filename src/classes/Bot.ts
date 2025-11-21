@@ -1105,6 +1105,13 @@ export default class Bot {
                                     this.listingManager.init(callback);
                                 },
                                 (callback): void => {
+                                    log.debug('PriceDB Store API Key check:', {
+                                        hasApiKey: !!this.options.pricedbStoreApiKey,
+                                        apiKeyValue: this.options.pricedbStoreApiKey ? 'SET (hidden)' : 'NOT SET',
+                                        isEnabled: this.options.miscSettings.pricedbStore.enable,
+                                        enableInventoryRefresh: this.options.miscSettings.pricedbStore.enableInventoryRefresh
+                                    });
+                                    
                                     if (
                                         !this.options.pricedbStoreApiKey ||
                                         !this.options.miscSettings.pricedbStore.enable
