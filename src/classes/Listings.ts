@@ -242,11 +242,14 @@ export default class Listings {
             if (isAssetId && null !== inventory.findByAssetid(priceKey)) {
                 assetids = [priceKey];
             } else {
-                assetids = inventory
-                    .findBySKU(priceKey, true)
-                    .filter(
-                        assetId => this.bot.pricelist.hasPrice({ priceKey: assetId, onlyEnabled: false }) === false
-                    );
+                const foundAssetIds = inventory.findBySKU(priceKey, true);
+                assetids = foundAssetIds.filter(
+                    assetId => this.bot.pricelist.hasPrice({ priceKey: assetId, onlyEnabled: false }) === false
+                );
+                
+                if (showLogs) {
+                    log.debug(`Asset IDs for ${priceKey}: found=${foundAssetIds.length}, filtered=${assetids.length}`);
+                }
             }
 
             const canAffordToBuy = isFilterCantAfford
@@ -275,6 +278,12 @@ export default class Listings {
             }
 
             const assetid = assetids[assetids.length - 1];
+
+            if (showLogs) {
+                log.debug(
+                    `Sell listing check for ${priceKey}: hasSellListing=${hasSellListing}, amountCanSell=${amountCanSell}, assetid=${assetid}`
+                );
+            }
 
             if (!hasSellListing && amountCanSell > 0 && assetid) {
                 // assetid can be undefined, if any of the following is set to true
