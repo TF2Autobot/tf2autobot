@@ -246,7 +246,7 @@ export default class Listings {
                 assetids = foundAssetIds.filter(
                     assetId => this.bot.pricelist.hasPrice({ priceKey: assetId, onlyEnabled: false }) === false
                 );
-                
+
                 if (showLogs) {
                     log.debug(`Asset IDs for ${priceKey}: found=${foundAssetIds.length}, filtered=${assetids.length}`);
                 }
