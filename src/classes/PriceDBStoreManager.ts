@@ -45,6 +45,12 @@ export interface PriceDBUserResponse {
     };
 }
 
+interface QueuedRequest {
+    fn: () => Promise<any>;
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
+}
+
 export default class PriceDBStoreManager extends EventEmitter {
     private readonly apiKey: string;
 
@@ -57,6 +63,12 @@ export default class PriceDBStoreManager extends EventEmitter {
     private listings: Map<string, PriceDBListing> = new Map(); // assetId -> listing
 
     private lastInventoryRefresh: Date | null = null;
+
+    private requestQueue: QueuedRequest[] = [];
+
+    private isProcessingQueue: boolean = false;
+
+    private readonly requestDelayMs: number = 100; // 100ms delay between requests = max 10 requests/second
 
     constructor(apiKey: string, steamID?: string) {
         super();
@@ -71,6 +83,46 @@ export default class PriceDBStoreManager extends EventEmitter {
             },
             timeout: 30000
         });
+    }
+
+    /**
+     * Add a request to the queue and process it with rate limiting
+     */
+    private async queueRequest<T>(fn: () => Promise<T>): Promise<T> {
+        return new Promise((resolve, reject) => {
+            this.requestQueue.push({ fn, resolve, reject });
+            void this.processQueue();
+        });
+    }
+
+    /**
+     * Process the request queue with delays to avoid rate limiting
+     */
+    private async processQueue(): Promise<void> {
+        if (this.isProcessingQueue || this.requestQueue.length === 0) {
+            return;
+        }
+
+        this.isProcessingQueue = true;
+
+        while (this.requestQueue.length > 0) {
+            const request = this.requestQueue.shift();
+            if (!request) break;
+
+            try {
+                const result = await request.fn();
+                request.resolve(result);
+            } catch (error) {
+                request.reject(error);
+            }
+
+            // Wait before processing next request to avoid rate limit
+            if (this.requestQueue.length > 0) {
+                await new Promise(resolve => setTimeout(resolve, this.requestDelayMs));
+            }
+        }
+
+        this.isProcessingQueue = false;
     }
 
     /**
@@ -120,96 +172,104 @@ export default class PriceDBStoreManager extends EventEmitter {
     }
 
     /**
-     * Create a new listing on pricedb.io
+     * Create a new listing on pricedb.io (queued with rate limiting)
      */
     async createListing(assetId: string, currencies: Currencies): Promise<PriceDBListing | null> {
-        try {
-            const listing: Omit<PriceDBListing, 'id' | 'steam_id' | 'item_name' | 'created_at'> = {
-                asset_id: assetId,
-                price_keys: currencies.keys,
-                price_metal: currencies.metal
-            };
+        return this.queueRequest(async () => {
+            try {
+                const listing: Omit<PriceDBListing, 'id' | 'steam_id' | 'item_name' | 'created_at'> = {
+                    asset_id: assetId,
+                    price_keys: currencies.keys,
+                    price_metal: currencies.metal
+                };
 
-            const response = await this.axiosInstance.post<PriceDBListingResponse>('/listings', listing);
+                const response = await this.axiosInstance.post<PriceDBListingResponse>('/listings', listing);
 
-            if (response.data.success && response.data.listing) {
-                this.listings.set(assetId, response.data.listing);
-                log.debug(`Created listing on pricedb.io for asset ${assetId}`);
-                this.emit('listingCreated', response.data.listing);
-                return response.data.listing;
+                if (response.data.success && response.data.listing) {
+                    this.listings.set(assetId, response.data.listing);
+                    log.debug(`Created listing on pricedb.io for asset ${assetId}`);
+                    this.emit('listingCreated', response.data.listing);
+                    return response.data.listing;
+                }
+                return null;
+            } catch (err) {
+                const error = filterAxiosError(err as AxiosError);
+                log.error(`Failed to create listing on pricedb.io for asset ${assetId}:`, error);
+                this.emit('listingCreateError', { assetId, error });
+                throw error;
             }
-            return null;
-        } catch (err) {
-            const error = filterAxiosError(err as AxiosError);
-            log.error(`Failed to create listing on pricedb.io for asset ${assetId}:`, error);
-            this.emit('listingCreateError', { assetId, error });
-            throw error;
-        }
+        });
     }
 
     /**
-     * Update an existing listing on pricedb.io
+     * Update an existing listing on pricedb.io (queued with rate limiting)
      */
     async updateListing(assetId: string, currencies: Currencies): Promise<PriceDBListing | null> {
-        try {
-            const existingListing = this.listings.get(assetId);
-            if (!existingListing || !existingListing.id) {
-                log.warn(`Cannot update listing for asset ${assetId}: listing not found`);
+        return this.queueRequest(async () => {
+            try {
+                const existingListing = this.listings.get(assetId);
+                if (!existingListing || !existingListing.id) {
+                    log.warn(`Cannot update listing for asset ${assetId}: listing not found`);
+                    return null;
+                }
+
+                const update = {
+                    price_keys: currencies.keys,
+                    price_metal: currencies.metal
+                };
+
+                const response = await this.axiosInstance.put<PriceDBListingResponse>(
+                    `/listings/${existingListing.id}`,
+                    update
+                );
+
+                if (response.data.success && response.data.listing) {
+                    const updatedListing = { ...existingListing, ...response.data.listing };
+                    this.listings.set(assetId, updatedListing);
+                    log.debug(`Updated listing on pricedb.io for asset ${assetId}`);
+                    this.emit('listingUpdated', updatedListing);
+                    return updatedListing;
+                }
                 return null;
+            } catch (err) {
+                const error = filterAxiosError(err as AxiosError);
+                log.error(`Failed to update listing on pricedb.io for asset ${assetId}:`, error);
+                this.emit('listingUpdateError', { assetId, error });
+                throw error;
             }
-
-            const update = {
-                price_keys: currencies.keys,
-                price_metal: currencies.metal
-            };
-
-            const response = await this.axiosInstance.put<PriceDBListingResponse>(
-                `/listings/${existingListing.id}`,
-                update
-            );
-
-            if (response.data.success && response.data.listing) {
-                const updatedListing = { ...existingListing, ...response.data.listing };
-                this.listings.set(assetId, updatedListing);
-                log.debug(`Updated listing on pricedb.io for asset ${assetId}`);
-                this.emit('listingUpdated', updatedListing);
-                return updatedListing;
-            }
-            return null;
-        } catch (err) {
-            const error = filterAxiosError(err as AxiosError);
-            log.error(`Failed to update listing on pricedb.io for asset ${assetId}:`, error);
-            this.emit('listingUpdateError', { assetId, error });
-            throw error;
-        }
+        });
     }
 
     /**
-     * Delete a listing from pricedb.io
+     * Delete a listing from pricedb.io (queued with rate limiting)
      */
     async deleteListing(assetId: string): Promise<boolean> {
-        try {
-            const existingListing = this.listings.get(assetId);
-            if (!existingListing || !existingListing.id) {
-                log.warn(`Cannot delete listing for asset ${assetId}: listing not found`);
+        return this.queueRequest(async () => {
+            try {
+                const existingListing = this.listings.get(assetId);
+                if (!existingListing || !existingListing.id) {
+                    log.warn(`Cannot delete listing for asset ${assetId}: listing not found`);
+                    return false;
+                }
+
+                const response = await this.axiosInstance.delete<PriceDBListingResponse>(
+                    `/listings/${existingListing.id}`
+                );
+
+                if (response.data.success) {
+                    this.listings.delete(assetId);
+                    log.debug(`Deleted listing on pricedb.io for asset ${assetId}`);
+                    this.emit('listingDeleted', assetId);
+                    return true;
+                }
                 return false;
+            } catch (err) {
+                const error = filterAxiosError(err as AxiosError);
+                log.error(`Failed to delete listing on pricedb.io for asset ${assetId}:`, error);
+                this.emit('listingDeleteError', { assetId, error });
+                throw error;
             }
-
-            const response = await this.axiosInstance.delete<PriceDBListingResponse>(`/listings/${existingListing.id}`);
-
-            if (response.data.success) {
-                this.listings.delete(assetId);
-                log.debug(`Deleted listing on pricedb.io for asset ${assetId}`);
-                this.emit('listingDeleted', assetId);
-                return true;
-            }
-            return false;
-        } catch (err) {
-            const error = filterAxiosError(err as AxiosError);
-            log.error(`Failed to delete listing on pricedb.io for asset ${assetId}:`, error);
-            this.emit('listingDeleteError', { assetId, error });
-            throw error;
-        }
+        });
     }
 
     /**
