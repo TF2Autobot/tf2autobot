@@ -66,7 +66,7 @@ export default class PriceDBStoreManager extends EventEmitter {
 
     private requestQueue: QueuedRequest[] = [];
 
-    private isProcessingQueue: boolean = false;
+    private isProcessingQueue = false;
 
     private readonly requestDelayMs: number = 100; // 100ms delay between requests = max 10 requests/second
 
