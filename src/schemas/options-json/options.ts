@@ -395,6 +395,19 @@ export const optionsSchema: jsonschema.Schema = {
                 createListings: {
                     $ref: '#/definitions/only-enable'
                 },
+                pricedbStore: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        enableInventoryRefresh: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable'],
+                    additionalProperties: false
+                },
                 startHalted: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -519,6 +532,7 @@ export const optionsSchema: jsonschema.Schema = {
                 'showOnlyMetal',
                 'sortInventory',
                 'createListings',
+                'pricedbStore',
                 'addFriends',
                 'sendGroupInvite',
                 'counterOffer',

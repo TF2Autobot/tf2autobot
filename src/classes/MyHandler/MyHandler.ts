@@ -2273,6 +2273,17 @@ export default class MyHandler extends Handler {
             // Update listings
             updateListings(offer, this.bot, highValue);
 
+            // Refresh pricedb.io inventory after trade if enabled
+            if (
+                this.bot.pricedbStoreManager &&
+                this.opt.miscSettings.pricedbStore.enable &&
+                this.opt.miscSettings.pricedbStore.enableInventoryRefresh
+            ) {
+                this.bot.pricedbStoreManager.refreshInventory().catch(err => {
+                    log.warn('Failed to refresh pricedb.io inventory after trade:', err);
+                });
+            }
+
             // Invite to group
             this.inviteToGroups(offer.partner);
 

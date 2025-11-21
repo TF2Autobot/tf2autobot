@@ -18,6 +18,10 @@ export const DEFAULTS: JsonOptions = {
         createListings: {
             enable: true
         },
+        pricedbStore: {
+            enable: false,
+            enableInventoryRefresh: false
+        },
         startHalted: {
             enable: false
         },
@@ -1208,12 +1212,19 @@ interface Counteroffer extends OnlyEnable {
     autoDeclineLazyOffer?: boolean;
 }
 
+// --------- PriceDB Store Settings ----------
+
+interface PriceDBStore extends OnlyEnable {
+    enableInventoryRefresh?: boolean;
+}
+
 // --------- Misc Settings ----------
 
 interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
+    pricedbStore?: PriceDBStore;
     startHalted?: OnlyEnable;
     counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
@@ -2192,6 +2203,7 @@ export default interface Options extends JsonOptions {
 
     bptfAccessToken?: string;
     bptfApiKey?: string;
+    pricedbStoreApiKey?: string;
     useragentHeaderCustom?: string;
     useragentHeaderShowVersion?: boolean;
 
@@ -2510,6 +2522,7 @@ export function loadOptions(options?: Options): Options {
 
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
         bptfApiKey: getOption('bptfApiKey', '', String, incomingOptions),
+        pricedbStoreApiKey: getOption('pricedbStoreApiKey', '', String, incomingOptions),
         useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
         useragentHeaderShowVersion: getOption('useragentHeaderShowVersion', false, jsonParseBoolean, incomingOptions),
 
