@@ -19,8 +19,8 @@ export const DEFAULTS: JsonOptions = {
             enable: true
         },
         pricedbStore: {
-            enable: false,
-            enableInventoryRefresh: false
+            enable: true,
+            enableInventoryRefresh: true
         },
         startHalted: {
             enable: false
