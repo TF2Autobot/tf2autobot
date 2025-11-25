@@ -45,6 +45,72 @@ export interface PriceDBUserResponse {
     };
 }
 
+export interface PriceDBGroupMember {
+    id: number;
+    store_group_id: number;
+    steam_id: string;
+    role: 'owner' | 'member';
+    invite_status: 'pending' | 'accepted' | 'declined';
+    invited_by: string;
+    invited_at: string;
+    responded_at?: string;
+    display_name: string;
+    avatar_url: string;
+}
+
+export interface PriceDBGroup {
+    id: number;
+    owner_steam_id: string;
+    group_name: string;
+    description: string;
+    banner_url?: string;
+    links: Record<string, string>;
+    theme_settings: {
+        preset: string;
+    };
+    is_active: boolean;
+    view_count: number;
+    is_featured: boolean;
+    created_at: string;
+    updated_at: string;
+    custom_store_slug: string;
+    owner_name: string;
+    owner_avatar: string;
+    members: PriceDBGroupMember[];
+}
+
+export interface PriceDBGroupResponse {
+    success: boolean;
+    message?: string;
+    group?: PriceDBGroup;
+}
+
+export interface PriceDBInvite {
+    id: number;
+    group_id: number;
+    group_name: string;
+    inviter_display_name: string;
+    created_at: string;
+}
+
+export interface PriceDBInvitesResponse {
+    success: boolean;
+    count: number;
+    invites: PriceDBInvite[];
+}
+
+export interface PriceDBInviteCreateResponse {
+    success: boolean;
+    message: string;
+    invite?: {
+        id: number;
+        group_id: number;
+        invitee_steam_id: string;
+        status: string;
+        created_at: string;
+    };
+}
+
 interface QueuedRequest {
     fn: () => Promise<any>;
     resolve: (value: any) => void;
@@ -63,6 +129,8 @@ export default class PriceDBStoreManager extends EventEmitter {
     private listings: Map<string, PriceDBListing> = new Map(); // assetId -> listing
 
     private lastInventoryRefresh: Date | null = null;
+
+    private storeSlug: string | null = null; // cached store slug from group
 
     private requestQueue: QueuedRequest[] = [];
 
@@ -390,5 +458,139 @@ export default class PriceDBStoreManager extends EventEmitter {
      */
     getLastInventoryRefresh(): Date | null {
         return this.lastInventoryRefresh;
+    }
+
+    /**
+     * Get my store group information
+     */
+    async getMyGroup(): Promise<PriceDBGroup | null> {
+        try {
+            const response = await this.axiosInstance.get<PriceDBGroupResponse>('/groups/my');
+
+            if (response.data.success && response.data.group) {
+                // Cache the store slug for URL generation
+                this.storeSlug = response.data.group.custom_store_slug;
+                return response.data.group;
+            }
+            return null;
+        } catch (err) {
+            const error = filterAxiosError(err as AxiosError);
+            log.error('Failed to get group info from pricedb.io:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Invite a user to the store group
+     */
+    async inviteToGroup(groupId: number, steamId: string): Promise<PriceDBInviteCreateResponse | null> {
+        try {
+            const response = await this.axiosInstance.post<PriceDBInviteCreateResponse>(`/groups/${groupId}/invite`, {
+                steam_id: steamId
+            });
+
+            if (response.data.success) {
+                log.info(`Invited ${steamId} to group ${groupId}`);
+                return response.data;
+            }
+            return null;
+        } catch (err) {
+            const error = filterAxiosError(err as AxiosError);
+            log.error(`Failed to invite ${steamId} to group ${groupId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get pending group invites
+     */
+    async getPendingInvites(): Promise<PriceDBInvite[]> {
+        try {
+            const response = await this.axiosInstance.get<PriceDBInvitesResponse>('/groups/invites');
+
+            if (response.data.success && response.data.invites) {
+                log.debug(`Fetched ${response.data.count} pending invites`);
+                return response.data.invites;
+            }
+            return [];
+        } catch (err) {
+            const error = filterAxiosError(err as AxiosError);
+            log.error('Failed to get pending invites from pricedb.io:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Accept a group invite
+     */
+    async acceptGroupInvite(groupId: number): Promise<boolean> {
+        try {
+            const response = await this.axiosInstance.post<PriceDBGroupResponse>(`/groups/${groupId}/accept`);
+
+            if (response.data.success) {
+                log.info(`Accepted invite to group ${groupId}`);
+                return true;
+            }
+            return false;
+        } catch (err) {
+            const error = filterAxiosError(err as AxiosError);
+            log.error(`Failed to accept invite to group ${groupId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Leave a group
+     */
+    async leaveGroup(groupId: number): Promise<boolean> {
+        try {
+            const response = await this.axiosInstance.post<PriceDBGroupResponse>(`/groups/${groupId}/leave`);
+
+            if (response.data.success) {
+                log.info(`Left group ${groupId}`);
+                return true;
+            }
+            return false;
+        } catch (err) {
+            const error = filterAxiosError(err as AxiosError);
+            log.error(`Failed to leave group ${groupId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get the store slug for generating friendly URLs
+     * If not cached, fetch from API
+     */
+    async getStoreSlug(): Promise<string | null> {
+        if (this.storeSlug) {
+            return this.storeSlug;
+        }
+
+        const group = await this.getMyGroup();
+        return group ? group.custom_store_slug : null;
+    }
+
+    /**
+     * Get the friendly store URL using slug
+     */
+    async getStoreURL(): Promise<string> {
+        const slug = await this.getStoreSlug();
+        if (slug) {
+            return `https://store.pricedb.io/sf/${slug}`;
+        }
+        // Fallback to steamID-based URL
+        return `https://store.pricedb.io/store?id=${this.steamID}`;
+    }
+
+    /**
+     * Get the cached store URL synchronously (for use in templates)
+     * Returns null if not yet cached
+     */
+    getCachedStoreURL(): string | null {
+        if (this.storeSlug) {
+            return `https://store.pricedb.io/sf/${this.storeSlug}`;
+        }
+        return null;
     }
 }

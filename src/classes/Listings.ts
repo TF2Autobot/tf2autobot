@@ -769,7 +769,15 @@ export default class Listings {
                 })
                 .toString();
             const amountTrade = amountCanTrade.toString();
-            const pricedbStoreUrl = `https://store.pricedb.io/store?id=${this.bot.client.steamID.getSteamID64()}`;
+            
+            // Get friendly store URL using cached slug if available
+            let pricedbStoreUrl = `https://store.pricedb.io/store?id=${this.bot.client.steamID.getSteamID64()}`;
+            if (this.bot.pricedbStoreManager) {
+                const cachedUrl = this.bot.pricedbStoreManager.getCachedStoreURL();
+                if (cachedUrl) {
+                    pricedbStoreUrl = cachedUrl;
+                }
+            }
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
