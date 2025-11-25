@@ -50,7 +50,16 @@ Then apply the additional pricedb.io settings below.
 
     This enables the pricedb.io Store Manager and allows the bot to periodically refresh your pricedb.io inventory.
 
-After these two changes, rebuild (if needed) and fully restart the bot so the new environment variable is picked up.
+3. **Template variable for listings**
+
+    You can include your pricedb.io store URL in your backpack.tf listing notes by using the `%pricedb_store%` template variable. The bot will automatically replace it with your friendly store URL (e.g., `https://store.pricedb.io/sf/your-slug`).
+
+    Example in your listing note:
+    ```
+    Visit my store: %pricedb_store%
+    ```
+
+After these changes, rebuild (if needed) and fully restart the bot so the new environment variable is picked up.
 
 ---
 

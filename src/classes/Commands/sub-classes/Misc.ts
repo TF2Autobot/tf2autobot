@@ -395,9 +395,7 @@ export default class MiscCommands {
                 return this.bot.sendMessage(steamID, '❌ No store group found for this bot.');
             }
 
-            const members = group.members
-                .map(m => `  • ${m.display_name} (${m.role}) - ${m.invite_status}`)
-                .join('\n');
+            const members = group.members.map(m => `  • ${m.display_name} (${m.role}) - ${m.invite_status}`).join('\n');
 
             const storeUrl = `https://store.pricedb.io/sf/${group.custom_store_slug}`;
 
@@ -458,7 +456,10 @@ export default class MiscCommands {
                 .map(inv => `  • ${inv.group_name} (ID: ${inv.group_id}) - invited by ${inv.inviter_display_name}`)
                 .join('\n');
 
-            this.bot.sendMessage(steamID, `📨 Pending Invites:\n${inviteList}\n\nUse !pricedbaccept <groupId> to accept.`);
+            this.bot.sendMessage(
+                steamID,
+                `📨 Pending Invites:\n${inviteList}\n\nUse !pricedbaccept <groupId> to accept.`
+            );
         } catch (err) {
             this.bot.sendMessage(steamID, `❌ Failed to fetch invites: ${(err as Error).message}`);
         }
