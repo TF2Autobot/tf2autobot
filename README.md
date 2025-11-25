@@ -58,9 +58,9 @@ After these two changes, rebuild (if needed) and fully restart the bot so the ne
 
 For general documentation, troubleshooting and FAQs, keep using the original TF2Autobot wiki:
 
-- [Wiki home](https://github.com/idinium96/tf2autobot/wiki)
-- [Common errors](https://github.com/idinium96/tf2autobot/wiki/Common-Errors)
-- [FAQ](https://github.com/idinium96/tf2autobot/wiki/FAQ)
+-   [Wiki home](https://github.com/idinium96/tf2autobot/wiki)
+-   [Common errors](https://github.com/idinium96/tf2autobot/wiki/Common-Errors)
+-   [FAQ](https://github.com/idinium96/tf2autobot/wiki/FAQ)
 
 For issues or questions specific to this pricedb.io fork (or to my services), please join our Discord:
 
@@ -70,7 +70,7 @@ For issues or questions specific to this pricedb.io fork (or to my services), pl
 
 ## Credits
 
-- Original project: [TF2Autobot by IdiNium](https://github.com/idinium96/tf2autobot)
-- Based on [tf2-automatic by Nicklason](https://github.com/Nicklason/tf2-automatic)
+-   Original project: [TF2Autobot by IdiNium](https://github.com/idinium96/tf2autobot)
+-   Based on [tf2-automatic by Nicklason](https://github.com/Nicklason/tf2-automatic)
 
 This fork simply adapts TF2Autobot for pricedb.io as the default pricing backend.
