@@ -55,6 +55,7 @@ Then apply the additional pricedb.io settings below.
     You can include your pricedb.io store URL in your backpack.tf listing notes by using the `%pricedb_store%` template variable. The bot will automatically replace it with your friendly store URL (e.g., `https://store.pricedb.io/sf/your-slug`).
 
     Example in your listing note:
+
     ```
     Visit my store: %pricedb_store%
     ```
