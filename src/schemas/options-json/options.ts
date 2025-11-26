@@ -428,9 +428,12 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         autoDeclineLazyOffer: {
                             type: 'boolean'
+                        },
+                        useSeparateKeyRates: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['enable', 'skipIncludeMessage', 'autoDeclineLazyOffer'],
+                    required: ['enable', 'skipIncludeMessage', 'autoDeclineLazyOffer', 'useSeparateKeyRates'],
                     additionalProperties: false
                 },
                 skipItemsInTrade: {
