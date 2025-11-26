@@ -1443,7 +1443,11 @@ export default class MyHandler extends Handler {
                 keys: exchange.their.keys,
                 metal: Currencies.toRefined(exchange.their.scrap)
             },
-            rate: keyPrices.buy.metal
+            rate: keyPrices.buy.metal,
+            rates: {
+                buy: keyPrices.buy.metal,
+                sell: keyPrices.sell.metal
+            }
         });
 
         offer.data('prices', itemPrices);
