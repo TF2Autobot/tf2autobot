@@ -626,8 +626,32 @@ export default class Listings {
                 // Create new listing
                 await this.bot.pricedbStoreManager.createListing(assetId, currencies);
             }
-        } catch (err) {
-            log.error(`Failed to create/update pricedb.io listing for ${assetId}:`, err);
+        } catch (err: any) {
+            const isItemNotFoundError =
+                err?.status === 400 &&
+                (err?.data?.error === 'Item not found' || err?.data?.message?.includes('Item not found'));
+
+            if (isItemNotFoundError) {
+                log.warn(`Item ${assetId} not found in pricedb.io inventory. Attempting to refresh inventory...`);
+
+                // Attempt to refresh inventory (respects rate limits)
+                try {
+                    const refreshed = await this.bot.pricedbStoreManager.refreshInventory();
+                    if (refreshed) {
+                        log.info(
+                            `Inventory refreshed. The listing for ${assetId} will be created on the next update cycle.`
+                        );
+                    } else {
+                        log.debug(
+                            `Inventory refresh skipped (rate limited). The listing for ${assetId} will be retried later.`
+                        );
+                    }
+                } catch (error_) {
+                    log.error(`Failed to refresh inventory after item not found error:`, error_);
+                }
+            } else {
+                log.error(`Failed to create/update pricedb.io listing for ${assetId}:`, err);
+            }
         }
     }
 
