@@ -1113,7 +1113,7 @@ export default class MyHandler extends Handler {
 
         const itemPrices: Prices = {};
 
-        const keyPrice = this.bot.pricelist.getKeyPrices[keyOurSide ? 'sell' : 'buy'];
+        const keyPrices = this.bot.pricelist.getKeyPrices;
         let hasOverstockAndIsPartialPriced = false;
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];
@@ -1140,6 +1140,7 @@ export default class MyHandler extends Handler {
                 for (const id of exchange[which].pricedAssetIds) {
                     const match = this.bot.pricelist.getPrice({ priceKey: id });
                     // Add value of items
+                    const keyPrice = which === 'our' ? keyPrices.sell : keyPrices.buy;
                     exchange[which].value += match[intentString].toValue(keyPrice.metal);
                     exchange[which].keys += match[intentString].keys;
                     exchange[which].scrap += Currencies.toScrap(match[intentString].metal);
@@ -1227,6 +1228,7 @@ export default class MyHandler extends Handler {
                         // (meaning that we are trading keys) then add the price of the item
 
                         // Add value of items
+                        const keyPrice = which === 'our' ? keyPrices.sell : keyPrices.buy;
                         exchange[which].value += match[intentString].toValue(keyPrice.metal) * amount;
                         exchange[which].keys += match[intentString].keys * amount;
                         exchange[which].scrap += Currencies.toScrap(match[intentString].metal) * amount;
@@ -1327,9 +1329,10 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        const buyPrice = match.buy.toValue(keyPrice.metal);
-                        const sellPrice = match.sell.toValue(keyPrice.metal);
-                        const minimumKeysDupeCheck = this.minimumKeysDupeCheck * keyPrice.toValue();
+                        const keyPriceBuy = keyPrices.buy;
+                        const buyPrice = match.buy.toValue(keyPriceBuy.metal);
+                        const sellPrice = match.sell.toValue(keyPriceBuy.metal);
+                        const minimumKeysDupeCheck = this.minimumKeysDupeCheck * keyPriceBuy.toValue();
                         if (
                             buying && // check only items on their side
                             (buyPrice > minimumKeysDupeCheck || sellPrice > minimumKeysDupeCheck)
@@ -1341,6 +1344,7 @@ export default class MyHandler extends Handler {
                         //
                     } else if (sku === '5021;6' && exchange.contains.items) {
                         // Offer contains keys and we are not trading keys, add key value
+                        const keyPrice = which === 'our' ? keyPrices.sell : keyPrices.buy;
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
                         //
@@ -1389,17 +1393,19 @@ export default class MyHandler extends Handler {
                                 ) {
                                     // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
                                     // then give that item price and include in exchange
+                                    const keyPrice = which === 'our' ? keyPrices.sell : keyPrices.buy;
                                     exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                     exchange[which].keys += price[intentString].keys * amount;
                                     exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                                 }
+                                const keyPriceForRef = keyPrices.buy;
                                 const valueInRef = {
-                                    buy: Currencies.toRefined(price.buy.toValue(keyPrice.metal)),
-                                    sell: Currencies.toRefined(price.sell.toValue(keyPrice.metal))
+                                    buy: Currencies.toRefined(price.buy.toValue(keyPriceForRef.metal)),
+                                    sell: Currencies.toRefined(price.sell.toValue(keyPriceForRef.metal))
                                 };
 
                                 itemSuggestedValue =
-                                    (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
+                                    (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPriceForRef.metal
                                         ? `${valueInRef.buy.toString()} ref (${price.buy.toString()})` +
                                           ` / ${valueInRef.sell.toString()} ref (${price.sell.toString()})`
                                         : `${price.buy.toString()} / ${price.sell.toString()}`;
@@ -1420,9 +1426,9 @@ export default class MyHandler extends Handler {
 
         // Doing this so that the prices will always be displayed as only metal
         if (opt.miscSettings.showOnlyMetal.enable) {
-            exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
+            exchange.our.scrap += exchange.our.keys * keyPrices.sell.toValue();
             exchange.our.keys = 0;
-            exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
+            exchange.their.scrap += exchange.their.keys * keyPrices.buy.toValue();
             exchange.their.keys = 0;
         }
 
@@ -1437,7 +1443,7 @@ export default class MyHandler extends Handler {
                 keys: exchange.their.keys,
                 metal: Currencies.toRefined(exchange.their.scrap)
             },
-            rate: keyPrice.metal
+            rate: keyPrices.buy.metal
         });
 
         offer.data('prices', itemPrices);
