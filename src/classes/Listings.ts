@@ -776,6 +776,11 @@ export default class Listings {
                 const cachedUrl = this.bot.pricedbStoreManager.getCachedStoreURL();
                 if (cachedUrl) {
                     pricedbStoreUrl = cachedUrl;
+                } else {
+                    log.debug(
+                        'No cached store slug available yet - using steamID URL. ' +
+                            'Slug will be fetched in background for next listing.'
+                    );
                 }
             }
 
