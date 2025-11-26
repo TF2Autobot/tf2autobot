@@ -207,7 +207,7 @@ export default class PriceDBStoreManager extends EventEmitter {
         try {
             log.debug('Initializing PriceDB Store Manager...');
             await this.fetchMyListings();
-            
+
             // Fetch group info to cache the store slug for friendly URLs
             try {
                 const group = await this.getMyGroup();
@@ -218,7 +218,7 @@ export default class PriceDBStoreManager extends EventEmitter {
                 // Not being in a group is not a critical error
                 log.debug('No group found or failed to fetch group info (this is normal if not in a group)');
             }
-            
+
             log.info('PriceDB Store Manager initialized successfully');
             this.emit('ready');
         } catch (err) {
@@ -482,7 +482,9 @@ export default class PriceDBStoreManager extends EventEmitter {
             if (response.data.success && response.data.group) {
                 // Cache the store slug for URL generation
                 this.storeSlug = response.data.group.custom_store_slug;
-                log.debug(`Fetched group info - Group: ${response.data.group.group_name}, Slug: ${response.data.group.custom_store_slug}`);
+                log.debug(
+                    `Fetched group info - Group: ${response.data.group.group_name}, Slug: ${response.data.group.custom_store_slug}`
+                );
                 return response.data.group;
             }
             log.debug('No group found in /groups/my response');
@@ -605,7 +607,7 @@ export default class PriceDBStoreManager extends EventEmitter {
         if (this.storeSlug) {
             return `https://store.pricedb.io/sf/${this.storeSlug}`;
         }
-        
+
         // If not cached, trigger an async fetch (don't wait for it)
         // This ensures the cache will be populated for next time
         if (!this.storeSlug) {
@@ -613,7 +615,7 @@ export default class PriceDBStoreManager extends EventEmitter {
                 log.debug('Failed to fetch group info for cache refresh:', err);
             });
         }
-        
+
         return null;
     }
 }
