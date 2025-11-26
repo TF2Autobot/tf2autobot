@@ -34,7 +34,8 @@ export const DEFAULTS: JsonOptions = {
         counterOffer: {
             enable: true,
             skipIncludeMessage: false,
-            autoDeclineLazyOffer: false
+            autoDeclineLazyOffer: false,
+            useSeparateKeyRates: false
         },
         skipItemsInTrade: {
             enable: true
@@ -1210,6 +1211,7 @@ interface Game {
 interface Counteroffer extends OnlyEnable {
     skipIncludeMessage?: boolean;
     autoDeclineLazyOffer?: boolean;
+    useSeparateKeyRates?: boolean;
 }
 
 // --------- PriceDB Store Settings ----------

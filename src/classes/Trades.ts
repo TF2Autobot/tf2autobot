@@ -914,7 +914,9 @@ export default class Trades {
 
                     const keyPriceScrap = Currencies.toScrap(values.rate);
                     // Use separate rates for our side (sell) and their side (buy)
-                    const keyPriceSellScrap = values.rates?.sell ? Currencies.toScrap(values.rates.sell) : keyPriceScrap;
+                    const keyPriceSellScrap = values.rates?.sell
+                        ? Currencies.toScrap(values.rates.sell)
+                        : keyPriceScrap;
                     const keyPriceBuyScrap = values.rates?.buy ? Currencies.toScrap(values.rates.buy) : keyPriceScrap;
                     const tradeValues = {
                         our: {
