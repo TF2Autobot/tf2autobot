@@ -2441,10 +2441,7 @@ export default class MyHandler extends Handler {
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
                                   .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                                  .replace(
-                                      /%pricedb_store%/g,
-                                      `https://store.pricedb.io/store?id=${this.bot.client.steamID.getSteamID64()}`
-                                  )
+                                  .replace(/%pricedb_store%/g, this.bot.getPricedbStoreUrl())
                             : `Hi! If you don't know how things work, please type "!${isAdmin ? 'help' : 'how2trade'}"`
                     );
                 }
@@ -2465,10 +2462,7 @@ export default class MyHandler extends Handler {
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
                           .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                          .replace(
-                              /%pricedb_store%/g,
-                              `https://store.pricedb.io/store?id=${this.bot.client.steamID.getSteamID64()}`
-                          )
+                          .replace(/%pricedb_store%/g, this.bot.getPricedbStoreUrl())
                     : `Hi ${friend.player_name}! If you don't know how things work, please type ` +
                           `"!${isAdmin ? 'help' : 'how2trade'}"`
             );

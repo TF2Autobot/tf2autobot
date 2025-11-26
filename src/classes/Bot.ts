@@ -239,6 +239,23 @@ export default class Bot {
         return this.admins;
     }
 
+    /**
+     * Get the pricedb.io store URL with cached slug if available, otherwise steamID-based URL
+     */
+    getPricedbStoreUrl(): string {
+        const steamID = this.client.steamID.getSteamID64();
+        const fallbackUrl = `https://store.pricedb.io/store?id=${steamID}`;
+
+        if (this.pricedbStoreManager) {
+            const cachedUrl = this.pricedbStoreManager.getCachedStoreURL();
+            if (cachedUrl) {
+                return cachedUrl;
+            }
+        }
+
+        return fallbackUrl;
+    }
+
     isWhitelisted(steamID: SteamID | string): boolean {
         const steamID64 = steamID.toString();
         return this.itemStatsWhitelist.some(whitelistSteamID => whitelistSteamID.toString() === steamID64);

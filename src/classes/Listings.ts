@@ -771,18 +771,7 @@ export default class Listings {
             const amountTrade = amountCanTrade.toString();
 
             // Get friendly store URL using cached slug if available
-            let pricedbStoreUrl = `https://store.pricedb.io/store?id=${this.bot.client.steamID.getSteamID64()}`;
-            if (this.bot.pricedbStoreManager) {
-                const cachedUrl = this.bot.pricedbStoreManager.getCachedStoreURL();
-                if (cachedUrl) {
-                    pricedbStoreUrl = cachedUrl;
-                } else {
-                    log.debug(
-                        'No cached store slug available yet - using steamID URL. ' +
-                            'Slug will be fetched in background for next listing.'
-                    );
-                }
-            }
+            const pricedbStoreUrl = this.bot.getPricedbStoreUrl();
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
