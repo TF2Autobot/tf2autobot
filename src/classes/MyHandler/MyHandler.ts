@@ -1139,8 +1139,8 @@ export default class MyHandler extends Handler {
             if (exchange[which].contains.pricedAssets) {
                 for (const id of exchange[which].pricedAssetIds) {
                     const match = this.bot.pricelist.getPrice({ priceKey: id });
-                    // Add value of items
-                    const keyPrice = which === 'our' ? keyPrices.sell : keyPrices.buy;
+                    // Add value of items - use buy rate for item prices so listed prices work as expected
+                    const keyPrice = keyPrices.buy;
                     exchange[which].value += match[intentString].toValue(keyPrice.metal);
                     exchange[which].keys += match[intentString].keys;
                     exchange[which].scrap += Currencies.toScrap(match[intentString].metal);
@@ -1227,8 +1227,8 @@ export default class MyHandler extends Handler {
                         // If we found a matching price and the item is not a key, or the we are not trading items
                         // (meaning that we are trading keys) then add the price of the item
 
-                        // Add value of items
-                        const keyPrice = which === 'our' ? keyPrices.sell : keyPrices.buy;
+                        // Add value of items - use buy rate for item prices so listed prices work as expected
+                        const keyPrice = keyPrices.buy;
                         exchange[which].value += match[intentString].toValue(keyPrice.metal) * amount;
                         exchange[which].keys += match[intentString].keys * amount;
                         exchange[which].scrap += Currencies.toScrap(match[intentString].metal) * amount;
