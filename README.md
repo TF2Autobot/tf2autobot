@@ -25,7 +25,7 @@ When the wiki tells you to clone the TF2Autobot repository, use this fork instea
 git clone https://github.com/TF2-Price-DB/tf2autobot-pricedb.git
 ```
 
-Then apply the additional pricedb.io settings below.
+Then apply the additional pricedb.io settings below using your api key from [Pricedb Store](https://store.pricedb.io/api-docs).
 
 ### Required pricedb.io configuration
 
