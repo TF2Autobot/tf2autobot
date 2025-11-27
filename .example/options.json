@@ -22,7 +22,8 @@
         "counterOffer": {
             "enable": true,
             "skipIncludeMessage": false,
-            "autoDeclineLazyOffer": false
+            "autoDeclineLazyOffer": false,
+            "useSeparateKeyRates": false
         },
         "skipItemsInTrade": {
             "enable": true
