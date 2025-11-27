@@ -21,6 +21,7 @@
 
                 "BPTF_ACCESS_TOKEN": "",
                 "BPTF_API_KEY": "",
+                "PRICEDB_STORE_API_KEY": "",
                 "USERAGENT_HEADER_CUSTOM": "",
                 "USERAGENT_HEADER_SHOW_VERSION": false,
 
@@ -33,7 +34,7 @@
                 "ADMINS": [{ "steam": "<your steamid 64>", "discord": null }],
                 "KEEP": ["<steamid of person to keep in friendslist>"],
                 "ITEM_STATS_WHITELIST": [],
-                "GROUPS": ["103582791469033930"],
+                "GROUPS": ["103582791475394761"],
                 "ALERTS": ["trade", "version"],
 
                 "ENABLE_SOCKET": true,

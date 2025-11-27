@@ -208,6 +208,20 @@ export default class HelpCommands {
                         `paints - Get a list of paints partial sku 🎨`
                     ].join(`\n- ${prefix}`)
             );
+
+            await timersPromises.setTimeout(2000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== PriceDB.io Store ===✨\n- ' +
+                    [
+                        `${prefix}pricedbgroup - View your store group info, members, and friendly store URL 🏪`,
+                        `pricedbinvite <steamID> - Invite a user to your store group 📨`,
+                        `pricedbinvites - List pending group invites you've received 📬`,
+                        `pricedbaccept <groupId> - Accept a group invite ✅`,
+                        `pricedbleave <groupId> - Leave a store group 👋`
+                    ].join(`\n- ${prefix}`) +
+                    '\n\n💡 Tip: Use %pricedb_store% in your listing notes to automatically include your store URL!'
+            );
         }
     }
 

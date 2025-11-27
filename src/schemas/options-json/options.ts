@@ -395,6 +395,19 @@ export const optionsSchema: jsonschema.Schema = {
                 createListings: {
                     $ref: '#/definitions/only-enable'
                 },
+                pricedbStore: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        enableInventoryRefresh: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable'],
+                    additionalProperties: false
+                },
                 startHalted: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -415,9 +428,12 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         autoDeclineLazyOffer: {
                             type: 'boolean'
+                        },
+                        useSeparateKeyRates: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['enable', 'skipIncludeMessage', 'autoDeclineLazyOffer'],
+                    required: ['enable', 'skipIncludeMessage', 'autoDeclineLazyOffer', 'useSeparateKeyRates'],
                     additionalProperties: false
                 },
                 skipItemsInTrade: {

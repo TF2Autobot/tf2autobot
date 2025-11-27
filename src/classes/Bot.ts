@@ -5,6 +5,7 @@ import TradeOfferManager, { CustomError, EconItem } from '@tf2autobot/tradeoffer
 import SteamCommunity from '@tf2autobot/steamcommunity';
 import SteamTotp from 'steam-totp';
 import ListingManager, { Listing } from '@tf2autobot/bptf-listings';
+import PriceDBStoreManager from './PriceDBStoreManager';
 import SchemaManager, { Effect, StrangeParts } from '@tf2autobot/tf2-schema';
 import BptfLogin from '@tf2autobot/bptf-login';
 import TF2 from '@tf2autobot/tf2';
@@ -68,6 +69,8 @@ export default class Bot {
     tradeOfferUrl: string;
 
     listingManager: ListingManager;
+
+    pricedbStoreManager: PriceDBStoreManager;
 
     readonly friends: Friends;
 
@@ -234,6 +237,23 @@ export default class Bot {
 
     get getAdmins(): SteamID[] {
         return this.admins;
+    }
+
+    /**
+     * Get the pricedb.io store URL with cached slug if available, otherwise steamID-based URL
+     */
+    getPricedbStoreUrl(): string {
+        const steamID = this.client.steamID.getSteamID64();
+        const fallbackUrl = `https://store.pricedb.io/store?id=${steamID}`;
+
+        if (this.pricedbStoreManager) {
+            const cachedUrl = this.pricedbStoreManager.getCachedStoreURL();
+            if (cachedUrl) {
+                return cachedUrl;
+            }
+        }
+
+        return fallbackUrl;
     }
 
     isWhitelisted(steamID: SteamID | string): boolean {
@@ -1100,6 +1120,50 @@ export default class Bot {
                                     );
 
                                     this.listingManager.init(callback);
+                                },
+                                (callback): void => {
+                                    if (
+                                        !this.options.pricedbStoreApiKey ||
+                                        !this.options.miscSettings.pricedbStore.enable
+                                    ) {
+                                        log.debug(
+                                            'Skipping PriceDB Store Manager initialization (not configured or disabled)'
+                                        );
+                                        return callback(null);
+                                    }
+
+                                    log.debug('Initializing PriceDB Store Manager...');
+                                    this.pricedbStoreManager = new PriceDBStoreManager(
+                                        this.options.pricedbStoreApiKey,
+                                        this.client.steamID.getSteamID64()
+                                    );
+
+                                    this.pricedbStoreManager.on('listingCreated', listing => {
+                                        log.debug('PriceDB Store listing created:', listing.id);
+                                    });
+
+                                    this.pricedbStoreManager.on('listingUpdated', listing => {
+                                        log.debug('PriceDB Store listing updated:', listing.id);
+                                    });
+
+                                    this.pricedbStoreManager.on('listingDeleted', assetId => {
+                                        log.debug('PriceDB Store listing deleted:', assetId);
+                                    });
+
+                                    this.pricedbStoreManager.on('inventoryRefreshed', data => {
+                                        log.info(
+                                            `PriceDB Store inventory refreshed: ${data.itemCount} items (${data.refreshCount}/25 today)`
+                                        );
+                                    });
+
+                                    this.pricedbStoreManager.on('error', err => {
+                                        log.error('PriceDB Store Manager error:', err);
+                                    });
+
+                                    this.pricedbStoreManager
+                                        .init()
+                                        .then(() => callback(null))
+                                        .catch(callback);
                                 },
                                 (callback): void => {
                                     if (this.options.skipUpdateProfileSettings) {

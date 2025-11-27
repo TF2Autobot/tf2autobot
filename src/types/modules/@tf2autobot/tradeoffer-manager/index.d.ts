@@ -134,6 +134,10 @@ declare module '@tf2autobot/tradeoffer-manager' {
             our?: Values;
             their?: Values;
             rate?: number;
+            rates?: {
+                buy?: number;
+                sell?: number;
+            };
         }
 
         export interface Values {

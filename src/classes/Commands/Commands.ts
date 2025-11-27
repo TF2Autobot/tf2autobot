@@ -290,6 +290,16 @@ export default class Commands {
                 this.manager.refreshSchema(steamID);
             } else if (['crafttoken', 'ct'].includes(command) && isAdmin) {
                 this.crafting.craftTokenCommand(steamID, message);
+            } else if (command === 'pricedbgroup' && isAdmin) {
+                void this.misc.pricedbGroup(steamID);
+            } else if (command === 'pricedbinvite' && isAdmin) {
+                void this.misc.pricedbInvite(steamID, CommandParser.removeCommand(message));
+            } else if (command === 'pricedbinvites' && isAdmin) {
+                void this.misc.pricedbInvites(steamID);
+            } else if (command === 'pricedbaccept' && isAdmin) {
+                void this.misc.pricedbAccept(steamID, CommandParser.removeCommand(message));
+            } else if (command === 'pricedbleave' && isAdmin) {
+                void this.misc.pricedbLeave(steamID, CommandParser.removeCommand(message));
             } else {
                 const custom = this.bot.options.customMessage.commandNotFound;
 

@@ -18,6 +18,10 @@ export const DEFAULTS: JsonOptions = {
         createListings: {
             enable: true
         },
+        pricedbStore: {
+            enable: true,
+            enableInventoryRefresh: true
+        },
         startHalted: {
             enable: false
         },
@@ -30,7 +34,8 @@ export const DEFAULTS: JsonOptions = {
         counterOffer: {
             enable: true,
             skipIncludeMessage: false,
-            autoDeclineLazyOffer: false
+            autoDeclineLazyOffer: false,
+            useSeparateKeyRates: false
         },
         skipItemsInTrade: {
             enable: true
@@ -1206,6 +1211,13 @@ interface Game {
 interface Counteroffer extends OnlyEnable {
     skipIncludeMessage?: boolean;
     autoDeclineLazyOffer?: boolean;
+    useSeparateKeyRates?: boolean;
+}
+
+// --------- PriceDB Store Settings ----------
+
+interface PriceDBStore extends OnlyEnable {
+    enableInventoryRefresh?: boolean;
 }
 
 // --------- Misc Settings ----------
@@ -1214,6 +1226,7 @@ interface MiscSettings {
     showOnlyMetal?: OnlyEnable;
     sortInventory?: SortInventory;
     createListings?: OnlyEnable;
+    pricedbStore?: PriceDBStore;
     startHalted?: OnlyEnable;
     counterOffer?: Counteroffer;
     addFriends?: OnlyEnable;
@@ -2192,6 +2205,7 @@ export default interface Options extends JsonOptions {
 
     bptfAccessToken?: string;
     bptfApiKey?: string;
+    pricedbStoreApiKey?: string;
     useragentHeaderCustom?: string;
     useragentHeaderShowVersion?: boolean;
 
@@ -2510,6 +2524,7 @@ export function loadOptions(options?: Options): Options {
 
         bptfAccessToken: getOption('bptfAccessToken', '', String, incomingOptions),
         bptfApiKey: getOption('bptfApiKey', '', String, incomingOptions),
+        pricedbStoreApiKey: getOption('pricedbStoreApiKey', '', String, incomingOptions),
         useragentHeaderCustom: getOption('useragentHeaderCustom', '', String, incomingOptions),
         useragentHeaderShowVersion: getOption('useragentHeaderShowVersion', false, jsonParseBoolean, incomingOptions),
 
@@ -2522,7 +2537,7 @@ export function loadOptions(options?: Options): Options {
         admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
         itemStatsWhitelist: getOption('itemStatsWhitelist', [], jsonParseArray, incomingOptions),
-        groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),
+        groups: getOption('groups', ['103582791475394761'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
         enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),
