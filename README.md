@@ -1,11 +1,12 @@
 # TF2Autobot (pricedb.io fork)
 
-This is a minimal fork of [TF2Autobot](https://github.com/idinium96/tf2autobot), tuned for use with [pricedb.io](https://pricedb.io) as the default pricing source after the shutdown of prices.tf.
+This is a fork of [TF2Autobot](https://github.com/idinium96/tf2autobot), with changes made to work and use [pricedb.io](https://pricedb.io) as the default pricing source after the shutdown of prices.tf.
 
 It keeps the core behaviour and setup flow of the original project, but:
 
 -   Uses pricedb.io as the default pricer.
 -   Integrates the pricedb.io Store API so backpack.tf sell listings can be mirrored to pricedb.io.
+-   Key Pricing Configuration to allow the key value context to be set (default same behaviour as autobot)
 
 If you already know how to run TF2Autobot, you can treat this as a drop‑in replacement with the extra pricedb.io integration enabled.
 
@@ -19,13 +20,13 @@ All general installation and configuration steps are the same as TF2Autobot. Fol
 -   [Environment variables](https://github.com/idinium96/tf2autobot/wiki/Configuring-the-bot)
 -   [`options.json` reference](https://github.com/idinium96/tf2autobot/wiki/Configure-your-options.json-file)
 
-When the wiki tells you to clone the TF2Autobot repository, use this fork instead:
+When the wiki tells you to clone the TF2Autobot repo, use this fork instead:
 
 ```bash
 git clone https://github.com/TF2-Price-DB/tf2autobot-pricedb.git
 ```
 
-Then apply the additional pricedb.io settings below using your api key from [Pricedb Store](https://store.pricedb.io/api-docs).
+Then apply the additional pricedb.io settings below using your api key from [Pricedb Store](https://store.pricedb.io/api-docs) or ignore this step if you dont want to use any of the [Pricedb Store](https://store.pricedb.io) features.
 
 ### Required pricedb.io configuration
 
@@ -64,7 +65,7 @@ After these changes, rebuild (if needed) and fully restart the bot so the new en
 
 ---
 
-## Counter Offer Key Pricing Configuration
+## Key Pricing Configuration
 
 The bot supports configurable key pricing behavior when calculating trade values to ensure accurate valuations.
 
@@ -107,11 +108,11 @@ This prevents value calculation errors and ensures the bot maintains proper prof
 If key buy price is 60 ref and sell price is 61 ref:
 
 -   `useSeparateKeyRates: true`: When bot gives 1 key, it's valued at 61 ref; when bot receives 1 key, it's valued at 60 ref
--   `useSeparateKeyRates: false`: All keys valued at 61 ref (sell price) regardless of direction
+-   `useSeparateKeyRates: false`: All keys valued at 61 ref (sell price) regardless of direction (default autobot behaviour)
 
 ---
 
-## Support, FAQ and common errors
+## Links
 
 For general documentation, troubleshooting and FAQs, keep using the original TF2Autobot wiki:
 
@@ -129,5 +130,3 @@ For issues or questions specific to this pricedb.io fork (or to my services), pl
 
 -   Original project: [TF2Autobot by IdiNium](https://github.com/idinium96/tf2autobot)
 -   Based on [tf2-automatic by Nicklason](https://github.com/Nicklason/tf2-automatic)
-
-This fork simply adapts TF2Autobot for pricedb.io as the default pricing backend.
