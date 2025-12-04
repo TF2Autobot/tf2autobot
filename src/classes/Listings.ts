@@ -796,6 +796,7 @@ export default class Listings {
 
             // Get friendly store URL using cached slug if available
             const pricedbStoreUrl = this.bot.getPricedbStoreUrl();
+            const pricedbItemUrl = `https://store.pricedb.io/item/${entry.sku}`;
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
@@ -803,7 +804,8 @@ export default class Listings {
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade)
-                .replace(/%pricedb_store%/g, pricedbStoreUrl);
+                .replace(/%pricedb_store%/g, pricedbStoreUrl)
+                .replace(/%pricedb_item%/g, pricedbItemUrl);
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;

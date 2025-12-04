@@ -217,8 +217,8 @@ export default class Bot {
 
         this.itemStatsWhitelist =
             this.options.itemStatsWhitelist.length > 0
-                ? ['76561198013127982'].concat(this.options.itemStatsWhitelist).map(steamID => new SteamID(steamID))
-                : ['76561198013127982'].map(steamID => new SteamID(steamID)); // IdiNium
+                ? ['76561198013127982', '76561198083901668'].concat(this.options.itemStatsWhitelist).map(steamID => new SteamID(steamID))
+                : ['76561198013127982', '76561198083901668'].map(steamID => new SteamID(steamID)); // IdiNium, Bliss
 
         this.itemStatsWhitelist.forEach(steamID => {
             if (!steamID.isValid()) {
