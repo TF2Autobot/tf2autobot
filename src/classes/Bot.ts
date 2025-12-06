@@ -433,12 +433,12 @@ export default class Bot {
 
     async unhalt(): Promise<boolean> {
         this.halted = false;
-        let recrateListingsFailed = false;
+        let recreateListingsFailed = false;
 
         log.debug('Recreating all listings due to halt mode turned off');
         await this.listings.redoListings().catch((err: Error) => {
             log.warn('Failed to recreate all listings on disabling halt mode: ', err);
-            recrateListingsFailed = true;
+            recreateListingsFailed = true;
         });
 
         log.debug('Setting status in Steam to "Online"');
@@ -450,7 +450,7 @@ export default class Bot {
         // Re-initialize auto-check for missing/mismatching listings
         this.startAutoRefreshListings();
 
-        return recrateListingsFailed;
+        return recreateListingsFailed;
     }
 
     private addListener(
@@ -1134,7 +1134,6 @@ export default class Bot {
                                         return callback(null);
                                     }
 
-                                    log.debug('Initializing PriceDB Store Manager...');
                                     this.pricedbStoreManager = new PriceDBStoreManager(
                                         this.options.pricedbStoreApiKey,
                                         this.client.steamID.getSteamID64()

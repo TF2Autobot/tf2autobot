@@ -27,6 +27,7 @@ export interface PriceDBInventoryResponse {
     message?: string;
     count?: number;
     item_count?: number;
+    refresh_count?: number;
     from_cache?: boolean;
     cached_at?: string;
     items?: any[];
@@ -205,7 +206,7 @@ export default class PriceDBStoreManager extends EventEmitter {
      */
     async init(): Promise<void> {
         try {
-            log.debug('Initializing PriceDB Store Manager...');
+            log.debug('Initialising PriceDB Store Manager...');
             await this.fetchMyListings();
 
             // Fetch group info to cache the store slug for friendly URLs
@@ -378,7 +379,8 @@ export default class PriceDBStoreManager extends EventEmitter {
                 this.lastInventoryRefresh = new Date();
                 log.info(`Inventory refreshed on pricedb.io. Items: ${response.data.item_count}`);
                 this.emit('inventoryRefreshed', {
-                    itemCount: response.data.item_count
+                    itemCount: response.data.item_count,
+                    refreshCount: response.data.refresh_count
                 });
                 return true;
             }
@@ -490,7 +492,13 @@ export default class PriceDBStoreManager extends EventEmitter {
             log.debug('No group found in /groups/my response');
             return null;
         } catch (err) {
-            const error = filterAxiosError(err as AxiosError);
+            const axiosError = err as AxiosError;
+            // 404 is expected when user is not in a group - This really needs changing server-side I will get to it eventually
+            if (axiosError?.response?.status === 404) {
+                log.debug('User is not in a group (404 response)');
+                return null;
+            }
+            const error = filterAxiosError(axiosError);
             log.error('Failed to get group info from pricedb.io:', error);
             throw error;
         }
