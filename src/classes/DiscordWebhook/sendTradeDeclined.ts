@@ -135,7 +135,10 @@ export default async function sendTradeDeclined(
                                 : '') +
                             (() => {
                                 if (misc.note) {
-                                    return (misc.showKeyRate || misc.showPureStock || misc.showInventory ? '\n' : '') + misc.note;
+                                    return (
+                                        (misc.showKeyRate || misc.showPureStock || misc.showInventory ? '\n' : '') +
+                                        misc.note
+                                    );
                                 }
                                 const backpackLink = `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`;
                                 const storeLink = bot.options.miscSettings.pricedbStore.enable
