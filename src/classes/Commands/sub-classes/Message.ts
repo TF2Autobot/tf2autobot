@@ -160,7 +160,7 @@ export default class MessageCommand {
                         `"${msg}". ` +
                         `\nSteam: ${links.steam}` +
                         `\nBackpack.tf: ${links.bptf}` +
-                        `\nSteamREP: ${links.steamrep}`,
+                        `\nrep.tf: ${links.reptf}`,
                     []
                 );
             }
