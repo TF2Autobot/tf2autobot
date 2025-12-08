@@ -107,6 +107,24 @@ export default function updateListings(
         // If the item is not an unusual sku, we "allow" still (no-op)
         const addInvalidUnusual = item.quality === 5 ? opt.pricelist.autoAddInvalidUnusual.enable : true;
 
+        // Track purchase/sale for PPU cost basis
+        if (existsInPricelist && priceListEntry.autoprice && opt.pricelist.partialPriceUpdate?.enable) {
+            const quantityChanged = Math.abs(diff[priceKey]);
+            
+            if (diff[priceKey] > 0) {
+                // We received items (we bought them)
+                const pricePaid = priceListEntry.buy;
+                if (pricePaid) {
+                    priceListEntry.addPurchaseRecord(quantityChanged, pricePaid);
+                    log.debug(`PPU: Recorded purchase of ${quantityChanged}x ${name} at ${pricePaid.toString()}`);
+                }
+            } else if (diff[priceKey] < 0) {
+                // We gave away items (we sold them)
+                priceListEntry.removePurchaseRecord(quantityChanged);
+                log.debug(`PPU: Removed ${quantityChanged}x ${name} from purchase history (FIFO)`);
+            }
+        }
+
         const isAutopriceManuallyPricedItem =
             opt.pricelist.autoResetToAutopriceOnceSold.enable &&
             existsInPricelist &&

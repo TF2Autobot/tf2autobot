@@ -115,7 +115,11 @@ export const DEFAULTS: JsonOptions = {
         partialPriceUpdate: {
             enable: false,
             thresholdInSeconds: 604800, // 7 days
-            excludeSKU: []
+            excludeSKU: [],
+            removeMaxRestriction: false,
+            maxProtectedUnits: -1,
+            minProfitScrap: 1,
+            stockGracePeriodSeconds: 3600
         },
         filterCantAfford: {
             enable: false
@@ -1314,6 +1318,10 @@ interface Pricelist {
 interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
     excludeSKU?: string[];
+    removeMaxRestriction?: boolean;
+    maxProtectedUnits?: number;
+    minProfitScrap?: number;
+    stockGracePeriodSeconds?: number;
 }
 
 interface PriceAge {

@@ -95,7 +95,11 @@
         "partialPriceUpdate": {
             "enable": false,
             "thresholdInSeconds": 604800,
-            "excludeSKU": []
+            "excludeSKU": [],
+            "removeMaxRestriction": false,
+            "maxProtectedUnits": -1,
+            "minProfitScrap": 1,
+            "stockGracePeriodSeconds": 3600
         },
         "filterCantAfford": {
             "enable": false
