@@ -110,7 +110,7 @@ export default function updateListings(
         // Track purchase/sale for PPU cost basis
         if (existsInPricelist && priceListEntry.autoprice && opt.pricelist.partialPriceUpdate?.enable) {
             const quantityChanged = Math.abs(diff[priceKey]);
-            
+
             if (diff[priceKey] > 0) {
                 // We received items (we bought them)
                 const pricePaid = priceListEntry.buy;

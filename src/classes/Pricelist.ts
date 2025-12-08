@@ -171,10 +171,10 @@ export class Entry implements EntryData {
 
     removePurchaseRecord(quantity: number): void {
         let remaining = quantity;
-        
+
         while (remaining > 0 && this.purchaseHistory.length > 0) {
             const oldest = this.purchaseHistory[0];
-            
+
             if (oldest.quantity <= remaining) {
                 remaining -= oldest.quantity;
                 this.purchaseHistory.shift();
@@ -192,13 +192,13 @@ export class Entry implements EntryData {
 
         let totalValue = 0;
         let totalQuantity = 0;
-        
+
         for (const record of this.purchaseHistory) {
             const recordValue = record.pricePaid.keys * keyPrice + record.pricePaid.metal;
             totalValue += recordValue * record.quantity;
             totalQuantity += record.quantity;
         }
-        
+
         const avgValue = totalValue / totalQuantity;
         return Currencies.toCurrencies(avgValue, keyPrice);
     }
@@ -1105,38 +1105,46 @@ export default class Pricelist extends EventEmitter {
                         tradableOnly: true
                     });
                     const isInStock = currentStock > 0;
-                    
+
                     // Update last in stock time
                     if (isInStock) {
                         currPrice.lastInStockTime = Math.floor(Date.now() / 1000);
                     }
-                    
+
                     // Check if within grace period (temporarily out of stock)
                     const stockGracePeriod = ppu.stockGracePeriodSeconds || 3600;
-                    const wasRecentlyInStock = currPrice.lastInStockTime 
-                        ? (Math.floor(Date.now() / 1000) - currPrice.lastInStockTime) < stockGracePeriod
+                    const wasRecentlyInStock = currPrice.lastInStockTime
+                        ? Math.floor(Date.now() / 1000) - currPrice.lastInStockTime < stockGracePeriod
                         : false;
-                    
+
                     // Use partialPriceTime for threshold if available, otherwise use time
                     const lastUpdateTime = currPrice.partialPriceTime || currPrice.time;
                     const isNotExceedThreshold = newestPrice.time - lastUpdateTime < ppu.thresholdInSeconds;
                     const isNotExcluded = !excludedSKU.includes(sku);
-                    
+
                     // Remove max === 1 restriction if configured
-                    const maxRestrictionMet = ppu.removeMaxRestriction 
-                        ? (ppu.maxProtectedUnits === -1 ? true : currentStock <= (ppu.maxProtectedUnits || 1))
+                    const maxRestrictionMet = ppu.removeMaxRestriction
+                        ? ppu.maxProtectedUnits === -1
+                            ? true
+                            : currentStock <= (ppu.maxProtectedUnits || 1)
                         : currPrice.max === 1;
 
                     // https://github.com/TF2Autobot/tf2autobot/issues/506
                     // https://github.com/TF2Autobot/tf2autobot/pull/520
 
-                    if (ppu.enable && (isInStock || wasRecentlyInStock) && isNotExceedThreshold && isNotExcluded && maxRestrictionMet) {
+                    if (
+                        ppu.enable &&
+                        (isInStock || wasRecentlyInStock) &&
+                        isNotExceedThreshold &&
+                        isNotExcluded &&
+                        maxRestrictionMet
+                    ) {
                         const isNegativeDiff = newSellValue - currBuyingValue <= 0;
                         const isBuyingChanged = currBuyingValue !== newBuyValue;
 
                         if (isNegativeDiff || isBuyingChanged || currPrice.isPartialPriced) {
                             const minProfit = ppu.minProfitScrap || 1;
-                            
+
                             if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
                                 currPrice.sell = newPrices.sell;
                             } else {
@@ -1323,26 +1331,28 @@ export default class Pricelist extends EventEmitter {
 
             const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = currentStock > 0;
-            
+
             // Update last in stock time
             if (isInStock) {
                 match.lastInStockTime = Math.floor(Date.now() / 1000);
             }
-            
+
             // Check if within grace period
             const stockGracePeriod = ppu.stockGracePeriodSeconds || 3600;
-            const wasRecentlyInStock = match.lastInStockTime 
-                ? (Math.floor(Date.now() / 1000) - match.lastInStockTime) < stockGracePeriod
+            const wasRecentlyInStock = match.lastInStockTime
+                ? Math.floor(Date.now() / 1000) - match.lastInStockTime < stockGracePeriod
                 : false;
-            
+
             // Use partialPriceTime for threshold if available
             const lastUpdateTime = match.partialPriceTime || match.time;
             const isNotExceedThreshold = data.time - lastUpdateTime < ppu.thresholdInSeconds;
             const isNotExcluded = !['5021;6'].concat(ppu.excludeSKU).includes(match.sku);
-            
+
             // Remove max === 1 restriction if configured
-            const maxRestrictionMet = ppu.removeMaxRestriction 
-                ? (ppu.maxProtectedUnits === -1 ? true : currentStock <= (ppu.maxProtectedUnits || 1))
+            const maxRestrictionMet = ppu.removeMaxRestriction
+                ? ppu.maxProtectedUnits === -1
+                    ? true
+                    : currentStock <= (ppu.maxProtectedUnits || 1)
                 : match.max === 1;
 
             // https://github.com/TF2Autobot/tf2autobot/issues/506
@@ -1365,7 +1375,7 @@ export default class Pricelist extends EventEmitter {
 
                 if (match.isPartialPriced || isNegativeDiff || isBuyingChanged) {
                     const minProfit = ppu.minProfitScrap || 1;
-                    
+
                     if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
                         log.debug('ppu - update selling price with the latest price');
                         match.sell = newPrices.sell;
