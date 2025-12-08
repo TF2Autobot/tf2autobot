@@ -1156,7 +1156,7 @@ export default class Pricelist extends EventEmitter {
                                 currPrice.partialPriceTime = Math.floor(Date.now() / 1000);
                             }
 
-                            const msg = this.generatePartialPriceUpdateMsg(oldPrices, currPrice, newPrices);
+                            const msg = this.generatePartialPriceUpdateMsg(oldPrices, currPrice, newPrices, newestPrice.source);
                             this.partialPricedUpdateBulk.push(msg);
                             pricesChanged = true;
                         } else {
@@ -1196,7 +1196,13 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private generatePartialPriceUpdateMsg(oldPrices: BuyAndSell, currPrices: Entry, newPrices: BuyAndSell): string {
+    private generatePartialPriceUpdateMsg(
+        oldPrices: BuyAndSell,
+        currPrices: Entry,
+        newPrices: BuyAndSell,
+        source?: string
+    ): string {
+        const priceSource = source || 'pricer';
         return (
             `${
                 this.isDwAlertEnabled
@@ -1206,7 +1212,7 @@ export default class Pricelist extends EventEmitter {
             [
                 `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
                 `current: ${currPrices.buy.toString()}/${currPrices.sell.toString()}`,
-                `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
+                `${priceSource}: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
             ].join('\n▸ ') +
             `\n - Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
         );
@@ -1286,7 +1292,7 @@ export default class Pricelist extends EventEmitter {
                 // Only update global key rate if key is not in pricelist
                 // OR if exist, it's autoprice enabled (true)
                 // OR if Autokeys and Scrap Adjustment enabled, then check whether
-                // current global key rate are the same as current prices.tf key rate.
+                // current global key rate are the same as current pricer key rate.
                 // if same, means autopriced and need to update to the latest price
                 // (and autokeys/scrap adjustment will update key prices after new trade).
                 // else entirely, key was manually priced and ignore updating global key rate.
@@ -1384,17 +1390,15 @@ export default class Pricelist extends EventEmitter {
                         match.sell = Currencies.toCurrencies(currBuyingValue + minProfit, keyPrice);
                     }
 
-                    // Set partialPriceTime on first activation
-                    if (!match.isPartialPriced) {
-                        match.partialPriceTime = Math.floor(Date.now() / 1000);
-                    }
+                // Set partialPriceTime on first activation
+                if (!match.isPartialPriced) {
+                    match.partialPriceTime = Math.floor(Date.now() / 1000);
+                }
 
-                    match.isPartialPriced = true;
-                    pricesChanged = true;
+                match.isPartialPriced = true;
+                pricesChanged = true;
 
-                    const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices);
-
-                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onUpdate) {
+                const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices, data.source);                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onUpdate) {
                         if (this.isDwAlertEnabled) {
                             sendAlert('isPartialPriced', this.bot, msg);
                         } else {
