@@ -1156,7 +1156,12 @@ export default class Pricelist extends EventEmitter {
                                 currPrice.partialPriceTime = Math.floor(Date.now() / 1000);
                             }
 
-                            const msg = this.generatePartialPriceUpdateMsg(oldPrices, currPrice, newPrices, newestPrice.source);
+                            const msg = this.generatePartialPriceUpdateMsg(
+                                oldPrices,
+                                currPrice,
+                                newPrices,
+                                newestPrice.source
+                            );
                             this.partialPricedUpdateBulk.push(msg);
                             pricesChanged = true;
                         } else {
@@ -1390,15 +1395,16 @@ export default class Pricelist extends EventEmitter {
                         match.sell = Currencies.toCurrencies(currBuyingValue + minProfit, keyPrice);
                     }
 
-                // Set partialPriceTime on first activation
-                if (!match.isPartialPriced) {
-                    match.partialPriceTime = Math.floor(Date.now() / 1000);
-                }
+                    // Set partialPriceTime on first activation
+                    if (!match.isPartialPriced) {
+                        match.partialPriceTime = Math.floor(Date.now() / 1000);
+                    }
 
-                match.isPartialPriced = true;
-                pricesChanged = true;
+                    match.isPartialPriced = true;
+                    pricesChanged = true;
 
-                const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices, data.source);                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onUpdate) {
+                    const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices, data.source);
+                    if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onUpdate) {
                         if (this.isDwAlertEnabled) {
                             sendAlert('isPartialPriced', this.bot, msg);
                         } else {
