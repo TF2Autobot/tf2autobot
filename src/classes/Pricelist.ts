@@ -1145,6 +1145,11 @@ export default class Pricelist extends EventEmitter {
                         if (isNegativeDiff || isBuyingChanged || currPrice.isPartialPriced) {
                             const minProfit = ppu.minProfitScrap || 1;
 
+                            // Always update buy price to market rate if it's lower
+                            if (newBuyValue < currPrice.buy.toValue(keyPrice)) {
+                                currPrice.buy = newPrices.buy;
+                            }
+
                             if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
                                 currPrice.sell = newPrices.sell;
                             } else {
@@ -1386,6 +1391,12 @@ export default class Pricelist extends EventEmitter {
 
                 if (match.isPartialPriced || isNegativeDiff || isBuyingChanged) {
                     const minProfit = ppu.minProfitScrap || 1;
+
+                    // Always update buy price to market rate if it's lower
+                    if (newBuyValue < match.buy.toValue(keyPrice)) {
+                        log.debug('ppu - update buying price to lower market rate');
+                        match.buy = newPrices.buy;
+                    }
 
                     if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
                         log.debug('ppu - update selling price with the latest price');
