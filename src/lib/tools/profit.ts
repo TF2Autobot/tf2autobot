@@ -108,41 +108,9 @@ export default async function profit(bot: Bot, pollData: SteamTradeOfferManager.
             const tradeProfit = trade.tradeProfit;
 
             if (!tradeProfit) {
-                // Old trade without new profit tracking
-                // Fall back to old calculation if possible
-                if (trade.dict && trade.prices) {
-                    // Calculate legacy profit from dict and prices
-                    let legacyKeys = 0;
-                    let legacyMetal = 0;
-
-                    // Calculate from our side (what we gave)
-                    if (trade.dict.our) {
-                        for (const sku in trade.dict.our) {
-                            const qty = trade.dict.our[sku];
-                            const price = trade.prices[sku];
-                            if (price && price.sell) {
-                                legacyKeys -= price.sell.keys * qty;
-                                legacyMetal -= price.sell.metal * qty;
-                            }
-                        }
-                    }
-
-                    // Calculate from their side (what we received)
-                    if (trade.dict.their) {
-                        for (const sku in trade.dict.their) {
-                            const qty = trade.dict.their[sku];
-                            const price = trade.prices[sku];
-                            if (price && price.buy) {
-                                legacyKeys += price.buy.keys * qty;
-                                legacyMetal += price.buy.metal * qty;
-                            }
-                        }
-                    }
-
-                    totalRawKeys += legacyKeys;
-                    totalRawMetal += legacyMetal;
-                    hasEstimates = true; // Mark as estimate since we're using fallback
-                }
+                // Old trade without new FIFO profit tracking - skip it
+                // We cannot accurately calculate FIFO-based raw profit from legacy trades
+                // New system will accumulate accurate data going forward
                 continue;
             }
 
@@ -180,12 +148,12 @@ export default async function profit(bot: Bot, pollData: SteamTradeOfferManager.
             }
         }
 
-        // Add previous values if any (separate keys and metal for proper normalization)
-        // TODO: Need to add lastTotalProfitMadeInKeys to Options.statistics interface
+        // Don't include previous values - only count new FIFO-tracked trades
+        // Legacy trades cannot be accurately recalculated with FIFO methodology
         const fromPrevious = {
-            madeKeys: 0, // bot.options.statistics.lastTotalProfitMadeInKeys || 0,
-            madeMetal: bot.options.statistics.lastTotalProfitMadeInRef || 0,
-            overpay: bot.options.statistics.lastTotalProfitOverpayInRef || 0
+            madeKeys: 0,
+            madeMetal: 0,
+            overpay: 0
         };
 
         // Convert overpay keys to ref and combine (for backward compatibility with Status display)
