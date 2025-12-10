@@ -519,16 +519,15 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
                     rawProfitMetal += itemRawProfitMetal;
                 }
             }
-
         }
 
         // Calculate final trade overpay ONCE for entire trade
         // Overpay = net currency difference between actual trade values
-        // 
+        //
         // The value object contains the gross total values of each side including ALL items and currency.
         // Since raw profit already accounts for pricelist price differences via FIFO,
         // overpay simply tracks if the actual currency exchanged deviates from a fair trade.
-        // 
+        //
         // Example: 8 ref for 7.33 ref item + 0.66 ref change
         // - value.their.total = 72 scrap (8 ref gross they gave)
         // - value.our.total = ~72 scrap (7.33 ref item + 0.66 ref change we gave)
@@ -542,14 +541,14 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
         if (value && value.their && value.our) {
             // Get net difference in scrap (their total - our total)
             const netOverpayScrap = (value.their.total || 0) - (value.our.total || 0);
-            
+
             // Convert scrap overpay to keys + metal for storage
             // Use current key price for conversion
             const keyPrice = bot.pricelist.getKeyPrice.metal;
             const keyPriceScrap = keyPrice * 9; // Convert ref to scrap
-            
+
             overpayKeys = Math.floor(netOverpayScrap / keyPriceScrap);
-            overpayMetal = (netOverpayScrap - (overpayKeys * keyPriceScrap)) / 9; // Convert remaining scrap to ref
+            overpayMetal = (netOverpayScrap - overpayKeys * keyPriceScrap) / 9; // Convert remaining scrap to ref
         }
 
         // Store profit data in offer
