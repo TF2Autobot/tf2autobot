@@ -372,10 +372,32 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
             const diffPerItemKeys = totalItemsBought === 0 ? 0 : buyOverpayKeys / totalItemsBought;
             const diffPerItemMetal = totalItemsBought === 0 ? 0 : buyOverpayMetal / totalItemsBought;
 
+            // Check if autokeys (key banking) is enabled
+            const isAutokeysEnabled = bot.options.autokeys.enable;
+            
+            // Determine if this is a pure key banking trade (keys are the ONLY item)
+            const skusInTrade = Object.keys(dict.their).filter(s => !['5002;6', '5001;6', '5000;6'].includes(s));
+            const isKeyOnlyTrade = skusInTrade.length === 1 && skusInTrade[0] === '5021;6';
+
             // Add each item to FIFO with pricelist cost + distributed diff
             for (const sku in dict.their) {
                 if (!Object.prototype.hasOwnProperty.call(dict.their, sku)) {
                     continue;
+                }
+
+                // Skip pure currency items (ref, rec, scrap) - they're accounted for in offer.data('value')
+                if (['5002;6', '5001;6', '5000;6'].includes(sku)) {
+                    continue;
+                }
+                
+                // Handle keys intelligently:
+                // - If autokeys OFF: skip keys (they're just currency)
+                // - If autokeys ON but keys + other items: skip keys (they're payment)
+                // - If autokeys ON and ONLY keys: track them (pure key banking trade)
+                if (sku === '5021;6') {
+                    if (!isAutokeysEnabled || !isKeyOnlyTrade) {
+                        continue;
+                    }
                 }
 
                 const quantity = dict.their[sku];
@@ -408,9 +430,31 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
         let hasEstimates = false; // Track if any estimates were used
 
         if (dict.our) {
+            // Check if autokeys (key banking) is enabled
+            const isAutokeysEnabled = bot.options.autokeys.enable;
+            
+            // Determine if this is a pure key banking trade (keys are the ONLY item)
+            const skusInTrade = Object.keys(dict.our).filter(s => !['5002;6', '5001;6', '5000;6'].includes(s));
+            const isKeyOnlyTrade = skusInTrade.length === 1 && skusInTrade[0] === '5021;6';
+            
             for (const sku in dict.our) {
                 if (!Object.prototype.hasOwnProperty.call(dict.our, sku)) {
                     continue;
+                }
+
+                // Skip pure currency items (ref, rec, scrap) - they're accounted for in offer.data('value')
+                if (['5002;6', '5001;6', '5000;6'].includes(sku)) {
+                    continue;
+                }
+                
+                // Handle keys intelligently:
+                // - If autokeys OFF: skip keys (they're just currency)
+                // - If autokeys ON but keys + other items: skip keys (they're payment)
+                // - If autokeys ON and ONLY keys: track them (pure key banking trade)
+                if (sku === '5021;6') {
+                    if (!isAutokeysEnabled || !isKeyOnlyTrade) {
+                        continue;
+                    }
                 }
 
                 const quantity = dict.our[sku];
