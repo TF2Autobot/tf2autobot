@@ -6,16 +6,22 @@ import { KeyPrices } from '../../../Pricelist';
 import log from '../../../../lib/logger';
 import * as t from '../../../../lib/tools/export';
 import { sendTradeSummary } from '../../../DiscordWebhook/export';
+import { FIFOEntry } from '../../../InventoryCostBasis';
 
-export default function processAccepted(
+export default async function processAccepted(
     offer: i.TradeOffer,
     bot: Bot,
     timeTakenToComplete: number
-): { theirHighValuedItems: string[]; isDisableSKU: string[]; items: i.Items | undefined } {
+): Promise<{ theirHighValuedItems: string[]; isDisableSKU: string[]; items: i.Items | undefined }> {
     const opt = bot.options;
 
     const isDisableSKU: string[] = [];
     const theirHighValuedItems: string[] = [];
+
+    // Calculate and store profit data asynchronously
+    await calculateProfitData(offer, bot).catch(err => {
+        log.error('Failed to calculate profit data:', err);
+    });
 
     const accepted: Accepted = {
         invalidItems: [],
@@ -313,6 +319,179 @@ export async function sendToAdmin(
     }
 
     bot.messageAdmins('trade', message, []);
+}
+
+/**
+ * Calculate and store FIFO-based profit data for accepted offer
+ */
+async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void> {
+    try {
+        const itemPrices = offer.data('prices') as i.Prices;
+        if (!itemPrices) {
+            log.warn(`No prices data found for offer ${offer.id}, skipping profit calculation`);
+            return;
+        }
+
+        const dict = offer.data('dict') as i.ItemsDict;
+        if (!dict) {
+            log.warn(`No dict data found for offer ${offer.id}, skipping profit calculation`);
+            return;
+        }
+
+        let rawProfitKeys = 0;
+        let rawProfitMetal = 0;
+        let overpayKeys = 0;
+        let overpayMetal = 0;
+
+        // Process items we're receiving (their side) - BUY
+        if (dict.their) {
+            // Calculate total pricelist value for ALL items being bought (ONCE per trade-side)
+            const theirTotalKeys = Object.keys(dict.their).reduce((sum, s) => {
+                const price = itemPrices[s];
+                return sum + (price ? price.buy.keys * dict.their[s] : 0);
+            }, 0);
+
+            const theirTotalMetal = Object.keys(dict.their).reduce((sum, s) => {
+                const price = itemPrices[s];
+                return sum + (price ? price.buy.metal * dict.their[s] : 0);
+            }, 0);
+
+            // Get actual amount paid
+            const value = offer.data('value') as i.ItemsValue;
+            const actualPaidKeys = value ? value.our.keys : theirTotalKeys;
+            const actualPaidMetal = value ? value.our.metal : theirTotalMetal;
+
+            // Calculate overpay/underpay on buy side (negative when we underpaid)
+            const buyOverpayKeys = actualPaidKeys - theirTotalKeys;
+            const buyOverpayMetal = actualPaidMetal - theirTotalMetal;
+
+            // Count total items being bought
+            const totalItemsBought = Object.values(dict.their).reduce((sum, qty) => sum + qty, 0);
+
+            // Distribute overpay across ALL items as diff (both keys and metal)
+            const diffPerItemKeys = totalItemsBought === 0 ? 0 : buyOverpayKeys / totalItemsBought;
+            const diffPerItemMetal = totalItemsBought === 0 ? 0 : buyOverpayMetal / totalItemsBought;
+
+            // Add each item to FIFO with pricelist cost + distributed diff
+            for (const sku in dict.their) {
+                if (!Object.prototype.hasOwnProperty.call(dict.their, sku)) {
+                    continue;
+                }
+
+                const quantity = dict.their[sku];
+                const priceData = itemPrices[sku];
+
+                if (!priceData) {
+                    log.warn(`No price data for SKU ${sku} in offer ${offer.id}`);
+                    continue;
+                }
+
+                const pricelistBuyKeys = priceData.buy.keys;
+                const pricelistBuyMetal = priceData.buy.metal;
+
+                // Add each item to FIFO with distributed diff in BOTH keys and metal
+                for (let i = 0; i < quantity; i++) {
+                    await bot.inventoryCostBasis.addItem(
+                        sku,
+                        pricelistBuyKeys,
+                        pricelistBuyMetal,
+                        diffPerItemKeys,
+                        diffPerItemMetal,
+                        offer.id
+                    );
+                }
+            }
+        }
+
+        // Process items we're giving away (our side) - SELL
+        const removedEntriesBySku: Record<string, FIFOEntry[]> = {}; // Track for diff recovery
+        let hasEstimates = false; // Track if any estimates were used
+        
+        if (dict.our) {
+            for (const sku in dict.our) {
+                if (!Object.prototype.hasOwnProperty.call(dict.our, sku)) {
+                    continue;
+                }
+
+                const quantity = dict.our[sku];
+                const priceData = itemPrices[sku];
+
+                if (!priceData) {
+                    log.warn(`No price data for SKU ${sku} in offer ${offer.id}`);
+                    continue;
+                }
+
+                // This is a SELL for us - remove from FIFO and calculate profit
+                const pricelistSellKeys = priceData.sell.keys;
+                const pricelistSellMetal = priceData.sell.metal;
+
+                // Remove items from FIFO (oldest first) with fallback to pricelist
+                const result = await bot.inventoryCostBasis.removeItem(sku, quantity, priceData.buy);
+                removedEntriesBySku[sku] = result.entries; // Store for diff recovery
+                if (result.hasEstimates) {
+                    hasEstimates = true;
+                }
+
+                // Calculate raw profit from FIFO cost basis
+                // Raw profit = pricelist sell - pricelist buy + diff (realizes buy-side overpay/underpay)
+                for (const entry of result.entries) {
+                    const itemRawProfitKeys = pricelistSellKeys - entry.costKeys + entry.diffKeys;
+                    const itemRawProfitMetal = pricelistSellMetal - entry.costMetal + entry.diffMetal;
+
+                    rawProfitKeys += itemRawProfitKeys;
+                    rawProfitMetal += itemRawProfitMetal;
+                }
+            }
+
+            // Calculate overpay for sell side ONCE per trade (not per SKU)
+            // Overpay = (actual received) - (pricelist sell value) + realized buy-side diffs
+            const value = offer.data('value') as i.ItemsValue;
+            if (value) {
+                // Get total pricelist sell value for our side
+                const ourTotalKeys = Object.keys(dict.our).reduce((sum, s) => {
+                    const price = itemPrices[s];
+                    return sum + (price ? price.sell.keys * dict.our[s] : 0);
+                }, 0);
+
+                const ourTotalMetal = Object.keys(dict.our).reduce((sum, s) => {
+                    const price = itemPrices[s];
+                    return sum + (price ? price.sell.metal * dict.our[s] : 0);
+                }, 0);
+
+                const actualReceivedKeys = value.their.keys;
+                const actualReceivedMetal = value.their.metal;
+
+                const sellOverpayKeys = actualReceivedKeys - ourTotalKeys;
+                const sellOverpayMetal = actualReceivedMetal - ourTotalMetal;
+
+                overpayKeys += sellOverpayKeys;
+                overpayMetal += sellOverpayMetal;
+            }
+        }
+
+        // Store profit data in offer
+        offer.data('tradeProfit', {
+            rawProfit: {
+                keys: rawProfitKeys,
+                metal: rawProfitMetal
+            },
+            overpay: {
+                keys: overpayKeys,
+                metal: overpayMetal
+            },
+            hasEstimates,
+            timestamp: Date.now()
+        } as i.TradeProfitData);
+
+        log.debug(
+            `Profit calculated for offer ${offer.id}${hasEstimates ? ' (contains estimates)' : ''}: ` +
+            `Raw (${rawProfitKeys}k ${rawProfitMetal.toFixed(2)}r) + ` +
+            `Overpay (${overpayKeys}k ${overpayMetal.toFixed(2)}r) = ` +
+            `Total (${rawProfitKeys + overpayKeys}k ${(rawProfitMetal + overpayMetal).toFixed(2)}r)`
+        );
+    } catch (err) {
+        log.error(`Error calculating profit for offer ${offer.id}:`, err);
+    }
 }
 
 interface Accepted {

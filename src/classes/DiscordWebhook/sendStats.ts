@@ -23,17 +23,22 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;
 
-    const timedProfitmadeFull = Currencies.toCurrencies(profits.profitTimed, keyPrices.sell.metal).toString();
+    // Format raw profit (24h)
+    const rawProfit24hScrap = profits.rawProfitTimed.keys * keyPrices.sell.metal * 9 + profits.rawProfitTimed.metal * 9;
+    const timedProfitmadeFull = Currencies.toCurrencies(Math.round(rawProfit24hScrap), keyPrices.sell.metal).toString();
     const timedProfitmadeInRef = timedProfitmadeFull.includes('key')
-        ? ` (${Currencies.toRefined(profits.profitTimed)} ref)`
+        ? ` (${Currencies.toRefined(Math.round(rawProfit24hScrap))} ref)`
         : '';
 
-    const profitMadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
-    const profitMadeInRef = profitMadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
+    // Format total raw profit
+    const rawProfitTotalScrap = profits.rawProfit.keys * keyPrices.sell.metal * 9 + profits.rawProfit.metal * 9;
+    const profitMadeFull = Currencies.toCurrencies(Math.round(rawProfitTotalScrap), keyPrices.sell.metal).toString();
+    const profitMadeInRef = profitMadeFull.includes('key') ? ` (${Currencies.toRefined(Math.round(rawProfitTotalScrap))} ref)` : '';
 
-    const profitOverpayFull = Currencies.toCurrencies(profits.overpriceProfit, keyPrices.sell.metal).toString();
+    // Format overpay
+    const profitOverpayFull = Currencies.toCurrencies(Math.round(profits.overpriceProfit * 9), keyPrices.sell.metal).toString();
     const profitOverpayInRef = profitOverpayFull.includes('key')
-        ? ` (${Currencies.toRefined(profits.overpriceProfit)} ref)`
+        ? ` (${Currencies.toRefined(Math.round(profits.overpriceProfit * 9))} ref)`
         : '';
 
     const discordStats: Webhook = {
@@ -122,7 +127,8 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
                         value:
                             `• Last 24 hours: ${timedProfitmadeFull + timedProfitmadeInRef}` +
                             `\n• Total made: ${profitMadeFull + profitMadeInRef}` +
-                            `\n• From overpay: ${profitOverpayFull + profitOverpayInRef}`
+                            `\n• From overpay: ${profitOverpayFull + profitOverpayInRef}` +
+                            (profits.hasEstimates ? `\n• ⚠️ Contains estimates` : '')
                     },
                     {
                         name: '__Key rate__',

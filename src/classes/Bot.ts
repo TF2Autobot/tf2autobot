@@ -34,6 +34,7 @@ import InventoryGetter from './InventoryGetter';
 import BotManager from './BotManager';
 import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
+import InventoryCostBasis from './InventoryCostBasis';
 
 import log from '../lib/logger';
 import Bans, { IsBanned } from '../lib/bans';
@@ -93,6 +94,8 @@ export default class Bot {
         tradeableOnly: boolean,
         callback: (err?: Error, inventory?: EconItem[], currencies?: EconItem[]) => void
     ) => void;
+
+    readonly inventoryCostBasis: InventoryCostBasis;
 
     discordBot: DiscordBot = null;
 
@@ -201,6 +204,7 @@ export default class Bot {
         this.tf2gc = new TF2GC(this);
 
         this.handler = new MyHandler(this, this.priceSource);
+        this.inventoryCostBasis = new InventoryCostBasis(this);
 
         this.admins = [];
 
@@ -875,7 +879,7 @@ export default class Bot {
                 [
                     (callback): void => {
                         log.debug('Calling onRun');
-                        void this.handler.onRun().asCallback((err, v) => {
+                        void this.handler.onRun().asCallback(async (err, v) => {
                             if (err) {
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(err);
@@ -896,6 +900,11 @@ export default class Bot {
                                 log.debug('Loading blocked list data');
                                 this.blockedList = data.blockedList;
                             }
+
+                            log.debug('Loading FIFO cost basis data');
+                            await this.inventoryCostBasis.load().catch(err => {
+                                log.error('Failed to load inventory cost basis:', err);
+                            });
 
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);

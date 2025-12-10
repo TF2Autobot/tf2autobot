@@ -2146,10 +2146,11 @@ export default class MyHandler extends Handler {
     }
 
     onTradeOfferChanged(offer: TradeOffer, oldState: number, timeTakenToComplete?: number): void {
-        // Not sure if it can go from other states to active
-        if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
-            offer.data('switchedState', oldState);
-        }
+        void (async () => {
+            // Not sure if it can go from other states to active
+            if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
+                offer.data('switchedState', oldState);
+            }
 
         const highValue: {
             isDisableSKU: string[];
@@ -2264,7 +2265,7 @@ export default class MyHandler extends Handler {
 
                 this.autokeys.check();
 
-                const result = processAccepted(offer, this.bot, timeTakenToComplete);
+                const result = await processAccepted(offer, this.bot, timeTakenToComplete);
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
@@ -2332,6 +2333,9 @@ export default class MyHandler extends Handler {
         } else {
             this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
+        })().catch(err => {
+            log.error('Error in onTradeOfferChanged:', err);
+        });
     }
 
     private static removePolldataKeys(offer: TradeOffer): void {
