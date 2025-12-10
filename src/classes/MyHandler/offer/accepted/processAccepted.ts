@@ -374,7 +374,7 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
 
             // Check if autokeys (key banking) is enabled
             const isAutokeysEnabled = bot.options.autokeys.enable;
-            
+
             // Determine if this is a pure key banking trade (keys are the ONLY item)
             const skusInTrade = Object.keys(dict.their).filter(s => !['5002;6', '5001;6', '5000;6'].includes(s));
             const isKeyOnlyTrade = skusInTrade.length === 1 && skusInTrade[0] === '5021;6';
@@ -389,7 +389,7 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
                 if (['5002;6', '5001;6', '5000;6'].includes(sku)) {
                     continue;
                 }
-                
+
                 // Handle keys intelligently:
                 // - If autokeys OFF: skip keys (they're just currency)
                 // - If autokeys ON but keys + other items: skip keys (they're payment)
@@ -432,11 +432,11 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
         if (dict.our) {
             // Check if autokeys (key banking) is enabled
             const isAutokeysEnabled = bot.options.autokeys.enable;
-            
+
             // Determine if this is a pure key banking trade (keys are the ONLY item)
             const skusInTrade = Object.keys(dict.our).filter(s => !['5002;6', '5001;6', '5000;6'].includes(s));
             const isKeyOnlyTrade = skusInTrade.length === 1 && skusInTrade[0] === '5021;6';
-            
+
             for (const sku in dict.our) {
                 if (!Object.prototype.hasOwnProperty.call(dict.our, sku)) {
                     continue;
@@ -446,7 +446,7 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
                 if (['5002;6', '5001;6', '5000;6'].includes(sku)) {
                     continue;
                 }
-                
+
                 // Handle keys intelligently:
                 // - If autokeys OFF: skip keys (they're just currency)
                 // - If autokeys ON but keys + other items: skip keys (they're payment)
