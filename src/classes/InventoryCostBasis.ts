@@ -25,7 +25,9 @@ export interface FIFOEntry {
  */
 export default class InventoryCostBasis {
     private readonly bot: Bot;
+
     private fifoEntries: FIFOEntry[] = [];
+
     private readonly filePath: string;
 
     constructor(bot: Bot) {
@@ -47,7 +49,7 @@ export default class InventoryCostBasis {
             const data = await fs.readFile(this.filePath, 'utf8');
             const rawEntries = JSON.parse(data);
             let needsMigrationSave = false;
-            
+
             // Migrate old entries that have single 'diff' field to new diffKeys/diffMetal fields
             this.fifoEntries = rawEntries.map((entry: any) => {
                 let normalizedEntry = entry;
@@ -79,7 +81,7 @@ export default class InventoryCostBasis {
             if (needsMigrationSave) {
                 await this.save();
             }
-            
+
             log.debug(`Loaded ${this.fifoEntries.length} FIFO entries from ${this.filePath}`);
         } catch (err) {
             if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
@@ -152,7 +154,7 @@ export default class InventoryCostBasis {
      * @returns Object with removed entries and flag indicating if estimates were used
      */
     async removeItem(
-        sku: string, 
+        sku: string,
         quantity: number,
         fallbackBuyPrice?: { keys: number; metal: number }
     ): Promise<{ entries: FIFOEntry[]; hasEstimates: boolean }> {
@@ -170,7 +172,7 @@ export default class InventoryCostBasis {
                     log.warn(
                         `FIFO entry not found for ${sku}. Using pricelist fallback for ${remaining} items (ESTIMATE).`
                     );
-                    
+
                     // Create synthetic FIFO entries from pricelist (one per remaining item)
                     for (let i = 0; i < remaining; i++) {
                         const syntheticEntry: FIFOEntry = {

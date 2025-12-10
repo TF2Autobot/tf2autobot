@@ -33,10 +33,15 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
     // Format total raw profit
     const rawProfitTotalScrap = profits.rawProfit.keys * keyPrices.sell.metal * 9 + profits.rawProfit.metal * 9;
     const profitMadeFull = Currencies.toCurrencies(Math.round(rawProfitTotalScrap), keyPrices.sell.metal).toString();
-    const profitMadeInRef = profitMadeFull.includes('key') ? ` (${Currencies.toRefined(Math.round(rawProfitTotalScrap))} ref)` : '';
+    const profitMadeInRef = profitMadeFull.includes('key')
+        ? ` (${Currencies.toRefined(Math.round(rawProfitTotalScrap))} ref)`
+        : '';
 
     // Format overpay
-    const profitOverpayFull = Currencies.toCurrencies(Math.round(profits.overpriceProfit * 9), keyPrices.sell.metal).toString();
+    const profitOverpayFull = Currencies.toCurrencies(
+        Math.round(profits.overpriceProfit * 9),
+        keyPrices.sell.metal
+    ).toString();
     const profitOverpayInRef = profitOverpayFull.includes('key')
         ? ` (${Currencies.toRefined(Math.round(profits.overpriceProfit * 9))} ref)`
         : '';

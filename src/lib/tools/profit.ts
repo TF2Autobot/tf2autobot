@@ -27,11 +27,7 @@ interface OfferDataWithTime extends OfferData {
  * Calculate profit from polldata using FIFO-based TradeProfitData
  * Returns profit in scrap for backward compatibility
  */
-export default async function profit(
-    bot: Bot,
-    pollData: SteamTradeOfferManager.PollData,
-    start = 0
-): Promise<Profit> {
+export default async function profit(bot: Bot, pollData: SteamTradeOfferManager.PollData, start = 0): Promise<Profit> {
     return new Promise(resolve => {
         const now = dayjs();
         const twentyFourHoursAgo = now.subtract(24, 'hour').valueOf();
@@ -109,7 +105,7 @@ export default async function profit(
             }
 
             // Get profit data from new system
-            const tradeProfit = trade.tradeProfit as TradeProfitData | undefined;
+            const tradeProfit = trade.tradeProfit;
 
             if (!tradeProfit) {
                 // Old trade without new profit tracking
@@ -118,7 +114,7 @@ export default async function profit(
                     // Calculate legacy profit from dict and prices
                     let legacyKeys = 0;
                     let legacyMetal = 0;
-                    
+
                     // Calculate from our side (what we gave)
                     if (trade.dict.our) {
                         for (const sku in trade.dict.our) {
@@ -130,7 +126,7 @@ export default async function profit(
                             }
                         }
                     }
-                    
+
                     // Calculate from their side (what we received)
                     if (trade.dict.their) {
                         for (const sku in trade.dict.their) {
@@ -142,7 +138,7 @@ export default async function profit(
                             }
                         }
                     }
-                    
+
                     totalRawKeys += legacyKeys;
                     totalRawMetal += legacyMetal;
                     hasEstimates = true; // Mark as estimate since we're using fallback
@@ -153,12 +149,12 @@ export default async function profit(
             // Accumulate raw profit (keep keys and metal separate)
             totalRawKeys += tradeProfit.rawProfit.keys;
             totalRawMetal += tradeProfit.rawProfit.metal;
-            
+
             // Track if this trade has estimates
             if (tradeProfit.hasEstimates) {
                 hasEstimates = true;
             }
-            
+
             // Handle both old (number) and new (object) overpay formats
             if (typeof tradeProfit.overpay === 'number') {
                 // Old format: single metal value
@@ -174,7 +170,7 @@ export default async function profit(
             if (tradeTime && tradeTime >= twentyFourHoursAgo) {
                 timedRawKeys += tradeProfit.rawProfit.keys;
                 timedRawMetal += tradeProfit.rawProfit.metal;
-                
+
                 if (typeof tradeProfit.overpay === 'number') {
                     timedOverpay += tradeProfit.overpay;
                 } else {

@@ -406,7 +406,7 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
         // Process items we're giving away (our side) - SELL
         const removedEntriesBySku: Record<string, FIFOEntry[]> = {}; // Track for diff recovery
         let hasEstimates = false; // Track if any estimates were used
-        
+
         if (dict.our) {
             for (const sku in dict.our) {
                 if (!Object.prototype.hasOwnProperty.call(dict.our, sku)) {
@@ -485,9 +485,9 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
 
         log.debug(
             `Profit calculated for offer ${offer.id}${hasEstimates ? ' (contains estimates)' : ''}: ` +
-            `Raw (${rawProfitKeys}k ${rawProfitMetal.toFixed(2)}r) + ` +
-            `Overpay (${overpayKeys}k ${overpayMetal.toFixed(2)}r) = ` +
-            `Total (${rawProfitKeys + overpayKeys}k ${(rawProfitMetal + overpayMetal).toFixed(2)}r)`
+                `Raw (${rawProfitKeys}k ${rawProfitMetal.toFixed(2)}r) + ` +
+                `Overpay (${overpayKeys}k ${overpayMetal.toFixed(2)}r) = ` +
+                `Total (${rawProfitKeys + overpayKeys}k ${(rawProfitMetal + overpayMetal).toFixed(2)}r)`
         );
     } catch (err) {
         log.error(`Error calculating profit for offer ${offer.id}:`, err);

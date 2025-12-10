@@ -33,25 +33,40 @@ export default class StatusCommands {
         // Format raw profit (24h) - keys and metal shown separately
         const rawProfit24h =
             profits.rawProfitTimed.keys !== 0
-                ? `${profits.rawProfitTimed.keys > 0 ? '+' : ''}${profits.rawProfitTimed.keys} keys, ${profits.rawProfitTimed.metal > 0 ? '+' : ''}${profits.rawProfitTimed.metal.toFixed(2)} ref`
+                ? `${profits.rawProfitTimed.keys > 0 ? '+' : ''}${profits.rawProfitTimed.keys} keys, ${
+                      profits.rawProfitTimed.metal > 0 ? '+' : ''
+                  }${profits.rawProfitTimed.metal.toFixed(2)} ref`
                 : `${profits.rawProfitTimed.metal > 0 ? '+' : ''}${profits.rawProfitTimed.metal.toFixed(2)} ref`;
 
         // Format total raw profit - keys and metal shown separately
         const rawProfitTotal =
             profits.rawProfit.keys !== 0
-                ? `${profits.rawProfit.keys > 0 ? '+' : ''}${profits.rawProfit.keys} keys, ${profits.rawProfit.metal > 0 ? '+' : ''}${profits.rawProfit.metal.toFixed(2)} ref`
+                ? `${profits.rawProfit.keys > 0 ? '+' : ''}${profits.rawProfit.keys} keys, ${
+                      profits.rawProfit.metal > 0 ? '+' : ''
+                  }${profits.rawProfit.metal.toFixed(2)} ref`
                 : `${profits.rawProfit.metal > 0 ? '+' : ''}${profits.rawProfit.metal.toFixed(2)} ref`;
 
         // Format overpay profits
-        const overpay24h = `${profits.overpriceProfitTimed > 0 ? '+' : ''}${profits.overpriceProfitTimed.toFixed(2)} ref`;
+        const overpay24h = `${profits.overpriceProfitTimed > 0 ? '+' : ''}${profits.overpriceProfitTimed.toFixed(
+            2
+        )} ref`;
         const overpayTotal = `${profits.overpriceProfit > 0 ? '+' : ''}${profits.overpriceProfit.toFixed(2)} ref`;
 
         // Calculate full profit (raw + overpay) for algebraic display
-        const fullProfit24hScrap = profits.rawProfitTimed.keys * keyPrices.sell.metal * 9 + profits.rawProfitTimed.metal * 9 + profits.overpriceProfitTimed * 9;
+        const fullProfit24hScrap =
+            profits.rawProfitTimed.keys * keyPrices.sell.metal * 9 +
+            profits.rawProfitTimed.metal * 9 +
+            profits.overpriceProfitTimed * 9;
         const fullProfit24h = Currencies.toCurrencies(Math.round(fullProfit24hScrap), keyPrices.sell.metal).toString();
-        
-        const fullProfitTotalScrap = profits.rawProfit.keys * keyPrices.sell.metal * 9 + profits.rawProfit.metal * 9 + profits.overpriceProfit * 9;
-        const fullProfitTotal = Currencies.toCurrencies(Math.round(fullProfitTotalScrap), keyPrices.sell.metal).toString();
+
+        const fullProfitTotalScrap =
+            profits.rawProfit.keys * keyPrices.sell.metal * 9 +
+            profits.rawProfit.metal * 9 +
+            profits.overpriceProfit * 9;
+        const fullProfitTotal = Currencies.toCurrencies(
+            Math.round(fullProfitTotalScrap),
+            keyPrices.sell.metal
+        ).toString();
 
         // Format estimate warning
         const estimateWarning = profits.hasEstimates ? '\n\n⚠️ Profit contains estimates' : '';
