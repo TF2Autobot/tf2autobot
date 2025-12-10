@@ -115,7 +115,9 @@ export default class StatusCommands {
                 `\n\n--- Last 24 hours ---` +
                 `\nProfit Raw: ${rawProfit24h}` +
                 `\nOverpay: ${overpay24h}` +
-                `\n\n--- All Time${profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''} ---` +
+                `\n\n--- All Time${
+                    profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''
+                } ---` +
                 `\nProfit Raw: ${rawProfitTotal}` +
                 `\nOverpay: ${overpayTotal}` +
                 `\n\n--- Total Profit (Clean Converted) ---` +
