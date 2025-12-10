@@ -345,13 +345,41 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
 
         // Process items we're receiving (their side) - BUY
         if (dict.their) {
-            // Calculate total pricelist value for ALL items being bought (ONCE per trade-side)
+            // Check if autokeys (key banking) is enabled
+            const isAutokeysEnabled = bot.options.autokeys.enable;
+
+            // Determine if this is a pure key banking trade (keys are the ONLY item)
+            const skusInTrade = Object.keys(dict.their).filter(s => !['5002;6', '5001;6', '5000;6'].includes(s));
+            const isKeyOnlyTrade = skusInTrade.length === 1 && skusInTrade[0] === '5021;6';
+
+            // Calculate total pricelist value for items being TRACKED (EXCLUDING pure currency and payment keys)
+            // This MUST match what we actually add to FIFO to avoid incorrect diff calculations
             const theirTotalKeys = Object.keys(dict.their).reduce((sum, s) => {
+                // Skip pure currency items
+                if (['5002;6', '5001;6', '5000;6'].includes(s)) {
+                    return sum;
+                }
+
+                // Skip payment keys (unless autokeys enabled and ONLY keys in trade)
+                if (s === '5021;6' && (!isAutokeysEnabled || !isKeyOnlyTrade)) {
+                    return sum;
+                }
+
                 const price = itemPrices[s];
                 return sum + (price ? price.buy.keys * dict.their[s] : 0);
             }, 0);
 
             const theirTotalMetal = Object.keys(dict.their).reduce((sum, s) => {
+                // Skip pure currency items
+                if (['5002;6', '5001;6', '5000;6'].includes(s)) {
+                    return sum;
+                }
+
+                // Skip payment keys (unless autokeys enabled and ONLY keys in trade)
+                if (s === '5021;6' && (!isAutokeysEnabled || !isKeyOnlyTrade)) {
+                    return sum;
+                }
+
                 const price = itemPrices[s];
                 return sum + (price ? price.buy.metal * dict.their[s] : 0);
             }, 0);
@@ -365,19 +393,24 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
             const buyOverpayKeys = actualPaidKeys - theirTotalKeys;
             const buyOverpayMetal = actualPaidMetal - theirTotalMetal;
 
-            // Count total items being bought
-            const totalItemsBought = Object.values(dict.their).reduce((sum, qty) => sum + qty, 0);
+            // Count total items being TRACKED (EXCLUDING pure currency and payment keys)
+            const totalItemsBought = Object.keys(dict.their).reduce((sum, s) => {
+                // Skip pure currency items
+                if (['5002;6', '5001;6', '5000;6'].includes(s)) {
+                    return sum;
+                }
 
-            // Distribute overpay across ALL items as diff (both keys and metal)
+                // Skip payment keys (unless autokeys enabled and ONLY keys in trade)
+                if (s === '5021;6' && (!isAutokeysEnabled || !isKeyOnlyTrade)) {
+                    return sum;
+                }
+
+                return sum + dict.their[s];
+            }, 0);
+
+            // Distribute overpay across tracked items as diff (both keys and metal)
             const diffPerItemKeys = totalItemsBought === 0 ? 0 : buyOverpayKeys / totalItemsBought;
             const diffPerItemMetal = totalItemsBought === 0 ? 0 : buyOverpayMetal / totalItemsBought;
-
-            // Check if autokeys (key banking) is enabled
-            const isAutokeysEnabled = bot.options.autokeys.enable;
-
-            // Determine if this is a pure key banking trade (keys are the ONLY item)
-            const skusInTrade = Object.keys(dict.their).filter(s => !['5002;6', '5001;6', '5000;6'].includes(s));
-            const isKeyOnlyTrade = skusInTrade.length === 1 && skusInTrade[0] === '5021;6';
 
             // Add each item to FIFO with pricelist cost + distributed diff
             for (const sku in dict.their) {
@@ -487,30 +520,36 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
                 }
             }
 
-            // Calculate overpay for sell side ONCE per trade (not per SKU)
-            // Overpay = (actual received) - (pricelist sell value) + realized buy-side diffs
-            const value = offer.data('value') as i.ItemsValue;
-            if (value) {
-                // Get total pricelist sell value for our side
-                const ourTotalKeys = Object.keys(dict.our).reduce((sum, s) => {
-                    const price = itemPrices[s];
-                    return sum + (price ? price.sell.keys * dict.our[s] : 0);
-                }, 0);
+        }
 
-                const ourTotalMetal = Object.keys(dict.our).reduce((sum, s) => {
-                    const price = itemPrices[s];
-                    return sum + (price ? price.sell.metal * dict.our[s] : 0);
-                }, 0);
-
-                const actualReceivedKeys = value.their.keys;
-                const actualReceivedMetal = value.their.metal;
-
-                const sellOverpayKeys = actualReceivedKeys - ourTotalKeys;
-                const sellOverpayMetal = actualReceivedMetal - ourTotalMetal;
-
-                overpayKeys += sellOverpayKeys;
-                overpayMetal += sellOverpayMetal;
-            }
+        // Calculate final trade overpay ONCE for entire trade
+        // Overpay = net currency difference between actual trade values
+        // 
+        // The value object contains the gross total values of each side including ALL items and currency.
+        // Since raw profit already accounts for pricelist price differences via FIFO,
+        // overpay simply tracks if the actual currency exchanged deviates from a fair trade.
+        // 
+        // Example: 8 ref for 7.33 ref item + 0.66 ref change
+        // - value.their.total = 72 scrap (8 ref gross they gave)
+        // - value.our.total = ~72 scrap (7.33 ref item + 0.66 ref change we gave)
+        // - Net overpay = ~0 scrap (fair trade with change)
+        //
+        // Example: 8 ref for 7 ref item (they overpay)
+        // - value.their.total = 72 scrap (8 ref)
+        // - value.our.total = 63 scrap (7 ref)
+        // - Net overpay = 9 scrap (1 ref overpay)
+        const value = offer.data('value') as i.ItemsValue;
+        if (value && value.their && value.our) {
+            // Get net difference in scrap (their total - our total)
+            const netOverpayScrap = (value.their.total || 0) - (value.our.total || 0);
+            
+            // Convert scrap overpay to keys + metal for storage
+            // Use current key price for conversion
+            const keyPrice = bot.pricelist.getKeyPrice.metal;
+            const keyPriceScrap = keyPrice * 9; // Convert ref to scrap
+            
+            overpayKeys = Math.floor(netOverpayScrap / keyPriceScrap);
+            overpayMetal = (netOverpayScrap - (overpayKeys * keyPriceScrap)) / 9; // Convert remaining scrap to ref
         }
 
         // Store profit data in offer
