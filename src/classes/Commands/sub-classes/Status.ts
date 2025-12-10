@@ -112,15 +112,15 @@ export default class StatusCommands {
                 `\n---• unknown reason: ${trades.today.canceled.unknown}` +
                 `\n\n--- Profits ---` +
                 `\n\nKey Rate: ${keyPrices.buy.metal}/${keyPrices.sell.metal} ref` +
-                `\n\nProfit Raw (24h): ${rawProfit24h}` +
-                `\nProfit Total Raw: ${rawProfitTotal}${
-                    profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''
-                }` +
-                `\n\n--- Profits Clean ---` +
-                `\n\nProfit (24h): ${fullProfit24h}` +
-                `\nProfit from overpay (24h): ${overpay24h}` +
-                `\n\nProfit: ${fullProfitTotal}` +
-                `\nProfit from overpay: ${overpayTotal}` +
+                `\n\n--- Last 24 hours ---` +
+                `\nProfit Raw: ${rawProfit24h}` +
+                `\nOverpay: ${overpay24h}` +
+                `\n\n--- All Time${profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)` : ''} ---` +
+                `\nProfit Raw: ${rawProfitTotal}` +
+                `\nOverpay: ${overpayTotal}` +
+                `\n\n--- Total Profit (Clean Converted) ---` +
+                `\nLast 24h: ${fullProfit24h}` +
+                `\nAll Time: ${fullProfitTotal}` +
                 estimateWarning
         );
     }
