@@ -198,6 +198,20 @@ export class Entry implements EntryData {
         return Currencies.toCurrencies(avgValue, keyPrice);
     }
 
+    /**
+     * Get FIFO (First In, First Out) purchase price - the price paid for the oldest items in stock
+     * This is used for PPU protection to ensure we never sell below the cost of the oldest purchased items
+     */
+    getFIFOPurchasePrice(): Currencies | null {
+        if (this.purchaseHistory.length === 0) {
+            return null;
+        }
+
+        // Return the price paid for the oldest purchase (first record)
+        const oldest = this.purchaseHistory[0];
+        return new Currencies(oldest.pricePaid);
+    }
+
     static fromData(data: EntryData, schema: SchemaManager.Schema): Entry {
         return new Entry(data, schema.getName(SKU.fromString(data.sku), false));
     }
@@ -1092,9 +1106,9 @@ export default class Pricelist extends EventEmitter {
                     const newBuyValue = newPrices.buy.toValue(keyPrice);
                     const newSellValue = newPrices.sell.toValue(keyPrice);
 
-                    // Use actual purchase cost if available, otherwise fallback to current buy price
-                    const actualCost = currPrice.getAveragePurchasePrice(keyPrice);
-                    const costBasis = actualCost || currPrice.buy;
+                    // Use FIFO (oldest purchase) cost for PPU protection, fallback to current buy price
+                    const fifoCost = currPrice.getFIFOPurchasePrice();
+                    const costBasis = fifoCost || currPrice.buy;
                     const currBuyingValue = costBasis.toValue(keyPrice);
                     const currSellingValue = currPrice.sell.toValue(keyPrice);
 
@@ -1153,7 +1167,10 @@ export default class Pricelist extends EventEmitter {
                                 currPrice.buy = newPrices.buy;
                             } else if (newBuyValue > currPrice.buy.toValue(keyPrice)) {
                                 // Market went up, can increase buy price but not beyond cost basis (to maintain profit margin)
-                                currPrice.buy = Currencies.toCurrencies(Math.min(newBuyValue, currBuyingValue), keyPrice);
+                                currPrice.buy = Currencies.toCurrencies(
+                                    Math.min(newBuyValue, currBuyingValue),
+                                    keyPrice
+                                );
                             }
 
                             // Apply the protected sell price
@@ -1391,9 +1408,9 @@ export default class Pricelist extends EventEmitter {
                 const newBuyValue = newPrices.buy.toValue(keyPrice);
                 const newSellValue = newPrices.sell.toValue(keyPrice);
 
-                // Use actual purchase cost if available, otherwise fallback to current buy price
-                const actualCost = match.getAveragePurchasePrice(keyPrice);
-                const costBasis = actualCost || match.buy;
+                // Use FIFO (oldest purchase) cost for PPU protection, fallback to current buy price
+                const fifoCost = match.getFIFOPurchasePrice();
+                const costBasis = fifoCost || match.buy;
                 const currBuyingValue = costBasis.toValue(keyPrice);
                 const currSellingValue = match.sell.toValue(keyPrice);
 
@@ -1413,7 +1430,9 @@ export default class Pricelist extends EventEmitter {
                     } else if (newBuyValue > match.buy.toValue(keyPrice)) {
                         // Market went up, can increase buy price but not beyond cost basis (to maintain profit margin)
                         const newBuy = Math.min(newBuyValue, currBuyingValue);
-                        log.debug(`ppu - increasing buy price to ${newBuy} (market: ${newBuyValue}, cost basis: ${currBuyingValue})`);
+                        log.debug(
+                            `ppu - increasing buy price to ${newBuy} (market: ${newBuyValue}, cost basis: ${currBuyingValue})`
+                        );
                         match.buy = Currencies.toCurrencies(newBuy, keyPrice);
                     }
 
