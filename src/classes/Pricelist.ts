@@ -146,15 +146,10 @@ export class Entry implements EntryData {
             this.note = { buy: null, sell: null };
         }
 
-        if (entry.isPartialPriced) {
-            this.isPartialPriced = entry.isPartialPriced;
-        } else {
-            this.isPartialPriced = false;
-        }
-
+        this.isPartialPriced = entry.isPartialPriced ?? false;
         this.purchaseHistory = entry.purchaseHistory || [];
-        this.partialPriceTime = entry.partialPriceTime || null;
-        this.lastInStockTime = entry.lastInStockTime || null;
+        this.partialPriceTime = entry.partialPriceTime ?? null;
+        this.lastInStockTime = entry.lastInStockTime ?? null;
     }
 
     clone(): Entry {
@@ -237,6 +232,10 @@ export class Entry implements EntryData {
         }
 
         return obj;
+    }
+
+    toJSON(): EntryData {
+        return this.getJSON();
     }
 }
 
@@ -1145,21 +1144,33 @@ export default class Pricelist extends EventEmitter {
                         if (isNegativeDiff || isBuyingChanged || currPrice.isPartialPriced) {
                             const minProfit = ppu.minProfitScrap || 1;
 
-                            // Always update buy price to market rate if it's lower
+                            // Sell price: Follow market up for profit, but never below protected cost + minProfit
+                            const protectedSell = currBuyingValue + minProfit;
+
+                            // Buy price: Follow market down for competitiveness, can increase up to cost basis
                             if (newBuyValue < currPrice.buy.toValue(keyPrice)) {
+                                // Market went down, lower buy price to stay competitive
                                 currPrice.buy = newPrices.buy;
+                            } else if (newBuyValue > currPrice.buy.toValue(keyPrice)) {
+                                // Market went up, can increase buy price but not beyond cost basis (to maintain profit margin)
+                                currPrice.buy = Currencies.toCurrencies(Math.min(newBuyValue, currBuyingValue), keyPrice);
                             }
 
-                            if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
+                            // Apply the protected sell price
+                            if (newSellValue >= protectedSell) {
+                                // Market is above our protection floor, use market price
                                 currPrice.sell = newPrices.sell;
                             } else {
-                                currPrice.sell = Currencies.toCurrencies(currBuyingValue + minProfit, keyPrice);
+                                // Market dropped below protection, maintain protected price
+                                currPrice.sell = Currencies.toCurrencies(protectedSell, keyPrice);
                             }
 
                             // Set partialPriceTime on first activation
                             if (!currPrice.isPartialPriced) {
                                 currPrice.partialPriceTime = Math.floor(Date.now() / 1000);
                             }
+
+                            currPrice.isPartialPriced = true;
 
                             const msg = this.generatePartialPriceUpdateMsg(
                                 oldPrices,
@@ -1181,8 +1192,8 @@ export default class Pricelist extends EventEmitter {
                     } else {
                         if (
                             !currPrice.isPartialPriced || // partialPrice is false - update as usual
-                            (currPrice.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND has exceeded threshold
-                            (currPrice.isPartialPriced && !isInStock && !wasRecentlyInStock) // OR, still partialPrice true AND no longer in stock (past grace period)
+                            (currPrice.isPartialPriced && !isNotExceedThreshold) // Still partialPrice AND has exceeded threshold
+                            // Removed: Reset when out of stock - this was causing PPU to reset on bot restart
                         ) {
                             currPrice.buy = newPrices.buy;
                             currPrice.sell = newPrices.sell;
@@ -1392,18 +1403,27 @@ export default class Pricelist extends EventEmitter {
                 if (match.isPartialPriced || isNegativeDiff || isBuyingChanged) {
                     const minProfit = ppu.minProfitScrap || 1;
 
-                    // Always update buy price to market rate if it's lower
+                    // Sell price: Follow market up for profit, but never below protected cost + minProfit
+                    const protectedSell = currBuyingValue + minProfit;
+
+                    // Buy price: Follow market down for competitiveness, can increase up to cost basis
                     if (newBuyValue < match.buy.toValue(keyPrice)) {
-                        log.debug('ppu - update buying price to lower market rate');
+                        log.debug('ppu - lowering buy price to track market down');
                         match.buy = newPrices.buy;
+                    } else if (newBuyValue > match.buy.toValue(keyPrice)) {
+                        // Market went up, can increase buy price but not beyond cost basis (to maintain profit margin)
+                        const newBuy = Math.min(newBuyValue, currBuyingValue);
+                        log.debug(`ppu - increasing buy price to ${newBuy} (market: ${newBuyValue}, cost basis: ${currBuyingValue})`);
+                        match.buy = Currencies.toCurrencies(newBuy, keyPrice);
                     }
 
-                    if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
-                        log.debug('ppu - update selling price with the latest price');
+                    // Apply the protected sell price
+                    if (newSellValue >= protectedSell) {
+                        log.debug(`ppu - updating sell to market ${newSellValue} (above protected ${protectedSell})`);
                         match.sell = newPrices.sell;
                     } else {
-                        log.debug(`ppu - update selling price with minimum profit of ${minProfit} scrap`);
-                        match.sell = Currencies.toCurrencies(currBuyingValue + minProfit, keyPrice);
+                        log.debug(`ppu - maintaining protected sell ${protectedSell} (market ${newSellValue} too low)`);
+                        match.sell = Currencies.toCurrencies(protectedSell, keyPrice);
                     }
 
                     // Set partialPriceTime on first activation
@@ -1434,8 +1454,8 @@ export default class Pricelist extends EventEmitter {
             } else {
                 if (
                     !match.isPartialPriced || // partialPrice is false - update as usual
-                    (match.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND has exceeded threshold
-                    (match.isPartialPriced && !isInStock && !wasRecentlyInStock) // OR, still partialPrice true AND no longer in stock (past grace period)
+                    (match.isPartialPriced && !isNotExceedThreshold) // Still partialPrice AND has exceeded threshold
+                    // Removed: Reset when out of stock - this was causing PPU to reset during price updates
                 ) {
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
