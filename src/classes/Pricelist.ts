@@ -1208,8 +1208,9 @@ export default class Pricelist extends EventEmitter {
                         }
                     } else {
                         // Reset PPU when: not partial priced, exceeded threshold, OR no purchase history (nothing to protect)
-                        const hasNothingToProtect = currPrice.purchaseHistory.length === 0 && !isInStock && !wasRecentlyInStock;
-                        
+                        const hasNothingToProtect =
+                            currPrice.purchaseHistory.length === 0 && !isInStock && !wasRecentlyInStock;
+
                         if (
                             !currPrice.isPartialPriced || // partialPrice is false - update as usual
                             (currPrice.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND has exceeded threshold
@@ -1476,7 +1477,7 @@ export default class Pricelist extends EventEmitter {
             } else {
                 // Reset PPU when: not partial priced, exceeded threshold, OR no purchase history (nothing to protect)
                 const hasNothingToProtect = match.purchaseHistory.length === 0 && !isInStock && !wasRecentlyInStock;
-                
+
                 if (
                     !match.isPartialPriced || // partialPrice is false - update as usual
                     (match.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND has exceeded threshold
