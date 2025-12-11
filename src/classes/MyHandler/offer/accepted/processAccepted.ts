@@ -386,7 +386,7 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
 
             // Get actual amount paid (value.our may have keys converted to metal by showOnlyMetal)
             const value = offer.data('value') as i.ItemsValue;
-            
+
             // Convert pricelist totals to scrap for accurate comparison
             const keyPrice = bot.pricelist.getKeyPrice.metal;
             const theirTotalScrap = theirTotalKeys * keyPrice * 9 + theirTotalMetal * 9;
@@ -394,11 +394,11 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
 
             // Calculate net overpay in scrap (handles showOnlyMetal conversion correctly)
             const buyOverpayScrap = actualPaidScrap - theirTotalScrap;
-            
+
             // Convert back to keys + metal for distribution
             const keyPriceScrap = keyPrice * 9;
             const buyOverpayKeys = Math.floor(buyOverpayScrap / keyPriceScrap);
-            const buyOverpayMetal = (buyOverpayScrap - (buyOverpayKeys * keyPriceScrap)) / 9;
+            const buyOverpayMetal = (buyOverpayScrap - buyOverpayKeys * keyPriceScrap) / 9;
 
             // Count total items being TRACKED (EXCLUDING pure currency and payment keys)
             const totalItemsBought = Object.keys(dict.their).reduce((sum, s) => {
