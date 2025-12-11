@@ -1207,10 +1207,13 @@ export default class Pricelist extends EventEmitter {
                             }
                         }
                     } else {
+                        // Reset PPU when: not partial priced, exceeded threshold, OR no purchase history (nothing to protect)
+                        const hasNothingToProtect = currPrice.purchaseHistory.length === 0 && !isInStock && !wasRecentlyInStock;
+                        
                         if (
                             !currPrice.isPartialPriced || // partialPrice is false - update as usual
-                            (currPrice.isPartialPriced && !isNotExceedThreshold) // Still partialPrice AND has exceeded threshold
-                            // Removed: Reset when out of stock - this was causing PPU to reset on bot restart
+                            (currPrice.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND has exceeded threshold
+                            (currPrice.isPartialPriced && hasNothingToProtect) // No purchase history and not in stock - nothing to protect
                         ) {
                             currPrice.buy = newPrices.buy;
                             currPrice.sell = newPrices.sell;
@@ -1471,10 +1474,13 @@ export default class Pricelist extends EventEmitter {
                     }
                 }
             } else {
+                // Reset PPU when: not partial priced, exceeded threshold, OR no purchase history (nothing to protect)
+                const hasNothingToProtect = match.purchaseHistory.length === 0 && !isInStock && !wasRecentlyInStock;
+                
                 if (
                     !match.isPartialPriced || // partialPrice is false - update as usual
-                    (match.isPartialPriced && !isNotExceedThreshold) // Still partialPrice AND has exceeded threshold
-                    // Removed: Reset when out of stock - this was causing PPU to reset during price updates
+                    (match.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND has exceeded threshold
+                    (match.isPartialPriced && hasNothingToProtect) // No purchase history and not in stock - nothing to protect
                 ) {
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
