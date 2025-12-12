@@ -2180,7 +2180,7 @@ export default class PricelistManagerCommands {
         const pricelist = this.bot.pricelist.getPrices;
         const keyPrice = this.bot.pricelist.getKeyPrice.metal;
         const now = Math.floor(Date.now() / 1000);
-        
+
         let fixed = 0;
         let updated = 0;
         const results: string[] = [];
@@ -2215,9 +2215,7 @@ export default class PricelistManagerCommands {
             // Recalculate protected sell price if item is/was recently in stock
             const isInStock = currentStock > 0;
             const stockGracePeriod = ppu.stockGracePeriodSeconds || 3600;
-            const wasRecentlyInStock = entry.lastInStockTime
-                ? now - entry.lastInStockTime < stockGracePeriod
-                : false;
+            const wasRecentlyInStock = entry.lastInStockTime ? now - entry.lastInStockTime < stockGracePeriod : false;
 
             if (isInStock || wasRecentlyInStock) {
                 // Get FIFO cost
@@ -2239,10 +2237,12 @@ export default class PricelistManagerCommands {
                     if (!entry.partialPriceTime) {
                         entry.partialPriceTime = now;
                     }
-                    
+
                     updated++;
                     results.push(
-                        `${entry.name} (${sku}): ${oldSell} → ${entry.sell.toString()} (protected at cost + ${minProfit} scrap)`
+                        `${
+                            entry.name
+                        } (${sku}): ${oldSell} → ${entry.sell.toString()} (protected at cost + ${minProfit} scrap)`
                     );
                 }
             }
@@ -2265,7 +2265,7 @@ export default class PricelistManagerCommands {
             if (results.length > 0) {
                 await timersPromises.setTimeout(1000);
                 this.bot.sendMessage(steamID, '📋 Updated Items:\n' + results.slice(0, 20).join('\n'));
-                
+
                 if (results.length > 20) {
                     await timersPromises.setTimeout(1000);
                     this.bot.sendMessage(steamID, `... and ${results.length - 20} more items.`);
