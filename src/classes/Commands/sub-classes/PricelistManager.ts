@@ -2162,6 +2162,124 @@ export default class PricelistManagerCommands {
         PricelistManagerCommands.isSending = false;
     }
 
+    async ppuRecalcCommand(steamID: SteamID): Promise<void> {
+        if (PricelistManagerCommands.isSending) {
+            return this.bot.sendMessage(steamID, '❌ Please wait.');
+        }
+
+        const opt = this.bot.options;
+        const ppu = opt.pricelist.partialPriceUpdate;
+
+        if (!ppu.enable) {
+            return this.bot.sendMessage(
+                steamID,
+                '❌ Partial Price Update is disabled. Enable it in options.json first.'
+            );
+        }
+
+        const pricelist = this.bot.pricelist.getPrices;
+        const keyPrice = this.bot.pricelist.getKeyPrice.metal;
+        const now = Math.floor(Date.now() / 1000);
+        
+        let fixed = 0;
+        let updated = 0;
+        const results: string[] = [];
+
+        this.bot.sendMessage(steamID, '⌛ Scanning pricelist and recalculating PPU protection...');
+
+        for (const sku in pricelist) {
+            if (!Object.prototype.hasOwnProperty.call(pricelist, sku)) {
+                continue;
+            }
+
+            const entry = pricelist[sku];
+
+            // Skip if not autoprice or no purchase history
+            if (!entry.autoprice || entry.purchaseHistory.length === 0) {
+                continue;
+            }
+
+            // Check current stock
+            const currentStock = this.bot.inventoryManager.getInventory.getAmount({
+                priceKey: sku,
+                includeNonNormalized: false,
+                tradableOnly: true
+            });
+
+            // Fix lastInStockTime if null and item is in stock
+            if (entry.lastInStockTime === null && currentStock > 0) {
+                entry.lastInStockTime = now;
+                fixed++;
+            }
+
+            // Recalculate protected sell price if item is/was recently in stock
+            const isInStock = currentStock > 0;
+            const stockGracePeriod = ppu.stockGracePeriodSeconds || 3600;
+            const wasRecentlyInStock = entry.lastInStockTime
+                ? now - entry.lastInStockTime < stockGracePeriod
+                : false;
+
+            if (isInStock || wasRecentlyInStock) {
+                // Get FIFO cost
+                const fifoCost = entry.getFIFOPurchasePrice();
+                if (!fifoCost) {
+                    continue;
+                }
+
+                const costBasis = fifoCost.toValue(keyPrice);
+                const minProfit = ppu.minProfitScrap || 1;
+                const protectedSell = costBasis + minProfit;
+                const currentSellValue = entry.sell.toValue(keyPrice);
+
+                // If current sell is below protected, update it
+                if (currentSellValue < protectedSell) {
+                    const oldSell = entry.sell.toString();
+                    entry.sell = Currencies.toCurrencies(protectedSell, keyPrice);
+                    entry.isPartialPriced = true;
+                    if (!entry.partialPriceTime) {
+                        entry.partialPriceTime = now;
+                    }
+                    
+                    updated++;
+                    results.push(
+                        `${entry.name} (${sku}): ${oldSell} → ${entry.sell.toString()} (protected at cost + ${minProfit} scrap)`
+                    );
+                }
+            }
+        }
+
+        PricelistManagerCommands.isSending = true;
+
+        if (fixed === 0 && updated === 0) {
+            this.bot.sendMessage(
+                steamID,
+                '✅ No items needed PPU recalculation. All items with purchase history are already protected correctly.'
+            );
+        } else {
+            let summary = `✅ PPU Recalculation Complete!\n\n`;
+            summary += `📊 Fixed lastInStockTime: ${fixed} ${pluralize('item', fixed)}\n`;
+            summary += `📈 Updated protected prices: ${updated} ${pluralize('item', updated)}`;
+
+            this.bot.sendMessage(steamID, summary);
+
+            if (results.length > 0) {
+                await timersPromises.setTimeout(1000);
+                this.bot.sendMessage(steamID, '📋 Updated Items:\n' + results.slice(0, 20).join('\n'));
+                
+                if (results.length > 20) {
+                    await timersPromises.setTimeout(1000);
+                    this.bot.sendMessage(steamID, `... and ${results.length - 20} more items.`);
+                }
+            }
+
+            // Save pricelist
+            await this.bot.handler.onPricelist(pricelist);
+            this.bot.sendMessage(steamID, '💾 Pricelist saved successfully.');
+        }
+
+        PricelistManagerCommands.isSending = false;
+    }
+
     async findCommand(steamID: SteamID, message: string): Promise<void> {
         if (PricelistManagerCommands.isSending) {
             return this.bot.sendMessage(steamID, '❌ Please wait.');

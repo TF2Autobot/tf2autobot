@@ -206,6 +206,8 @@ export default class Commands {
                 void this.pManager.getAllCommand(steamID, message);
             } else if (command === 'ppu' && isAdmin) {
                 void this.pManager.partialPriceUpdateCommand(steamID, message);
+            } else if (command === 'ppurecalc' && isAdmin) {
+                void this.pManager.ppuRecalcCommand(steamID);
             } else if (['getslots', 'listings'].includes(command) && isAdmin) {
                 void this.pManager.getSlotsCommand(steamID);
             } else if (command === 'groups' && isAdmin) {
