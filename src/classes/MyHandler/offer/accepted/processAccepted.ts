@@ -546,38 +546,48 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
         // - our total = 63 scrap (7 ref)
         // - Net overpay = 9 scrap (1 ref overpay)
 
-        // Recalculate actual trade totals from dict (handles both received and sent offers correctly)
-        let ourTotalScrap = 0;
-        let theirTotalScrap = 0;
+        // Recalculate actual trade totals, preferring the values recorded on the offer
+        // These already reflect the real key rate used during the trade (handles change correctly)
+        const tradeValue = offer.data('value') as i.ItemsValue | undefined;
+        let ourTotalScrap = tradeValue?.our?.total ?? 0;
+        let theirTotalScrap = tradeValue?.their?.total ?? 0;
 
-        for (const sku in dict.our) {
-            const amount = dict.our[sku];
-            if (sku === '5000;6') ourTotalScrap += amount; // scrap
-            else if (sku === '5001;6') ourTotalScrap += amount * 3; // rec
-            else if (sku === '5002;6') ourTotalScrap += amount * 9; // ref
-            else if (sku === '5021;6')
-                ourTotalScrap += amount * Currencies.toScrap(bot.pricelist.getKeyPrices.sell.metal); // keys
-            else {
-                // Item - use pricelist value
-                const price = itemPrices[sku];
-                if (price) {
-                    ourTotalScrap += Currencies.toScrap(price.sell.toValue(bot.pricelist.getKeyPrice.metal)) * amount;
+        // Fallback to pricelist-based calculation only if value totals are missing
+        if (tradeValue?.our?.total === undefined || tradeValue?.their?.total === undefined) {
+            ourTotalScrap = 0;
+            theirTotalScrap = 0;
+
+            for (const sku in dict.our) {
+                const amount = dict.our[sku];
+                if (sku === '5000;6') ourTotalScrap += amount; // scrap
+                else if (sku === '5001;6') ourTotalScrap += amount * 3; // rec
+                else if (sku === '5002;6') ourTotalScrap += amount * 9; // ref
+                else if (sku === '5021;6')
+                    ourTotalScrap += amount * Currencies.toScrap(bot.pricelist.getKeyPrices.sell.metal); // keys
+                else {
+                    // Item - use pricelist value
+                    const price = itemPrices[sku];
+                    if (price) {
+                        ourTotalScrap +=
+                            Currencies.toScrap(price.sell.toValue(bot.pricelist.getKeyPrice.metal)) * amount;
+                    }
                 }
             }
-        }
 
-        for (const sku in dict.their) {
-            const amount = dict.their[sku];
-            if (sku === '5000;6') theirTotalScrap += amount; // scrap
-            else if (sku === '5001;6') theirTotalScrap += amount * 3; // rec
-            else if (sku === '5002;6') theirTotalScrap += amount * 9; // ref
-            else if (sku === '5021;6')
-                theirTotalScrap += amount * Currencies.toScrap(bot.pricelist.getKeyPrices.buy.metal); // keys
-            else {
-                // Item - use pricelist value
-                const price = itemPrices[sku];
-                if (price) {
-                    theirTotalScrap += Currencies.toScrap(price.buy.toValue(bot.pricelist.getKeyPrice.metal)) * amount;
+            for (const sku in dict.their) {
+                const amount = dict.their[sku];
+                if (sku === '5000;6') theirTotalScrap += amount; // scrap
+                else if (sku === '5001;6') theirTotalScrap += amount * 3; // rec
+                else if (sku === '5002;6') theirTotalScrap += amount * 9; // ref
+                else if (sku === '5021;6')
+                    theirTotalScrap += amount * Currencies.toScrap(bot.pricelist.getKeyPrices.buy.metal); // keys
+                else {
+                    // Item - use pricelist value
+                    const price = itemPrices[sku];
+                    if (price) {
+                        theirTotalScrap +=
+                            Currencies.toScrap(price.buy.toValue(bot.pricelist.getKeyPrice.metal)) * amount;
+                    }
                 }
             }
         }
@@ -586,10 +596,13 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
         const netOverpayScrap = theirTotalScrap - ourTotalScrap;
 
         // Convert to keys + metal for storage
-        const keyPrice = bot.pricelist.getKeyPrice.metal;
+        // Use the key rate recorded on the trade (fallback to current sell price)
+        const keyPrice = tradeValue?.rate ?? bot.pricelist.getKeyPrice.metal;
         const keyPriceScrap = Currencies.toScrap(keyPrice);
 
-        overpayKeys = Math.floor(netOverpayScrap / keyPriceScrap);
+        // Use Math.trunc instead of Math.floor to handle negative overpay correctly
+        // Math.floor(-0.5) = -1, but Math.trunc(-0.5) = 0 (rounds toward zero)
+        overpayKeys = Math.trunc(netOverpayScrap / keyPriceScrap);
         overpayMetal = Currencies.toRefined(netOverpayScrap - overpayKeys * keyPriceScrap);
 
         // Store profit data in offer
