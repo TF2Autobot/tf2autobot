@@ -33,8 +33,10 @@ function computeOverpay(
     const prices = (trade as any).prices || {};
     const tradeValue = (trade as any).value as { our?: { total?: number }; their?: { total?: number }; rate?: number };
 
-    const keyPrice = tradeValue?.rate ?? fallbackKeyPrice;
-    const keyPriceScrap = Currencies.toScrap(keyPrice);
+    // Use the historical key rate from the trade, not current prices
+    // This gives TRUE overpay as it happened at trade time
+    const keyRate = tradeValue?.rate ?? fallbackKeyPrice;
+    const keyPriceScrap = Currencies.toScrap(keyRate);
 
     // Always recalculate from dict + stored prices to avoid corruption issues
     // Note: sent offers may have corrupted total values in the value object
@@ -48,8 +50,8 @@ function computeOverpay(
         else if (sku === '5001;6') ourTotalScrap += amount * 3; // rec
         else if (sku === '5002;6') ourTotalScrap += amount * 9; // ref
         else if (sku === '5021;6') {
-            // Keys sent by us are valued at sell price (matches processAccepted.ts)
-            ourTotalScrap += amount * Currencies.toScrap(keySellPrice);
+            // Keys valued at the historical trade rate
+            ourTotalScrap += amount * keyPriceScrap;
         } else {
             const price = prices[sku];
             if (price?.sell) {
@@ -69,8 +71,8 @@ function computeOverpay(
         else if (sku === '5001;6') theirTotalScrap += amount * 3; // rec
         else if (sku === '5002;6') theirTotalScrap += amount * 9; // ref
         else if (sku === '5021;6') {
-            // Keys received are valued at buy price (matches processAccepted.ts)
-            theirTotalScrap += amount * Currencies.toScrap(keyPrice);
+            // Keys valued at the historical trade rate
+            theirTotalScrap += amount * keyPriceScrap;
         } else {
             const price = prices[sku];
             if (price?.buy) {
