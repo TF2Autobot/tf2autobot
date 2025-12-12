@@ -311,12 +311,12 @@ export default class Commands {
         } else if (message.includes('_')) {
             const intentDescriptor = this.bot.ecp.reverseEcpStr(message);
 
-                if (intentDescriptor === undefined) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        'Item could not be decoded. Please use the standard !buy or !sell command!'
-                    );
-                }
+            if (intentDescriptor === undefined) {
+                return this.bot.sendMessage(
+                    steamID,
+                    'Item could not be decoded. Please use the standard !buy or !sell command!'
+                );
+            }
 
             this.buyOrSellCommand(
                 steamID,
