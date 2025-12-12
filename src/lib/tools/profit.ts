@@ -53,7 +53,9 @@ function computeOverpay(
         } else {
             const price = prices[sku];
             if (price?.sell) {
-                ourTotalScrap += Currencies.toScrap(price.sell.toValue(keyPrice)) * amount;
+                // price.sell is { keys: number, metal: number }
+                const sellValueScrap = price.sell.keys * keyPriceScrap + Currencies.toScrap(price.sell.metal);
+                ourTotalScrap += sellValueScrap * amount;
             } else {
                 // Missing price data - cannot calculate accurately
                 usedEstimate = true;
@@ -72,7 +74,9 @@ function computeOverpay(
         } else {
             const price = prices[sku];
             if (price?.buy) {
-                theirTotalScrap += Currencies.toScrap(price.buy.toValue(keyPrice)) * amount;
+                // price.buy is { keys: number, metal: number }
+                const buyValueScrap = price.buy.keys * keyPriceScrap + Currencies.toScrap(price.buy.metal);
+                theirTotalScrap += buyValueScrap * amount;
             } else {
                 // Missing price data - cannot calculate accurately
                 usedEstimate = true;
