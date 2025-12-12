@@ -57,6 +57,10 @@
         "prefixes": {
             "steam": "!",
             "discord": "!"
+        },
+        "ecp": {
+            "useBoldChars": false,
+            "useWordSwap": true
         }
     },
     "sendAlert": {

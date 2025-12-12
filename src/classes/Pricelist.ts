@@ -1406,7 +1406,10 @@ export default class Pricelist extends EventEmitter {
             // https://github.com/TF2Autobot/tf2autobot/issues/506
             // https://github.com/TF2Autobot/tf2autobot/pull/520
 
-            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxRestrictionMet) {
+            // Allow PPU protection if item is currently in stock OR was recently in stock (grace period)
+            const isInStockOrRecent = isInStock || wasRecentlyInStock;
+
+            if (ppu.enable && isInStockOrRecent && isNotExceedThreshold && isNotExcluded && maxRestrictionMet) {
                 const keyPrice = this.getKeyPrice.metal;
 
                 const newBuyValue = newPrices.buy.toValue(keyPrice);

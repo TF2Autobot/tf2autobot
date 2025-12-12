@@ -1,5 +1,6 @@
 import * as i from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
+import Currencies from '@tf2autobot/tf2-currencies';
 import * as timersPromises from 'timers/promises';
 import Bot from '../../../Bot';
 import { KeyPrices } from '../../../Pricelist';
@@ -389,16 +390,16 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
 
             // Convert pricelist totals to scrap for accurate comparison
             const keyPrice = bot.pricelist.getKeyPrice.metal;
-            const theirTotalScrap = theirTotalKeys * keyPrice * 9 + theirTotalMetal * 9;
+            const theirTotalScrap = Currencies.toScrap(theirTotalKeys * keyPrice + theirTotalMetal);
             const actualPaidScrap = value ? value.our.total : theirTotalScrap;
 
             // Calculate net overpay in scrap (handles showOnlyMetal conversion correctly)
             const buyOverpayScrap = actualPaidScrap - theirTotalScrap;
 
             // Convert back to keys + metal for distribution
-            const keyPriceScrap = keyPrice * 9;
+            const keyPriceScrap = Currencies.toScrap(keyPrice);
             const buyOverpayKeys = Math.floor(buyOverpayScrap / keyPriceScrap);
-            const buyOverpayMetal = (buyOverpayScrap - buyOverpayKeys * keyPriceScrap) / 9;
+            const buyOverpayMetal = Currencies.toRefined(buyOverpayScrap - buyOverpayKeys * keyPriceScrap);
 
             // Count total items being TRACKED (EXCLUDING pure currency and payment keys)
             const totalItemsBought = Object.keys(dict.their).reduce((sum, s) => {
@@ -531,32 +532,63 @@ async function calculateProfitData(offer: i.TradeOffer, bot: Bot): Promise<void>
         // Calculate final trade overpay ONCE for entire trade
         // Overpay = net currency difference between actual trade values
         //
-        // The value object contains the gross total values of each side including ALL items and currency.
-        // Since raw profit already accounts for pricelist price differences via FIFO,
-        // overpay simply tracks if the actual currency exchanged deviates from a fair trade.
+        // NOTE: We recalculate totals from dict instead of using value.their/our.total
+        // because sent offers may have corrupted total values in the value object.
+        // This ensures accurate overpay calculation for both received and sent offers.
         //
         // Example: 8 ref for 7.33 ref item + 0.66 ref change
-        // - value.their.total = 72 scrap (8 ref gross they gave)
-        // - value.our.total = ~72 scrap (7.33 ref item + 0.66 ref change we gave)
+        // - their total = 72 scrap (8 ref gross they gave)
+        // - our total = ~72 scrap (7.33 ref item + 0.66 ref change we gave)
         // - Net overpay = ~0 scrap (fair trade with change)
         //
         // Example: 8 ref for 7 ref item (they overpay)
-        // - value.their.total = 72 scrap (8 ref)
-        // - value.our.total = 63 scrap (7 ref)
+        // - their total = 72 scrap (8 ref)
+        // - our total = 63 scrap (7 ref)
         // - Net overpay = 9 scrap (1 ref overpay)
-        const value = offer.data('value') as i.ItemsValue;
-        if (value && value.their && value.our) {
-            // Get net difference in scrap (their total - our total)
-            const netOverpayScrap = (value.their.total || 0) - (value.our.total || 0);
-
-            // Convert scrap overpay to keys + metal for storage
-            // Use current key price for conversion
-            const keyPrice = bot.pricelist.getKeyPrice.metal;
-            const keyPriceScrap = keyPrice * 9; // Convert ref to scrap
-
-            overpayKeys = Math.floor(netOverpayScrap / keyPriceScrap);
-            overpayMetal = (netOverpayScrap - overpayKeys * keyPriceScrap) / 9; // Convert remaining scrap to ref
+        
+        // Recalculate actual trade totals from dict (handles both received and sent offers correctly)
+        let ourTotalScrap = 0;
+        let theirTotalScrap = 0;
+        
+        for (const sku in dict.our) {
+            const amount = dict.our[sku];
+            if (sku === '5000;6') ourTotalScrap += amount; // scrap
+            else if (sku === '5001;6') ourTotalScrap += amount * 3; // rec
+            else if (sku === '5002;6') ourTotalScrap += amount * 9; // ref
+            else if (sku === '5021;6') ourTotalScrap += amount * Currencies.toScrap(bot.pricelist.getKeyPrices.sell.metal); // keys
+            else {
+                // Item - use pricelist value
+                const price = itemPrices[sku];
+                if (price) {
+                    ourTotalScrap += Currencies.toScrap(price.sell.toValue(bot.pricelist.getKeyPrice.metal)) * amount;
+                }
+            }
         }
+        
+        for (const sku in dict.their) {
+            const amount = dict.their[sku];
+            if (sku === '5000;6') theirTotalScrap += amount; // scrap
+            else if (sku === '5001;6') theirTotalScrap += amount * 3; // rec
+            else if (sku === '5002;6') theirTotalScrap += amount * 9; // ref
+            else if (sku === '5021;6') theirTotalScrap += amount * Currencies.toScrap(bot.pricelist.getKeyPrices.buy.metal); // keys
+            else {
+                // Item - use pricelist value
+                const price = itemPrices[sku];
+                if (price) {
+                    theirTotalScrap += Currencies.toScrap(price.buy.toValue(bot.pricelist.getKeyPrice.metal)) * amount;
+                }
+            }
+        }
+        
+        // Calculate net overpay in scrap
+        const netOverpayScrap = theirTotalScrap - ourTotalScrap;
+
+        // Convert to keys + metal for storage
+        const keyPrice = bot.pricelist.getKeyPrice.metal;
+        const keyPriceScrap = Currencies.toScrap(keyPrice);
+
+        overpayKeys = Math.floor(netOverpayScrap / keyPriceScrap);
+        overpayMetal = Currencies.toRefined(netOverpayScrap - overpayKeys * keyPriceScrap);
 
         // Store profit data in offer
         offer.data('tradeProfit', {
@@ -591,3 +623,4 @@ interface Accepted {
     highValue: string[];
     isMention: boolean;
 }
+

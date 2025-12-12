@@ -308,6 +308,23 @@ export default class Commands {
                     custom ? custom.replace('%command%', command) : `❌ Command "${command}" not found!`
                 );
             }
+        } else if (message.includes('_')) {
+            const intentDescriptor = this.bot.ecp.reverseEcpStr(message);
+
+                if (intentDescriptor === undefined) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        'Item could not be decoded. Please use the standard !buy or !sell command!'
+                    );
+                }
+
+            this.buyOrSellCommand(
+                steamID,
+                intentDescriptor.originalItemName,
+                intentDescriptor.decodedIntent as Instant,
+                null,
+                true
+            );
         }
     }
 
@@ -450,7 +467,7 @@ export default class Commands {
 
     // Instant item trade
 
-    private buyOrSellCommand(steamID: SteamID, message: string, command: Instant, prefix: string): void {
+    private buyOrSellCommand(steamID: SteamID, message: string, command: Instant, prefix: string, ecp = false): void {
         const opt = this.bot.options.commands[command === 'b' ? 'buy' : command === 's' ? 'sell' : command];
 
         if (!opt.enable) {
@@ -462,7 +479,7 @@ export default class Commands {
 
         const info = getItemAndAmount(
             steamID,
-            CommandParser.removeCommand(message),
+            ecp ? message : CommandParser.removeCommand(message),
             this.bot,
             prefix,
             command === 'b' ? 'buy' : command === 's' ? 'sell' : command

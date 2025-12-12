@@ -116,6 +116,8 @@ export default function updateListings(
                 const pricePaid = priceListEntry.buy;
                 if (pricePaid) {
                     priceListEntry.addPurchaseRecord(quantityChanged, pricePaid);
+                    // Set lastInStockTime immediately when item is purchased
+                    priceListEntry.lastInStockTime = Math.floor(Date.now() / 1000);
                     log.debug(`PPU: Recorded purchase of ${quantityChanged}x ${name} at ${pricePaid.toString()}`);
                 }
             } else if (diff[priceKey] < 0) {
