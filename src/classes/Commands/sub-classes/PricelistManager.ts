@@ -2217,34 +2217,34 @@ export default class PricelistManagerCommands {
             const stockGracePeriod = ppu.stockGracePeriodSeconds || 3600;
             const wasRecentlyInStock = entry.lastInStockTime ? now - entry.lastInStockTime < stockGracePeriod : false;
 
-            if (isInStock || wasRecentlyInStock) {
-                // Get FIFO cost
-                const fifoCost = entry.getFIFOPurchasePrice();
-                if (!fifoCost) {
-                    continue;
+            // Get FIFO cost - recalculate for ALL items with purchase history (not just in stock)
+            const fifoCost = entry.getFIFOPurchasePrice();
+            if (!fifoCost) {
+                continue;
+            }
+
+            const costBasis = fifoCost.toValue(keyPrice);
+            const minProfit = ppu.minProfitScrap || 1;
+            const protectedSell = costBasis + minProfit;
+            const currentSellValue = entry.sell.toValue(keyPrice);
+
+            // If current sell is below protected, update it (regardless of stock status)
+            if (currentSellValue < protectedSell) {
+                const oldSell = entry.sell.toString();
+                const oldSellValue = currentSellValue;
+                entry.sell = Currencies.toCurrencies(protectedSell, keyPrice);
+                entry.isPartialPriced = true;
+                if (!entry.partialPriceTime) {
+                    entry.partialPriceTime = now;
                 }
 
-                const costBasis = fifoCost.toValue(keyPrice);
-                const minProfit = ppu.minProfitScrap || 1;
-                const protectedSell = costBasis + minProfit;
-                const currentSellValue = entry.sell.toValue(keyPrice);
-
-                // If current sell is below protected, update it
-                if (currentSellValue < protectedSell) {
-                    const oldSell = entry.sell.toString();
-                    entry.sell = Currencies.toCurrencies(protectedSell, keyPrice);
-                    entry.isPartialPriced = true;
-                    if (!entry.partialPriceTime) {
-                        entry.partialPriceTime = now;
-                    }
-
-                    updated++;
-                    results.push(
-                        `${
-                            entry.name
-                        } (${sku}): ${oldSell} → ${entry.sell.toString()} (protected at cost + ${minProfit} scrap)`
-                    );
-                }
+                updated++;
+                const diffScrap = protectedSell - oldSellValue;
+                results.push(
+                    `${entry.name} (${sku}):\n  ${oldSell} → ${entry.sell.toString()} (+${diffScrap.toFixed(
+                        2
+                    )} scrap)`
+                );
             }
         }
 
