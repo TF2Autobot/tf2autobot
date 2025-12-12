@@ -2241,9 +2241,7 @@ export default class PricelistManagerCommands {
                 updated++;
                 const diffScrap = protectedSell - oldSellValue;
                 results.push(
-                    `${entry.name} (${sku}):\n  ${oldSell} → ${entry.sell.toString()} (+${diffScrap.toFixed(
-                        2
-                    )} scrap)`
+                    `${entry.name} (${sku}):\n  ${oldSell} → ${entry.sell.toString()} (+${diffScrap.toFixed(2)} scrap)`
                 );
             }
         }
