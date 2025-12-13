@@ -120,25 +120,27 @@ export default class ApiCart extends Cart {
                         let addedCount = 0;
                         for (let i = 0; i < amount; i++) {
                             const assetid = ourAssetids[i];
-                            
+
                             // Skip items already in trade
-                            if (this.bot.options.miscSettings.skipItemsInTrade.enable &&
-                                this.bot.trades.isInTrade(assetid)) {
+                            if (
+                                this.bot.options.miscSettings.skipItemsInTrade.enable &&
+                                this.bot.trades.isInTrade(assetid)
+                            ) {
                                 continue;
                             }
-                            
+
                             const isAdded = offer.addMyItem({
                                 assetid: assetid,
                                 appid: 440,
                                 contextid: '2',
                                 amount: 1
                             });
-                            
+
                             if (isAdded) {
                                 addedCount++;
                             }
                         }
-                        
+
                         // Check if we added fewer items than expected
                         if (addedCount < amount) {
                             const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
@@ -148,7 +150,9 @@ export default class ApiCart extends Cart {
                                 );
                             } else {
                                 alteredMessages.push(
-                                    `Could only add ${addedCount} of ${amount} ${pluralize(itemName)} (some items may be in another trade)`
+                                    `Could only add ${addedCount} of ${amount} ${pluralize(
+                                        itemName
+                                    )} (some items may be in another trade)`
                                 );
                             }
                         }
