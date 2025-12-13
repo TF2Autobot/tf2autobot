@@ -24,12 +24,12 @@ export default class ApiCart extends Cart {
         if (!tokenMatch) {
             throw new Error('Invalid trade URL: missing token parameter');
         }
-        
+
         // Convert account ID to SteamID using the proper format [U:1:accountId]
         const accountId = parseInt(partnerMatch[1]);
         const partnerSteamID = new SteamID(`[U:1:${accountId}]`);
         const token = tokenMatch[1];
-        
+
         // Use 5-arg constructor with SteamID and token
         super(partnerSteamID, token, bot, [], []);
         this.tradeUrl = tradeUrl;
