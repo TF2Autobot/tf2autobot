@@ -8,6 +8,7 @@ import Cart from './Cart';
  */
 export default class ApiCart extends Cart {
     private customMessage: string | null = null;
+
     private tradeUrl: string;
 
     constructor(tradeUrl: string, bot) {
