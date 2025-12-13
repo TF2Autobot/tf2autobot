@@ -127,6 +127,11 @@ export default class ApiCart extends Cart {
                     const appid = item.appid || item.appId || 440;
                     const contextid = item.contextid || item.contextId || '2';
 
+                    // Track in cart using a placeholder SKU (we use asset ID as the key)
+                    // This prevents the isEmpty check from failing
+                    const placeholderSku = `asset_${assetid}`;
+                    this.addTheirItem(placeholderSku, 1);
+
                     offer.addTheirItem({
                         assetid: String(assetid),
                         appid: Number(appid),
