@@ -146,7 +146,6 @@ export default class ApiCart extends Cart {
                         }
                         log.debug(`Successfully added ${addedCount} of ${amount} items`);
 
-
                         // Check if we added fewer items than expected
                         if (addedCount < amount) {
                             const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
