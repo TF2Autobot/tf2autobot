@@ -54,8 +54,14 @@ export default class ApiCart extends Cart {
             }
 
             const start = Date.now();
-            // Pass trade URL directly like DonateCart does
-            const offer = this.bot.manager.createOffer(this.tradeUrl);
+            // Create offer using partner SteamID, not the URL
+            const offer = this.bot.manager.createOffer(this.partner);
+            
+            // Extract and set the trade token
+            const tokenMatch = this.tradeUrl.match(/[?&]token=([^&]+)/);
+            if (tokenMatch) {
+                offer.setToken(tokenMatch[1]);
+            }
 
             const alteredMessages: string[] = [];
 
