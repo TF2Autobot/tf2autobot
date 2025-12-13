@@ -33,7 +33,7 @@ export default class ApiCart extends Cart {
             // Check if we have anything to trade
             const hasGive = give && (give.keys || give.metal || (give.items && give.items.length > 0));
             const hasReceive = receive && receive.items && receive.items.length > 0;
-            
+
             if (!hasGive && !hasReceive) {
                 return reject(new Error('cart is empty'));
             }
