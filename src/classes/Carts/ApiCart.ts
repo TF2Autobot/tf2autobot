@@ -18,11 +18,11 @@ export default class ApiCart extends Cart {
         if (!partnerMatch) {
             throw new Error('Invalid trade URL: missing partner parameter');
         }
-        
+
         // Convert account ID to SteamID using the proper format [U:1:accountId]
         const accountId = parseInt(partnerMatch[1]);
         const partnerSteamID = new SteamID(`[U:1:${accountId}]`);
-        
+
         // Use 4-arg constructor with correct partner SteamID
         super(partnerSteamID, bot, [], []);
         this.tradeUrl = tradeUrl;
