@@ -19,12 +19,19 @@ export default class ApiCart extends Cart {
             throw new Error('Invalid trade URL: missing partner parameter');
         }
 
+        // Extract token from trade URL
+        const tokenMatch = tradeUrl.match(/[?&]token=([^&]+)/);
+        if (!tokenMatch) {
+            throw new Error('Invalid trade URL: missing token parameter');
+        }
+        
         // Convert account ID to SteamID using the proper format [U:1:accountId]
         const accountId = parseInt(partnerMatch[1]);
         const partnerSteamID = new SteamID(`[U:1:${accountId}]`);
-
-        // Use 4-arg constructor with correct partner SteamID
-        super(partnerSteamID, bot, [], []);
+        const token = tokenMatch[1];
+        
+        // Use 5-arg constructor with SteamID and token
+        super(partnerSteamID, token, bot, [], []);
         this.tradeUrl = tradeUrl;
     }
 
@@ -54,15 +61,8 @@ export default class ApiCart extends Cart {
             }
 
             const start = Date.now();
-            // Create offer using partner SteamID, not the URL
+            // Create offer using partner SteamID (token will be set by Cart.sendOffer())
             const offer = this.bot.manager.createOffer(this.partner);
-
-            // Extract and set the trade token
-            const tokenMatch = this.tradeUrl.match(/[?&]token=([^&]+)/);
-            if (tokenMatch) {
-                offer.setToken(tokenMatch[1]);
-            }
-
             const alteredMessages: string[] = [];
 
             // Add our items (what we're giving)
