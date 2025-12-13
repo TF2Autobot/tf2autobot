@@ -9,8 +9,9 @@ import Cart from './Cart';
 export default class ApiCart extends Cart {
     private customMessage: string | null = null;
 
-    constructor(partner: SteamID, bot, token?: string) {
-        super(partner, token || '', bot, [], []);
+    constructor(partner: SteamID, bot, token: string) {
+        // Always use the 5-argument constructor with the token from trade URL
+        super(partner, token, bot, [], []);
     }
 
     protected preSendOffer(): Promise<void> {
