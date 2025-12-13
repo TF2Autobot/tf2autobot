@@ -56,7 +56,7 @@ export default class ApiCart extends Cart {
             const start = Date.now();
             // Create offer using partner SteamID, not the URL
             const offer = this.bot.manager.createOffer(this.partner);
-            
+
             // Extract and set the trade token
             const tokenMatch = this.tradeUrl.match(/[?&]token=([^&]+)/);
             if (tokenMatch) {
