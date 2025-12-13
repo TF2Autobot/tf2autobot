@@ -195,7 +195,7 @@ void botManager.start(options).asCallback(err => {
 
     if (options.enableHttpApi) {
         void import('./classes/HttpManager').then(({ default: HttpManager }) => {
-            const httpManager = new HttpManager(options);
+            const httpManager = new HttpManager(options, botManager.bot);
             void httpManager.start().asCallback(err => {
                 if (err) {
                     throw err;
