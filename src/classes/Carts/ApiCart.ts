@@ -8,10 +8,13 @@ import Cart from './Cart';
  */
 export default class ApiCart extends Cart {
     private customMessage: string | null = null;
+    private tradeUrl: string;
 
-    constructor(partner: SteamID, bot, token: string) {
-        // Always use the 5-argument constructor with the token from trade URL
-        super(partner, token, bot, [], []);
+    constructor(tradeUrl: string, bot) {
+        // We'll pass a dummy SteamID since we're using the trade URL directly in createOffer
+        // Use 4-arg constructor (no token) since trade URL contains it
+        super(new SteamID('76561197960265728'), bot, [], []);
+        this.tradeUrl = tradeUrl;
     }
 
     protected preSendOffer(): Promise<void> {
@@ -40,7 +43,8 @@ export default class ApiCart extends Cart {
             }
 
             const start = Date.now();
-            const offer = this.bot.manager.createOffer(this.partner);
+            // Pass trade URL directly like DonateCart does
+            const offer = this.bot.manager.createOffer(this.tradeUrl);
 
             const alteredMessages: string[] = [];
 

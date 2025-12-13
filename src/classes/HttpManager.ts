@@ -99,15 +99,11 @@ export default class HttpManager {
                     return;
                 }
 
-                // Parse the trade URL
-                let parsedUrl;
-                try {
-                    parsedUrl = parseTradeUrl(tradeUrl);
-                } catch (error) {
-                    const errorMsg = error instanceof Error ? error.message : 'Invalid trade URL format';
+                // Validate trade URL format
+                if (!tradeUrl.includes('steamcommunity.com/tradeoffer')) {
                     res.status(400).json({
                         success: false,
-                        error: `Invalid trade URL: ${errorMsg}`
+                        error: 'Invalid trade URL: must be a Steam trade offer URL'
                     });
                     return;
                 }
@@ -121,8 +117,8 @@ export default class HttpManager {
                     return;
                 }
 
-                // Create API cart with the parsed partner
-                const cart = new ApiCart(parsedUrl.steamID, this.bot, parsedUrl.token);
+                // Create API cart with the trade URL directly
+                const cart = new ApiCart(tradeUrl, this.bot);
 
                 // Set custom message if provided
                 if (message && typeof message === 'string') {
@@ -158,7 +154,7 @@ export default class HttpManager {
                 res.json({
                     success: true,
                     offerId: sentOffer.id,
-                    partner: parsedUrl.steamID.getSteamID64(),
+                    tradeUrl: tradeUrl,
                     message: 'Trade offer sent successfully'
                 });
             } catch (error) {
