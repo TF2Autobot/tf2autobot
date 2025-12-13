@@ -39,7 +39,7 @@ export default class ApiCart extends Cart {
             }
 
             const start = Date.now();
-            const offer = this.bot.manager.createOffer(this.partner, this.token);
+            const offer = this.bot.manager.createOffer(this.partner);
 
             const alteredMessages: string[] = [];
 
