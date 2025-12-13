@@ -2,6 +2,7 @@ import SteamID from 'steamid';
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import Cart from './Cart';
+import log from '../../lib/logger';
 
 /**
  * Cart for API-triggered trades that bypasses pricelist restrictions
@@ -12,8 +13,7 @@ export default class ApiCart extends Cart {
     private tradeUrl: string;
 
     constructor(tradeUrl: string, bot) {
-        // We'll pass a dummy SteamID since we're using the trade URL directly in createOffer
-        // Use 4-arg constructor (no token) since trade URL contains it
+        // Use 4-arg constructor - trade URL already contains the token
         super(new SteamID('76561197960265728'), bot, [], []);
         this.tradeUrl = tradeUrl;
     }
@@ -118,6 +118,7 @@ export default class ApiCart extends Cart {
 
                     if (amount > 0) {
                         let addedCount = 0;
+                        log.debug(`Attempting to add ${amount} items with SKU ${sku}`);
                         for (let i = 0; i < amount; i++) {
                             const assetid = ourAssetids[i];
 
@@ -126,9 +127,11 @@ export default class ApiCart extends Cart {
                                 this.bot.options.miscSettings.skipItemsInTrade.enable &&
                                 this.bot.trades.isInTrade(assetid)
                             ) {
+                                log.debug(`Skipping asset ${assetid} - already in trade`);
                                 continue;
                             }
 
+                            log.debug(`Attempting to add asset ${assetid} to offer`);
                             const isAdded = offer.addMyItem({
                                 assetid: assetid,
                                 appid: 440,
@@ -136,10 +139,13 @@ export default class ApiCart extends Cart {
                                 amount: 1
                             });
 
+                            log.debug(`addMyItem returned: ${isAdded} for asset ${assetid}`);
                             if (isAdded) {
                                 addedCount++;
                             }
                         }
+                        log.debug(`Successfully added ${addedCount} of ${amount} items`);
+
 
                         // Check if we added fewer items than expected
                         if (addedCount < amount) {
