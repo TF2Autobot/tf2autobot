@@ -36,7 +36,7 @@ export default class HttpManager {
      */
     protected validateApiKey(req: express.Request, res: express.Response, next: express.NextFunction): void {
         const apiKey = this.options.apiKey;
-        
+
         // If no API key is configured, reject all API requests
         if (!apiKey) {
             res.status(503).json({
@@ -47,7 +47,7 @@ export default class HttpManager {
         }
 
         const authHeader = req.headers.authorization;
-        
+
         if (!authHeader?.startsWith('Bearer ')) {
             res.status(401).json({
                 success: false,
@@ -57,7 +57,7 @@ export default class HttpManager {
         }
 
         const providedKey = authHeader.substring(7); // Remove "Bearer " prefix
-        
+
         if (providedKey !== apiKey) {
             res.status(403).json({
                 success: false,
@@ -161,7 +161,6 @@ export default class HttpManager {
                     partner: parsedUrl.steamID.getSteamID64(),
                     message: 'Trade offer sent successfully'
                 });
-
             } catch (error) {
                 log.error('Error in /api/trade/send endpoint:', error);
                 const errorMsg = error instanceof Error ? error.message : 'Internal server error';
