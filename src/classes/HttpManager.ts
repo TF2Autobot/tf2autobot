@@ -76,6 +76,95 @@ export default class HttpManager {
         this.app.get('/health', (req, res) => res.send('OK'));
         this.app.get('/uptime', (req, res) => res.json({ uptime: process.uptime() }));
 
+        // Trade status endpoint - get status of a specific trade offer
+        this.app.get('/api/trade/status/:offerId', this.validateApiKey.bind(this), async (req, res) => {
+            try {
+                const offerId = req.params.offerId;
+
+                if (!offerId) {
+                    res.status(400).json({
+                        success: false,
+                        error: 'Missing offerId parameter'
+                    });
+                    return;
+                }
+
+                // Get the offer from the bot's manager
+                const offer = await this.bot.trades.getOffer(offerId).catch(() => null);
+
+                if (!offer) {
+                    res.status(404).json({
+                        success: false,
+                        error: 'Offer not found'
+                    });
+                    return;
+                }
+
+                // Get the state as a readable string
+                const TradeOfferManager = require('@tf2autobot/tradeoffer-manager');
+                const stateNames = {
+                    1: 'Invalid',
+                    2: 'Active',
+                    3: 'Accepted',
+                    4: 'Countered',
+                    5: 'Expired',
+                    6: 'Canceled',
+                    7: 'Declined',
+                    8: 'InvalidItems',
+                    9: 'CreatedNeedsConfirmation',
+                    10: 'CanceledBySecondFactor',
+                    11: 'InEscrow'
+                };
+
+                const state = offer.state;
+                const stateName = stateNames[state] || 'Unknown';
+
+                // Determine if it's an API trade
+                const isApiTrade = offer.data('isApiTrade') === true;
+
+                // Get cancellation reason if available
+                let cancelReason = null;
+                if (state === 6) { // Canceled
+                    // Check various data fields for cancel reasons
+                    if (offer.data('canceledByUser')) {
+                        cancelReason = 'Canceled by user';
+                    } else if (offer.data('isFailedConfirmation')) {
+                        cancelReason = 'Failed mobile confirmation';
+                    } else if (offer.data('isCanceledUnknown')) {
+                        cancelReason = 'Canceled for unknown reason';
+                    } else {
+                        // Could be auto-canceled due to timeout or invalid items
+                        cancelReason = 'Auto-canceled (likely items became unavailable)';
+                    }
+                }
+
+                res.json({
+                    success: true,
+                    offerId: offer.id,
+                    state: state,
+                    stateName: stateName,
+                    isActive: state === 2 || state === 9, // Active or CreatedNeedsConfirmation
+                    isAccepted: state === 3,
+                    isCanceled: state === 6,
+                    isDeclined: state === 7,
+                    cancelReason: cancelReason,
+                    isApiTrade: isApiTrade,
+                    partner: offer.partner.getSteamID64(),
+                    itemsToGive: offer.itemsToGive.length,
+                    itemsToReceive: offer.itemsToReceive.length,
+                    created: offer.created,
+                    updated: offer.updated
+                });
+            } catch (error) {
+                log.error('Error in /api/trade/status endpoint:', error);
+                const errorMsg = error instanceof Error ? error.message : 'Internal server error';
+                res.status(500).json({
+                    success: false,
+                    error: errorMsg
+                });
+            }
+        });
+
         // API trading endpoint
         this.app.post('/api/trade/send', this.validateApiKey.bind(this), async (req, res) => {
             try {
