@@ -217,6 +217,11 @@ export default class ApiCart extends Cart {
 
             this.offer = offer;
 
+            log.debug(`Offer constructed - giving ${offer.itemsToGive.length} items, receiving ${offer.itemsToReceive.length} items`);
+            log.debug(`Offer partner: ${offer.partner.getSteamID64()}`);
+            log.debug(`Items to give:`, offer.itemsToGive.map(i => ({ assetid: i.assetid, appid: i.appid, contextid: i.contextid })));
+            log.debug(`Items to receive:`, offer.itemsToReceive.map(i => ({ assetid: i.assetid, appid: i.appid, contextid: i.contextid })));
+
             if (alteredMessages.length === 0) {
                 return resolve(null);
             } else {

@@ -138,7 +138,7 @@ export default class HttpManager {
                 }
 
                 // Send the offer
-                await cart.sendOffer();
+                const status = await cart.sendOffer();
 
                 // Get the offer ID from the cart's offer object
                 const sentOffer = cart.getOffer;
@@ -148,6 +148,15 @@ export default class HttpManager {
                         error: 'Failed to send trade offer'
                     });
                     return;
+                }
+
+                // If the offer needs confirmation, accept it
+                if (status === 'pending') {
+                    log.debug(`Offer #${sentOffer.id} needs confirmation, accepting...`);
+                    await this.bot.trades.acceptConfirmation(sentOffer).catch(err => {
+                        log.warn(`Failed to accept mobile confirmation for offer #${sentOffer.id}:`, err);
+                        // Don't reject - the offer was sent, just not confirmed yet
+                    });
                 }
 
                 // Success!
