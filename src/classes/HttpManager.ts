@@ -124,7 +124,8 @@ export default class HttpManager {
 
                 // Get cancellation reason if available
                 let cancelReason = null;
-                if (state === 6) { // Canceled
+                if (state === 6) {
+                    // Canceled
                     // Check various data fields for cancel reasons
                     if (offer.data('canceledByUser')) {
                         cancelReason = 'Canceled by user';
