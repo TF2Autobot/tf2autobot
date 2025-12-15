@@ -945,6 +945,8 @@ export default class Trades {
                     let NonPureWorth = (['our', 'their'] as ['our', 'their'])
                         .map((side, index) => {
                             const buySell = index ? 'buy' : 'sell';
+                            // Use correct key price based on side when useSeparateKeyRates is enabled
+                            const sideKeyPrice = side === 'our' ? keyPriceSellScrap : keyPriceBuyScrap;
                             return (
                                 Object.keys(dataDict[side])
                                     .map(assetKey => {
@@ -965,7 +967,7 @@ export default class Trades {
 
                                         return (
                                             dataDict[side][assetKey] *
-                                            (prices[assetKey][buySell].keys * keyPriceScrap +
+                                            (prices[assetKey][buySell].keys * sideKeyPrice +
                                                 Currencies.toScrap(prices[assetKey][buySell].metal))
                                         );
                                     })
