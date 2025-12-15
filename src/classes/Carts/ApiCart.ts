@@ -163,7 +163,8 @@ export default class ApiCart extends Cart {
                     if (amount > 0) {
                         let addedCount = 0;
                         log.debug(`Attempting to add ${amount} items with SKU ${sku}`);
-                        for (let i = 0; i < amount; i++) {
+                        // Loop through all available assets until we've added the requested amount
+                        for (let i = 0; i < ourAssetidsCount && addedCount < amount; i++) {
                             const assetid = ourAssetids[i];
 
                             // Skip items already in trade
