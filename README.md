@@ -31,14 +31,15 @@ Then apply the additional pricedb.io settings below using your api key from [Pri
 After Valve started banning bots for sending messages and commands it has been the reccomendation that you enable (true) the below to prevent your bot being banned. This has been left as a toggle for the moment.
 
 -   Configure in `options.json`:
-    ```json
+    `json
     "globalDisable": {
-      "messages": false,      // Blocks all bot messages
-      "greeting": false,      // Blocks friend welcome messages
-      "commands": false,      // Blocks user commands
-      "adminCommands": false  // Blocks admin commands
+      "messages": false,      
+      "greeting": false,      
+      "commands": false,      
+      "adminCommands": false 
     }
-    ```
+    `
+    Look at the example [options.json](.example/options.json)
 
 ### Stats Command Improvements
 
