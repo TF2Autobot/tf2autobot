@@ -1587,9 +1587,9 @@ export default class Bot {
             return;
         }
 
-        // Check if Steam messages are globally disabled
-        if (this.options.globalDisable?.messages === true) {
-            // Don't send Steam messages if globally disabled (Discord messages still go through)
+        // Check if Steam messages are globally disabled (but allow messages to admins)
+        if (this.options.globalDisable?.messages === true && !this.isAdmin(steamID)) {
+            // Don't send Steam messages if globally disabled (Discord messages still go through, admins exempt)
             log.debug(`Steam message not sent (globally disabled) to ${steamID.toString()}: ${message}`);
             return;
         }
