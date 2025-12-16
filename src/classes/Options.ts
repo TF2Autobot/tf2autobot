@@ -7,6 +7,13 @@ import validator from '../lib/validator';
 import { Currency } from '../types/TeamFortress2';
 
 export const DEFAULTS: JsonOptions = {
+    globalDisable: {
+        messages: false,
+        greeting: false,
+        commands: false,
+        adminCommands: false
+    },
+
     miscSettings: {
         showOnlyMetal: {
             enable: true
@@ -1172,6 +1179,15 @@ interface OnlyEnable {
     enable?: boolean;
 }
 
+// ------------ Global Disable ------------
+
+interface GlobalDisable {
+    messages?: boolean;
+    greeting?: boolean;
+    commands?: boolean;
+    adminCommands?: boolean;
+}
+
 // ------------ SortType ------------
 
 interface SortInventory extends OnlyEnable {
@@ -2147,6 +2163,7 @@ interface StrangeParts {
 // ------------ JsonOptions ------------
 
 export interface JsonOptions {
+    globalDisable?: GlobalDisable;
     miscSettings?: MiscSettings;
     sendAlert?: SendAlert;
     pricelist?: Pricelist;

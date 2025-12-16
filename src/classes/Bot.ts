@@ -1496,6 +1496,13 @@ export default class Bot {
     }
 
     sendMessage(steamID: SteamID | string, message: string): void {
+        // Check if messages are globally disabled
+        if (this.options.globalDisable?.messages === true) {
+            // Don't send any messages if globally disabled
+            log.debug(`Message not sent (globally disabled) to ${steamID.toString()}: ${message}`);
+            return;
+        }
+
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
             if (origMessage instanceof DiscordMessage && this.discordBot) {
