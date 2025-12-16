@@ -28,7 +28,9 @@ git clone https://github.com/TF2-Price-DB/tf2autobot-pricedb.git
 
 Then apply the additional pricedb.io settings below using your api key from [Pricedb Store](https://store.pricedb.io/api-docs) or ignore this step if you dont want to use any of the [Pricedb Store](https://store.pricedb.io) features.
 
-### Required pricedb.io configuration
+### store.pricedb.io configuration
+
+If you want to use store.pricedb.io follow the below
 
 1. **Environment variable**
 

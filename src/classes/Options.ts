@@ -75,6 +75,10 @@ export const DEFAULTS: JsonOptions = {
         prefixes: {
             steam: '!',
             discord: '!'
+        },
+        ecp: {
+            useBoldChars: false,
+            useWordSwap: true
         }
     },
 
@@ -115,7 +119,11 @@ export const DEFAULTS: JsonOptions = {
         partialPriceUpdate: {
             enable: false,
             thresholdInSeconds: 604800, // 7 days
-            excludeSKU: []
+            excludeSKU: [],
+            removeMaxRestriction: false,
+            maxProtectedUnits: -1,
+            minProfitScrap: 1,
+            stockGracePeriodSeconds: 3600
         },
         filterCantAfford: {
             enable: false
@@ -1241,11 +1249,17 @@ interface MiscSettings {
     reputationCheck?: ReputationCheck;
     pricecheckAfterTrade?: OnlyEnable;
     prefixes?: Prefixes;
+    ecp?: EcpSettings;
 }
 
 interface Prefixes {
     steam?: string;
     discord?: string;
+}
+
+interface EcpSettings {
+    useBoldChars?: boolean;
+    useWordSwap?: boolean;
 }
 
 export interface ReputationCheck {
@@ -1314,6 +1328,10 @@ interface Pricelist {
 interface PartialPriceUpdate extends OnlyEnable {
     thresholdInSeconds?: number;
     excludeSKU?: string[];
+    removeMaxRestriction?: boolean;
+    maxProtectedUnits?: number;
+    minProfitScrap?: number;
+    stockGracePeriodSeconds?: number;
 }
 
 interface PriceAge {
@@ -2242,6 +2260,7 @@ export default interface Options extends JsonOptions {
 
     enableHttpApi?: boolean;
     httpApiPort?: number;
+    apiKey?: string;
 }
 
 export interface adminData {
@@ -2557,7 +2576,8 @@ export function loadOptions(options?: Options): Options {
         enableSaveLogFile: getOption('enableSaveLogFile', true, jsonParseBoolean, incomingOptions),
 
         enableHttpApi: getOption('enableHttpApi', false, jsonParseBoolean, incomingOptions),
-        httpApiPort: getOption('httpApiPort', 3001, jsonParseNumber, incomingOptions)
+        httpApiPort: getOption('httpApiPort', 3001, jsonParseNumber, incomingOptions),
+        apiKey: getOption('apiKey', '', String, incomingOptions)
     };
 
     if (!envOptions.steamAccountName) {

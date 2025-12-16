@@ -34,6 +34,7 @@ import InventoryGetter from './InventoryGetter';
 import BotManager from './BotManager';
 import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
+import InventoryCostBasis from './InventoryCostBasis';
 
 import log from '../lib/logger';
 import Bans, { IsBanned } from '../lib/bans';
@@ -46,6 +47,7 @@ import { Blocked } from './MyHandler/interfaces';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { axiosAbortSignal } from '../lib/helpers';
 import { apiRequest } from '../lib/apiRequest';
+import EasyCopyPaste from 'easycopypaste';
 
 export interface SteamTokens {
     refreshToken: string;
@@ -93,6 +95,8 @@ export default class Bot {
         tradeableOnly: boolean,
         callback: (err?: Error, inventory?: EconItem[], currencies?: EconItem[]) => void
     ) => void;
+
+    readonly inventoryCostBasis: InventoryCostBasis;
 
     discordBot: DiscordBot = null;
 
@@ -175,6 +179,8 @@ export default class Bot {
 
     public periodicCheckAdmin: NodeJS.Timeout;
 
+    readonly ecp: EasyCopyPaste;
+
     constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
@@ -192,6 +198,16 @@ export default class Bot {
             assetCacheMaxItems: 50
         });
 
+        // ECP --START--
+        this.ecp = new EasyCopyPaste();
+        const ecpSettings = options.miscSettings.ecp;
+
+        if (ecpSettings) {
+            this.ecp.useBoldChars = ecpSettings.useBoldChars ?? false;
+            this.ecp.useWordSwap = ecpSettings.useWordSwap ?? true;
+        }
+        // ECP --END--
+
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
         this.friends = new Friends(this);
@@ -201,6 +217,7 @@ export default class Bot {
         this.tf2gc = new TF2GC(this);
 
         this.handler = new MyHandler(this, this.priceSource);
+        this.inventoryCostBasis = new InventoryCostBasis(this);
 
         this.admins = [];
 
@@ -592,7 +609,6 @@ export default class Bot {
     }
 
     startAutoRefreshListings(): void {
-        return;
         // Automatically check for missing listings every 30 minutes
         let pricelistLength = 0;
 
@@ -656,10 +672,6 @@ export default class Bot {
                             if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                                 listingSKU = listingSKU.replace(';strange', '');
                             }
-                        } else {
-                            if (/;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
                         }
 
                         let match: Entry | null;
@@ -711,8 +723,6 @@ export default class Bot {
                                 if (
                                     _listings.length === 1 &&
                                     listing.intent === 0 && // We only check if the only listing exist is buy order
-                                    entry.max > 1 &&
-                                    amountAvailable > 0 &&
                                     amountAvailable > entry.min
                                 ) {
                                     // here we only check if the bot already have that item
@@ -882,7 +892,7 @@ export default class Bot {
                 [
                     (callback): void => {
                         log.debug('Calling onRun');
-                        void this.handler.onRun().asCallback((err, v) => {
+                        void this.handler.onRun().asCallback(async (err, v) => {
                             if (err) {
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(err);
@@ -903,6 +913,11 @@ export default class Bot {
                                 log.debug('Loading blocked list data');
                                 this.blockedList = data.blockedList;
                             }
+
+                            log.debug('Loading FIFO cost basis data');
+                            await this.inventoryCostBasis.load().catch(err => {
+                                log.error('Failed to load inventory cost basis:', err);
+                            });
 
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);

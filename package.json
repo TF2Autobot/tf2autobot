@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot-pricedb-io",
-    "version": "5.14.1",
+    "version": "5.14.2",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.pricedb.io, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
@@ -49,6 +49,7 @@
         "discord.js": "^14.19.3",
         "dot-prop": "^6.0.1",
         "dotenv": "^16.5.0",
+        "easycopypaste": "github:TryHardDo/EasyCopyPaste",
         "express": "^4.21.2",
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",

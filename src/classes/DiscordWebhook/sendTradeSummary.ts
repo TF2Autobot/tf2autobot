@@ -183,9 +183,19 @@ export default async function sendTradeSummary(
                                       slots !== undefined ? `/${slots}` : ''
                                   }`
                                 : '') +
-                            (misc.note
-                                ? (misc.showKeyRate || misc.showPureStock || misc.showInventory ? '\n' : '') + misc.note
-                                : `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`)
+                            (() => {
+                                if (misc.note) {
+                                    return (
+                                        (misc.showKeyRate || misc.showPureStock || misc.showInventory ? '\n' : '') +
+                                        misc.note
+                                    );
+                                }
+                                const backpackLink = `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`;
+                                const storeLink = bot.options.miscSettings.pricedbStore.enable
+                                    ? ` | [See my store](${bot.getPricedbStoreUrl()})`
+                                    : '';
+                                return backpackLink + storeLink;
+                            })()
                     }
                 ],
                 footer: {
