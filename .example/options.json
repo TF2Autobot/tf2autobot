@@ -1,4 +1,10 @@
 {
+    "globalDisable": {
+        "messages": false,
+        "greeting": false,
+        "commands": false,
+        "adminCommands": false
+    },
     "miscSettings": {
         "showOnlyMetal": {
             "enable": true

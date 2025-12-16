@@ -105,6 +105,20 @@ export default class Commands {
         }
 
         if (message.startsWith(prefix)) {
+            // Check if all commands are globally disabled
+            if (this.bot.options.globalDisable?.commands === true && !isAdmin) {
+                log.debug(`Command "${command}" blocked for ${steamID.toString()} (commands globally disabled)`);
+                return;
+            }
+
+            // Check if admin commands are globally disabled (for admin users)
+            if (this.bot.options.globalDisable?.adminCommands === true && isAdmin) {
+                log.debug(
+                    `Admin command "${command}" blocked for ${steamID.toString()} (admin commands globally disabled)`
+                );
+                return;
+            }
+
             if (command === 'help') {
                 void this.help.helpCommand(steamID, prefix);
             } else if (command === 'how2trade') {

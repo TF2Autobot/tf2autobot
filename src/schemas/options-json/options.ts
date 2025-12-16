@@ -361,6 +361,25 @@ export const optionsSchema: jsonschema.Schema = {
         }
     },
     properties: {
+        globalDisable: {
+            type: 'object',
+            properties: {
+                messages: {
+                    type: 'boolean'
+                },
+                greeting: {
+                    type: 'boolean'
+                },
+                commands: {
+                    type: 'boolean'
+                },
+                adminCommands: {
+                    type: 'boolean'
+                }
+            },
+            required: ['messages', 'greeting', 'commands', 'adminCommands'],
+            additionalProperties: false
+        },
         miscSettings: {
             type: 'object',
             properties: {

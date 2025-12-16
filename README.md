@@ -10,8 +10,6 @@ It keeps the core behaviour and setup flow of the original project, but:
 
 If you already know how to run TF2Autobot, you can treat this as a drop‑in replacement with the extra pricedb.io integration enabled.
 
----
-
 ## Getting started
 
 All general installation and configuration steps are the same as TF2Autobot. Follow the original wiki for:
@@ -27,6 +25,30 @@ git clone https://github.com/TF2-Price-DB/tf2autobot-pricedb.git
 ```
 
 Then apply the additional pricedb.io settings below using your api key from [Pricedb Store](https://store.pricedb.io/api-docs) or ignore this step if you dont want to use any of the [Pricedb Store](https://store.pricedb.io) features.
+
+### Global Disable for Chat Messages
+
+After Valve started banning bots for sending messages and commands it has been the reccomendation that you enable (true) the below to prevent your bot being banned. This has been left as a toggle for the moment.
+
+-   Configure in `options.json`:
+    ```json
+    "globalDisable": {
+      "messages": false,      // Blocks all bot messages
+      "greeting": false,      // Blocks friend welcome messages
+      "commands": false,      // Blocks user commands
+      "adminCommands": false  // Blocks admin commands
+    }
+    ```
+
+### Stats Command Improvements
+
+If upgrading, rename your existing `polldata.json` to `polldata.old.json` otherwise historical data will skew !stats (optional)
+The new stats system uses new logic to track profit by recording keys and metal separately to prevent point in time issues. These are used to provide estimated profit/loss with the !stats command. This change is backwards compatible with Autobot.
+
+### Pure Per Unit (PPU) Logic Updates
+
+-   Handles stock over 1
+-   Reworked to better handle price updates and no longer reset
 
 ### store.pricedb.io configuration
 

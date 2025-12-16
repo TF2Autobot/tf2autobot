@@ -2475,6 +2475,12 @@ export default class MyHandler extends Handler {
                 if (tries >= 5) {
                     log.info(`I am now friends with ${steamID.getSteamID64()}`);
 
+                    // Check if greeting is globally disabled
+                    if (this.bot.options.globalDisable?.greeting === true) {
+                        log.debug('Greeting disabled, not sending welcome message');
+                        return;
+                    }
+
                     return this.bot.sendMessage(
                         steamID,
                         this.opt.customMessage.welcome
@@ -2495,6 +2501,12 @@ export default class MyHandler extends Handler {
             }
 
             log.info(`I am now friends with ${friend.player_name} (${steamID.getSteamID64()})`);
+
+            // Check if greeting is globally disabled
+            if (this.bot.options.globalDisable?.greeting === true) {
+                log.debug('Greeting disabled, not sending welcome message');
+                return;
+            }
 
             this.bot.sendMessage(
                 steamID,
