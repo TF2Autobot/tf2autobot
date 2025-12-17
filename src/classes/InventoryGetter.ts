@@ -21,7 +21,7 @@ export default class InventoryGetter {
         tradeableOnly: boolean,
         callback: (err?: Error, inventory?: EconItem[], currencies?: EconItem[]) => void
     ): void {
-        if (steamID.toString() == this.bot.client.steamID.getSteamID64()) {
+        if (this.bot.client.steamID && steamID.toString() == this.bot.client.steamID.getSteamID64()) {
             this.bot.manager.getUserInventoryContents(steamID, appid, contextid, tradeableOnly, callback);
             return;
         }

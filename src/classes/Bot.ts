@@ -262,6 +262,11 @@ export default class Bot {
      * Get the pricedb.io store URL with cached slug if available, otherwise steamID-based URL
      */
     getPricedbStoreUrl(): string {
+        if (!this.client.steamID) {
+            log.warn('Cannot get PriceDB store URL: not logged in to Steam');
+            return 'https://store.pricedb.io';
+        }
+        
         const steamID = this.client.steamID.getSteamID64();
         const fallbackUrl = `https://store.pricedb.io/store?id=${steamID}`;
 
@@ -317,7 +322,9 @@ export default class Bot {
         };
 
         const steamids = this.admins.map(steamID => steamID.getSteamID64());
-        steamids.push(this.client.steamID.getSteamID64());
+        if (this.client.steamID) {
+            steamids.push(this.client.steamID.getSteamID64());
+        }
         for (const steamid of steamids) {
             // same as Array.some, but I want to use await
             try {
@@ -1146,6 +1153,11 @@ export default class Bot {
                                         log.debug(
                                             'Skipping PriceDB Store Manager initialization (not configured or disabled)'
                                         );
+                                        return callback(null);
+                                    }
+
+                                    if (!this.client.steamID) {
+                                        log.warn('Cannot initialize PriceDB Store Manager: not logged in to Steam');
                                         return callback(null);
                                     }
 
