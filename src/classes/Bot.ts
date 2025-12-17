@@ -266,7 +266,7 @@ export default class Bot {
             log.warn('Cannot get PriceDB store URL: not logged in to Steam');
             return 'https://store.pricedb.io';
         }
-        
+
         const steamID = this.client.steamID.getSteamID64();
         const fallbackUrl = `https://store.pricedb.io/store?id=${steamID}`;
 

@@ -2579,7 +2579,7 @@ export default class MyHandler extends Handler {
                 log.warn('Cannot get BPTF account info: not logged in to Steam');
                 return reject(new Error('Not logged in to Steam'));
             }
-            
+
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
             apiRequest<BPTFGetUserInfo>({
