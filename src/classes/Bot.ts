@@ -402,6 +402,11 @@ export default class Bot {
             return;
         }
 
+        // Check if messages are globally disabled
+        if (this.options.globalDisable?.messages === true) {
+            return;
+        }
+
         const message: string = args.length === 2 ? args[0] : args[1];
         const exclude: string[] = (args.length === 2 ? (args[1] as SteamID[]) : (args[2] as SteamID[])).map(steamid =>
             steamid.toString()
