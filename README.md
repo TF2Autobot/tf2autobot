@@ -23,6 +23,7 @@ When the wiki tells you to clone the TF2Autobot repo, use this fork instead:
 ```bash
 git clone https://github.com/TF2-Price-DB/tf2autobot-pricedb.git
 ```
+
 Then apply new settings as per below unique to this fork!
 
 ### Global Disable for Chat Messages
@@ -30,6 +31,7 @@ Then apply new settings as per below unique to this fork!
 After Valve started banning bots for sending messages it has been the recommendation that your bot doesnt send chat messages. To solve this a global block has been added which can be seen below. It is suggested to set your values to the below as a minimum however disabling commands is also suggested.
 
 Configure in `options.json`:
+
 ```json
 "globalDisable": {
     "messages": true,
@@ -38,11 +40,12 @@ Configure in `options.json`:
     "adminCommands": false
 }
 ```
+
 Look at the example [options.json](.example/options.json) for where this should go in the options file!
 
 ### Easy Copy Paste (ECP)
 
-[Easy Copy Paste](https://github.com/TryHardDo/EasyCopyPaste) by [TryHardDo](https://github.com/TryHardDo/) has been integrated in this project. What this allows you to do is change you buy and sell commands to a much easier and user friendly format. 
+[Easy Copy Paste](https://github.com/TryHardDo/EasyCopyPaste) by [TryHardDo](https://github.com/TryHardDo/) has been integrated in this project. What this allows you to do is change you buy and sell commands to a much easier and user friendly format.
 
 For example `!buy Burning Team Captain` becomes `buy_burning_team_captain` which is far easier to copy from listings. In order to add this to your listings you would update your buy and sell messages as per the below example.
 
@@ -50,11 +53,12 @@ For example `!buy Burning Team Captain` becomes `buy_burning_team_captain` which
     "buy": "🔥 %price% 📦 Stock : %current_stock% / %max_stock%. 💬 Send %ecp_item%. 👉 Visit %pricedb_store% for my store!",
     "sell": "🔥 %price% 📦 Stock : %amount_trade% / %max_stock%. 💬 Send %ecp_item%. 👉 Visit %pricedb_store% for my store!",
 ```
+
 This results in listings like the below
 
-![ECP](img\ecp_listings.png)
+![ECP](img/ecp_listings.png)
 
-To set your ECP text to bold you would change the below in your `options.json`: 
+To set your ECP text to bold you would change the below in your `options.json`:
 
 ```json
 "ecp": {
@@ -62,11 +66,12 @@ To set your ECP text to bold you would change the below in your `options.json`:
     "useWordSwap": true
 }
 ```
+
 Look at the example [options.json](.example/options.json) for where this should go in the options file!
 
 ### Pure Per Unit (PPU) Logic Updates
 
-PPU has been reworked to handle stock counts of more than 1 item. This has been implemented through saving buys to a new queue working off FIFO (First in First out) logic. When a sale of an item is made the FIRST item in the queue dictates the lowest the sell price can fall before becoming frozen. The item will unfreeze if the sell raises above the first queued buy price again. 
+PPU has been reworked to handle stock counts of more than 1 item. This has been implemented through saving buys to a new queue working off FIFO (First in First out) logic. When a sale of an item is made the FIRST item in the queue dictates the lowest the sell price can fall before becoming frozen. The item will unfreeze if the sell raises above the first queued buy price again.
 
 This results in items not being sold for a loss but can mean items are held during dips in item prices. This can be resolved by setting a timeout on top of the PPU settings to automatically revoke the PPU boundary in order to take the loss but move the item.
 
@@ -83,13 +88,13 @@ Configure in `options.json`:
     "stockGracePeriodSeconds": 3600
 },
 ```
+
 Look at the example [options.json](.example/options.json) for where this should go in the options file!
 
 ### Stats Command Improvements
 
 If upgrading, rename your existing `polldata.json` to `polldata.old.json` otherwise historical data will skew !stats (optional)
 The new stats system uses new logic to track profit by recording keys and metal separately to prevent point in time issues. These are used to provide estimated profit/loss with the !stats command. This change is backwards compatible with Autobot.
-
 
 ### store.pricedb.io configuration
 
