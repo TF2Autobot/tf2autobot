@@ -1,4 +1,10 @@
 {
+    "globalDisable": {
+        "messages": false,
+        "greeting": false,
+        "commands": false,
+        "adminCommands": false
+    },
     "miscSettings": {
         "showOnlyMetal": {
             "enable": true
@@ -57,6 +63,10 @@
         "prefixes": {
             "steam": "!",
             "discord": "!"
+        },
+        "ecp": {
+            "useBoldChars": true,
+            "useWordSwap": true
         }
     },
     "sendAlert": {
@@ -95,7 +105,11 @@
         "partialPriceUpdate": {
             "enable": false,
             "thresholdInSeconds": 604800,
-            "excludeSKU": []
+            "excludeSKU": [],
+            "removeMaxRestriction": false,
+            "maxProtectedUnits": -1,
+            "minProfitScrap": 1,
+            "stockGracePeriodSeconds": 3600
         },
         "filterCantAfford": {
             "enable": false

@@ -185,7 +185,7 @@ export async function sendToAdmin(
     const message3 = list !== '-' ? `\n\nItem lists:\n${list}` : '';
 
     const message4 =
-        `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
+        `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nrep.tf: ${links.reptf}` +
         `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
         ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'PriceDB.IO'})` +
         `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +

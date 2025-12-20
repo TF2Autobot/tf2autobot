@@ -46,8 +46,8 @@ export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ person
     });
 }
 
-export function quickLinks(name: string, links: { steam: string; bptf: string; steamrep: string }): string {
-    return `🔍 ${name}'s info:\n[Steam Profile](${links.steam}) | [backpack.tf](${links.bptf}) | [steamREP](${links.steamrep})`;
+export function quickLinks(name: string, links: { steam: string; bptf: string; reptf: string }): string {
+    return `🔍 ${name}'s info:\n[Steam Profile](${links.steam}) | [backpack.tf](${links.bptf}) | [rep.tf](${links.reptf})`;
 }
 
 export function sendWebhook(url: string, webhook: Webhook, event: string, i?: number): Promise<void> {

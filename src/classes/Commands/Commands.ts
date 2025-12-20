@@ -105,6 +105,23 @@ export default class Commands {
         }
 
         if (message.startsWith(prefix)) {
+            // Allow Discord commands even when Steam commands are disabled
+            const isDiscordMessage = steamID instanceof SteamID && steamID.redirectAnswerTo;
+
+            // Check if all commands are globally disabled (skip for Discord)
+            if (this.bot.options.globalDisable?.commands === true && !isAdmin && !isDiscordMessage) {
+                log.debug(`Steam command "${command}" blocked for ${steamID.toString()} (commands globally disabled)`);
+                return;
+            }
+
+            // Check if admin commands are globally disabled (skip for Discord)
+            if (this.bot.options.globalDisable?.adminCommands === true && isAdmin && !isDiscordMessage) {
+                log.debug(
+                    `Steam admin command "${command}" blocked for ${steamID.toString()} (admin commands globally disabled)`
+                );
+                return;
+            }
+
             if (command === 'help') {
                 void this.help.helpCommand(steamID, prefix);
             } else if (command === 'how2trade') {
@@ -206,6 +223,8 @@ export default class Commands {
                 void this.pManager.getAllCommand(steamID, message);
             } else if (command === 'ppu' && isAdmin) {
                 void this.pManager.partialPriceUpdateCommand(steamID, message);
+            } else if (command === 'ppurecalc' && isAdmin) {
+                void this.pManager.ppuRecalcCommand(steamID);
             } else if (['getslots', 'listings'].includes(command) && isAdmin) {
                 void this.pManager.getSlotsCommand(steamID);
             } else if (command === 'groups' && isAdmin) {
@@ -308,6 +327,23 @@ export default class Commands {
                     custom ? custom.replace('%command%', command) : `❌ Command "${command}" not found!`
                 );
             }
+        } else if (message.includes('_')) {
+            const intentDescriptor = this.bot.ecp.reverseEcpStr(message);
+
+            if (intentDescriptor === undefined) {
+                return this.bot.sendMessage(
+                    steamID,
+                    'Item could not be decoded. Please use the standard !buy or !sell command!'
+                );
+            }
+
+            this.buyOrSellCommand(
+                steamID,
+                intentDescriptor.originalItemName,
+                intentDescriptor.decodedIntent as Instant,
+                null,
+                true
+            );
         }
     }
 
@@ -450,7 +486,7 @@ export default class Commands {
 
     // Instant item trade
 
-    private buyOrSellCommand(steamID: SteamID, message: string, command: Instant, prefix: string): void {
+    private buyOrSellCommand(steamID: SteamID, message: string, command: Instant, prefix: string, ecp = false): void {
         const opt = this.bot.options.commands[command === 'b' ? 'buy' : command === 's' ? 'sell' : command];
 
         if (!opt.enable) {
@@ -462,7 +498,7 @@ export default class Commands {
 
         const info = getItemAndAmount(
             steamID,
-            CommandParser.removeCommand(message),
+            ecp ? message : CommandParser.removeCommand(message),
             this.bot,
             prefix,
             command === 'b' ? 'buy' : command === 's' ? 'sell' : command

@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot-pricedb-io",
-    "version": "5.14.1",
+    "version": "5.15.1",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.pricedb.io, Originally made by Nicklason.",
     "main": "dist/app.js",
     "scripts": {
@@ -23,7 +23,7 @@
         "url": "https://github.com/TF2-Price-DB/tf2autobot-pricedb/issues"
     },
     "updaterepo": true,
-    "updateMessage": "Steam/TF2 is quite unstable right now, update/restart at your own will.",
+    "updateMessage": "New version may require changes to your options.json! Please check the readme for details!",
     "homepage": "https://github.com/TF2-Price-DB/tf2autobot-pricedb#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "github:purplebarber/node-bptf-listings#rate-limit-fixes",
@@ -49,6 +49,7 @@
         "discord.js": "^14.19.3",
         "dot-prop": "^6.0.1",
         "dotenv": "^16.5.0",
+        "easycopypaste": "github:TryHardDo/EasyCopyPaste",
         "express": "^4.21.2",
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",

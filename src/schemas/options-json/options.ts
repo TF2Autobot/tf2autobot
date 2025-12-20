@@ -361,6 +361,25 @@ export const optionsSchema: jsonschema.Schema = {
         }
     },
     properties: {
+        globalDisable: {
+            type: 'object',
+            properties: {
+                messages: {
+                    type: 'boolean'
+                },
+                greeting: {
+                    type: 'boolean'
+                },
+                commands: {
+                    type: 'boolean'
+                },
+                adminCommands: {
+                    type: 'boolean'
+                }
+            },
+            required: ['messages', 'greeting', 'commands', 'adminCommands'],
+            additionalProperties: false
+        },
         miscSettings: {
             type: 'object',
             properties: {
@@ -529,6 +548,18 @@ export const optionsSchema: jsonschema.Schema = {
                         }
                     },
                     additionalProperties: false
+                },
+                ecp: {
+                    type: 'object',
+                    properties: {
+                        useBoldChars: {
+                            type: 'boolean'
+                        },
+                        useWordSwap: {
+                            type: 'boolean'
+                        }
+                    },
+                    additionalProperties: false
                 }
             },
             required: [
@@ -686,6 +717,21 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         excludeSKU: {
                             type: '#/definitions/string-array'
+                        },
+                        removeMaxRestriction: {
+                            type: 'boolean'
+                        },
+                        maxProtectedUnits: {
+                            type: 'integer',
+                            minimum: -1
+                        },
+                        minProfitScrap: {
+                            type: 'number',
+                            minimum: 0
+                        },
+                        stockGracePeriodSeconds: {
+                            type: 'integer',
+                            minimum: 0
                         }
                     },
                     required: ['enable', 'thresholdInSeconds', 'excludeSKU'],

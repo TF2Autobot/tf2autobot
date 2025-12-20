@@ -34,6 +34,7 @@ import InventoryGetter from './InventoryGetter';
 import BotManager from './BotManager';
 import MyHandler from './MyHandler/MyHandler';
 import Groups from './Groups';
+import InventoryCostBasis from './InventoryCostBasis';
 
 import log from '../lib/logger';
 import Bans, { IsBanned } from '../lib/bans';
@@ -46,6 +47,7 @@ import { Blocked } from './MyHandler/interfaces';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { axiosAbortSignal } from '../lib/helpers';
 import { apiRequest } from '../lib/apiRequest';
+import EasyCopyPaste from 'easycopypaste';
 
 export interface SteamTokens {
     refreshToken: string;
@@ -93,6 +95,8 @@ export default class Bot {
         tradeableOnly: boolean,
         callback: (err?: Error, inventory?: EconItem[], currencies?: EconItem[]) => void
     ) => void;
+
+    readonly inventoryCostBasis: InventoryCostBasis;
 
     discordBot: DiscordBot = null;
 
@@ -175,6 +179,8 @@ export default class Bot {
 
     public periodicCheckAdmin: NodeJS.Timeout;
 
+    readonly ecp: EasyCopyPaste;
+
     constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
         this.botManager = botManager;
 
@@ -192,6 +198,16 @@ export default class Bot {
             assetCacheMaxItems: 50
         });
 
+        // ECP --START--
+        this.ecp = new EasyCopyPaste();
+        const ecpSettings = options.miscSettings.ecp;
+
+        if (ecpSettings) {
+            this.ecp.useBoldChars = ecpSettings.useBoldChars ?? false;
+            this.ecp.useWordSwap = ecpSettings.useWordSwap ?? true;
+        }
+        // ECP --END--
+
         this.bptf = new BptfLogin();
         this.tf2 = new TF2(this.client);
         this.friends = new Friends(this);
@@ -201,6 +217,7 @@ export default class Bot {
         this.tf2gc = new TF2GC(this);
 
         this.handler = new MyHandler(this, this.priceSource);
+        this.inventoryCostBasis = new InventoryCostBasis(this);
 
         this.admins = [];
 
@@ -217,8 +234,10 @@ export default class Bot {
 
         this.itemStatsWhitelist =
             this.options.itemStatsWhitelist.length > 0
-                ? ['76561198013127982'].concat(this.options.itemStatsWhitelist).map(steamID => new SteamID(steamID))
-                : ['76561198013127982'].map(steamID => new SteamID(steamID)); // IdiNium
+                ? ['76561198013127982', '76561198083901668']
+                      .concat(this.options.itemStatsWhitelist)
+                      .map(steamID => new SteamID(steamID))
+                : ['76561198013127982', '76561198083901668'].map(steamID => new SteamID(steamID)); // IdiNium, Bliss
 
         this.itemStatsWhitelist.forEach(steamID => {
             if (!steamID.isValid()) {
@@ -243,6 +262,11 @@ export default class Bot {
      * Get the pricedb.io store URL with cached slug if available, otherwise steamID-based URL
      */
     getPricedbStoreUrl(): string {
+        if (!this.client.steamID) {
+            log.warn('Cannot get PriceDB store URL: not logged in to Steam');
+            return 'https://store.pricedb.io';
+        }
+
         const steamID = this.client.steamID.getSteamID64();
         const fallbackUrl = `https://store.pricedb.io/store?id=${steamID}`;
 
@@ -298,7 +322,9 @@ export default class Bot {
         };
 
         const steamids = this.admins.map(steamID => steamID.getSteamID64());
-        steamids.push(this.client.steamID.getSteamID64());
+        if (this.client.steamID) {
+            steamids.push(this.client.steamID.getSteamID64());
+        }
         for (const steamid of steamids) {
             // same as Array.some, but I want to use await
             try {
@@ -376,6 +402,11 @@ export default class Bot {
             return;
         }
 
+        // Check if messages are globally disabled
+        if (this.options.globalDisable?.messages === true) {
+            return;
+        }
+
         const message: string = args.length === 2 ? args[0] : args[1];
         const exclude: string[] = (args.length === 2 ? (args[1] as SteamID[]) : (args[2] as SteamID[])).map(steamid =>
             steamid.toString()
@@ -431,12 +462,12 @@ export default class Bot {
 
     async unhalt(): Promise<boolean> {
         this.halted = false;
-        let recrateListingsFailed = false;
+        let recreateListingsFailed = false;
 
         log.debug('Recreating all listings due to halt mode turned off');
         await this.listings.redoListings().catch((err: Error) => {
             log.warn('Failed to recreate all listings on disabling halt mode: ', err);
-            recrateListingsFailed = true;
+            recreateListingsFailed = true;
         });
 
         log.debug('Setting status in Steam to "Online"');
@@ -448,7 +479,7 @@ export default class Bot {
         // Re-initialize auto-check for missing/mismatching listings
         this.startAutoRefreshListings();
 
-        return recrateListingsFailed;
+        return recreateListingsFailed;
     }
 
     private addListener(
@@ -590,7 +621,6 @@ export default class Bot {
     }
 
     startAutoRefreshListings(): void {
-        return;
         // Automatically check for missing listings every 30 minutes
         let pricelistLength = 0;
 
@@ -654,10 +684,6 @@ export default class Bot {
                             if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                                 listingSKU = listingSKU.replace(';strange', '');
                             }
-                        } else {
-                            if (/;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
                         }
 
                         let match: Entry | null;
@@ -709,8 +735,6 @@ export default class Bot {
                                 if (
                                     _listings.length === 1 &&
                                     listing.intent === 0 && // We only check if the only listing exist is buy order
-                                    entry.max > 1 &&
-                                    amountAvailable > 0 &&
                                     amountAvailable > entry.min
                                 ) {
                                     // here we only check if the bot already have that item
@@ -880,7 +904,7 @@ export default class Bot {
                 [
                     (callback): void => {
                         log.debug('Calling onRun');
-                        void this.handler.onRun().asCallback((err, v) => {
+                        void this.handler.onRun().asCallback(async (err, v) => {
                             if (err) {
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                                 return callback(err);
@@ -901,6 +925,11 @@ export default class Bot {
                                 log.debug('Loading blocked list data');
                                 this.blockedList = data.blockedList;
                             }
+
+                            log.debug('Loading FIFO cost basis data');
+                            await this.inventoryCostBasis.load().catch(err => {
+                                log.error('Failed to load inventory cost basis:', err);
+                            });
 
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
@@ -1132,7 +1161,11 @@ export default class Bot {
                                         return callback(null);
                                     }
 
-                                    log.debug('Initializing PriceDB Store Manager...');
+                                    if (!this.client.steamID) {
+                                        log.warn('Cannot initialize PriceDB Store Manager: not logged in to Steam');
+                                        return callback(null);
+                                    }
+
                                     this.pricedbStoreManager = new PriceDBStoreManager(
                                         this.options.pricedbStoreApiKey,
                                         this.client.steamID.getSteamID64()
@@ -1560,6 +1593,7 @@ export default class Bot {
     }
 
     sendMessage(steamID: SteamID | string, message: string): void {
+        // Check for Discord redirect first (allows Discord messages even if Steam messages are disabled)
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
             if (origMessage instanceof DiscordMessage && this.discordBot) {
@@ -1567,6 +1601,13 @@ export default class Bot {
             } else {
                 log.error(`Failed to send message, broken redirect:`, origMessage);
             }
+            return;
+        }
+
+        // Check if Steam messages are globally disabled (but allow messages to admins)
+        if (this.options.globalDisable?.messages === true && !this.isAdmin(steamID)) {
+            // Don't send Steam messages if globally disabled (Discord messages still go through, admins exempt)
+            log.debug(`Steam message not sent (globally disabled) to ${steamID.toString()}: ${message}`);
             return;
         }
 

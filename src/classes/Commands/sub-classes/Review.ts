@@ -192,7 +192,7 @@ export default class ReviewCommands {
 
         const links = generateLinks(offerData.partner.toString());
         reply +=
-            `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
+            `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nrep.tf: ${links.reptf}` +
             (offerData?.action?.action === 'skip'
                 ? `\n\n⚠️ Send "${prefix}accept ${offerId}" to accept or "${prefix}decline ${offerId}" to decline this offer.`
                 : `\n\n⚠️ Send "${prefix}faccept ${offerId}" to force accept, or "${prefix}fdecline ${offerId}" to decline the trade now!`);
