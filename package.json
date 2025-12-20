@@ -23,7 +23,7 @@
         "url": "https://github.com/TF2-Price-DB/tf2autobot-pricedb/issues"
     },
     "updaterepo": true,
-    "updateMessage": "Steam/TF2 is quite unstable right now, update/restart at your own will.",
+    "updateMessage": "New version may require changes to your options.json! Please check the readme for details!",
     "homepage": "https://github.com/TF2-Price-DB/tf2autobot-pricedb#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "github:purplebarber/node-bptf-listings#rate-limit-fixes",
