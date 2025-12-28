@@ -70,7 +70,7 @@
         "valid-url": "^1.0.9",
         "winston": "^3.17.0",
         "winston-daily-rotate-file": "^4.7.1",
-        "write-file-atomic": "^5.0.0",
+        "write-file-atomic": "^7.0.0",
         "ws": "^7.5.10"
     },
     "devDependencies": {
