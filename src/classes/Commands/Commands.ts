@@ -105,6 +105,23 @@ export default class Commands {
         }
 
         if (message.startsWith(prefix)) {
+            // Allow Discord commands even when Steam commands are disabled
+            const isDiscordMessage = steamID instanceof SteamID && steamID.redirectAnswerTo;
+
+            // Check if all commands are globally disabled (skip for Discord)
+            if (this.bot.options.globalDisable?.commands === true && !isAdmin && !isDiscordMessage) {
+                log.debug(`Steam command "${command}" blocked for ${steamID.toString()} (commands globally disabled)`);
+                return;
+            }
+
+            // Check if admin commands are globally disabled (skip for Discord)
+            if (this.bot.options.globalDisable?.adminCommands === true && isAdmin && !isDiscordMessage) {
+                log.debug(
+                    `Steam admin command "${command}" blocked for ${steamID.toString()} (admin commands globally disabled)`
+                );
+                return;
+            }
+
             if (command === 'help') {
                 void this.help.helpCommand(steamID, prefix);
             } else if (command === 'how2trade') {

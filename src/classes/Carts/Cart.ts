@@ -342,7 +342,13 @@ export default abstract class Cart {
 
         this.offer.data('handleTimestamp', dayjs().valueOf());
 
-        this.offer.setMessage(opt.customMessage.sendOffer ? opt.customMessage.sendOffer : 'Thank you for the trade!');
+        this.offer.setMessage(
+            opt.globalDisable.messages
+                ? ''
+                : opt.customMessage.sendOffer
+                ? opt.customMessage.sendOffer
+                : 'Thank you for the trade!'
+        );
 
         if (this.notify === true) {
             this.offer.data('notify', true);
