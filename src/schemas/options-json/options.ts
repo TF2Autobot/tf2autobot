@@ -1678,11 +1678,57 @@ export const optionsSchema: jsonschema.Schema = {
                             type: 'string',
                             pattern: '^$|https://discord(app)?.com/api/webhooks/[0-9]+/(.)+'
                         },
-                        mentionInvalidValue: {
-                            type: 'boolean'
-                        },
-                        isMention: {
-                            type: 'boolean'
+                        mentions: {
+                            type: 'object',
+                            properties: {
+                                enable: {
+                                    type: 'boolean'
+                                },
+                                invalidValue: {
+                                    type: 'boolean'
+                                },
+                                invalidItems: {
+                                    type: 'boolean'
+                                },
+                                overstocked: {
+                                    type: 'boolean'
+                                },
+                                understocked: {
+                                    type: 'boolean'
+                                },
+                                duped: {
+                                    type: 'boolean'
+                                },
+                                dupedCheckFailed: {
+                                    type: 'boolean'
+                                },
+                                escrowCheckFailed: {
+                                    type: 'boolean'
+                                },
+                                bannedCheckFailed: {
+                                    type: 'boolean'
+                                },
+                                halted: {
+                                    type: 'boolean'
+                                },
+                                reviewForced: {
+                                    type: 'boolean'
+                                }
+                            },
+                            required: [
+                                'enable',
+                                'invalidValue',
+                                'invalidItems',
+                                'overstocked',
+                                'understocked',
+                                'duped',
+                                'dupedCheckFailed',
+                                'escrowCheckFailed',
+                                'bannedCheckFailed',
+                                'halted',
+                                'reviewForced'
+                            ],
+                            additionalProperties: false
                         },
                         misc: {
                             type: 'object',
@@ -1704,7 +1750,7 @@ export const optionsSchema: jsonschema.Schema = {
                             additionalProperties: false
                         }
                     },
-                    required: ['enable', 'url', 'mentionInvalidValue', 'isMention', 'misc'],
+                    required: ['enable', 'url', 'mentions', 'misc'],
                     additionalProperties: false
                 },
                 messages: {
