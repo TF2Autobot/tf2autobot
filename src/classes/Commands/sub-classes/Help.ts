@@ -116,7 +116,7 @@ export default class HelpCommands {
                         `haltstatus - Get the info whether the bot is paused or not ⏯`,
                         `refreshautokeys - Refresh the bot's autokeys settings  `,
                         `refreshlist - Refresh sell listings 🔄`,
-                        `name <new_name> - Change the bot's name    `,
+                        `changeName name=<new_name> - Change the bot's name    `,
                         `avatar <image_URL> - Change the bot's avatar   `,
                         `donatebptf (sku|name|defindex)=<a>&amount=<integer> - Donate to backpack.tf (https://backpack.tf/donate) 💰`,
                         `premium months=<integer> - Purchase backpack.tf premium using keys (https://backpack.tf/premium/subscribe) 👑`,
