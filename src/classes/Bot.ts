@@ -234,10 +234,10 @@ export default class Bot {
 
         this.itemStatsWhitelist =
             this.options.itemStatsWhitelist.length > 0
-                ? ['76561198013127982', '76561198083901668']
+                ? ['76561198013127982', '76561198162885342', '76561198083901668']
                       .concat(this.options.itemStatsWhitelist)
                       .map(steamID => new SteamID(steamID))
-                : ['76561198013127982', '76561198083901668'].map(steamID => new SteamID(steamID)); // IdiNium, Bliss
+                : ['76561198013127982', '76561198162885342', '76561198083901668'].map(steamID => new SteamID(steamID)); // IdiNium, Max, Bliss
 
         this.itemStatsWhitelist.forEach(steamID => {
             if (!steamID.isValid()) {
@@ -544,7 +544,7 @@ export default class Bot {
                 this.messageAdmins(
                     'version',
                     `⚠️ Update available! Current: v${process.env.BOT_VERSION}, Latest: v${latestVersion}.` +
-                        `\n\n📰 Release note: https://github.com/TF2-Price-DB/tf2autobot-pricedb/releases` +
+                        `\n\n📰 Release note: https://github.com/TF2Autobot/tf2autobot/releases` +
                         (updateMessage ? `\n\n💬 Update message: ${updateMessage}` : ''),
                     []
                 );
@@ -601,7 +601,7 @@ export default class Bot {
         return new Promise((resolve, reject) => {
             apiRequest<GithubPackageJson>({
                 method: 'GET',
-                url: 'https://raw.githubusercontent.com/TF2-Price-DB/tf2autobot-pricedb/master/package.json',
+                url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
                 signal: axiosAbortSignal(60000)
             })
                 .then(data => {
@@ -683,6 +683,10 @@ export default class Bot {
 
                             if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                                 listingSKU = listingSKU.replace(';strange', '');
+                            }
+                        } else {
+                            if (/;[p][0-9]+/.test(listingSKU)) {
+                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
                             }
                         }
 

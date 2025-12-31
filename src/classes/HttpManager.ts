@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -9,7 +8,6 @@ import log from '../lib/logger';
 import Options from './Options';
 import Bot from './Bot';
 import ApiCart from './Carts/ApiCart';
-import { parseTradeUrl } from '../lib/tools/parseTradeUrl';
 
 export default class HttpManager {
     /**
@@ -101,7 +99,6 @@ export default class HttpManager {
                 }
 
                 // Get the state as a readable string
-                const TradeOfferManager = require('@tf2autobot/tradeoffer-manager');
                 const stateNames = {
                     1: 'Invalid',
                     2: 'Active',

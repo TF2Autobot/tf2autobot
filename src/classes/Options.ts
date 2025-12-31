@@ -2573,7 +2573,7 @@ export function loadOptions(options?: Options): Options {
         admins: getOption('admins', [], jsonParseAdminData, incomingOptions),
         keep: getOption('keep', [], jsonParseArray, incomingOptions),
         itemStatsWhitelist: getOption('itemStatsWhitelist', [], jsonParseArray, incomingOptions),
-        groups: getOption('groups', ['103582791475394761'], jsonParseArray, incomingOptions),
+        groups: getOption('groups', ['103582791469033930'], jsonParseArray, incomingOptions),
         alerts: getOption('alerts', ['trade'], jsonParseArray, incomingOptions),
 
         enableSocket: getOption('enableSocket', true, jsonParseBoolean, incomingOptions),

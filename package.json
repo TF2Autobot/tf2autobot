@@ -15,16 +15,16 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/TF2-Price-DB/tf2autobot-pricedb.git"
+        "url": "git+https://github.com/TF2Autobot/tf2autobot.git"
     },
     "author": "TF2Autobot/IdiNium",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/TF2-Price-DB/tf2autobot-pricedb/issues"
+        "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
     "updaterepo": true,
     "updateMessage": "New version may require changes to your options.json! Please check the readme for details!",
-    "homepage": "https://github.com/TF2-Price-DB/tf2autobot-pricedb#readme",
+  "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "github:purplebarber/node-bptf-listings#rate-limit-fixes",
         "@tf2autobot/bptf-login": "^2.4.0",

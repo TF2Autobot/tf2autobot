@@ -60,11 +60,11 @@ if (process.env.DOCKER !== undefined) {
 import SchemaManager from '@tf2autobot/tf2-schema';
 import { apiRequest } from './lib/apiRequest';
 
-// Make the schema manager request the schema from pricedb.io
+// Make the schema manager request the schema from schema.autobot.tf
 
 /*eslint-disable */
 SchemaManager.prototype.getSchema = function (callback): void {
-    apiRequest({ method: 'GET', url: 'https://sku.pricedb.io/api/schema' })
+    apiRequest({ method: 'GET', url: 'https://schema.autobot.tf/schema' })
         .then(schema => {
             this.setSchema(schema, true);
             callback(null, this.schema);
