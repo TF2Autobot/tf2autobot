@@ -90,6 +90,19 @@ declare module '@tf2autobot/tradeoffer-manager' {
             offerData: { [offerID: string]: OfferData };
         };
 
+        export interface TradeProfitData {
+            rawProfit: {
+                keys: number;
+                metal: number;
+            };
+            overpay: {
+                keys: number;
+                metal: number;
+            };
+            hasEstimates?: boolean; // True if FIFO fallback was used
+            timestamp: number;
+        }
+
         export interface OfferData {
             partner?: string;
             handleTimestamp?: number;
@@ -119,6 +132,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
             switchedState?: number;
             donation?: boolean;
             buyBptfPremium?: boolean;
+            tradeProfit?: TradeProfitData;
         }
 
         export interface ItemsDict {
@@ -134,6 +148,10 @@ declare module '@tf2autobot/tradeoffer-manager' {
             our?: Values;
             their?: Values;
             rate?: number;
+            rates?: {
+                buy?: number;
+                sell?: number;
+            };
         }
 
         export interface Values {

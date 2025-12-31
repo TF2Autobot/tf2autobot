@@ -23,18 +23,36 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
     const tradesFromEnv = bot.options.statistics.lastTotalTrades;
     const keyPrices = bot.pricelist.getKeyPrices;
 
-    const timedProfitmadeFull = Currencies.toCurrencies(profits.profitTimed, keyPrices.sell.metal).toString();
-    const timedProfitmadeInRef = timedProfitmadeFull.includes('key')
-        ? ` (${Currencies.toRefined(profits.profitTimed)} ref)`
-        : '';
+    // Format raw profit (24h) - keys and metal shown separately
+    const rawProfit24h =
+        profits.rawProfitTimed.keys !== 0
+            ? `${profits.rawProfitTimed.keys > 0 ? '+' : ''}${profits.rawProfitTimed.keys} keys, ${
+                  profits.rawProfitTimed.metal > 0 ? '+' : ''
+              }${profits.rawProfitTimed.metal.toFixed(2)} ref`
+            : `${profits.rawProfitTimed.metal > 0 ? '+' : ''}${profits.rawProfitTimed.metal.toFixed(2)} ref`;
 
-    const profitMadeFull = Currencies.toCurrencies(profits.tradeProfit, keyPrices.sell.metal).toString();
-    const profitMadeInRef = profitMadeFull.includes('key') ? ` (${Currencies.toRefined(profits.tradeProfit)} ref)` : '';
+    // Format total raw profit - keys and metal shown separately
+    const rawProfitTotal =
+        profits.rawProfit.keys !== 0
+            ? `${profits.rawProfit.keys > 0 ? '+' : ''}${profits.rawProfit.keys} keys, ${
+                  profits.rawProfit.metal > 0 ? '+' : ''
+              }${profits.rawProfit.metal.toFixed(2)} ref`
+            : `${profits.rawProfit.metal > 0 ? '+' : ''}${profits.rawProfit.metal.toFixed(2)} ref`;
 
-    const profitOverpayFull = Currencies.toCurrencies(profits.overpriceProfit, keyPrices.sell.metal).toString();
-    const profitOverpayInRef = profitOverpayFull.includes('key')
-        ? ` (${Currencies.toRefined(profits.overpriceProfit)} ref)`
-        : '';
+    // Format overpay profits
+    const overpay24h = `${profits.overpriceProfitTimed > 0 ? '+' : ''}${profits.overpriceProfitTimed.toFixed(2)} ref`;
+    const overpayTotal = `${profits.overpriceProfit > 0 ? '+' : ''}${profits.overpriceProfit.toFixed(2)} ref`;
+
+    // Calculate full profit (raw + overpay) for clean converted display
+    const fullProfit24hScrap =
+        profits.rawProfitTimed.keys * keyPrices.sell.metal * 9 +
+        profits.rawProfitTimed.metal * 9 +
+        profits.overpriceProfitTimed * 9;
+    const fullProfit24h = Currencies.toCurrencies(Math.round(fullProfit24hScrap), keyPrices.sell.metal).toString();
+
+    const fullProfitTotalScrap =
+        profits.rawProfit.keys * keyPrices.sell.metal * 9 + profits.rawProfit.metal * 9 + profits.overpriceProfit * 9;
+    const fullProfitTotal = Currencies.toCurrencies(Math.round(fullProfitTotalScrap), keyPrices.sell.metal).toString();
 
     const discordStats: Webhook = {
         username: optDW.displayName || botInfo.name,
@@ -120,9 +138,16 @@ export default async function sendStats(bot: Bot, forceSend = false, steamID?: S
                             profits.since !== 0 ? ` (since ${pluralize('day', profits.since, true)} ago)__` : '__'
                         }`,
                         value:
-                            `• Last 24 hours: ${timedProfitmadeFull + timedProfitmadeInRef}` +
-                            `\n• Total made: ${profitMadeFull + profitMadeInRef}` +
-                            `\n• From overpay: ${profitOverpayFull + profitOverpayInRef}`
+                            `**Last 24 hours:**` +
+                            `\n• Profit Raw: ${rawProfit24h}` +
+                            `\n• Overpay: ${overpay24h}` +
+                            `\n\n**All Time:**` +
+                            `\n• Profit Raw: ${rawProfitTotal}` +
+                            `\n• Overpay: ${overpayTotal}` +
+                            `\n\n**Total Profit (Clean Converted):**` +
+                            `\n• Last 24h: ${fullProfit24h}` +
+                            `\n• All Time: ${fullProfitTotal}` +
+                            (profits.hasEstimates ? `\n\n⚠️ Contains estimates` : '')
                     },
                     {
                         name: '__Key rate__',

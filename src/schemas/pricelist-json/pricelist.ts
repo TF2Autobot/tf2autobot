@@ -52,6 +52,32 @@ export const pricelistSchema: jsonschema.Schema = {
         time: {
             type: ['number', 'null']
         },
+        purchaseHistory: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    quantity: {
+                        type: 'integer',
+                        minimum: 1
+                    },
+                    pricePaid: {
+                        $ref: 'tf2-currencies'
+                    },
+                    timestamp: {
+                        type: 'number',
+                        minimum: 0
+                    }
+                },
+                required: ['quantity', 'pricePaid', 'timestamp']
+            }
+        },
+        partialPriceTime: {
+            type: ['number', 'null']
+        },
+        lastInStockTime: {
+            type: ['number', 'null']
+        },
         name: {
             type: 'string'
         }

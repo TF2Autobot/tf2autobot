@@ -414,6 +414,19 @@ export const optionsSchema: jsonschema.Schema = {
                 createListings: {
                     $ref: '#/definitions/only-enable'
                 },
+                pricedbStore: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        enableInventoryRefresh: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable'],
+                    additionalProperties: false
+                },
                 startHalted: {
                     $ref: '#/definitions/only-enable'
                 },
@@ -434,9 +447,12 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         autoDeclineLazyOffer: {
                             type: 'boolean'
+                        },
+                        useSeparateKeyRates: {
+                            type: 'boolean'
                         }
                     },
-                    required: ['enable', 'skipIncludeMessage', 'autoDeclineLazyOffer'],
+                    required: ['enable', 'skipIncludeMessage', 'autoDeclineLazyOffer', 'useSeparateKeyRates'],
                     additionalProperties: false
                 },
                 skipItemsInTrade: {
@@ -529,6 +545,18 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         discord: {
                             type: 'string'
+                        }
+                    },
+                    additionalProperties: false
+                },
+                ecp: {
+                    type: 'object',
+                    properties: {
+                        useBoldChars: {
+                            type: 'boolean'
+                        },
+                        useWordSwap: {
+                            type: 'boolean'
                         }
                     },
                     additionalProperties: false
@@ -689,6 +717,21 @@ export const optionsSchema: jsonschema.Schema = {
                         },
                         excludeSKU: {
                             type: '#/definitions/string-array'
+                        },
+                        removeMaxRestriction: {
+                            type: 'boolean'
+                        },
+                        maxProtectedUnits: {
+                            type: 'integer',
+                            minimum: -1
+                        },
+                        minProfitScrap: {
+                            type: 'number',
+                            minimum: 0
+                        },
+                        stockGracePeriodSeconds: {
+                            type: 'integer',
+                            minimum: 0
                         }
                     },
                     required: ['enable', 'thresholdInSeconds', 'excludeSKU'],

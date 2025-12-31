@@ -145,14 +145,17 @@ export default function sendOfferReview(
                                               ? 'manual'
                                               : isCustomPricer
                                               ? 'custom-pricer'
-                                              : 'prices.tf'
+                                              : 'PriceDB.IO'
                                       })`
                                     : '') +
                                 (isShowInventory
                                     ? `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}`
                                     : '') +
                                 (isShowPureStock ? `\n${cTPureStock} ${pureStock.join(', ').toString()}` : '') +
-                                `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})`
+                                `\n[View my backpack](https://backpack.tf/profiles/${botInfo.steamID.getSteamID64()})` +
+                                (bot.options.miscSettings.pricedbStore.enable
+                                    ? ` | [See my store](${bot.getPricedbStoreUrl()})`
+                                    : '')
                         }
                     ],
                     color: opt.embedColor
@@ -216,5 +219,5 @@ interface Review {
 interface Links {
     steam: string;
     bptf: string;
-    steamrep: string;
+    reptf: string;
 }

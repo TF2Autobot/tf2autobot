@@ -174,10 +174,19 @@ function getSummary(
         const sku =
             type === 'summary-accepted' ? (entry?.sku ?? priceKey).replace(/;p\d+/, '') : entry?.sku ?? priceKey;
 
-        const generateName = isTF2Items
-            ? `${bot.schema.getName(SKU.fromString(sku), properName)}${entry?.id ? ` - ${entry.id}` : ''}`
-            : priceKey; // Non-TF2 items
-        const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
+        let generateName: string;
+        if (isTF2Items) {
+            try {
+                const itemName = bot.schema.getName(SKU.fromString(sku), properName);
+                generateName = itemName ? `${itemName}${entry?.id ? ` - ${entry.id}` : ''}` : priceKey;
+            } catch (e) {
+                // If SKU parsing fails or schema lookup fails, use priceKey
+                generateName = priceKey;
+            }
+        } else {
+            generateName = priceKey; // Non-TF2 items
+        }
+        const name = properName ? generateName : replace.itemName(generateName || 'unknown');
 
         if (showStockChanges) {
             let oldStock: number | null = 0;

@@ -325,7 +325,7 @@ export function sendToAdmin(
             (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
             (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
             `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-            ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
+            ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'PriceDB.IO'})` +
             `${
                 autokeys.isEnabled
                     ? ' | Autokeys: ' +
