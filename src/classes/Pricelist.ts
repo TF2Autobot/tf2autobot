@@ -11,6 +11,15 @@ import validator from '../lib/validator';
 import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from './DiscordWebhook/export';
 import IPricer, { GetItemPriceResponse, Item } from './IPricer';
 
+export interface PurchaseRecord {
+    quantity: number;
+    pricePaid: {
+        keys: number;
+        metal: number;
+    };
+    timestamp: number;
+}
+
 export enum PricelistChangedSource {
     Command = 'COMMAND',
     Autokeys = 'AUTOKEYS',
@@ -32,6 +41,9 @@ export interface EntryData {
     note?: { buy: string | null; sell: string | null };
     isPartialPriced?: boolean;
     time?: number | null;
+    purchaseHistory?: PurchaseRecord[];
+    partialPriceTime?: number | null;
+    lastInStockTime?: number | null;
 }
 
 export class Entry implements EntryData {
@@ -64,6 +76,12 @@ export class Entry implements EntryData {
     isPartialPriced: boolean;
 
     time: number | null;
+
+    purchaseHistory: PurchaseRecord[];
+
+    partialPriceTime: number | null;
+
+    lastInStockTime: number | null;
 
     private constructor(entry: EntryData, name: string) {
         this.sku = entry.sku;
@@ -128,15 +146,70 @@ export class Entry implements EntryData {
             this.note = { buy: null, sell: null };
         }
 
-        if (entry.isPartialPriced) {
-            this.isPartialPriced = entry.isPartialPriced;
-        } else {
-            this.isPartialPriced = false;
-        }
+        this.isPartialPriced = entry.isPartialPriced ?? false;
+        this.purchaseHistory = entry.purchaseHistory || [];
+        this.partialPriceTime = entry.partialPriceTime ?? null;
+        this.lastInStockTime = entry.lastInStockTime ?? null;
     }
 
     clone(): Entry {
         return new Entry(this.getJSON(), this.name);
+    }
+
+    addPurchaseRecord(quantity: number, price: Currencies): void {
+        this.purchaseHistory.push({
+            quantity,
+            pricePaid: price.toJSON(),
+            timestamp: Math.floor(Date.now() / 1000)
+        });
+    }
+
+    removePurchaseRecord(quantity: number): void {
+        let remaining = quantity;
+
+        while (remaining > 0 && this.purchaseHistory.length > 0) {
+            const oldest = this.purchaseHistory[0];
+
+            if (oldest.quantity <= remaining) {
+                remaining -= oldest.quantity;
+                this.purchaseHistory.shift();
+            } else {
+                oldest.quantity -= remaining;
+                remaining = 0;
+            }
+        }
+    }
+
+    getAveragePurchasePrice(keyPrice: number): Currencies | null {
+        if (this.purchaseHistory.length === 0) {
+            return null;
+        }
+
+        let totalValue = 0;
+        let totalQuantity = 0;
+
+        for (const record of this.purchaseHistory) {
+            const recordValue = record.pricePaid.keys * keyPrice + record.pricePaid.metal;
+            totalValue += recordValue * record.quantity;
+            totalQuantity += record.quantity;
+        }
+
+        const avgValue = totalValue / totalQuantity;
+        return Currencies.toCurrencies(avgValue, keyPrice);
+    }
+
+    /**
+     * Get FIFO (First In, First Out) purchase price - the price paid for the oldest items in stock
+     * This is used for PPU protection to ensure we never sell below the cost of the oldest purchased items
+     */
+    getFIFOPurchasePrice(): Currencies | null {
+        if (this.purchaseHistory.length === 0) {
+            return null;
+        }
+
+        // Return the price paid for the oldest purchase (first record)
+        const oldest = this.purchaseHistory[0];
+        return new Currencies(oldest.pricePaid);
     }
 
     static fromData(data: EntryData, schema: SchemaManager.Schema): Entry {
@@ -162,7 +235,10 @@ export class Entry implements EntryData {
             group: this.group,
             note: this.note,
             isPartialPriced: this.isPartialPriced,
-            time: this.time
+            time: this.time,
+            purchaseHistory: this.purchaseHistory,
+            partialPriceTime: this.partialPriceTime,
+            lastInStockTime: this.lastInStockTime
         };
 
         if (this.id) {
@@ -170,6 +246,10 @@ export class Entry implements EntryData {
         }
 
         return obj;
+    }
+
+    toJSON(): EntryData {
+        return this.getJSON();
     }
 }
 
@@ -1026,35 +1106,95 @@ export default class Pricelist extends EventEmitter {
                     const newBuyValue = newPrices.buy.toValue(keyPrice);
                     const newSellValue = newPrices.sell.toValue(keyPrice);
 
-                    // TODO: Use last bought prices instead of current buying prices
-                    const currBuyingValue = currPrice.buy.toValue(keyPrice);
+                    // Use FIFO (oldest purchase) cost for PPU protection, fallback to current buy price
+                    const fifoCost = currPrice.getFIFOPurchasePrice();
+                    const costBasis = fifoCost || currPrice.buy;
+                    const currBuyingValue = costBasis.toValue(keyPrice);
                     const currSellingValue = currPrice.sell.toValue(keyPrice);
 
-                    const isInStock =
-                        inventory.getAmount({
-                            priceKey: sku,
-                            includeNonNormalized: false,
-                            tradableOnly: true
-                        }) > 0;
-                    const isNotExceedThreshold = newestPrice.time - currPrice.time < ppu.thresholdInSeconds;
+                    const currentStock = inventory.getAmount({
+                        priceKey: sku,
+                        includeNonNormalized: false,
+                        tradableOnly: true
+                    });
+                    const isInStock = currentStock > 0;
+
+                    // Update last in stock time
+                    if (isInStock) {
+                        currPrice.lastInStockTime = Math.floor(Date.now() / 1000);
+                    }
+
+                    // Check if within grace period (temporarily out of stock)
+                    const stockGracePeriod = ppu.stockGracePeriodSeconds || 3600;
+                    const wasRecentlyInStock = currPrice.lastInStockTime
+                        ? Math.floor(Date.now() / 1000) - currPrice.lastInStockTime < stockGracePeriod
+                        : false;
+
+                    // Use partialPriceTime for threshold if available, otherwise use time
+                    const lastUpdateTime = currPrice.partialPriceTime || currPrice.time;
+                    const isNotExceedThreshold = newestPrice.time - lastUpdateTime < ppu.thresholdInSeconds;
                     const isNotExcluded = !excludedSKU.includes(sku);
-                    const maxIsOne = currPrice.max === 1;
+
+                    // Remove max === 1 restriction if configured
+                    const maxRestrictionMet = ppu.removeMaxRestriction
+                        ? ppu.maxProtectedUnits === -1
+                            ? true
+                            : currentStock <= (ppu.maxProtectedUnits || 1)
+                        : currPrice.max === 1;
 
                     // https://github.com/TF2Autobot/tf2autobot/issues/506
                     // https://github.com/TF2Autobot/tf2autobot/pull/520
 
-                    if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
+                    if (
+                        ppu.enable &&
+                        (isInStock || wasRecentlyInStock) &&
+                        isNotExceedThreshold &&
+                        isNotExcluded &&
+                        maxRestrictionMet
+                    ) {
                         const isNegativeDiff = newSellValue - currBuyingValue <= 0;
                         const isBuyingChanged = currBuyingValue !== newBuyValue;
 
                         if (isNegativeDiff || isBuyingChanged || currPrice.isPartialPriced) {
-                            if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
-                                currPrice.sell = newPrices.sell;
-                            } else {
-                                currPrice.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
+                            const minProfit = ppu.minProfitScrap || 1;
+
+                            // Sell price: Follow market up for profit, but never below protected cost + minProfit
+                            const protectedSell = currBuyingValue + minProfit;
+
+                            // Buy price: Follow market down for competitiveness, can increase up to cost basis
+                            if (newBuyValue < currPrice.buy.toValue(keyPrice)) {
+                                // Market went down, lower buy price to stay competitive
+                                currPrice.buy = newPrices.buy;
+                            } else if (newBuyValue > currPrice.buy.toValue(keyPrice)) {
+                                // Market went up, can increase buy price but not beyond cost basis (to maintain profit margin)
+                                currPrice.buy = Currencies.toCurrencies(
+                                    Math.min(newBuyValue, currBuyingValue),
+                                    keyPrice
+                                );
                             }
 
-                            const msg = this.generatePartialPriceUpdateMsg(oldPrices, currPrice, newPrices);
+                            // Apply the protected sell price
+                            if (newSellValue >= protectedSell) {
+                                // Market is above our protection floor, use market price
+                                currPrice.sell = newPrices.sell;
+                            } else {
+                                // Market dropped below protection, maintain protected price
+                                currPrice.sell = Currencies.toCurrencies(protectedSell, keyPrice);
+                            }
+
+                            // Set partialPriceTime on first activation
+                            if (!currPrice.isPartialPriced) {
+                                currPrice.partialPriceTime = Math.floor(Date.now() / 1000);
+                            }
+
+                            currPrice.isPartialPriced = true;
+
+                            const msg = this.generatePartialPriceUpdateMsg(
+                                oldPrices,
+                                currPrice,
+                                newPrices,
+                                newestPrice.source
+                            );
                             this.partialPricedUpdateBulk.push(msg);
                             pricesChanged = true;
                         } else {
@@ -1067,10 +1207,14 @@ export default class Pricelist extends EventEmitter {
                             }
                         }
                     } else {
+                        // Reset PPU when: not partial priced, exceeded threshold, OR no purchase history (nothing to protect)
+                        const hasNothingToProtect =
+                            currPrice.purchaseHistory.length === 0 && !isInStock && !wasRecentlyInStock;
+
                         if (
                             !currPrice.isPartialPriced || // partialPrice is false - update as usual
-                            (currPrice.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND and has exceeded threshold
-                            (currPrice.isPartialPriced && !isInStock) // OR, still partialPrice true AND and no longer in stock
+                            (currPrice.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND has exceeded threshold
+                            (currPrice.isPartialPriced && hasNothingToProtect) // No purchase history and not in stock - nothing to protect
                         ) {
                             currPrice.buy = newPrices.buy;
                             currPrice.sell = newPrices.sell;
@@ -1078,6 +1222,7 @@ export default class Pricelist extends EventEmitter {
 
                             if (currPrice.isPartialPriced) {
                                 currPrice.isPartialPriced = false; // reset to default
+                                currPrice.partialPriceTime = null;
                                 this.autoResetPartialPriceBulk.push(sku);
                             }
 
@@ -1093,7 +1238,13 @@ export default class Pricelist extends EventEmitter {
         });
     }
 
-    private generatePartialPriceUpdateMsg(oldPrices: BuyAndSell, currPrices: Entry, newPrices: BuyAndSell): string {
+    private generatePartialPriceUpdateMsg(
+        oldPrices: BuyAndSell,
+        currPrices: Entry,
+        newPrices: BuyAndSell,
+        source?: string
+    ): string {
+        const priceSource = source || 'pricer';
         return (
             `${
                 this.isDwAlertEnabled
@@ -1103,7 +1254,7 @@ export default class Pricelist extends EventEmitter {
             [
                 `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
                 `current: ${currPrices.buy.toString()}/${currPrices.sell.toString()}`,
-                `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
+                `${priceSource}: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
             ].join('\n▸ ') +
             `\n - Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
         );
@@ -1183,7 +1334,7 @@ export default class Pricelist extends EventEmitter {
                 // Only update global key rate if key is not in pricelist
                 // OR if exist, it's autoprice enabled (true)
                 // OR if Autokeys and Scrap Adjustment enabled, then check whether
-                // current global key rate are the same as current prices.tf key rate.
+                // current global key rate are the same as current pricer key rate.
                 // if same, means autopriced and need to update to the latest price
                 // (and autokeys/scrap adjustment will update key prices after new trade).
                 // else entirely, key was manually priced and ignore updating global key rate.
@@ -1228,40 +1379,88 @@ export default class Pricelist extends EventEmitter {
 
             const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = currentStock > 0;
-            const isNotExceedThreshold = data.time - match.time < ppu.thresholdInSeconds;
+
+            // Update last in stock time
+            if (isInStock) {
+                match.lastInStockTime = Math.floor(Date.now() / 1000);
+            }
+
+            // Check if within grace period
+            const stockGracePeriod = ppu.stockGracePeriodSeconds || 3600;
+            const wasRecentlyInStock = match.lastInStockTime
+                ? Math.floor(Date.now() / 1000) - match.lastInStockTime < stockGracePeriod
+                : false;
+
+            // Use partialPriceTime for threshold if available
+            const lastUpdateTime = match.partialPriceTime || match.time;
+            const isNotExceedThreshold = data.time - lastUpdateTime < ppu.thresholdInSeconds;
             const isNotExcluded = !['5021;6'].concat(ppu.excludeSKU).includes(match.sku);
-            const maxIsOne = match.max === 1;
+
+            // Remove max === 1 restriction if configured
+            const maxRestrictionMet = ppu.removeMaxRestriction
+                ? ppu.maxProtectedUnits === -1
+                    ? true
+                    : currentStock <= (ppu.maxProtectedUnits || 1)
+                : match.max === 1;
 
             // https://github.com/TF2Autobot/tf2autobot/issues/506
             // https://github.com/TF2Autobot/tf2autobot/pull/520
 
-            if (ppu.enable && isInStock && isNotExceedThreshold && isNotExcluded && maxIsOne) {
+            // Allow PPU protection if item is currently in stock OR was recently in stock (grace period)
+            const isInStockOrRecent = isInStock || wasRecentlyInStock;
+
+            if (ppu.enable && isInStockOrRecent && isNotExceedThreshold && isNotExcluded && maxRestrictionMet) {
                 const keyPrice = this.getKeyPrice.metal;
 
                 const newBuyValue = newPrices.buy.toValue(keyPrice);
                 const newSellValue = newPrices.sell.toValue(keyPrice);
 
-                // TODO: Use last bought prices instead of current buying prices
-                const currBuyingValue = match.buy.toValue(keyPrice);
+                // Use FIFO (oldest purchase) cost for PPU protection, fallback to current buy price
+                const fifoCost = match.getFIFOPurchasePrice();
+                const costBasis = fifoCost || match.buy;
+                const currBuyingValue = costBasis.toValue(keyPrice);
                 const currSellingValue = match.sell.toValue(keyPrice);
 
                 const isNegativeDiff = newSellValue - currBuyingValue <= 0;
                 const isBuyingChanged = currBuyingValue !== newBuyValue;
 
                 if (match.isPartialPriced || isNegativeDiff || isBuyingChanged) {
-                    if (newSellValue > currBuyingValue || newSellValue > currSellingValue) {
-                        log.debug('ppu - update selling price with the latest price');
+                    const minProfit = ppu.minProfitScrap || 1;
+
+                    // Sell price: Follow market up for profit, but never below protected cost + minProfit
+                    const protectedSell = currBuyingValue + minProfit;
+
+                    // Buy price: Follow market down for competitiveness, can increase up to cost basis
+                    if (newBuyValue < match.buy.toValue(keyPrice)) {
+                        log.debug('ppu - lowering buy price to track market down');
+                        match.buy = newPrices.buy;
+                    } else if (newBuyValue > match.buy.toValue(keyPrice)) {
+                        // Market went up, can increase buy price but not beyond cost basis (to maintain profit margin)
+                        const newBuy = Math.min(newBuyValue, currBuyingValue);
+                        log.debug(
+                            `ppu - increasing buy price to ${newBuy} (market: ${newBuyValue}, cost basis: ${currBuyingValue})`
+                        );
+                        match.buy = Currencies.toCurrencies(newBuy, keyPrice);
+                    }
+
+                    // Apply the protected sell price
+                    if (newSellValue >= protectedSell) {
+                        log.debug(`ppu - updating sell to market ${newSellValue} (above protected ${protectedSell})`);
                         match.sell = newPrices.sell;
                     } else {
-                        log.debug('ppu - update selling price with minimum profit of 1 scrap');
-                        match.sell = Currencies.toCurrencies(currBuyingValue + 1, keyPrice);
+                        log.debug(`ppu - maintaining protected sell ${protectedSell} (market ${newSellValue} too low)`);
+                        match.sell = Currencies.toCurrencies(protectedSell, keyPrice);
+                    }
+
+                    // Set partialPriceTime on first activation
+                    if (!match.isPartialPriced) {
+                        match.partialPriceTime = Math.floor(Date.now() / 1000);
                     }
 
                     match.isPartialPriced = true;
                     pricesChanged = true;
 
-                    const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices);
-
+                    const msg = this.generatePartialPriceUpdateMsg(oldPrice, match, newPrices, data.source);
                     if (opt.sendAlert.enable && opt.sendAlert.partialPrice.onUpdate) {
                         if (this.isDwAlertEnabled) {
                             sendAlert('isPartialPriced', this.bot, msg);
@@ -1279,10 +1478,13 @@ export default class Pricelist extends EventEmitter {
                     }
                 }
             } else {
+                // Reset PPU when: not partial priced, exceeded threshold, OR no purchase history (nothing to protect)
+                const hasNothingToProtect = match.purchaseHistory.length === 0 && !isInStock && !wasRecentlyInStock;
+
                 if (
                     !match.isPartialPriced || // partialPrice is false - update as usual
-                    (match.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND and has exceeded threshold
-                    (match.isPartialPriced && !isInStock) // OR, still partialPrice true AND and no longer in stock
+                    (match.isPartialPriced && !isNotExceedThreshold) || // Still partialPrice AND has exceeded threshold
+                    (match.isPartialPriced && hasNothingToProtect) // No purchase history and not in stock - nothing to protect
                 ) {
                     match.buy = newPrices.buy;
                     match.sell = newPrices.sell;
@@ -1291,9 +1493,11 @@ export default class Pricelist extends EventEmitter {
                     if (match.isPartialPriced) {
                         log.debug('ppu - reset partial price', {
                             isExceededThreshold: !isNotExceedThreshold,
-                            isNotInStock: !isInStock
+                            isNotInStock: !isInStock,
+                            pastGracePeriod: !wasRecentlyInStock
                         });
                         match.isPartialPriced = false; // reset to default
+                        match.partialPriceTime = null;
 
                         const msg = this.generatePartialPriceResetMsg(oldPrice, match);
 

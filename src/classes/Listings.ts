@@ -152,12 +152,20 @@ export default class Listings {
                 }
                 doneSomething = true;
                 listing.remove();
+                // Remove from pricedb.io if it's a sell listing
+                if (listing.intent === 1) {
+                    void this.deletePriceDBListing(listing.id.replace('440_', ''));
+                }
             } else if ((listing.intent === 0 && amountCanBuy <= 0) || (listing.intent === 1 && amountCanSell <= 0)) {
                 if (showLogs) {
                     log.debug(`We are not ${listing.intent === 0 ? 'buying' : 'selling'} more, remove the listing.`);
                 }
                 doneSomething = true;
                 listing.remove();
+                // Remove from pricedb.io if it's a sell listing
+                if (listing.intent === 1) {
+                    void this.deletePriceDBListing(listing.id.replace('440_', ''));
+                }
             } else if (
                 listing.intent === 0 &&
                 !invManager.isCanAffordToBuy(match.buy, invManager.getInventory) &&
@@ -168,6 +176,7 @@ export default class Listings {
                 }
                 doneSomething = true;
                 listing.remove();
+                // This is a buy listing (intent 0), no need to remove from pricedb.io (only sell listings)
             } else {
                 const newDetails = this.getDetails(
                     listing.intent,
@@ -210,6 +219,11 @@ export default class Listings {
 
                     listing.update(toUpdate);
                     //TODO: make promote, demote
+
+                    // Update pricedb.io listing if it's a sell listing
+                    if (listing.intent === 1) {
+                        void this.createOrUpdatePriceDBListing(listing.id.replace('440_', ''), currencies);
+                    }
                 }
             }
         });
@@ -228,11 +242,14 @@ export default class Listings {
             if (isAssetId && null !== inventory.findByAssetid(priceKey)) {
                 assetids = [priceKey];
             } else {
-                assetids = inventory
-                    .findBySKU(priceKey, true)
-                    .filter(
-                        assetId => this.bot.pricelist.hasPrice({ priceKey: assetId, onlyEnabled: false }) === false
-                    );
+                const foundAssetIds = inventory.findBySKU(priceKey, true);
+                assetids = foundAssetIds.filter(
+                    assetId => this.bot.pricelist.hasPrice({ priceKey: assetId, onlyEnabled: false }) === false
+                );
+
+                if (showLogs) {
+                    log.debug(`Asset IDs for ${priceKey}: found=${foundAssetIds.length}, filtered=${assetids.length}`);
+                }
             }
 
             const canAffordToBuy = isFilterCantAfford
@@ -262,6 +279,12 @@ export default class Listings {
 
             const assetid = assetids[assetids.length - 1];
 
+            if (showLogs) {
+                log.debug(
+                    `Sell listing check for ${priceKey}: hasSellListing=${hasSellListing}, amountCanSell=${amountCanSell}, assetid=${assetid}`
+                );
+            }
+
             if (!hasSellListing && amountCanSell > 0 && assetid) {
                 // assetid can be undefined, if any of the following is set to true
                 // - options.normalize.festivized.amountIncludeNonFestivized
@@ -288,6 +311,9 @@ export default class Listings {
                     ),
                     currencies: matchNew.sell
                 });
+
+                // Also create listing on pricedb.io store (only sell listings supported)
+                void this.createOrUpdatePriceDBListing(assetid, matchNew.sell);
             }
         }
 
@@ -571,6 +597,79 @@ export default class Listings {
         });
     }
 
+    /**
+     * Check if pricedb.io store is enabled
+     */
+    private get isPriceDBStoreEnabled(): boolean {
+        return (
+            this.bot.options.miscSettings.pricedbStore.enable &&
+            this.bot.pricedbStoreManager !== undefined &&
+            !this.bot.isHalted
+        );
+    }
+
+    /**
+     * Create or update a sell listing on pricedb.io store
+     */
+    async createOrUpdatePriceDBListing(assetId: string, currencies: Currencies): Promise<void> {
+        if (!this.isPriceDBStoreEnabled) {
+            return;
+        }
+
+        try {
+            const existingListing = this.bot.pricedbStoreManager.findListing(assetId);
+
+            if (existingListing) {
+                // Update existing listing
+                await this.bot.pricedbStoreManager.updateListing(assetId, currencies);
+            } else {
+                // Create new listing
+                await this.bot.pricedbStoreManager.createListing(assetId, currencies);
+            }
+        } catch (err: any) {
+            const isItemNotFoundError =
+                err?.status === 400 &&
+                (err?.data?.error === 'Item not found' || err?.data?.message?.includes('Item not found'));
+
+            if (isItemNotFoundError) {
+                log.warn(`Item ${assetId} not found in pricedb.io inventory. Attempting to refresh inventory...`);
+
+                // Attempt to refresh inventory (respects rate limits)
+                try {
+                    const refreshed = await this.bot.pricedbStoreManager.refreshInventory();
+                    if (refreshed) {
+                        log.info(
+                            `Inventory refreshed. The listing for ${assetId} will be created on the next update cycle.`
+                        );
+                    } else {
+                        log.debug(
+                            `Inventory refresh skipped (rate limited). The listing for ${assetId} will be retried later.`
+                        );
+                    }
+                } catch (error_) {
+                    log.error(`Failed to refresh inventory after item not found error:`, error_);
+                }
+            } else {
+                log.error(`Failed to create/update pricedb.io listing for ${assetId}:`, err);
+            }
+        }
+    }
+
+    /**
+     * Delete a listing from pricedb.io store
+     */
+    async deletePriceDBListing(assetId: string): Promise<void> {
+        if (!this.isPriceDBStoreEnabled) {
+            return;
+        }
+
+        try {
+            await this.bot.pricedbStoreManager.deleteListing(assetId);
+        } catch (err) {
+            log.error(`Failed to delete pricedb.io listing for ${assetId}:`, err);
+        }
+    }
+
     private getDetails(intent: 0 | 1, amountCanTrade: number, entry: Entry, item?: DictItem): string {
         const opt = this.bot.options;
         const buying = intent === 0;
@@ -695,12 +794,21 @@ export default class Listings {
                 .toString();
             const amountTrade = amountCanTrade.toString();
 
+            const ecpString = this.bot.ecp.toEcpStr(entry.id ?? entry.name, key);
+
+            // Get friendly store URL using cached slug if available
+            const pricedbStoreUrl = this.bot.getPricedbStoreUrl();
+            const pricedbItemUrl = `https://store.pricedb.io/item/${entry.sku}`;
+
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
                 .replace(/%name%/g, entry.id ?? entry.name)
+                .replace(/%ecp_item%/g, ecpString)
                 .replace(/%max_stock%/g, isShowBoldOnMaxStock ? boldDetails(maxStock, style) : maxStock)
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
-                .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade);
+                .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade)
+                .replace(/%pricedb_store%/g, pricedbStoreUrl)
+                .replace(/%pricedb_item%/g, pricedbItemUrl);
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;

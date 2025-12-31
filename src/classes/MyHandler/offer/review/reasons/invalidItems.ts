@@ -13,10 +13,10 @@ export default function invalidItems(meta: Meta, bot: Bot): { note: string; name
         const name = testPriceKey(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
 
         if (opt.enable && opt.url !== '') {
-            // show both item name and prices.tf price
+            // show both item name and pricer price
             invalidForOur.push(`_${name}_ - ${el.price}`);
         } else {
-            // show both item name and prices.tf price
+            // show both item name and pricer price
             invalidForOur.push(`${name} - ${el.price}`);
         }
 

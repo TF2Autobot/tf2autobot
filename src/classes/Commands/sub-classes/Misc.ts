@@ -379,4 +379,141 @@ export default class MiscCommands {
         }
         return stock;
     }
+
+    async pricedbGroup(steamID: SteamID): Promise<void> {
+        if (!this.bot.isAdmin(steamID)) {
+            return this.bot.sendMessage(steamID, '❌ This command is only available to admins.');
+        }
+
+        if (!this.bot.pricedbStoreManager) {
+            return this.bot.sendMessage(steamID, '❌ PriceDB Store Manager is not enabled.');
+        }
+
+        try {
+            const group = await this.bot.pricedbStoreManager.getMyGroup();
+            if (!group) {
+                return this.bot.sendMessage(steamID, '❌ No store group found for this bot.');
+            }
+
+            const members = group.members.map(m => `  • ${m.display_name} (${m.role}) - ${m.invite_status}`).join('\n');
+
+            const storeUrl = `https://store.pricedb.io/sf/${group.custom_store_slug}`;
+
+            this.bot.sendMessage(
+                steamID,
+                `📦 Store Group: ${group.group_name}\n` +
+                    `🔗 URL: ${storeUrl}\n` +
+                    `👑 Owner: ${group.owner_name}\n` +
+                    `👥 Members:\n${members}`
+            );
+        } catch (err) {
+            this.bot.sendMessage(steamID, `❌ Failed to fetch group info: ${(err as Error).message}`);
+        }
+    }
+
+    async pricedbInvite(steamID: SteamID, targetSteamID: string): Promise<void> {
+        if (!this.bot.isAdmin(steamID)) {
+            return this.bot.sendMessage(steamID, '❌ This command is only available to admins.');
+        }
+
+        if (!this.bot.pricedbStoreManager) {
+            return this.bot.sendMessage(steamID, '❌ PriceDB Store Manager is not enabled.');
+        }
+
+        try {
+            const group = await this.bot.pricedbStoreManager.getMyGroup();
+            if (!group) {
+                return this.bot.sendMessage(steamID, '❌ No store group found for this bot.');
+            }
+
+            const result = await this.bot.pricedbStoreManager.inviteToGroup(group.id, targetSteamID);
+            if (result && result.success) {
+                this.bot.sendMessage(steamID, `✅ Invited ${targetSteamID} to the store group.`);
+            } else {
+                this.bot.sendMessage(steamID, `❌ Failed to send invite: ${result?.message || 'Unknown error'}`);
+            }
+        } catch (err) {
+            this.bot.sendMessage(steamID, `❌ Failed to send invite: ${(err as Error).message}`);
+        }
+    }
+
+    async pricedbInvites(steamID: SteamID): Promise<void> {
+        if (!this.bot.isAdmin(steamID)) {
+            return this.bot.sendMessage(steamID, '❌ This command is only available to admins.');
+        }
+
+        if (!this.bot.pricedbStoreManager) {
+            return this.bot.sendMessage(steamID, '❌ PriceDB Store Manager is not enabled.');
+        }
+
+        try {
+            const invites = await this.bot.pricedbStoreManager.getPendingInvites();
+            if (invites.length === 0) {
+                return this.bot.sendMessage(steamID, 'ℹ️ No pending group invites.');
+            }
+
+            const inviteList = invites
+                .map(inv => `  • ${inv.group_name} (ID: ${inv.group_id}) - invited by ${inv.inviter_display_name}`)
+                .join('\n');
+
+            this.bot.sendMessage(
+                steamID,
+                `📨 Pending Invites:\n${inviteList}\n\nUse !pricedbaccept <groupId> to accept.`
+            );
+        } catch (err) {
+            this.bot.sendMessage(steamID, `❌ Failed to fetch invites: ${(err as Error).message}`);
+        }
+    }
+
+    async pricedbAccept(steamID: SteamID, groupId: string): Promise<void> {
+        if (!this.bot.isAdmin(steamID)) {
+            return this.bot.sendMessage(steamID, '❌ This command is only available to admins.');
+        }
+
+        if (!this.bot.pricedbStoreManager) {
+            return this.bot.sendMessage(steamID, '❌ PriceDB Store Manager is not enabled.');
+        }
+
+        const groupIdNum = parseInt(groupId, 10);
+        if (isNaN(groupIdNum)) {
+            return this.bot.sendMessage(steamID, '❌ Invalid group ID. Must be a number.');
+        }
+
+        try {
+            const success = await this.bot.pricedbStoreManager.acceptGroupInvite(groupIdNum);
+            if (success) {
+                this.bot.sendMessage(steamID, `✅ Accepted invite to group ${groupIdNum}.`);
+            } else {
+                this.bot.sendMessage(steamID, `❌ Failed to accept invite to group ${groupIdNum}.`);
+            }
+        } catch (err) {
+            this.bot.sendMessage(steamID, `❌ Failed to accept invite: ${(err as Error).message}`);
+        }
+    }
+
+    async pricedbLeave(steamID: SteamID, groupId: string): Promise<void> {
+        if (!this.bot.isAdmin(steamID)) {
+            return this.bot.sendMessage(steamID, '❌ This command is only available to admins.');
+        }
+
+        if (!this.bot.pricedbStoreManager) {
+            return this.bot.sendMessage(steamID, '❌ PriceDB Store Manager is not enabled.');
+        }
+
+        const groupIdNum = parseInt(groupId, 10);
+        if (isNaN(groupIdNum)) {
+            return this.bot.sendMessage(steamID, '❌ Invalid group ID. Must be a number.');
+        }
+
+        try {
+            const success = await this.bot.pricedbStoreManager.leaveGroup(groupIdNum);
+            if (success) {
+                this.bot.sendMessage(steamID, `✅ Left group ${groupIdNum}.`);
+            } else {
+                this.bot.sendMessage(steamID, `❌ Failed to leave group ${groupIdNum}.`);
+            }
+        } catch (err) {
+            this.bot.sendMessage(steamID, `❌ Failed to leave group: ${(err as Error).message}`);
+        }
+    }
 }

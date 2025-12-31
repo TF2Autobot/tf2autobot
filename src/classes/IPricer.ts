@@ -8,7 +8,7 @@ export interface PricerOptions {
 /**
  * Basic pricer interface
  *
- * Those wishing to plug in something other than PricesTf should provide at least
+ * Those wishing to plug in a custom pricer should provide at least
  * the following interface plus a "pricer" module with the following method to get the constructor:
  * static getPricer(options: PricerOptions): Pricer
  */

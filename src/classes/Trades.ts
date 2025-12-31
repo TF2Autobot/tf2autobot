@@ -745,8 +745,11 @@ export default class Trades {
                             : "Your offer contains wrong value. You've probably made a few mistakes, here's the correct offer."
                     );
 
-                    function getPureValue(sku: PureSKU) {
-                        if (sku === '5021;6') return keyPriceScrap;
+                    function getPureValue(sku: PureSKU, side?: 'our' | 'their') {
+                        if (sku === '5021;6') {
+                            // Use sell price for our keys, buy price for their keys
+                            return side === 'our' ? keyPriceSellScrap : keyPriceBuyScrap;
+                        }
                         const pures: PureSKU[] = ['5000;6', '5001;6', '5002;6'];
                         const index = pures.indexOf(sku);
                         return index === -1 ? 0 : Math.pow(3, index);
@@ -757,9 +760,10 @@ export default class Trades {
                         sku: PureSKU,
                         side: Dict | number,
                         increaseDifference: boolean,
-                        overpay?: boolean
+                        overpay?: boolean,
+                        whichSide?: 'our' | 'their'
                     ) {
-                        const value = getPureValue(sku);
+                        const value = getPureValue(sku, whichSide);
                         if (!value) return 0;
                         if (possibleKeyTrade && sku == '5021;6') {
                             const ret =
@@ -809,7 +813,7 @@ export default class Trades {
                                 amount *
                                 (possibleKeyTrade && sku == '5021;6' && side == 'Their'
                                     ? Currencies.toScrap(prices['5021;6'].buy.metal)
-                                    : getPureValue(sku));
+                                    : getPureValue(sku, whichSide));
                         }
 
                         dataDict[whichSide][sku] ??= 0;
@@ -825,8 +829,8 @@ export default class Trades {
                         // Backup it should never make it to here as an error
                         log.debug('Checking final mismatch...');
                         if (
-                            tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap !==
-                            tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap
+                            tradeValues.our.keys * keyPriceSellScrap + tradeValues.our.scrap !==
+                            tradeValues.their.keys * keyPriceBuyScrap + tradeValues.their.scrap
                         ) {
                             return reject(
                                 new Error(
@@ -851,16 +855,17 @@ export default class Trades {
 
                         counter.data('value', {
                             our: {
-                                total: tradeValues.our.keys * keyPriceScrap + tradeValues.our.scrap,
+                                total: tradeValues.our.keys * keyPriceSellScrap + tradeValues.our.scrap,
                                 keys: tradeValues.our.keys,
                                 metal: Currencies.toRefined(tradeValues.our.scrap)
                             },
                             their: {
-                                total: tradeValues.their.keys * keyPriceScrap + tradeValues.their.scrap,
+                                total: tradeValues.their.keys * keyPriceBuyScrap + tradeValues.their.scrap,
                                 keys: tradeValues.their.keys,
                                 metal: Currencies.toRefined(tradeValues.their.scrap)
                             },
-                            rate: values.rate
+                            rate: values.rate,
+                            rates: values.rates
                         });
 
                         counter.data('dict', dataDict);
@@ -908,13 +913,18 @@ export default class Trades {
                     const prices = offer.data('prices') as Prices;
 
                     const keyPriceScrap = Currencies.toScrap(values.rate);
+                    // Use separate rates for our side (sell) and their side (buy)
+                    const keyPriceSellScrap = values.rates?.sell
+                        ? Currencies.toScrap(values.rates.sell)
+                        : keyPriceScrap;
+                    const keyPriceBuyScrap = values.rates?.buy ? Currencies.toScrap(values.rates.buy) : keyPriceScrap;
                     const tradeValues = {
                         our: {
-                            scrap: values.our.total - values.our.keys * keyPriceScrap,
+                            scrap: values.our.total - values.our.keys * keyPriceSellScrap,
                             keys: values.our.keys
                         },
                         their: {
-                            scrap: values.their.total - values.their.keys * keyPriceScrap,
+                            scrap: values.their.total - values.their.keys * keyPriceBuyScrap,
                             keys: values.their.keys
                         }
                     };
@@ -935,6 +945,8 @@ export default class Trades {
                     let NonPureWorth = (['our', 'their'] as ['our', 'their'])
                         .map((side, index) => {
                             const buySell = index ? 'buy' : 'sell';
+                            // Use correct key price based on side when useSeparateKeyRates is enabled
+                            const sideKeyPrice = side === 'our' ? keyPriceSellScrap : keyPriceBuyScrap;
                             return (
                                 Object.keys(dataDict[side])
                                     .map(assetKey => {
@@ -955,7 +967,7 @@ export default class Trades {
 
                                         return (
                                             dataDict[side][assetKey] *
-                                            (prices[assetKey][buySell].keys * keyPriceScrap +
+                                            (prices[assetKey][buySell].keys * sideKeyPrice +
                                                 Currencies.toScrap(prices[assetKey][buySell].metal))
                                         );
                                     })
@@ -1033,10 +1045,10 @@ export default class Trades {
                     }
 
                     const ourBestWay: Record<PureSKU, number> = {
-                        '5021;6': calculate('5021;6', ourInventoryItems, true),
-                        '5002;6': calculate('5002;6', ourInventoryItems, true),
-                        '5001;6': calculate('5001;6', ourInventoryItems, true),
-                        '5000;6': calculate('5000;6', ourInventoryItems, true)
+                        '5021;6': calculate('5021;6', ourInventoryItems, true, undefined, 'our'),
+                        '5002;6': calculate('5002;6', ourInventoryItems, true, undefined, 'our'),
+                        '5001;6': calculate('5001;6', ourInventoryItems, true, undefined, 'our'),
+                        '5000;6': calculate('5000;6', ourInventoryItems, true, undefined, 'our')
                     };
                     if (NonPureWorth < 0) {
                         log.debug('NonPureWorth < 0 - ourBestWay before', {
@@ -1047,24 +1059,27 @@ export default class Trades {
                             '5002;6',
                             (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
                             true,
-                            true
+                            true,
+                            'our'
                         );
                         ourBestWay['5001;6'] += calculate(
                             '5001;6',
                             (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
                             true,
-                            true
+                            true,
+                            'our'
                         );
                         ourBestWay['5021;6'] += calculate(
                             '5021;6',
                             (ourInventoryItems['5021;6']?.length || 0) - ourBestWay['5021;6'],
                             true,
-                            true
+                            true,
+                            'our'
                         );
 
-                        ourBestWay['5002;6'] -= calculate('5002;6', ourBestWay['5002;6'], false);
-                        ourBestWay['5001;6'] -= calculate('5001;6', ourBestWay['5001;6'], false);
-                        ourBestWay['5000;6'] -= calculate('5000;6', ourBestWay['5000;6'], false);
+                        ourBestWay['5002;6'] -= calculate('5002;6', ourBestWay['5002;6'], false, undefined, 'our');
+                        ourBestWay['5001;6'] -= calculate('5001;6', ourBestWay['5001;6'], false, undefined, 'our');
+                        ourBestWay['5000;6'] -= calculate('5000;6', ourBestWay['5000;6'], false, undefined, 'our');
 
                         log.debug('NonPureWorth < 0 - ourBestWay after', {
                             ourBestWay
@@ -1072,10 +1087,10 @@ export default class Trades {
                     }
 
                     const theirBestWay: Record<PureSKU, number> = {
-                        '5021;6': calculate('5021;6', theirInventoryItems, false),
-                        '5002;6': calculate('5002;6', theirInventoryItems, false),
-                        '5001;6': calculate('5001;6', theirInventoryItems, false),
-                        '5000;6': calculate('5000;6', theirInventoryItems, false)
+                        '5021;6': calculate('5021;6', theirInventoryItems, false, undefined, 'their'),
+                        '5002;6': calculate('5002;6', theirInventoryItems, false, undefined, 'their'),
+                        '5001;6': calculate('5001;6', theirInventoryItems, false, undefined, 'their'),
+                        '5000;6': calculate('5000;6', theirInventoryItems, false, undefined, 'their')
                     };
                     if (NonPureWorth > 0) {
                         log.debug('NonPureWorth > 0 - theirBestWay before', {
@@ -1085,24 +1100,27 @@ export default class Trades {
                             '5002;6',
                             (theirInventoryItems['5002;6']?.length || 0) - theirBestWay['5002;6'],
                             false,
-                            true
+                            true,
+                            'their'
                         );
                         theirBestWay['5001;6'] += calculate(
                             '5001;6',
                             (theirInventoryItems['5001;6']?.length || 0) - theirBestWay['5001;6'],
                             false,
-                            true
+                            true,
+                            'their'
                         );
                         theirBestWay['5021;6'] += calculate(
                             '5021;6',
                             (theirInventoryItems['5021;6']?.length || 0) - theirBestWay['5021;6'],
                             false,
-                            true
+                            true,
+                            'their'
                         );
 
-                        theirBestWay['5002;6'] -= calculate('5002;6', theirBestWay['5002;6'], true);
-                        theirBestWay['5001;6'] -= calculate('5001;6', theirBestWay['5001;6'], true);
-                        theirBestWay['5000;6'] -= calculate('5000;6', theirBestWay['5000;6'], true);
+                        theirBestWay['5002;6'] -= calculate('5002;6', theirBestWay['5002;6'], true, undefined, 'their');
+                        theirBestWay['5001;6'] -= calculate('5001;6', theirBestWay['5001;6'], true, undefined, 'their');
+                        theirBestWay['5000;6'] -= calculate('5000;6', theirBestWay['5000;6'], true, undefined, 'their');
 
                         log.debug('NonPureWorth > 0 - theirBestWay after', {
                             theirBestWay
@@ -1115,17 +1133,23 @@ export default class Trades {
                         ourBestWay['5002;6'] += calculate(
                             '5002;6',
                             (ourInventoryItems['5002;6']?.length || 0) - ourBestWay['5002;6'],
-                            true
+                            true,
+                            undefined,
+                            'our'
                         );
                         ourBestWay['5001;6'] += calculate(
                             '5001;6',
                             (ourInventoryItems['5001;6']?.length || 0) - ourBestWay['5001;6'],
-                            true
+                            true,
+                            undefined,
+                            'our'
                         );
                         ourBestWay['5000;6'] += calculate(
                             '5000;6',
                             (ourInventoryItems['5000;6']?.length || 0) - ourBestWay['5000;6'],
-                            true
+                            true,
+                            undefined,
+                            'our'
                         );
 
                         log.debug('Add some of our items if they are still overpaying - after', {

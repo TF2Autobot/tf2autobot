@@ -43,7 +43,7 @@ export default function sendAdminMessage(
 interface Links {
     steam: string;
     bptf: string;
-    steamrep: string;
+    reptf: string;
 }
 
 interface Their {

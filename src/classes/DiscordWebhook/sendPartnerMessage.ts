@@ -50,7 +50,7 @@ export default function sendPartnerMessage(
 interface Links {
     steam: string;
     bptf: string;
-    steamrep: string;
+    reptf: string;
 }
 
 interface Their {

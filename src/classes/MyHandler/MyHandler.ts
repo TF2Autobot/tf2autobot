@@ -1113,7 +1113,7 @@ export default class MyHandler extends Handler {
 
         const itemPrices: Prices = {};
 
-        const keyPrice = this.bot.pricelist.getKeyPrices[keyOurSide ? 'sell' : 'buy'];
+        const keyPrices = this.bot.pricelist.getKeyPrices;
         let hasOverstockAndIsPartialPriced = false;
         let assetidsToCheck: string[] = [];
         let skuToCheck: string[] = [];
@@ -1140,6 +1140,11 @@ export default class MyHandler extends Handler {
                 for (const id of exchange[which].pricedAssetIds) {
                     const match = this.bot.pricelist.getPrice({ priceKey: id });
                     // Add value of items
+                    const keyPrice = opt.miscSettings.counterOffer.useSeparateKeyRates
+                        ? which === 'our'
+                            ? keyPrices.sell
+                            : keyPrices.buy
+                        : keyPrices.sell;
                     exchange[which].value += match[intentString].toValue(keyPrice.metal);
                     exchange[which].keys += match[intentString].keys;
                     exchange[which].scrap += Currencies.toScrap(match[intentString].metal);
@@ -1227,6 +1232,11 @@ export default class MyHandler extends Handler {
                         // (meaning that we are trading keys) then add the price of the item
 
                         // Add value of items
+                        const keyPrice = opt.miscSettings.counterOffer.useSeparateKeyRates
+                            ? which === 'our'
+                                ? keyPrices.sell
+                                : keyPrices.buy
+                            : keyPrices.sell;
                         exchange[which].value += match[intentString].toValue(keyPrice.metal) * amount;
                         exchange[which].keys += match[intentString].keys * amount;
                         exchange[which].scrap += Currencies.toScrap(match[intentString].metal) * amount;
@@ -1327,9 +1337,10 @@ export default class MyHandler extends Handler {
                             }
                         }
 
-                        const buyPrice = match.buy.toValue(keyPrice.metal);
-                        const sellPrice = match.sell.toValue(keyPrice.metal);
-                        const minimumKeysDupeCheck = this.minimumKeysDupeCheck * keyPrice.toValue();
+                        const keyPriceBuy = keyPrices.buy;
+                        const buyPrice = match.buy.toValue(keyPriceBuy.metal);
+                        const sellPrice = match.sell.toValue(keyPriceBuy.metal);
+                        const minimumKeysDupeCheck = this.minimumKeysDupeCheck * keyPriceBuy.toValue();
                         if (
                             buying && // check only items on their side
                             (buyPrice > minimumKeysDupeCheck || sellPrice > minimumKeysDupeCheck)
@@ -1341,6 +1352,11 @@ export default class MyHandler extends Handler {
                         //
                     } else if (sku === '5021;6' && exchange.contains.items) {
                         // Offer contains keys and we are not trading keys, add key value
+                        const keyPrice = opt.miscSettings.counterOffer.useSeparateKeyRates
+                            ? which === 'our'
+                                ? keyPrices.sell
+                                : keyPrices.buy
+                            : keyPrices.sell;
                         exchange[which].value += keyPrice.toValue() * amount;
                         exchange[which].keys += amount;
                         //
@@ -1389,17 +1405,23 @@ export default class MyHandler extends Handler {
                                 ) {
                                     // if offerReceived.invalidItems.givePrice is set to true (enable) and items is not skins/war paint/crate/cases,
                                     // then give that item price and include in exchange
+                                    const keyPrice = opt.miscSettings.counterOffer.useSeparateKeyRates
+                                        ? which === 'our'
+                                            ? keyPrices.sell
+                                            : keyPrices.buy
+                                        : keyPrices.sell;
                                     exchange[which].value += price[intentString].toValue(keyPrice.metal) * amount;
                                     exchange[which].keys += price[intentString].keys * amount;
                                     exchange[which].scrap += Currencies.toScrap(price[intentString].metal) * amount;
                                 }
+                                const keyPriceForRef = keyPrices.buy;
                                 const valueInRef = {
-                                    buy: Currencies.toRefined(price.buy.toValue(keyPrice.metal)),
-                                    sell: Currencies.toRefined(price.sell.toValue(keyPrice.metal))
+                                    buy: Currencies.toRefined(price.buy.toValue(keyPriceForRef.metal)),
+                                    sell: Currencies.toRefined(price.sell.toValue(keyPriceForRef.metal))
                                 };
 
                                 itemSuggestedValue =
-                                    (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPrice.metal
+                                    (intentString === 'buy' ? valueInRef.buy : valueInRef.sell) >= keyPriceForRef.metal
                                         ? `${valueInRef.buy.toString()} ref (${price.buy.toString()})` +
                                           ` / ${valueInRef.sell.toString()} ref (${price.sell.toString()})`
                                         : `${price.buy.toString()} / ${price.sell.toString()}`;
@@ -1420,10 +1442,18 @@ export default class MyHandler extends Handler {
 
         // Doing this so that the prices will always be displayed as only metal
         if (opt.miscSettings.showOnlyMetal.enable) {
-            exchange.our.scrap += exchange.our.keys * keyPrice.toValue();
-            exchange.our.keys = 0;
-            exchange.their.scrap += exchange.their.keys * keyPrice.toValue();
-            exchange.their.keys = 0;
+            if (opt.miscSettings.counterOffer.useSeparateKeyRates) {
+                exchange.our.scrap += exchange.our.keys * keyPrices.sell.toValue();
+                exchange.our.keys = 0;
+                exchange.their.scrap += exchange.their.keys * keyPrices.buy.toValue();
+                exchange.their.keys = 0;
+            } else {
+                // Old behavior: use sell price for both sides
+                exchange.our.scrap += exchange.our.keys * keyPrices.sell.toValue();
+                exchange.our.keys = 0;
+                exchange.their.scrap += exchange.their.keys * keyPrices.sell.toValue();
+                exchange.their.keys = 0;
+            }
         }
 
         offer.data('value', {
@@ -1437,7 +1467,13 @@ export default class MyHandler extends Handler {
                 keys: exchange.their.keys,
                 metal: Currencies.toRefined(exchange.their.scrap)
             },
-            rate: keyPrice.metal
+            rate: opt.miscSettings.counterOffer.useSeparateKeyRates ? keyPrices.buy.metal : keyPrices.sell.metal,
+            ...(opt.miscSettings.counterOffer.useSeparateKeyRates && {
+                rates: {
+                    buy: keyPrices.buy.metal,
+                    sell: keyPrices.sell.metal
+                }
+            })
         });
 
         offer.data('prices', itemPrices);
@@ -2110,181 +2146,196 @@ export default class MyHandler extends Handler {
     }
 
     onTradeOfferChanged(offer: TradeOffer, oldState: number, timeTakenToComplete?: number): void {
-        // Not sure if it can go from other states to active
-        if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
-            offer.data('switchedState', oldState);
-        }
+        void (async () => {
+            // Not sure if it can go from other states to active
+            if (oldState === TradeOfferManager.ETradeOfferState['Accepted']) {
+                offer.data('switchedState', oldState);
+            }
 
-        const highValue: {
-            isDisableSKU: string[];
-            theirItems: string[];
-            items: Items;
-        } = {
-            isDisableSKU: [],
-            theirItems: [],
-            items: {}
-        };
+            const highValue: {
+                isDisableSKU: string[];
+                theirItems: string[];
+                items: Items;
+            } = {
+                isDisableSKU: [],
+                theirItems: [],
+                items: {}
+            };
 
-        if (offer.data('handledByUs') === true) {
-            if (offer.data('notify') === true && offer.data('switchedState') !== offer.state) {
-                const notifyOpt = this.opt.steamChat.notifyTradePartner;
+            if (offer.data('handledByUs') === true) {
+                if (offer.data('notify') === true && offer.data('switchedState') !== offer.state) {
+                    const notifyOpt = this.opt.steamChat.notifyTradePartner;
 
-                if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
-                    if (notifyOpt.onSuccessAccepted) accepted(offer, this.bot);
+                    if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
+                        if (notifyOpt.onSuccessAccepted) accepted(offer, this.bot);
 
-                    if (offer.data('donation')) {
-                        this.bot.messageAdmins('✅ Success! Your donation has been sent and received!', []);
-                    } else if (offer.data('buyBptfPremium')) {
-                        this.bot.messageAdmins('✅ Success! Your premium purchase has been sent and received!', []);
-                    }
-                } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
-                    if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
-                } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
-                    if (notifyOpt.onDeclined) declined(offer, this.bot);
-                    offer.data('isDeclined', true);
-                } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
-                    if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
+                        if (offer.data('donation')) {
+                            this.bot.messageAdmins('✅ Success! Your donation has been sent and received!', []);
+                        } else if (offer.data('buyBptfPremium')) {
+                            this.bot.messageAdmins('✅ Success! Your premium purchase has been sent and received!', []);
+                        }
+                    } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
+                        if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
+                    } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
+                        if (notifyOpt.onDeclined) declined(offer, this.bot);
+                        offer.data('isDeclined', true);
+                    } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
+                        if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
 
-                    if (offer.data('canceledByUser') === true) {
-                        // do nothing
-                    } else if (oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']) {
-                        offer.data('isFailedConfirmation', true);
-                    } else {
-                        offer.data('isCanceledUnknown', true);
-                    }
-                    MyHandler.removePolldataKeys(offer);
-                } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
-                    if (notifyOpt.onTradedAway) invalid(offer, this.bot);
-                    offer.data('isInvalid', true);
-                    MyHandler.removePolldataKeys(offer);
-                }
-
-                // Update assetid in pricelist if needed
-                if (
-                    ((offer.state === TradeOfferManager.ETradeOfferState['Canceled'] &&
-                        offer.data('isCanceledUnknown') === true) ||
-                        offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) &&
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
-                    offer.tradeID
-                ) {
-                    if (Object.keys(this.bot.pricelist.assetidInPricelist).length < 1) {
-                        // Check if cache is not empty
-                        return;
+                        if (offer.data('canceledByUser') === true) {
+                            // do nothing
+                        } else if (oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']) {
+                            offer.data('isFailedConfirmation', true);
+                        } else {
+                            offer.data('isCanceledUnknown', true);
+                        }
+                        MyHandler.removePolldataKeys(offer);
+                    } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
+                        if (notifyOpt.onTradedAway) invalid(offer, this.bot);
+                        offer.data('isInvalid', true);
+                        MyHandler.removePolldataKeys(offer);
                     }
 
-                    offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
-                        if (err) {
-                            return log.error(err);
+                    // Update assetid in pricelist if needed
+                    if (
+                        ((offer.state === TradeOfferManager.ETradeOfferState['Canceled'] &&
+                            offer.data('isCanceledUnknown') === true) ||
+                            offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) &&
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        offer.tradeID
+                    ) {
+                        if (Object.keys(this.bot.pricelist.assetidInPricelist).length < 1) {
+                            // Check if cache is not empty
+                            return;
                         }
 
-                        if (Array.isArray(sentItems)) {
-                            sentItems.forEach(item => {
-                                const entry = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey: item.assetid });
+                        offer.getExchangeDetails(true, (err, status, tradeInitTime, receivedItems, sentItems) => {
+                            if (err) {
+                                return log.error(err);
+                            }
 
-                                if (entry !== null && entry.id && item.rollback_new_assetid) {
-                                    const newEntry = Object.assign({}, entry);
-                                    const oldId = entry.id;
-                                    newEntry.id = item.rollback_new_assetid;
-                                    delete newEntry.name;
-                                    delete newEntry.time;
+                            if (Array.isArray(sentItems)) {
+                                sentItems.forEach(item => {
+                                    const entry = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey: item.assetid });
 
-                                    this.bot.pricelist.replacePriceEntry(oldId, newEntry);
-                                    const msg = `✅ Automatically replaced ${oldId} with ${newEntry.id} in pricelist due to rollback.`;
-                                    log.debug(msg);
-                                    const dwEnabled =
-                                        this.bot.options.discordWebhook.sendAlert.enable &&
-                                        this.bot.options.discordWebhook.sendAlert.url.main !== '';
-                                    if (
-                                        this.bot.options.sendAlert.enable &&
-                                        this.bot.options.sendAlert.autoUpdateAssetid
-                                    ) {
-                                        if (dwEnabled) {
-                                            sendAlert('autoUpdateAssetid', this.bot, msg, null, null, [
-                                                oldId,
-                                                newEntry.id
-                                            ]);
-                                        } else {
-                                            this.bot.messageAdmins(msg, []);
+                                    if (entry !== null && entry.id && item.rollback_new_assetid) {
+                                        const newEntry = Object.assign({}, entry);
+                                        const oldId = entry.id;
+                                        newEntry.id = item.rollback_new_assetid;
+                                        delete newEntry.name;
+                                        delete newEntry.time;
+
+                                        this.bot.pricelist.replacePriceEntry(oldId, newEntry);
+                                        const msg = `✅ Automatically replaced ${oldId} with ${newEntry.id} in pricelist due to rollback.`;
+                                        log.debug(msg);
+                                        const dwEnabled =
+                                            this.bot.options.discordWebhook.sendAlert.enable &&
+                                            this.bot.options.discordWebhook.sendAlert.url.main !== '';
+                                        if (
+                                            this.bot.options.sendAlert.enable &&
+                                            this.bot.options.sendAlert.autoUpdateAssetid
+                                        ) {
+                                            if (dwEnabled) {
+                                                sendAlert('autoUpdateAssetid', this.bot, msg, null, null, [
+                                                    oldId,
+                                                    newEntry.id
+                                                ]);
+                                            } else {
+                                                this.bot.messageAdmins(msg, []);
+                                            }
                                         }
                                     }
-                                }
-                            });
-                        }
-                    });
+                                });
+                            }
+                        });
+                    }
+                }
+
+                if (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] && !this.sentSummary[offer.id]) {
+                    // Only run this if the bot handled the offer and do not send again if already sent once
+
+                    clearTimeout(this.resetSentSummaryTimeout);
+                    this.sentSummary[offer.id] = true;
+
+                    offer.data('isAccepted', true);
+                    offer.log('trade', 'has been accepted.');
+
+                    // Auto sell and buy keys if ref < minimum
+
+                    this.autokeys.check();
+
+                    const result = await processAccepted(offer, this.bot, timeTakenToComplete);
+
+                    highValue.isDisableSKU = result.isDisableSKU;
+                    highValue.theirItems = result.theirHighValuedItems;
+                    highValue.items = result.items;
+                } else if (
+                    offer.state === TradeOfferManager.ETradeOfferState['Declined'] &&
+                    this.bot.options.tradeSummary.declinedTrade.enable &&
+                    !this.sentSummary[offer.id]
+                ) {
+                    //No need to create a new timeout cause a trade can't be accepted after getting declined or cant be declined after being accepted.
+                    clearTimeout(this.resetSentSummaryTimeout);
+                    this.sentSummary[offer.id] = true;
+
+                    processDeclined(offer, this.bot);
+                    MyHandler.removePolldataKeys(offer);
                 }
             }
 
-            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] && !this.sentSummary[offer.id]) {
-                // Only run this if the bot handled the offer and do not send again if already sent once
+            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
+                // Offer is accepted
 
-                clearTimeout(this.resetSentSummaryTimeout);
-                this.sentSummary[offer.id] = true;
+                if (this.isCraftingManual === false) {
+                    // Smelt / combine metal
+                    keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
 
-                offer.data('isAccepted', true);
-                offer.log('trade', 'has been accepted.');
+                    // Craft duplicate weapons
+                    craftDuplicateWeapons(this.bot)
+                        .then(() => {
+                            return craftClassWeapons(this.bot);
+                        })
+                        .catch(err => {
+                            log.warn('Failed to craft duplicated craft/class weapons', err);
+                        });
+                }
 
-                // Auto sell and buy keys if ref < minimum
+                // Sort inventory
+                this.sortInventory();
 
-                this.autokeys.check();
+                // Tell bot uptime
+                log.debug(uptime());
 
-                const result = processAccepted(offer, this.bot, timeTakenToComplete);
+                // Update listings
+                updateListings(offer, this.bot, highValue);
 
-                highValue.isDisableSKU = result.isDisableSKU;
-                highValue.theirItems = result.theirHighValuedItems;
-                highValue.items = result.items;
-            } else if (
-                offer.state === TradeOfferManager.ETradeOfferState['Declined'] &&
-                this.bot.options.tradeSummary.declinedTrade.enable &&
-                !this.sentSummary[offer.id]
-            ) {
-                //No need to create a new timeout cause a trade can't be accepted after getting declined or cant be declined after being accepted.
-                clearTimeout(this.resetSentSummaryTimeout);
-                this.sentSummary[offer.id] = true;
-
-                processDeclined(offer, this.bot);
-                MyHandler.removePolldataKeys(offer);
-            }
-        }
-
-        if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
-            // Offer is accepted
-
-            if (this.isCraftingManual === false) {
-                // Smelt / combine metal
-                keepMetalSupply(this.bot, this.minimumScrap, this.minimumReclaimed, this.combineThreshold);
-
-                // Craft duplicate weapons
-                craftDuplicateWeapons(this.bot)
-                    .then(() => {
-                        return craftClassWeapons(this.bot);
-                    })
-                    .catch(err => {
-                        log.warn('Failed to craft duplicated craft/class weapons', err);
+                // Refresh pricedb.io inventory after trade if enabled
+                if (
+                    this.bot.pricedbStoreManager &&
+                    this.opt.miscSettings.pricedbStore.enable &&
+                    this.opt.miscSettings.pricedbStore.enableInventoryRefresh
+                ) {
+                    this.bot.pricedbStoreManager.refreshInventory().catch(err => {
+                        log.warn('Failed to refresh pricedb.io inventory after trade:', err);
                     });
+                }
+
+                // Invite to group
+                this.inviteToGroups(offer.partner);
+
+                // delete notify and meta keys from polldata after each successful trades
+                MyHandler.removePolldataKeys(offer);
+
+                this.resetSentSummaryTimeout = setTimeout(() => {
+                    this.sentSummary = {};
+                }, 2 * 60 * 1000);
+            } else {
+                this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
             }
-
-            // Sort inventory
-            this.sortInventory();
-
-            // Tell bot uptime
-            log.debug(uptime());
-
-            // Update listings
-            updateListings(offer, this.bot, highValue);
-
-            // Invite to group
-            this.inviteToGroups(offer.partner);
-
-            // delete notify and meta keys from polldata after each successful trades
-            MyHandler.removePolldataKeys(offer);
-
-            this.resetSentSummaryTimeout = setTimeout(() => {
-                this.sentSummary = {};
-            }, 2 * 60 * 1000);
-        } else {
-            this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
-        }
+        })().catch(err => {
+            log.error('Error in onTradeOfferChanged:', err);
+        });
     }
 
     private static removePolldataKeys(offer: TradeOffer): void {
@@ -2436,6 +2487,7 @@ export default class MyHandler extends Handler {
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
                                   .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                                  .replace(/%pricedb_store%/g, this.bot.getPricedbStoreUrl())
                             : `Hi! If you don't know how things work, please type "!${isAdmin ? 'help' : 'how2trade'}"`
                     );
                 }
@@ -2462,6 +2514,7 @@ export default class MyHandler extends Handler {
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
                           .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                          .replace(/%pricedb_store%/g, this.bot.getPricedbStoreUrl())
                     : `Hi ${friend.player_name}! If you don't know how things work, please type ` +
                           `"!${isAdmin ? 'help' : 'how2trade'}"`
             );
@@ -2522,6 +2575,11 @@ export default class MyHandler extends Handler {
 
     private getBPTFAccountInfo(): Promise<void> {
         return new Promise((resolve, reject) => {
+            if (!this.bot.manager.steamID) {
+                log.warn('Cannot get BPTF account info: not logged in to Steam');
+                return reject(new Error('Not logged in to Steam'));
+            }
+
             const steamID64 = this.bot.manager.steamID.getSteamID64();
 
             apiRequest<BPTFGetUserInfo>({

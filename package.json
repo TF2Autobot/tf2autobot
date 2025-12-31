@@ -15,18 +15,18 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/TF2Autobot/tf2autobot.git"
+        "url": "git+https://github.com/TF2-Price-DB/tf2autobot-pricedb.git"
     },
     "author": "TF2Autobot/IdiNium",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/TF2Autobot/tf2autobot/issues"
+        "url": "https://github.com/TF2-Price-DB/tf2autobot-pricedb/issues"
     },
     "updaterepo": true,
-    "updateMessage": "Steam/TF2 is quite unstable right now, update/restart at your own will.",
-    "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
+    "updateMessage": "New version may require changes to your options.json! Please check the readme for details!",
+    "homepage": "https://github.com/TF2-Price-DB/tf2autobot-pricedb#readme",
     "dependencies": {
-        "@tf2autobot/bptf-listings": "^5.7.10",
+        "@tf2autobot/bptf-listings": "github:purplebarber/node-bptf-listings#rate-limit-fixes",
         "@tf2autobot/bptf-login": "^2.4.0",
         "@tf2autobot/filter-axios-error": "^1.5.5",
         "@tf2autobot/jsonlint": "^1.0.0",
@@ -49,6 +49,7 @@
         "discord.js": "^14.25.1",
         "dot-prop": "^10.1.0",
         "dotenv": "^17.2.3",
+        "easycopypaste": "github:TryHardDo/EasyCopyPaste",
         "express": "^5.2.1",
         "isobject": "^4.0.0",
         "js-levenshtein": "^1.1.6",

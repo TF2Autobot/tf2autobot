@@ -49,6 +49,36 @@ export const pricesDataObject: jsonschema.Schema = {
                     },
                     time: {
                         type: ['number', 'null']
+                    },
+                    isPartialPriced: {
+                        type: 'boolean'
+                    },
+                    purchaseHistory: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                quantity: {
+                                    type: 'integer',
+                                    minimum: 1
+                                },
+                                pricePaid: {
+                                    $ref: 'tf2-currencies'
+                                },
+                                timestamp: {
+                                    type: 'integer',
+                                    minimum: 0
+                                }
+                            },
+                            required: ['quantity', 'pricePaid', 'timestamp'],
+                            additionalProperties: false
+                        }
+                    },
+                    partialPriceTime: {
+                        type: ['number', 'null']
+                    },
+                    lastInStockTime: {
+                        type: ['number', 'null']
                     }
                 },
                 required: ['sku', 'enabled', 'autoprice', 'max', 'min', 'intent'],

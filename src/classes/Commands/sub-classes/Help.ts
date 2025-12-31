@@ -169,13 +169,13 @@ export default class HelpCommands {
                 '.\n✨=== Request ===✨\n- ' +
                     [
                         `${prefix}check (sku|name|defindex)=<a> - Request the current price for an item from ${
-                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                            isCustomPricer ? 'Custom Pricer' : 'PriceDB.IO'
                         }`,
                         `pricecheck (sku|name|defindex|item)=<a> - Request an item to be price checked by ${
-                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                            isCustomPricer ? 'Custom Pricer' : 'PriceDB.IO'
                         }`,
                         `pricecheckall - Request all items in the bot's pricelist to be price checked by ${
-                            isCustomPricer ? 'Custom Pricer' : 'Prices.TF'
+                            isCustomPricer ? 'Custom Pricer' : 'PriceDB.IO'
                         }`
                     ].join(`\n- ${prefix}`)
             );
@@ -207,6 +207,20 @@ export default class HelpCommands {
                         `uncraftweapon - Get a list of the bot's uncraftable weapon stock 🔫`,
                         `paints - Get a list of paints partial sku 🎨`
                     ].join(`\n- ${prefix}`)
+            );
+
+            await timersPromises.setTimeout(2000);
+            this.bot.sendMessage(
+                steamID,
+                '.\n✨=== PriceDB.io Store ===✨\n- ' +
+                    [
+                        `${prefix}pricedbgroup - View your store group info, members, and friendly store URL 🏪`,
+                        `pricedbinvite <steamID> - Invite a user to your store group 📨`,
+                        `pricedbinvites - List pending group invites you've received 📬`,
+                        `pricedbaccept <groupId> - Accept a group invite ✅`,
+                        `pricedbleave <groupId> - Leave a store group 👋`
+                    ].join(`\n- ${prefix}`) +
+                    '\n\n💡 Tip: Use %pricedb_store% in your listing notes to automatically include your store URL!'
             );
         }
     }
