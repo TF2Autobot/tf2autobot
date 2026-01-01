@@ -441,6 +441,15 @@ export default class MyHandler extends Handler {
         }
     }
 
+    onDisconnected(eresult: number, msg?: string): void {
+        log.warn('Lost connection to Steam', { eresult, msg });
+        // Connection will be handled by Bot.onDisconnected
+    }
+
+    onLoggedOff(): void {
+        log.info('Logged off from Steam');
+    }
+
     async onMessage(steamID: SteamID, message: string): Promise<void> {
         if (!this.opt.commands.enable) {
             if (!this.bot.isAdmin(steamID)) {

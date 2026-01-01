@@ -162,6 +162,12 @@ export default class Bot {
 
     private tradeOfferUrlRetryTimeout: NodeJS.Timeout = null;
 
+    private reconnectAttempts = 0;
+
+    private isReconnecting = false;
+
+    private reconnectTimeout: NodeJS.Timeout = null;
+
     public autoRefreshListingsInterval: NodeJS.Timeout;
 
     private alreadyExecutedRefreshlist = false;
@@ -865,6 +871,8 @@ export default class Bot {
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
         this.addListener(this.client, 'refreshToken', this.handler.onRefreshToken.bind(this.handler), false);
+        this.addListener(this.client, 'disconnected', this.onDisconnected.bind(this), false);
+        this.addListener(this.client, 'loggedOff', this.onLoggedOff.bind(this), false);
         this.addAsyncListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
         this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
@@ -1733,6 +1741,84 @@ export default class Bot {
 
                 callback(authCode);
             });
+    }
+
+    private onDisconnected(eresult: EResult, msg?: string): void {
+        log.warn('Disconnected from Steam', { eresult, msg });
+
+        // Notify handler
+        this.handler.onDisconnected(eresult, msg);
+
+        // Check if we should attempt to reconnect
+        const reconnectConfig = this.options.steamConnection?.autoReconnect;
+        if (!reconnectConfig?.enable || this.botManager.isStopping || this.isReconnecting) {
+            return;
+        }
+
+        this.attemptReconnect();
+    }
+
+    private onLoggedOff(): void {
+        log.info('Logged off from Steam');
+        this.handler.onLoggedOff();
+    }
+
+    private attemptReconnect(): void {
+        const reconnectConfig = this.options.steamConnection?.autoReconnect;
+        if (!reconnectConfig?.enable) {
+            return;
+        }
+
+        const maxAttempts = reconnectConfig.maxAttempts ?? 5;
+        if (this.reconnectAttempts >= maxAttempts) {
+            log.error(`Maximum reconnection attempts (${maxAttempts}) reached. Stopping bot...`);
+            this.botManager.stop(new Error('Max reconnection attempts reached'), false, true);
+            return;
+        }
+
+        this.isReconnecting = true;
+        this.reconnectAttempts++;
+
+        let delay = (reconnectConfig.delaySeconds ?? 30) * 1000;
+
+        if (reconnectConfig.exponentialBackoff) {
+            // Exponential backoff: delay * (2 ^ (attempt - 1))
+            delay = delay * Math.pow(2, this.reconnectAttempts - 1);
+            // Cap at 5 minutes
+            delay = Math.min(delay, 5 * 60 * 1000);
+        }
+
+        log.info(`Attempting to reconnect (${this.reconnectAttempts}/${maxAttempts}) in ${delay / 1000} seconds...`);
+
+        this.reconnectTimeout = setTimeout(() => {
+            void (async () => {
+                try {
+                    log.info('Reconnecting to Steam...');
+                    await this.login(await this.getRefreshToken());
+
+                    // Reset reconnection state on successful login
+                    this.isReconnecting = false;
+                    this.reconnectAttempts = 0;
+
+                    log.info('Successfully reconnected to Steam!');
+
+                    // Restore online status and game
+                    if (this.ready) {
+                        this.client.setPersona(EPersonaState.Online);
+                        this.client.gamesPlayed(
+                            this.options.miscSettings.game.playOnlyTF2
+                                ? 440
+                                : [this.options.miscSettings.game.customName || 'Team Fortress 2', 440]
+                        );
+                    }
+                } catch (err) {
+                    log.error('Failed to reconnect:', err);
+                    this.isReconnecting = false;
+                    // Try again
+                    this.attemptReconnect();
+                }
+            })();
+        }, delay);
     }
 
     private async onError(err: CustomError): Promise<void> {

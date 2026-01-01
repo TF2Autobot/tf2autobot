@@ -5,6 +5,8 @@ declare module 'steam-user' {
     interface Events {
         loggedOn: () => void;
         webSession: (sessionID: string, cookies: string) => void;
+        disconnected: (eresult: EResult, msg?: string) => void;
+        loggedOff: () => void;
         accountLimitations: (
             limited: boolean,
             communityBanned: boolean,
