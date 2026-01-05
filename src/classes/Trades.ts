@@ -379,7 +379,6 @@ export default class Trades {
             return Promise.resolve();
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return actionFunc()
             .catch(err => {
                 this.onFailedAction(offer, action, reason, err);
@@ -681,9 +680,12 @@ export default class Trades {
                                     }, 30 * 1000);
                                 }
 
-                                this.resetRetryAcceptOfferTimeout = setTimeout(() => {
-                                    this.retryAcceptOffer = {};
-                                }, 2 * 60 * 1000);
+                                this.resetRetryAcceptOfferTimeout = setTimeout(
+                                    () => {
+                                        this.retryAcceptOffer = {};
+                                    },
+                                    2 * 60 * 1000
+                                );
                             }
                         });
                     }
@@ -1458,9 +1460,12 @@ export default class Trades {
     }
 
     private retryToRestart(steamID: string): void {
-        this.restartOnEscrowCheckFailed = setTimeout(() => {
-            void this.triggerRestartBot(steamID);
-        }, 3 * 60 * 1000);
+        this.restartOnEscrowCheckFailed = setTimeout(
+            () => {
+                void this.triggerRestartBot(steamID);
+            },
+            3 * 60 * 1000
+        );
     }
 
     private async triggerRestartBot(steamID: string): Promise<void> {

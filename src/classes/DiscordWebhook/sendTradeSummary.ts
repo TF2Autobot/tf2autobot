@@ -85,16 +85,16 @@ export default async function sendTradeSummary(
                   IVAmount > 0 && isMentionHV
                       ? `INVALID_ITEMS and High value ${pluralize('item', IVAmount + HVAmount)}`
                       : IVAmount > 0 && !isMentionHV
-                      ? `INVALID_ITEMS ${pluralize('item', IVAmount)}`
-                      : IVAmount === 0 && isMentionHV
-                      ? `High Value ${pluralize('item', HVAmount)}`
-                      : ''
+                        ? `INVALID_ITEMS ${pluralize('item', IVAmount)}`
+                        : IVAmount === 0 && isMentionHV
+                          ? `High Value ${pluralize('item', HVAmount)}`
+                          : ''
               } trade here!`
             : optDW.tradeSummary.mentionOwner.enable &&
-              optDW.ownerID.length > 0 &&
-              (isMentionOurItems || isMentionTheirItems || isMentionOnGreaterValue)
-            ? optDW.ownerID.map(id => `<@!${id}>`).join(', ')
-            : '';
+                optDW.ownerID.length > 0 &&
+                (isMentionOurItems || isMentionTheirItems || isMentionOnGreaterValue)
+              ? optDW.ownerID.map(id => `<@!${id}>`).join(', ')
+              : '';
 
     const details = await getPartnerDetails(offer, bot);
 
@@ -160,8 +160,8 @@ export default async function sendTradeSummary(
                                       keyPrices.src === 'manual'
                                           ? 'manual'
                                           : isCustomPricer
-                                          ? 'custom-pricer'
-                                          : 'prices.tf'
+                                            ? 'custom-pricer'
+                                            : 'prices.tf'
                                   })` +
                                   `${
                                       autokeys.isEnabled
@@ -171,8 +171,8 @@ export default async function sendTradeSummary(
                                                   (status.isBankingKeys
                                                       ? ' (banking)'
                                                       : status.isBuyingKeys
-                                                      ? ' (buying)'
-                                                      : ' (selling)')
+                                                        ? ' (buying)'
+                                                        : ' (selling)')
                                                 : '🛑')
                                           : ''
                                   }`

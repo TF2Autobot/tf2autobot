@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 declare module '@tf2autobot/tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';

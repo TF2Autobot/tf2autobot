@@ -25,12 +25,12 @@ export = function (data: EntryData | Options, schema: string): string[] | null {
         schema === 'pricelist-add'
             ? pl.addSchema
             : schema === 'pricelist'
-            ? pl.pricelistSchema
-            : schema === 'prices-data-object'
-            ? pl.pricesDataObject
-            : schema === 'options'
-            ? optionsSchema
-            : {};
+              ? pl.pricelistSchema
+              : schema === 'prices-data-object'
+                ? pl.pricesDataObject
+                : schema === 'options'
+                  ? optionsSchema
+                  : {};
 
     const validated = v.validate(data, putSchema);
     if (validated.valid === true) {

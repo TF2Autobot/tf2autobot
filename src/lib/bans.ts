@@ -371,7 +371,7 @@ export function isBptfBanned({
                 const isBptfBanned =
                     user.bans && (user.bans.all !== undefined || user.bans['all features'] !== undefined);
                 const isSteamRepBanned = user.bans ? user.bans.steamrep_scammer === 1 : false;
-                const banReason = user.bans ? user.bans.all?.reason ?? user.bans['all features']?.reason ?? '' : '';
+                const banReason = user.bans ? (user.bans.all?.reason ?? user.bans['all features']?.reason ?? '') : '';
 
                 return resolve({ isBanned: isBptfBanned, content: banReason, isSteamRepBanned });
             })

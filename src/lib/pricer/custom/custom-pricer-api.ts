@@ -69,7 +69,10 @@ export interface CustomPricerPricesRequestCheckResponse extends CustomPricesResp
 }
 
 export default class CustomPricerApi {
-    public constructor(public url?: string, public apiToken?: string) {}
+    public constructor(
+        public url?: string,
+        public apiToken?: string
+    ) {}
 
     private apiRequest<R extends CustomPricesResponse>(
         httpMethod: string,
