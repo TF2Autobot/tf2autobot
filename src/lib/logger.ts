@@ -62,6 +62,7 @@ const consoleFormat = winston.format.combine(
         stack: true
     }),
     winston.format.printf(info => {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         let msg = `${info.timestamp} ${info.level}: ${info.message}`;
 
         const splat = info[Symbol.for('splat') as unknown as string];

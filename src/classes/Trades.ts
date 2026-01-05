@@ -321,9 +321,11 @@ export default class Trades {
                     return this.finishProcessingOffer(offer.id);
                 }
 
-                this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(() => {
-                    this.finishProcessingOffer(offer.id);
-                });
+                void this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(
+                    () => {
+                        this.finishProcessingOffer(offer.id);
+                    }
+                );
             })
             .catch((err: Error) => {
                 log.error('Error occurred while handler was processing offer: ', err);
@@ -493,10 +495,10 @@ export default class Trades {
                     isRetryAccept ? (offer.data('meta') as Meta) : {},
                     offer
                 );
-            } catch (err) {
+            } catch (_) {
                 // Ignore err
             }
-        } catch (err) {
+        } catch (_) {
             // Ignore err
         }
     }

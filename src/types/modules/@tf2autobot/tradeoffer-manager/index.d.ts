@@ -441,7 +441,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
 
             data(): UnknownKeys<any>;
 
-            data(key: string): any | undefined;
+            data(key: string): any;
 
             data(key: string, value: any): void;
 

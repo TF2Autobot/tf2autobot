@@ -1434,7 +1434,7 @@ export default class Bot {
 
                     if (err.eresult === EResult.AccessDenied) {
                         // Access denied during login
-                        this.deleteRefreshToken().finally(() => {
+                        void this.deleteRefreshToken().finally(() => {
                             reject(err);
                         });
                     } else {
@@ -1680,7 +1680,7 @@ export default class Bot {
         let offset: number;
         try {
             offset = await this.getTimeOffset;
-        } catch (err) {
+        } catch (_) {
             // ignore error
         }
 

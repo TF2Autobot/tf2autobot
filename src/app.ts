@@ -4,7 +4,7 @@ try {
     const { bootstrap } = require('global-agent');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     bootstrap();
-} catch (e) {
+} catch (_) {
     // no worries
 }
 import 'module-alias/register';

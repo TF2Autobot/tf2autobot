@@ -5,9 +5,9 @@
     "main": "dist/app.js",
     "scripts": {
         "release": "np --no-cleanup --no-publish",
-        "build": "tsc -p .",
+        "build": "tsc -p ./tsconfig.build.json",
         "pretest": "npm run lint",
-        "test": "vitest",
+        "test": "vitest run",
         "prelint": "npm run eslint-check",
         "lint": "eslint .",
         "prettier": "prettier --check src/**/* && prettier --check *.json",

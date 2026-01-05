@@ -7,7 +7,7 @@ export function exponentialBackoff(n: number, base = 1000): number {
 export function parseJSON(json: string): UnknownDictionaryKnownValues | null {
     try {
         return JSON.parse(json) as UnknownDictionaryKnownValues;
-    } catch (err) {
+    } catch (_) {
         return null;
     }
 }

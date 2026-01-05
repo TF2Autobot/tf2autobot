@@ -183,7 +183,7 @@ const responses = {
 import * as CustomPricerApi from '../lib/pricer/custom/custom-pricer-api';
 
 vi.spyOn(CustomPricerApi, 'default').mockImplementation(
-    // @ts-ignore
+    // @ts-expect-error Not implementing full interface, does not matter for mock
     class FakeClass {
         getSchema = vi.fn(() => Promise.resolve(responses.schema));
 

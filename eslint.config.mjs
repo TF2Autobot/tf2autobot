@@ -7,7 +7,7 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 
 export default defineConfig([
     {
-        ignores: ['local', 'dist']
+        ignores: ['local', 'dist', 'eslint.config.mjs', '.prettierrc.js']
     },
     eslint.configs.recommended,
     //tseslint.configs.eslintRecommended,
@@ -28,6 +28,9 @@ export default defineConfig([
             '@typescript-eslint/no-explicit-any': [0],
             '@typescript-eslint/ban-ts-ignore': [0],
             '@typescript-eslint/no-use-before-define': [0],
+            '@typescript-eslint/prefer-promise-reject-errors': 'off',
+            '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
             'no-console': 'error',
             'tsdoc/syntax': 'error',
             '@typescript-eslint/no-duplicate-enum-values': "off",
@@ -37,25 +40,17 @@ export default defineConfig([
                     endOfLine: 'auto',
                     arrowParens: 'avoid'
                 }
-            ]
+            ],
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    varsIgnorePattern: '^_$',
+                    argsIgnorePattern: '^_',
+                    ignoreRestSiblings: true,
+                    caughtErrorsIgnorePattern: '^_',
+                },
+            ],
         }
     },
     eslintPluginPrettierRecommended
 ]);
-/*
-module.exports = {
-    root: true,
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-        project: './tsconfig.eslint.json'
-    },
-    plugins: ['@typescript-eslint', 'eslint-plugin-tsdoc', 'prettier'],
-    extends: [
-        'eslint:recommended',
-        'plugin:@typescript-eslint/eslint-recommended',
-        'plugin:@typescript-eslint/recommended',
-        'plugin:@typescript-eslint/recommended-requiring-type-checking',
-        'prettier',
-        'plugin:prettier/recommended'
-    ],
-*/
