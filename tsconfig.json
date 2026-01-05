@@ -19,6 +19,6 @@
         "sourceMap": false,    // turn on for debug ~ 20 MB
         "forceConsistentCasingInFileNames": true
     },
-    "exclude": ["./node_modules", "**/__mocks__/*", "**/__tests__/*"],
+    "exclude": ["./node_modules", "**/*.test.ts"],
     "include": ["./src"]
 }

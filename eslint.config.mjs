@@ -1,28 +1,26 @@
 import { defineConfig } from 'eslint/config';
 import tsdocPlugin from 'eslint-plugin-tsdoc';
-import prettierPlugin from 'eslint-plugin-prettier';
-
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
+
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 
 export default defineConfig([
     {
         ignores: ['local', 'dist']
     },
     eslint.configs.recommended,
-    tseslint.configs.eslintRecommended,
-    tseslint.configs.recommended,
+    //tseslint.configs.eslintRecommended,
     tseslint.configs.recommendedTypeChecked,
     {
         plugins: {
             '@typescript-eslint': tseslint.plugin,
             tsdoc: tsdocPlugin,
-            prettier: prettierPlugin
         },
         languageOptions: {
-            parser: tseslint.parser,
             parserOptions: {
                 projectService: true,
+                tsconfigRootDir: import.meta.dirname,
             }
         },
         rules: {
@@ -32,6 +30,7 @@ export default defineConfig([
             '@typescript-eslint/no-use-before-define': [0],
             'no-console': 'error',
             'tsdoc/syntax': 'error',
+            '@typescript-eslint/no-duplicate-enum-values': "off",
             'prettier/prettier': [
                 'error',
                 {
@@ -40,7 +39,8 @@ export default defineConfig([
                 }
             ]
         }
-    }
+    },
+    eslintPluginPrettierRecommended
 ]);
 /*
 module.exports = {
