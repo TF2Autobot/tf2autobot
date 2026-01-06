@@ -53,7 +53,7 @@
       "url": "^0.11.4",
       "winston": "^3.19.0",
       "write-file-atomic": "^7.0.0",
-        "ws": "^8.18.3"
+        "ws": "^8.19.0"
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.28.5",
