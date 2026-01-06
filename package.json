@@ -72,7 +72,7 @@
         "@types/valid-url": "^1.0.7",
         "@types/write-file-atomic": "^4.0.3",
         "@types/ws": "^8.18.1",
-        "@typescript-eslint/eslint-plugin": "^8.50.1",
+        "@typescript-eslint/eslint-plugin": "^8.52.0",
         "@typescript-eslint/parser": "^8.50.1",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
