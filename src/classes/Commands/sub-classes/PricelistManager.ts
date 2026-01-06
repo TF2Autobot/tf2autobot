@@ -486,6 +486,7 @@ export default class PricelistManagerCommands {
                         });
                 }
             } catch (err) {
+                PricelistManagerCommands.isBulkOperation = false;
                 return this.bot.sendMessage(
                     steamID,
                     `❌ Bulk add operation aborted: Failed to obtain pricelist from pricer: ${(err as Error)?.message}`
@@ -1559,6 +1560,7 @@ export default class PricelistManagerCommands {
                         });
                 }
             } catch (err) {
+                PricelistManagerCommands.isBulkOperation = false;
                 return this.bot.sendMessage(
                     steamID,
                     `❌ Bulk update operation aborted: Failed to obtain pricelist from pricer: ${
