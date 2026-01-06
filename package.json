@@ -13,6 +13,9 @@
         "prettier": "prettier --check src/**/* && prettier --check *.json",
         "eslint-check": "npx eslint-config-prettier src/app.ts"
     },
+    "engines": {
+        "node": ">= 22.0.0"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/TF2Autobot/tf2autobot.git"
