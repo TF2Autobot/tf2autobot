@@ -2269,6 +2269,7 @@ function throwLintError(filepath: string, e: Error): void {
         throw new Error(`${filepath}\n${e.message}`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
     throw e;
 }
 
@@ -2458,10 +2459,10 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
 
     // v4.12.1 -> v4.13.0
     /*eslint-disable */
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     //@ts-ignore
     if (options.bypass?.bannedPeople !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
         //@ts-ignore
         const mptfCheckValue = options.bypass.bannedPeople?.checkMptfBanned;
 
@@ -2474,7 +2475,7 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
             };
         }
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
         //@ts-ignore
         delete options.bypass.bannedPeople;
         isChanged = true;

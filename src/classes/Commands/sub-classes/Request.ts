@@ -14,7 +14,10 @@ import IPricer, { RequestCheckFn, RequestCheckResponse } from '../../IPricer';
 import Pricelist from '../../Pricelist';
 
 export default class RequestCommands {
-    constructor(private readonly bot: Bot, private priceSource: IPricer) {
+    constructor(
+        private readonly bot: Bot,
+        private priceSource: IPricer
+    ) {
         this.bot = bot;
 
         this.priceSource = priceSource;
@@ -86,8 +89,8 @@ export default class RequestCommands {
                 totalTime < aMin
                     ? `${Math.round(totalTime / aSecond)} seconds.`
                     : totalTime < anHour
-                    ? `${Math.round(totalTime / aMin)} minutes.`
-                    : `${Math.round(totalTime / anHour)} hours.`
+                      ? `${Math.round(totalTime / aMin)} minutes.`
+                      : `${Math.round(totalTime / anHour)} hours.`
             } (about 2 seconds for each item).`
         );
 
@@ -160,7 +163,10 @@ class Pricecheck {
 
     private total = 0;
 
-    constructor(private readonly bot: Bot, private readonly steamID: SteamID) {
+    constructor(
+        private readonly bot: Bot,
+        private readonly steamID: SteamID
+    ) {
         this.bot = bot;
     }
 

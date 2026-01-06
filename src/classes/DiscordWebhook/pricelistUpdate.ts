@@ -1817,8 +1817,8 @@ export default function sendWebHookPriceUpdateV1(
         const url = itemName.includes('Specialized')
             ? ks2Images[item.target]
             : itemName.includes('Professional')
-            ? ks3Images[item.target]
-            : ks1Images[item.target];
+              ? ks3Images[item.target]
+              : ks1Images[item.target];
 
         if (url) {
             itemImageUrlPrint = `${front}${url}/380fx380f`;

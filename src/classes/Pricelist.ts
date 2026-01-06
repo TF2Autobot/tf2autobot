@@ -760,9 +760,12 @@ export default class Pricelist extends EventEmitter {
     }
 
     private initCheckCache(): void {
-        this.checkAssetidInPricelistInterval = setInterval(() => {
-            this.checkCacheAssetidInPricelist();
-        }, 2.5 * 60 * 1000);
+        this.checkAssetidInPricelistInterval = setInterval(
+            () => {
+                this.checkCacheAssetidInPricelist();
+            },
+            2.5 * 60 * 1000
+        );
     }
 
     async setPricelist(prices: PricesDataObject, bot: Bot): Promise<void> {
@@ -922,9 +925,12 @@ export default class Pricelist extends EventEmitter {
                 time: 1614000000
             };
 
-            this.retryGetKeyPrices = setTimeout(() => {
-                void this.updateKeyPrices();
-            }, 15 * 60 * 1000);
+            this.retryGetKeyPrices = setTimeout(
+                () => {
+                    void this.updateKeyPrices();
+                },
+                15 * 60 * 1000
+            );
         }
     }
 
@@ -946,9 +952,12 @@ export default class Pricelist extends EventEmitter {
 
                 if (!canUseKeyPricesFromSource) {
                     log.debug('❌ Broken keyPrices, retrying in 15 minutes...');
-                    this.retryGetKeyPrices = setTimeout(() => {
-                        void this.updateKeyPrices();
-                    }, 15 * 60 * 1000);
+                    this.retryGetKeyPrices = setTimeout(
+                        () => {
+                            void this.updateKeyPrices();
+                        },
+                        15 * 60 * 1000
+                    );
 
                     log.error(
                         'Broken key prices from source - Please make sure prices for Mann Co. Supply Crate Key (5021;6) are correct - ' +
@@ -970,9 +979,12 @@ export default class Pricelist extends EventEmitter {
             })
             .catch(err => {
                 log.debug('⚠️ Still unable to get current key prices, retrying in 15 minutes: ', err);
-                this.retryGetKeyPrices = setTimeout(() => {
-                    void this.updateKeyPrices();
-                }, 15 * 60 * 1000);
+                this.retryGetKeyPrices = setTimeout(
+                    () => {
+                        void this.updateKeyPrices();
+                    },
+                    15 * 60 * 1000
+                );
             });
     }
 

@@ -1,4 +1,5 @@
-import CommandParser from '../CommandParser';
+import CommandParser from './CommandParser';
+import { it, expect } from 'vitest';
 
 it('can parse arrays', () => {
     let message = '!config highValue.sheens=[Team Shine]';

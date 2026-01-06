@@ -1,8 +1,9 @@
-import * as Options from '../Options';
+import * as Options from './Options';
 import { existsSync, mkdirSync, readdirSync, rmdirSync, unlinkSync, writeFileSync, readFileSync } from 'fs';
 import path from 'path';
-import { DEFAULTS as defaultOptions } from '../Options';
-import { deepMerge } from '../../lib/tools/deep-merge';
+import { DEFAULTS as defaultOptions } from './Options';
+import { deepMerge } from '../lib/tools/deep-merge';
+import { afterAll, beforeEach, test, expect, vi } from 'vitest';
 
 const OLD_ENV = process.env;
 
@@ -14,9 +15,9 @@ function cleanPath(p: string): void {
 }
 
 beforeEach(() => {
-    cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'abc123'));
-    cleanPath(path.resolve(__dirname, '..', '..', '..', 'files', 'test123'));
-    jest.resetModules(); // most important - it clears the cache
+    cleanPath(path.resolve(__dirname, '..', '..', 'files', 'abc123'));
+    cleanPath(path.resolve(__dirname, '..', '..', 'files', 'test123'));
+    vi.resetModules(); // most important - it clears the cache
     process.env = { ...OLD_ENV }; // make a copy
 });
 

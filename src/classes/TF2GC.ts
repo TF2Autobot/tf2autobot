@@ -724,7 +724,7 @@ interface TF2GCItem {
     origin: number;
     custom_name: string | null;
     custom_desc: string | null;
-    interior_item: any | null;
+    interior_item: any;
     in_use: boolean;
     style: number;
     original_id: string | null;

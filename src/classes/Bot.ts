@@ -172,7 +172,11 @@ export default class Bot {
 
     public periodicCheckAdmin: NodeJS.Timeout;
 
-    constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
+    constructor(
+        public readonly botManager: BotManager,
+        public options: Options,
+        readonly priceSource: IPricer
+    ) {
         this.botManager = botManager;
 
         this.client = new SteamUser();
@@ -262,10 +266,13 @@ export default class Bot {
 
     private initResetCacheInterval(): void {
         clearInterval(this.resetRepCache);
-        this.resetRepCache = setInterval(() => {
-            // Reset repCache every 12 hours (well, will always reset on restart)
-            this.repCache = {};
-        }, 12 * 60 * 60 * 1000);
+        this.resetRepCache = setInterval(
+            () => {
+                // Reset repCache every 12 hours (well, will always reset on restart)
+                this.repCache = {};
+            },
+            12 * 60 * 60 * 1000
+        );
     }
 
     private async checkAdminBanned(): Promise<boolean> {
@@ -298,17 +305,20 @@ export default class Bot {
     }
 
     private periodicCheck(): void {
-        this.periodicCheckAdmin = setInterval(() => {
-            void this.checkAdminBanned()
-                .then(banned => {
-                    if (banned) {
-                        return this.botManager.stop(new Error('Not allowed'));
-                    }
-                })
-                .catch(() => {
-                    // ignore error
-                });
-        }, 12 * 60 * 60 * 1000);
+        this.periodicCheckAdmin = setInterval(
+            () => {
+                void this.checkAdminBanned()
+                    .then(banned => {
+                        if (banned) {
+                            return this.botManager.stop(new Error('Not allowed'));
+                        }
+                    })
+                    .catch(() => {
+                        // ignore error
+                    });
+            },
+            12 * 60 * 60 * 1000
+        );
     }
 
     private getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
@@ -465,11 +475,14 @@ export default class Bot {
         void this.checkForUpdates;
 
         // Check for updates every 10 minutes
-        setInterval(() => {
-            this.checkForUpdates.catch(err => {
-                log.error('Failed to check for updates: ', err);
-            });
-        }, 10 * 60 * 1000);
+        setInterval(
+            () => {
+                this.checkForUpdates.catch(err => {
+                    log.error('Failed to check for updates: ', err);
+                });
+            },
+            10 * 60 * 1000
+        );
     }
 
     get checkForUpdates(): Promise<{
@@ -609,9 +622,12 @@ export default class Bot {
                 this.listingManager.getListings(false, async (err: AxiosError) => {
                     if (err) {
                         log.warn('Error getting listings on auto-refresh listings operation:', filterAxiosError(err));
-                        setTimeout(() => {
-                            this.startAutoRefreshListings();
-                        }, 30 * 60 * 1000);
+                        setTimeout(
+                            () => {
+                                this.startAutoRefreshListings();
+                            },
+                            30 * 60 * 1000
+                        );
                         clearInterval(this.autoRefreshListingsInterval);
                         return;
                     }
@@ -1153,9 +1169,12 @@ export default class Bot {
                         log.debug('Getting localization file...');
                         this.getLocalizationFile()
                             .then(() => {
-                                setInterval(() => {
-                                    void this.getLocalizationFile();
-                                }, 24 * 60 * 60 * 1000);
+                                setInterval(
+                                    () => {
+                                        void this.getLocalizationFile();
+                                    },
+                                    24 * 60 * 60 * 1000
+                                );
                                 callback(null);
                             })
                             .catch(err => {
@@ -1230,9 +1249,12 @@ export default class Bot {
     }
 
     private refreshSchemaProperties(): void {
-        this.updateSchemaPropertiesInterval = setInterval(() => {
-            this.setProperties();
-        }, 24 * 60 * 60 * 1000);
+        this.updateSchemaPropertiesInterval = setInterval(
+            () => {
+                this.setProperties();
+            },
+            24 * 60 * 60 * 1000
+        );
     }
 
     setCookies(cookies: string[]): Promise<void> {
@@ -1412,7 +1434,7 @@ export default class Bot {
 
                     if (err.eresult === EResult.AccessDenied) {
                         // Access denied during login
-                        this.deleteRefreshToken().finally(() => {
+                        void this.deleteRefreshToken().finally(() => {
                             reject(err);
                         });
                     } else {
@@ -1658,7 +1680,7 @@ export default class Bot {
         let offset: number;
         try {
             offset = await this.getTimeOffset;
-        } catch (err) {
+        } catch (_) {
             // ignore error
         }
 

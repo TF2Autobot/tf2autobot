@@ -7,7 +7,10 @@ import { EconItem } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../Bot';
 
 export default class InventoryApi {
-    constructor(private bot: Bot, private optionsKey: string) {}
+    constructor(
+        private bot: Bot,
+        private optionsKey: string
+    ) {}
 
     public isEnabled(): boolean {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access

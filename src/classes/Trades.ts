@@ -321,9 +321,11 @@ export default class Trades {
                     return this.finishProcessingOffer(offer.id);
                 }
 
-                this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(() => {
-                    this.finishProcessingOffer(offer.id);
-                });
+                void this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(
+                    () => {
+                        this.finishProcessingOffer(offer.id);
+                    }
+                );
             })
             .catch((err: Error) => {
                 log.error('Error occurred while handler was processing offer: ', err);
@@ -379,7 +381,6 @@ export default class Trades {
             return Promise.resolve();
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return actionFunc()
             .catch(err => {
                 this.onFailedAction(offer, action, reason, err);
@@ -494,10 +495,10 @@ export default class Trades {
                     isRetryAccept ? (offer.data('meta') as Meta) : {},
                     offer
                 );
-            } catch (err) {
+            } catch (_) {
                 // Ignore err
             }
-        } catch (err) {
+        } catch (_) {
             // Ignore err
         }
     }
@@ -681,9 +682,12 @@ export default class Trades {
                                     }, 30 * 1000);
                                 }
 
-                                this.resetRetryAcceptOfferTimeout = setTimeout(() => {
-                                    this.retryAcceptOffer = {};
-                                }, 2 * 60 * 1000);
+                                this.resetRetryAcceptOfferTimeout = setTimeout(
+                                    () => {
+                                        this.retryAcceptOffer = {};
+                                    },
+                                    2 * 60 * 1000
+                                );
                             }
                         });
                     }
@@ -1458,9 +1462,12 @@ export default class Trades {
     }
 
     private retryToRestart(steamID: string): void {
-        this.restartOnEscrowCheckFailed = setTimeout(() => {
-            void this.triggerRestartBot(steamID);
-        }, 3 * 60 * 1000);
+        this.restartOnEscrowCheckFailed = setTimeout(
+            () => {
+                void this.triggerRestartBot(steamID);
+            },
+            3 * 60 * 1000
+        );
     }
 
     private async triggerRestartBot(steamID: string): Promise<void> {

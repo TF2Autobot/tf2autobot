@@ -196,7 +196,10 @@ export default class MyHandler extends Handler {
 
     private pollDataInterval: NodeJS.Timeout;
 
-    constructor(public bot: Bot, private priceSource: IPricer) {
+    constructor(
+        public bot: Bot,
+        private priceSource: IPricer
+    ) {
         super(bot);
 
         this.commands = new Commands(bot, priceSource);
@@ -282,9 +285,12 @@ export default class MyHandler extends Handler {
         this.bot.sendStats();
 
         // Check for missing listings every 30 minutes, initiate setInterval 5 minutes after start
-        this.refreshTimeout = setTimeout(() => {
-            this.bot.startAutoRefreshListings();
-        }, 5 * 60 * 1000);
+        this.refreshTimeout = setTimeout(
+            () => {
+                this.bot.startAutoRefreshListings();
+            },
+            5 * 60 * 1000
+        );
 
         this.pollDataInterval = setInterval(this.refreshPollDataPath.bind(this), 24 * 60 * 60 * 1000);
 
@@ -2279,9 +2285,12 @@ export default class MyHandler extends Handler {
             // delete notify and meta keys from polldata after each successful trades
             MyHandler.removePolldataKeys(offer);
 
-            this.resetSentSummaryTimeout = setTimeout(() => {
-                this.sentSummary = {};
-            }, 2 * 60 * 1000);
+            this.resetSentSummaryTimeout = setTimeout(
+                () => {
+                    this.sentSummary = {};
+                },
+                2 * 60 * 1000
+            );
         } else {
             this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
@@ -2442,9 +2451,12 @@ export default class MyHandler extends Handler {
 
                 log.debug('Waiting for name');
                 // Wait for friend info to be available
-                setTimeout(() => {
-                    this.onNewFriend(steamID, tries);
-                }, exponentialBackoff(tries - 1, 200));
+                setTimeout(
+                    () => {
+                        this.onNewFriend(steamID, tries);
+                    },
+                    exponentialBackoff(tries - 1, 200)
+                );
                 return;
             }
 
@@ -2547,11 +2559,14 @@ export default class MyHandler extends Handler {
                     log.error('Failed requesting bot info from backpack.tf, retrying in 5 minutes: ', err);
                     clearTimeout(this.retryRequest);
 
-                    this.retryRequest = setTimeout(() => {
-                        this.getBPTFAccountInfo().catch(() => {
-                            // ignore error
-                        });
-                    }, 5 * 60 * 1000);
+                    this.retryRequest = setTimeout(
+                        () => {
+                            this.getBPTFAccountInfo().catch(() => {
+                                // ignore error
+                            });
+                        },
+                        5 * 60 * 1000
+                    );
                     return reject();
                 });
         });

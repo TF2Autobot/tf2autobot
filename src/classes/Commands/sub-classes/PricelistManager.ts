@@ -28,7 +28,10 @@ export default class PricelistManagerCommands {
 
     static isBulkOperation = false;
 
-    constructor(private readonly bot: Bot, private priceSource: IPricer) {
+    constructor(
+        private readonly bot: Bot,
+        private priceSource: IPricer
+    ) {
         this.bot = bot;
     }
 
@@ -686,8 +689,8 @@ export default class PricelistManagerCommands {
                     totalTime < aMin
                         ? `${Math.round(totalTime / aSecond)} seconds`
                         : totalTime < anHour
-                        ? `${Math.round(totalTime / aMin)} minutes`
-                        : `${Math.round(totalTime / anHour)} hours`
+                          ? `${Math.round(totalTime / aMin)} minutes`
+                          : `${Math.round(totalTime / anHour)} hours`
                 } to complete. Send "${prefix}stopautoadd" to abort.`
         );
 

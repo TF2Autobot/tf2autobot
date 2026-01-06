@@ -485,8 +485,8 @@ export default class ManagerCommands {
                         totalTime < aMin
                             ? `${Math.round(totalTime / aSecond)} seconds`
                             : totalTime < anHour
-                            ? `${Math.round(totalTime / aMin)} minutes`
-                            : `${Math.round(totalTime / anHour)} hours`
+                              ? `${Math.round(totalTime / aMin)} minutes`
+                              : `${Math.round(totalTime / anHour)} hours`
                     } to complete.`
             );
 
@@ -759,12 +759,15 @@ export default class ManagerCommands {
                     this.bot.setRefreshlistExecutedDelay = (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000;
                     this.pricelistCount = pricelistCount;
                     this.executedRefreshList = true;
-                    this.executeRefreshListTimeout = setTimeout(() => {
-                        this.lastExecutedRefreshListTime = null;
-                        this.executedRefreshList = false;
-                        this.bot.isRecentlyExecuteRefreshlistCommand = false;
-                        clearTimeout(this.executeRefreshListTimeout);
-                    }, (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000);
+                    this.executeRefreshListTimeout = setTimeout(
+                        () => {
+                            this.lastExecutedRefreshListTime = null;
+                            this.executedRefreshList = false;
+                            this.bot.isRecentlyExecuteRefreshlistCommand = false;
+                            clearTimeout(this.executeRefreshListTimeout);
+                        },
+                        (this.pricelistCount > 4000 ? 60 : 30) * 60 * 1000
+                    );
 
                     await this.bot.listings.recursiveCheckPricelist(
                         skusToCheck,
@@ -812,26 +815,26 @@ export default class ManagerCommands {
             currKey < userPure.minKeys
                 ? keyBlMin
                 : currKey > userPure.maxKeys
-                ? keyAbMax
-                : currKey > userPure.minKeys && currKey < userPure.maxKeys
-                ? keyAtBet
-                : currKey === userPure.minKeys
-                ? keyAtMin
-                : currKey === userPure.maxKeys
-                ? keyAtMax
-                : '';
+                  ? keyAbMax
+                  : currKey > userPure.minKeys && currKey < userPure.maxKeys
+                    ? keyAtBet
+                    : currKey === userPure.minKeys
+                      ? keyAtMin
+                      : currKey === userPure.maxKeys
+                        ? keyAtMax
+                        : '';
         const refsPosition =
             currRef < userPure.minRefs
                 ? refBlMin
                 : currRef > userPure.maxRefs
-                ? refAbMax
-                : currRef > userPure.minRefs && currRef < userPure.maxRefs
-                ? refAtBet
-                : currRef === userPure.minRefs
-                ? refAtMin
-                : currRef === userPure.maxRefs
-                ? refAtMax
-                : '';
+                  ? refAbMax
+                  : currRef > userPure.minRefs && currRef < userPure.maxRefs
+                    ? refAtBet
+                    : currRef === userPure.minRefs
+                      ? refAtMin
+                      : currRef === userPure.maxRefs
+                        ? refAtMax
+                        : '';
         const summary = `\n• ${userPure.minKeys} ≤ ${pluralize('key', currKey)}(${currKey}) ≤ ${
             userPure.maxKeys
         }\n• ${Currencies.toRefined(userPure.minRefs)} < ${pluralize(
@@ -857,18 +860,18 @@ export default class ManagerCommands {
                 ? status.isBankingKeys
                     ? 'Banking' + (scrapAdjustmentEnabled ? ' (default price)' : '')
                     : status.isBuyingKeys
-                    ? 'Buying for ' +
-                      Currencies.toRefined(
-                          keyPrices.buy.toValue() + (scrapAdjustmentEnabled ? scrapAdjustmentValue : 0)
-                      ).toString() +
-                      ' ref' +
-                      (scrapAdjustmentEnabled ? ` (+${scrapAdjustmentValue} scrap)` : '')
-                    : 'Selling for ' +
-                      Currencies.toRefined(
-                          keyPrices.sell.toValue() - (scrapAdjustmentEnabled ? scrapAdjustmentValue : 0)
-                      ).toString() +
-                      ' ref' +
-                      (scrapAdjustmentEnabled ? ` (${scrapAdjustmentValue} scrap)` : '')
+                      ? 'Buying for ' +
+                        Currencies.toRefined(
+                            keyPrices.buy.toValue() + (scrapAdjustmentEnabled ? scrapAdjustmentValue : 0)
+                        ).toString() +
+                        ' ref' +
+                        (scrapAdjustmentEnabled ? ` (+${scrapAdjustmentValue} scrap)` : '')
+                      : 'Selling for ' +
+                        Currencies.toRefined(
+                            keyPrices.sell.toValue() - (scrapAdjustmentEnabled ? scrapAdjustmentValue : 0)
+                        ).toString() +
+                        ' ref' +
+                        (scrapAdjustmentEnabled ? ` (${scrapAdjustmentValue} scrap)` : '')
                 : 'Not active'
         }`;
         /*
@@ -908,11 +911,14 @@ export default class ManagerCommands {
                 this.bot.setProperties();
 
                 this.executedRefreshSchema = true;
-                this.executeRefreshSchemaTimeout = setTimeout(() => {
-                    this.lastExecutedRefreshSchemaTime = null;
-                    this.executedRefreshSchema = false;
-                    clearTimeout(this.executeRefreshSchemaTimeout);
-                }, 30 * 60 * 1000);
+                this.executeRefreshSchemaTimeout = setTimeout(
+                    () => {
+                        this.lastExecutedRefreshSchemaTime = null;
+                        this.executedRefreshSchema = false;
+                        clearTimeout(this.executeRefreshSchemaTimeout);
+                    },
+                    30 * 60 * 1000
+                );
 
                 this.bot.sendMessage(steamID, '✅ Refresh schema success!');
             });

@@ -59,7 +59,10 @@ export default class Commands {
 
     private adminInventoryReset: NodeJS.Timeout;
 
-    constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
+    constructor(
+        private readonly bot: Bot,
+        private readonly pricer: IPricer
+    ) {
         this.help = new c.HelpCommands(bot);
         this.manager = new c.ManagerCommands(bot);
         this.message = new c.MessageCommand(bot);
@@ -194,8 +197,8 @@ export default class Commands {
                     command === 'craftweapons'
                         ? 'craftweapon'
                         : command === 'uncraftweapons'
-                        ? 'uncraftweapon'
-                        : (command as CraftUncraft)
+                          ? 'uncraftweapon'
+                          : (command as CraftUncraft)
                 );
             } else if (['deposit', 'd'].includes(command) && isAdmin) {
                 void this.depositCommand(steamID, message, prefix);
@@ -915,9 +918,12 @@ export default class Commands {
                 this.adminInventory[steamid] = adminInventory;
 
                 clearTimeout(this.adminInventoryReset);
-                this.adminInventoryReset = setTimeout(() => {
-                    delete this.adminInventory[steamid];
-                }, 5 * 60 * 1000);
+                this.adminInventoryReset = setTimeout(
+                    () => {
+                        delete this.adminInventory[steamid];
+                    },
+                    5 * 60 * 1000
+                );
             } catch (err) {
                 log.error('Error fetching inventory: ', err);
                 return this.bot.sendMessage(
@@ -1080,8 +1086,8 @@ export default class Commands {
             typeof params.ignorepainted === 'boolean'
                 ? params.ignorepainted
                 : typeof params.ignorepainted === 'number'
-                ? !!params.ignorepainted
-                : false;
+                  ? !!params.ignorepainted
+                  : false;
 
         const withGroup =
             params.withgroup === '' || typeof params.withgroup !== 'string'
@@ -1125,7 +1131,6 @@ export default class Commands {
                     continue;
                 }
 
-                // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
                 if (ignorePainted && sku.match(/;[p][0-9]+/) !== null) {
                     delete clonedDict[sku];
                     continue;

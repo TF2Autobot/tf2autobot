@@ -346,8 +346,8 @@ export default abstract class Cart {
             opt.globalDisable.messages
                 ? ''
                 : opt.customMessage.sendOffer
-                ? opt.customMessage.sendOffer
-                : 'Thank you for the trade!'
+                  ? opt.customMessage.sendOffer
+                  : 'Thank you for the trade!'
         );
 
         if (this.notify === true) {
