@@ -27,6 +27,7 @@ export interface EntryData {
     intent: 0 | 1 | 2; // 'buy', 'sell', 'bank'
     buy?: Currency | null;
     sell?: Currency | null;
+    limit?: { buy: Currency | null; sell: Currency | null };
     promoted?: 0 | 1;
     group?: string | null;
     note?: { buy: string | null; sell: string | null };
@@ -54,6 +55,8 @@ export class Entry implements EntryData {
     buy: Currencies | null;
 
     sell: Currencies | null;
+
+    limit: { buy: Currencies | null; sell: Currencies | null };
 
     promoted: 0 | 1;
 
