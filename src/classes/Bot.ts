@@ -638,10 +638,6 @@ export default class Bot {
                     this.listingManager.listings.forEach(listing => {
                         let listingSKU = listing.getSKU();
                         if (listing.intent === 1) {
-                            if (this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-
                             if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
                                 listingSKU = listingSKU.replace(';festive', '');
                             }
@@ -657,6 +653,11 @@ export default class Bot {
                             match = assetIdPrice;
                         } else {
                             match = this.pricelist.getPrice({ priceKey: listingSKU });
+
+                            if (!match && listing.intent === 1 && this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
+                                const baseSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                                match = this.pricelist.getPrice({ priceKey: baseSKU });
+                            }
                         }
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
@@ -675,6 +676,13 @@ export default class Bot {
                         }
 
                         listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
+
+                        if (this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU) && match) {
+                            const baseSKU = match.sku;
+                            if (baseSKU !== listingSKU) {
+                                listings[baseSKU] = (listings[baseSKU] ?? []).concat(listing);
+                            }
+                        }
                     });
 
                     const pricelist = Object.assign({}, this.pricelist.getPrices);

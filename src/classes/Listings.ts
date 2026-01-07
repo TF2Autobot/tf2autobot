@@ -83,10 +83,15 @@ export default class Listings {
 
         let doneSomething = false;
 
-        const match =
+        let match =
             data?.enabled === false
                 ? null
                 : this.bot.pricelist.getPrice({ priceKey, onlyEnabled: true, getGenericPrice: checkGenerics });
+
+        if (!match && !isAssetId && this.bot.options.normalize.painted.our && /;[p][0-9]+/.test(priceKey)) {
+            const baseSKU = priceKey.replace(/;[p][0-9]+/, '');
+            match = this.bot.pricelist.getPrice({ priceKey: baseSKU, onlyEnabled: true, getGenericPrice: checkGenerics });
+        }
 
         let hasBuyListing = false;
         let hasSellListing = false;
@@ -117,6 +122,25 @@ export default class Listings {
             }
         } else {
             listings = this.bot.listingManager.findListings(sku);
+
+            if (listings.length === 0 && this.bot.options.normalize.painted.our && !/;[p][0-9]+/.test(sku)) {
+                const allListings = this.bot.listingManager.listings;
+                const paintedListings: any[] = [];
+
+                for (const listingId in allListings) {
+                    const listing = allListings[listingId];
+                    if (listing) {
+                        const listingSKU = listing.getSKU();
+                        if (listingSKU && listingSKU.startsWith(sku + ';p')) {
+                            paintedListings.push(listing);
+                        }
+                    }
+                }
+
+                if (paintedListings.length > 0) {
+                    listings = paintedListings;
+                }
+            }
         }
         listings.forEach(listing => {
             // Skip the listing if it belongs to an asset AND we are checking a SKU
