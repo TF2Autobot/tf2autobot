@@ -43,7 +43,7 @@
         "axios": "^1.13.2",
         "bluebird": "^3.7.2",
         "bluebird-global": "^1.0.1",
-        "body-parser": "^2.2.1",
+        "body-parser": "^2.2.2",
         "callback-queue": "^3.0.0",
         "change-case": "^5.4.4",
         "cheerio": "^1.1.2",
