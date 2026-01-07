@@ -38,7 +38,7 @@ export default class Listings {
      * Key: listing ID (440_\{assetid\} for both buy and sell listings)
      * Value: The Currencies object we last queued for update
      */
-    private expectedListingPrices: Map<string, Currencies> = new Map();
+    private readonly expectedListingPrices: Map<string, Currencies> = new Map();
 
     /**
      * Timer for debouncing cache refresh calls
