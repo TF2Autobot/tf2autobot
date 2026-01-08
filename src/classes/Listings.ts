@@ -88,9 +88,13 @@ export default class Listings {
                 ? null
                 : this.bot.pricelist.getPrice({ priceKey, onlyEnabled: true, getGenericPrice: checkGenerics });
 
-        if (!match && !isAssetId && this.bot.options.normalize.painted.our && /;[p][0-9]+/.test(priceKey)) {
-            const baseSKU = priceKey.replace(/;[p][0-9]+/, '');
-            match = this.bot.pricelist.getPrice({ priceKey: baseSKU, onlyEnabled: true, getGenericPrice: checkGenerics });
+        if (!match && !isAssetId && this.bot.options.normalize.painted.our && /;p\d+/.test(priceKey)) {
+            const baseSKU = priceKey.replace(/;p\d+/, '');
+            match = this.bot.pricelist.getPrice({
+                priceKey: baseSKU,
+                onlyEnabled: true,
+                getGenericPrice: checkGenerics
+            });
         }
 
         let hasBuyListing = false;
@@ -123,15 +127,14 @@ export default class Listings {
         } else {
             listings = this.bot.listingManager.findListings(sku);
 
-            if (listings.length === 0 && this.bot.options.normalize.painted.our && !/;[p][0-9]+/.test(sku)) {
+            if (listings.length === 0 && this.bot.options.normalize.painted.our && !/;p\d+/.test(sku)) {
                 const allListings = this.bot.listingManager.listings;
-                const paintedListings: any[] = [];
+                const paintedListings: ListingManager.Listing[] = [];
 
-                for (const listingId in allListings) {
-                    const listing = allListings[listingId];
+                for (const listing of Object.values(allListings)) {
                     if (listing) {
                         const listingSKU = listing.getSKU();
-                        if (listingSKU && listingSKU.startsWith(sku + ';p')) {
+                        if (listingSKU?.startsWith(sku + ';p')) {
                             paintedListings.push(listing);
                         }
                     }

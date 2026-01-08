@@ -646,8 +646,8 @@ export default class ManagerCommands {
                     } else {
                         match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
 
-                        if (!match && listing.intent === 1 && opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                            const baseSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                        if (!match && listing.intent === 1 && opt.normalize.painted.our && /;p\d+/.test(listingSKU)) {
+                            const baseSKU = listingSKU.replace(/;p\d+/, '');
                             match = this.bot.pricelist.getPrice({ priceKey: baseSKU });
                         }
                     }

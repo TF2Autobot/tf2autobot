@@ -654,8 +654,13 @@ export default class Bot {
                         } else {
                             match = this.pricelist.getPrice({ priceKey: listingSKU });
 
-                            if (!match && listing.intent === 1 && this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                                const baseSKU = listingSKU.replace(/;[p][0-9]+/, '');
+                            if (
+                                !match &&
+                                listing.intent === 1 &&
+                                this.options.normalize.painted.our &&
+                                /;p\d+/.test(listingSKU)
+                            ) {
+                                const baseSKU = listingSKU.replace(/;p\d+/, '');
                                 match = this.pricelist.getPrice({ priceKey: baseSKU });
                             }
                         }
@@ -677,7 +682,7 @@ export default class Bot {
 
                         listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
 
-                        if (this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU) && match) {
+                        if (this.options.normalize.painted.our && /;p\d+/.test(listingSKU) && match) {
                             const baseSKU = match.sku;
                             if (baseSKU !== listingSKU) {
                                 listings[baseSKU] = (listings[baseSKU] ?? []).concat(listing);
