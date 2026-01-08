@@ -641,15 +641,15 @@ export default class ManagerCommands {
 
                     let match: Entry | null;
                     const assetIdPrice = this.bot.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                    if (null !== assetIdPrice) {
-                        match = assetIdPrice;
-                    } else {
+                    if (null === assetIdPrice) {
                         match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
 
                         if (!match && listing.intent === 1 && opt.normalize.painted.our && /;p\d+/.test(listingSKU)) {
                             const baseSKU = listingSKU.replace(/;p\d+/, '');
                             match = this.bot.pricelist.getPrice({ priceKey: baseSKU });
                         }
+                    } else {
+                        match = assetIdPrice;
                     }
 
 
