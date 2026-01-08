@@ -671,11 +671,8 @@ export default class ManagerCommands {
 
                     listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
 
-                    if (opt.normalize.painted.our && /;[p][0-9]+/.test(listingSKU) && match) {
-                        const baseSKU = match.sku;
-                        if (baseSKU !== listingSKU) {
-                            listings[baseSKU] = (listings[baseSKU] ?? []).concat(listing);
-                        }
+                    if (opt.normalize.painted.our && /;p\d+/.test(listingSKU) && match && match.sku !== listingSKU) {
+                        listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
                     }
                 });
 

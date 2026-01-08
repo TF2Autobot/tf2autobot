@@ -682,11 +682,13 @@ export default class Bot {
 
                         listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
 
-                        if (this.options.normalize.painted.our && /;p\d+/.test(listingSKU) && match) {
-                            const baseSKU = match.sku;
-                            if (baseSKU !== listingSKU) {
-                                listings[baseSKU] = (listings[baseSKU] ?? []).concat(listing);
-                            }
+                        if (
+                            this.options.normalize.painted.our &&
+                            /;p\d+/.test(listingSKU) &&
+                            match &&
+                            match.sku !== listingSKU
+                        ) {
+                            listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
                         }
                     });
 
