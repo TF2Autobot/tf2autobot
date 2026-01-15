@@ -234,29 +234,12 @@ export default class Bans {
     }
 
     private isSteamRepMarked(): Promise<SiteResult | undefined> {
+        // SteamRep no longer exists so we fallback to bptf steamrep data if it still holds it?
         return new Promise(resolve => {
-            apiRequest<SteamRep>({
-                method: 'GET',
-                url: 'https://steamrep.com/api/beta4/reputation/' + this.steamID,
-                params: {
-                    json: 1
-                }
-            })
-                .then(body => {
-                    const isSteamRepBanned = body.steamrep.reputation?.summary.toLowerCase().indexOf('scammer') !== -1;
-                    const fullRepInfo = body.steamrep.reputation?.full ?? '';
-
-                    this._isSteamRepBanned = isSteamRepBanned;
-                    return resolve({ isBanned: isSteamRepBanned, content: fullRepInfo });
-                })
-                .catch(err => {
-                    log.warn('Failed to get data from SteamRep');
-                    log.debug(err);
-                    if (this._isBptfSteamRepBanned !== null) {
-                        return resolve({ isBanned: this._isBptfSteamRepBanned });
-                    }
-                    return resolve(undefined);
-                });
+            if (this._isBptfSteamRepBanned !== null) {
+                return resolve({ isBanned: this._isBptfSteamRepBanned });
+            }
+            return resolve(undefined);
         });
     }
 
