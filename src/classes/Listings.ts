@@ -502,19 +502,7 @@ export default class Listings {
 
                         this.bot.listingManager.deleteAllListings(err => {
                             if (err) {
-                                const statusCode = err?.response?.status || err?.status;
-                                if ([502, 503, 504].includes(statusCode) && tries < 5) {
-                                    const delay = Math.min(30000, Math.pow(2, tries) * 1000);
-                                    log.warn(`Got ${statusCode} error removing listings, retrying in ${delay / 1000}s (attempt ${tries + 1}/5)`);
-                                    return timersPromises.setTimeout(delay).then(() => {
-                                        return resolve(
-                                            this.removeAllListings({
-                                                tries: tries + 1,
-                                                lastListingsLength: this.bot.listingManager.listings.length
-                                            })
-                                        );
-                                    });
-                                }
+                                if (this.retryRemoveListings(err, tries, resolve)) return;
                                 return reject(err);
                             }
 
@@ -543,20 +531,7 @@ export default class Listings {
                         };
                         const errorListener = err => {
                             this.bot.listingManager.removeListener('deleteListingsSuccessful', successListener);
-                            const statusCode = err?.response?.status || err?.status;
-                            if ([502, 503, 504].includes(statusCode) && tries < 5) {
-                                const delay = Math.min(30000, Math.pow(2, tries) * 1000);
-                                log.warn(`Got ${statusCode} error removing individual listings, retrying in ${delay / 1000}s (attempt ${tries + 1}/5)`);
-                                timersPromises.setTimeout(delay).then(() => {
-                                    resolve(
-                                        this.removeAllListings({
-                                            tries: tries + 1,
-                                            lastListingsLength: this.bot.listingManager.listings.length
-                                        })
-                                    );
-                                });
-                                return;
-                            }
+                            if (this.retryRemoveListings(err, tries, resolve)) return;
                             log.error('Remove all listings individual failed', err);
                             reject(err);
                         };
@@ -567,19 +542,7 @@ export default class Listings {
                         log.debug('Retry: count changed, continuing with deleteAllListings...');
                         this.bot.listingManager.deleteAllListings(err => {
                             if (err) {
-                                const statusCode = err?.response?.status || err?.status;
-                                if ([502, 503, 504].includes(statusCode) && tries < 5) {
-                                    const delay = Math.min(30000, Math.pow(2, tries) * 1000);
-                                    log.warn(`Got ${statusCode} error removing listings, retrying in ${delay / 1000}s (attempt ${tries + 1}/5)`);
-                                    return timersPromises.setTimeout(delay).then(() => {
-                                        return resolve(
-                                            this.removeAllListings({
-                                                tries: tries + 1,
-                                                lastListingsLength: this.bot.listingManager.listings.length
-                                            })
-                                        );
-                                    });
-                                }
+                                if (this.retryRemoveListings(err, tries, resolve)) return;
                                 return reject(err);
                             }
 
@@ -602,19 +565,7 @@ export default class Listings {
                     );
                     this.bot.listingManager.deleteAllListings(err => {
                         if (err) {
-                            const statusCode = err?.response?.status || err?.status;
-                            if ([502, 503, 504].includes(statusCode) && tries < 5) {
-                                const delay = Math.min(30000, Math.pow(2, tries) * 1000);
-                                log.warn(`Got ${statusCode} error force deleting listings, retrying in ${delay / 1000}s (attempt ${tries + 1}/5)`);
-                                return timersPromises.setTimeout(delay).then(() => {
-                                    return resolve(
-                                        this.removeAllListings({
-                                            tries: tries + 1,
-                                            lastListingsLength: this.bot.listingManager.listings.length
-                                        })
-                                    );
-                                });
-                            }
+                            if (this.retryRemoveListings(err, tries, resolve)) return;
                             return reject(err);
                         }
 
@@ -622,6 +573,28 @@ export default class Listings {
                     });
                 });
         });
+    }
+
+    private retryRemoveListings(
+        err: any,
+        tries: number,
+        resolve: (value: void | PromiseLike<void>) => void
+    ): boolean {
+        const statusCode = err?.response?.status || err?.status;
+        if ([502, 503, 504].includes(statusCode) && tries < 5) {
+            const delay = Math.min(30000, Math.pow(2, tries) * 1000);
+            log.warn(`Got ${statusCode} error removing listings, retrying in ${delay / 1000}s (attempt ${tries + 1}/5)`);
+            timersPromises.setTimeout(delay).then(() => {
+                resolve(
+                    this.removeAllListings({
+                        tries: tries + 1,
+                        lastListingsLength: this.bot.listingManager.listings.length
+                    })
+                );
+            });
+            return true;
+        }
+        return false;
     }
 
     redoListings(): Promise<void> {
