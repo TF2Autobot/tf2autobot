@@ -575,16 +575,14 @@ export default class Listings {
         });
     }
 
-    private retryRemoveListings(
-        err: any,
-        tries: number,
-        resolve: (value: void | PromiseLike<void>) => void
-    ): boolean {
+    private retryRemoveListings(err: any, tries: number, resolve: (value: void | PromiseLike<void>) => void): boolean {
         const statusCode = err?.response?.status || err?.status;
         if ([502, 503, 504].includes(statusCode) && tries < 5) {
             const delay = Math.min(30000, Math.pow(2, tries) * 1000);
-            log.warn(`Got ${statusCode} error removing listings, retrying in ${delay / 1000}s (attempt ${tries + 1}/5)`);
-            timersPromises.setTimeout(delay).then(() => {
+            log.warn(
+                `Got ${statusCode} error removing listings, retrying in ${delay / 1000}s (attempt ${tries + 1}/5)`
+            );
+            void timersPromises.setTimeout(delay).then(() => {
                 resolve(
                     this.removeAllListings({
                         tries: tries + 1,
