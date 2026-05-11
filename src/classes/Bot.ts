@@ -649,9 +649,7 @@ export default class Bot {
 
                         let match: Entry | null;
                         const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                        if (null !== assetIdPrice) {
-                            match = assetIdPrice;
-                        } else {
+                        if (assetIdPrice === null) {
                             match = this.pricelist.getPrice({ priceKey: listingSKU });
 
                             if (
@@ -663,6 +661,8 @@ export default class Bot {
                                 const baseSKU = listingSKU.replace(/;p\d+/, '');
                                 match = this.pricelist.getPrice({ priceKey: baseSKU });
                             }
+                        } else {
+                            match = assetIdPrice;
                         }
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {

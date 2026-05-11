@@ -641,7 +641,7 @@ export default class ManagerCommands {
 
                     let match: Entry | null;
                     const assetIdPrice = this.bot.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                    if (null === assetIdPrice) {
+                    if (assetIdPrice === null) {
                         match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
 
                         if (!match && listing.intent === 1 && opt.normalize.painted.our && /;p\d+/.test(listingSKU)) {
@@ -651,7 +651,6 @@ export default class ManagerCommands {
                     } else {
                         match = assetIdPrice;
                     }
-
 
                     if (isFilterCantAfford && listing.intent === 0 && match !== null) {
                         const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
