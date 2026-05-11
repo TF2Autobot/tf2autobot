@@ -645,11 +645,17 @@ export default class ManagerCommands {
 
                     let match: Entry | null;
                     const assetIdPrice = this.bot.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                    if (null !== assetIdPrice) {
-                        match = assetIdPrice;
-                    } else {
+                    if (assetIdPrice === null) {
                         match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
+
+                        if (!match && listing.intent === 1 && opt.normalize.painted.our && /;p\d+/.test(listingSKU)) {
+                            const baseSKU = listingSKU.replace(/;p\d+/, '');
+                            match = this.bot.pricelist.getPrice({ priceKey: baseSKU });
+                        }
+                    } else {
+                        match = assetIdPrice;
                     }
+
 
                     if (isFilterCantAfford && listing.intent === 0 && match !== null) {
                         const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
@@ -668,6 +674,10 @@ export default class ManagerCommands {
                     }
 
                     listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
+
+                    if (opt.normalize.painted.our && /;p\d+/.test(listingSKU) && match?.sku !== listingSKU) {
+                        listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
+                    }
                 });
 
                 const pricelist = Object.assign({}, this.bot.pricelist.getPrices);
