@@ -685,8 +685,7 @@ export default class Bot {
                         if (
                             this.options.normalize.painted.our &&
                             /;p\d+/.test(listingSKU) &&
-                            match &&
-                            match.sku !== listingSKU
+                            match?.sku !== listingSKU
                         ) {
                             listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
                         }
