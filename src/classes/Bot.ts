@@ -17,6 +17,8 @@ import * as timersPromises from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
 import * as files from '../lib/files';
+import * as readline from 'readline';
+
 
 import jwt from 'jsonwebtoken';
 import DiscordBot from './DiscordBot';
@@ -1609,6 +1611,10 @@ export default class Bot {
     private onConfKeyNeeded(tag: string, callback: (err: Error | null, time: number, confKey: string) => void): void {
         log.debug('Conf key needed');
 
+        if (!this.options.steamIdentitySecret || this.options.steamIdentitySecret === 'X') {
+            return callback(new Error('Manual 2FA mode: No identity secret provided, skipping automatic confirmation.'), 0, '');
+        }
+
         void this.getTimeOffset.asCallback((err, offset) => {
             const time = SteamTotp.time(offset);
             const confKey = SteamTotp.getConfirmationKey(this.options.steamIdentitySecret, time, tag);
@@ -1638,11 +1644,37 @@ export default class Bot {
 
         void timersPromises
             .setTimeout(wait)
-            .then(this.generateAuthCode.bind(this))
-            .then(authCode => {
-                this.newLoginAttempt();
+            .then(async () => {
+                if (!this.options.steamSharedSecret || this.options.steamSharedSecret === 'X') {
+                    // Manual input or Mobile Approval
+                    log.warn('A login confirmation has been sent to your Steam mobile app. Please approve it on your device.');
+                    return new Promise<string>((resolve) => {
+                        const rl = readline.createInterface({
+                            input: process.stdin,
+                            output: process.stdout
+                        });
+                        
+                        rl.question('If you are using a code instead, enter it here (otherwise just approve on phone): ', (code) => {
+                            rl.close();
+                            resolve(code.trim());
+                        });
 
-                callback(authCode);
+                        // Automatically close the prompt if the user approves on their phone
+                        const onDone = () => {
+                            rl.close();
+                            resolve('');
+                        };
+                        this.client.once('loggedOn', onDone);
+                        this.client.once('error', onDone);
+                    });
+                }
+                return this.generateAuthCode();
+            })
+            .then(authCode => {
+                if (authCode) {
+                    this.newLoginAttempt();
+                    callback(authCode);
+                }
             });
     }
 
