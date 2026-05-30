@@ -12,7 +12,7 @@ import TradeOffer from '@tf2autobot/tradeoffer-manager/lib/classes/TradeOffer';
 import { camelCase } from 'change-case';
 import IPricer from './IPricer';
 
-const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
+const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD'];
 
 export default class BotManager {
     private schemaManager: SchemaManager;
