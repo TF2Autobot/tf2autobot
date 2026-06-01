@@ -602,94 +602,7 @@ export default class Trades {
                     );
 
                     if (status === 'pending') {
-                        // Maybe wait for confirmation to be accepted and then resolve?
-                        this.acceptConfirmation(offer).catch(err => {
-                            log.warn(`Error while trying to accept mobile confirmation on offer #${offer.id}: `, err);
-
-                            const isNotIgnoredError =
-                                !(err as CustomError).message?.includes('Could not act on confirmation') &&
-                                !(err as CustomError).message?.includes('Could not find confirmation for object');
-
-                            if (isNotIgnoredError) {
-                                // Only notify if error is not "Could not act on confirmation" or not "Could not find confirmation for object"
-                                const opt = this.bot.options;
-
-                                if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
-                                    const value = t.valueDiff(offer);
-
-                                    if (
-                                        opt.discordWebhook.sendAlert.enable &&
-                                        opt.discordWebhook.sendAlert.url.main !== ''
-                                    ) {
-                                        const summary = t.summarizeToChat(
-                                            offer,
-                                            this.bot,
-                                            'summary-accepting',
-                                            true,
-                                            value,
-                                            false,
-                                            false
-                                        );
-                                        sendAlert(
-                                            `error-accept`,
-                                            this.bot,
-                                            `Error while trying to accept mobile confirmation on offer #${offer.id}` +
-                                                summary +
-                                                `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                                ` sending "${this.bot.getPrefix()}trade ${offer.id}"`,
-                                            null,
-                                            err,
-                                            [offer.id]
-                                        );
-                                    } else {
-                                        const summary = t.summarizeToChat(
-                                            offer,
-                                            this.bot,
-                                            'summary-accepting',
-                                            false,
-                                            value,
-                                            true,
-                                            false
-                                        );
-
-                                        this.bot.messageAdmins(
-                                            `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
-                                                summary +
-                                                `\n\nThe offer might already get cancelled. You can check if this offer is still active by` +
-                                                ` sending "${this.bot.getPrefix()}trade ${offer.id}` +
-                                                `\n\nError: ${
-                                                    (err as CustomError).eresult
-                                                        ? `${
-                                                              TradeOfferManager.EResult[
-                                                                  (err as CustomError).eresult
-                                                              ] as string
-                                                          } - https://steamerrors.com/${(err as CustomError).eresult}`
-                                                        : (err as Error).message
-                                                }`,
-                                            []
-                                        );
-                                    }
-                                }
-
-                                if (!this.retryAcceptOffer[offer.id]) {
-                                    // Only retry once
-                                    clearTimeout(this.resetRetryAcceptOfferTimeout);
-                                    this.retryAcceptOffer[offer.id] = true;
-
-                                    setTimeout(() => {
-                                        // Auto-retry after 30 seconds
-                                        void this.retryActionAfterFailure(offer.id, 'accept');
-                                    }, 30 * 1000);
-                                }
-
-                                this.resetRetryAcceptOfferTimeout = setTimeout(
-                                    () => {
-                                        this.retryAcceptOffer = {};
-                                    },
-                                    2 * 60 * 1000
-                                );
-                            }
-                        });
+                        this.notifyManualConfirmation(offer);
                     }
 
                     return resolve(status);
@@ -890,12 +803,8 @@ export default class Trades {
                         // Send countered offer
                         log.debug('Sending countered offer...');
                         void this.sendOffer(counter)
-                            .then(status => {
+                            .then(() => {
                                 log.debug('Countered offer sent.');
-                                if (status === 'pending') {
-                                    log.debug('Accepting mobile confirmation...');
-                                    void this.acceptConfirmation(counter);
-                                }
 
                                 log.debug(`Done counteroffer for offer #${offer.id}`);
                                 return resolve();
@@ -1187,26 +1096,39 @@ export default class Trades {
         });
     }
 
+    notifyManualConfirmation(offer: TradeOffer): void {
+        const opt = this.bot.options;
+        const value = t.valueDiff(offer);
+        const matchesPrice = value.diff >= 0;
+
+        const summarySteam = t.summarizeToChat(offer, this.bot, 'summary-accepting', false, value, true, offer.isOurOffer);
+        const summaryDiscord = t.summarizeToChat(offer, this.bot, 'summary-accepting', true, value, false, offer.isOurOffer);
+
+        const msg =
+            `Manual confirmation required for offer #${offer.id}\n` +
+            `Price matches: ${matchesPrice ? '✅ Yes' : '❌ No'}\n` +
+            `Partner: https://steamcommunity.com/profiles/${offer.partner.getSteamID64()}` +
+            `\n${summarySteam}`;
+
+        if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
+            sendAlert(
+                'manual-confirmation',
+                this.bot,
+                `Manual confirmation required for offer #${offer.id}\n` +
+                    `Price matches: ${matchesPrice ? '✅ Yes' : '❌ No'}\n` +
+                    `Partner: https://steamcommunity.com/profiles/${offer.partner.getSteamID64()}` +
+                    `\n${summaryDiscord}`,
+                null,
+                null,
+                [offer.id]
+            );
+        } else {
+            this.bot.messageAdmins(msg, []);
+        }
+    }
+
     acceptConfirmation(offer: TradeOffer): Promise<void> {
-        return new Promise((resolve, reject) => {
-            log.debug(`Accepting mobile confirmation...`, {
-                offerId: offer.id
-            });
-
-            const start = dayjs().valueOf();
-            log.debug('actedOnConfirmationTimestamp', start);
-
-            this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
-                const confirmationTime = dayjs().valueOf() - start;
-                offer.data('confirmationTime', confirmationTime);
-
-                if (err) {
-                    return reject(err);
-                }
-
-                return resolve();
-            });
-        });
+        return Promise.resolve(); // No longer used but kept for compatibility
     }
 
     private acceptOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
@@ -1298,6 +1220,10 @@ export default class Trades {
                         'trade',
                         'successfully created' + (status === 'pending' ? '; confirmation required' : '')
                     );
+
+                    if (status === 'pending') {
+                        this.notifyManualConfirmation(offer);
+                    }
 
                     return resolve(status);
                 })
