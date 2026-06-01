@@ -1099,15 +1099,37 @@ export default class Trades {
     notifyManualConfirmation(offer: TradeOffer): void {
         const opt = this.bot.options;
         const value = t.valueDiff(offer);
-        const matchesPrice = value.diff >= 0;
+
+        let matchesPrice = value.diff >= 0;
+
+        const offerData = (this.bot.manager.pollData.offerData || {})[offer.id] || {};
+        const isDonation = offerData.donation === true;
+        const isAdmin = this.bot.isAdmin(offer.partner);
+
+        // If it's not an intended donation or an admin trade, and we are giving items for nothing, it's not a price match
+        if (offer.itemsToGive.length > 0 && offer.itemsToReceive.length === 0 && !isDonation && !isAdmin) {
+            matchesPrice = false;
+        }
 
         const summarySteam = t.summarizeToChat(offer, this.bot, 'summary-accepting', false, value, true, offer.isOurOffer);
-        const summaryDiscord = t.summarizeToChat(offer, this.bot, 'summary-accepting', true, value, false, offer.isOurOffer);
+        const summaryDiscord = t.summarizeToChat(
+            offer,
+            this.bot,
+            'summary-accepting',
+            true,
+            value,
+            false,
+            offer.isOurOffer
+        );
+
+        const tradeLink = `https://steamcommunity.com/tradeoffer/${offer.id}/`;
+        const partnerLink = `https://steamcommunity.com/profiles/${offer.partner.getSteamID64()}`;
 
         const msg =
             `Manual confirmation required for offer #${offer.id}\n` +
+            `Trade Link: ${tradeLink}\n` +
             `Price matches: ${matchesPrice ? '✅ Yes' : '❌ No'}\n` +
-            `Partner: https://steamcommunity.com/profiles/${offer.partner.getSteamID64()}` +
+            `Partner: ${partnerLink}` +
             `\n${summarySteam}`;
 
         if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
@@ -1115,8 +1137,9 @@ export default class Trades {
                 'manual-confirmation',
                 this.bot,
                 `Manual confirmation required for offer #${offer.id}\n` +
+                    `Trade Link: [${offer.id}](${tradeLink})\n` +
                     `Price matches: ${matchesPrice ? '✅ Yes' : '❌ No'}\n` +
-                    `Partner: https://steamcommunity.com/profiles/${offer.partner.getSteamID64()}` +
+                    `Partner: [${offer.partner.getSteamID64()}](${partnerLink})` +
                     `\n${summaryDiscord}`,
                 null,
                 null,
