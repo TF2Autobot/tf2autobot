@@ -249,23 +249,16 @@ export default class CartQueue {
                     const sendNotification = isDonating
                         ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
                             ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
-                            : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
+                            : `⌛ Your donation has been made! Please wait while the owner confirms the offer.`
                         : isBuyingPremium
                           ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
                               ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                              : `⌛ Your premium purchase has been made! Please wait while I accept the mobile confirmation.`
+                              : `⌛ Your premium purchase has been made! Please wait while the owner confirms the offer.`
                           : custom.hasBeenMadeAcceptingMobileConfirmation.offer
                             ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                            : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
+                            : `⌛ Your offer has been made! Please wait while the owner confirms the offer.`;
 
                     cart.sendNotification = sendNotification;
-
-                    log.debug('Accepting mobile confirmation...');
-
-                    // Wait for confirmation to be accepted
-                    await this.bot.trades.acceptConfirmation(cart.getOffer).catch(() => {
-                        return;
-                    });
                     return;
                 }
             })
