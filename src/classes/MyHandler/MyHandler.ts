@@ -463,7 +463,7 @@ export default class MyHandler extends Handler {
 
         if (steamID.type !== 0) {
             const steamID64 = steamID.toString();
-            if (!this.bot.friends.isFriend(steamID64)) {
+            if (!this.bot.friends.isFriend(steamID64) && !this.bot.isAdmin(steamID)) {
                 return;
             }
 

@@ -234,8 +234,13 @@ export default class Bot {
     }
 
     isAdmin(steamID: SteamID | string): boolean {
-        const steamID64 = steamID.toString();
-        return this.admins.some(adminSteamID => adminSteamID.toString() === steamID64);
+        const steamID64 = typeof steamID === 'string' ? steamID : steamID.getSteamID64();
+
+        if (this.client.steamID && this.client.steamID.getSteamID64() === steamID64) {
+            return true;
+        }
+
+        return this.admins.some(adminSteamID => adminSteamID.getSteamID64() === steamID64);
     }
 
     get getAdmins(): SteamID[] {

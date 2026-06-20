@@ -88,12 +88,23 @@ export default class DiscordBot {
     }
 
     public async onMessage(message: Message): Promise<void> {
-        if (message.author === this.client.user) {
-            return; // don't talk to myself
+        let isWhitelistedWebhook = false;
+        if (message.webhookId) {
+            const whitelist = this.bot.options.discordWebhookWhitelist;
+            if (whitelist.includes(message.webhookId)) {
+                isWhitelistedWebhook = true;
+            }
         }
 
-        if (message.webhookId) {
-            return; // Ignore webhook messages
+        if (!isWhitelistedWebhook && message.author === this.client.user) {
+            return; // don't talk to myself, unless it's a whitelisted webhook
+        }
+
+        if (message.webhookId && !isWhitelistedWebhook) {
+            if (message.content.startsWith(this.prefix)) {
+                log.info(`Ignoring command "${message.content}" from non-whitelisted webhook: ${message.webhookId}`);
+            }
+            return; // Ignore other webhook messages
         }
 
         if (!message.content.startsWith(this.prefix)) {
@@ -101,7 +112,9 @@ export default class DiscordBot {
         }
 
         log.info(
-            `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
+            `Got new message ${String(message.content)} from ${
+                isWhitelistedWebhook ? `webhook ${message.webhookId}` : message.author.tag
+            } (${String(message.author.id)})`
         );
 
         if (!this.bot.isReady) {
@@ -110,6 +123,20 @@ export default class DiscordBot {
         }
 
         try {
+            if (isWhitelistedWebhook) {
+                const command = message.content.slice(this.prefix.length).trim().split(/ +/g).shift()?.toLowerCase();
+                const commandWhitelist = this.bot.options.discordWebhookCommandWhitelist;
+
+                if (!commandWhitelist.includes(command)) {
+                    log.debug(`Webhook command "${command}" is not whitelisted`);
+                    return; // Command not whitelisted for webhooks
+                }
+
+                const botSteamID = new SteamID(this.bot.client.steamID.getSteamID64());
+                botSteamID.redirectAnswerTo = message;
+                return await this.bot.handler.onMessage(botSteamID, message.content);
+            }
+
             if (!this.isDiscordAdmin(message.author.id)) {
                 // Will return default invalid value
                 const dummySteamID = new SteamID(null);
