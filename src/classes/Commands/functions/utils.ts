@@ -11,6 +11,14 @@ import { genericNameAndMatch } from '../../Inventory';
 import { fixItem } from '../../../lib/items';
 import { testPriceKey } from '../../../lib/tools/export';
 
+export const IdentifyingParams = ['item', 'name', 'quality', 'craftable', 'killstreak', 'australium', 'effect', 'festive', 'paintkit', 'wear', 'quality2', 'craftnumber', 'crateseries', 'target', 'output', 'outputQuality', 'paint'];
+
+export function removeIdentifyingParams(params: UnknownDictionaryKnownValues): void {
+    IdentifyingParams.forEach(param => {
+        delete params[param];
+    });
+}
+
 export function getItemAndAmount(
     steamID: SteamID,
     message: string,
@@ -246,7 +254,9 @@ export function getItemFromParams(
             return null;
         }
 
-        return SKU.fromString(sku);
+        const itemFromName = SKU.fromString(sku);
+        Object.assign(item, itemFromName);
+        foundSomething = true;
     } else if (params.name !== undefined) {
         foundSomething = true;
         // Look for all items that have the same name
@@ -306,7 +316,6 @@ export function getItemFromParams(
             foundSomething = true;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             item[key] = params[key];
-            break;
         }
     }
 
@@ -687,17 +696,8 @@ export function getItemFromParams(
         item.crateseries = params.crateseries;
     }
 
-    for (const key in params) {
-        if (!Object.prototype.hasOwnProperty.call(params, key)) {
-            continue;
-        }
 
-        if (item[key] !== undefined) {
-            delete params[key];
-        }
-    }
-
-    delete params.name;
+    removeIdentifyingParams(params);
     return fixItem(item, bot.schema);
 }
 

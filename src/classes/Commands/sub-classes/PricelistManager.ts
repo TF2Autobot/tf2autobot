@@ -8,7 +8,7 @@ import pluralize from 'pluralize';
 import dayjs from 'dayjs';
 import * as timersPromises from 'timers/promises';
 import { UnknownDictionary, UnknownDictionaryKnownValues } from '../../../types/common';
-import { removeLinkProtocol, getItemFromParams } from '../functions/utils';
+import { removeLinkProtocol, getItemFromParams, removeIdentifyingParams } from '../functions/utils';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import Pricelist, { Entry, EntryData, PricelistChangedSource } from '../../Pricelist';
@@ -152,28 +152,16 @@ export default class PricelistManagerCommands {
         }
 
         if (params.sku === undefined) {
-            if (params.item !== undefined) {
-                params.sku = this.bot.schema.getSkuFromName(params.item as string);
+            const item = getItemFromParams(steamID, params, this.bot);
 
-                if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
-                    return this.bot.sendMessage(
-                        steamID,
-                        `❌ The sku for "${params.item as string}" returned "${params.sku as string}".` +
-                            `\nIf the item name is correct, please let us know in our Discord server.`
-                    );
-                }
-
-                delete params.item;
-            } else {
-                const item = getItemFromParams(steamID, params, this.bot);
-
-                if (item === null) {
-                    return this.bot.sendMessage(steamID, `❌ No item found to match parameters given check sku or id.`);
-                }
-
-                params.sku = SKU.fromObject(item);
+            if (item === null) {
+                return this.bot.sendMessage(steamID, `❌ No item found to match parameters given check sku or id.`);
             }
+
+            params.sku = SKU.fromObject(item);
         }
+
+        removeIdentifyingParams(params);
 
         let priceKey: string = undefined;
         if (params.id) {
@@ -243,30 +231,14 @@ export default class PricelistManagerCommands {
             }
 
             if (params.sku === undefined) {
-                if (params.item !== undefined) {
-                    params.sku = this.bot.schema.getSkuFromName(params.item as string);
+                const item = getItemFromParams(steamID, params, this.bot);
 
-                    if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
-                        errorMessage.push(
-                            `❌ Failed to add ${params.sku as string}: The sku for "${
-                                params.item as string
-                            }" returned "${params.sku as string}".` +
-                                `\nIf the item name is correct, please let us know in our Discord server.`
-                        );
-                        failed++;
-                        continue;
-                    }
-
-                    delete params.item;
-                } else {
-                    errorMessage.push(
-                        `❌ Failed to add "${itemToAdd}": Please only use "sku" or "item" parameter, ` +
-                            `OR check if you have missing something. Thank you.`
-                    );
+                if (item === null) {
                     failed++;
-                    failedNotUsingItemOrSkuParam++;
                     continue;
                 }
+
+                params.sku = SKU.fromObject(item);
             }
 
             if (params.enabled === undefined) {
@@ -373,6 +345,8 @@ export default class PricelistManagerCommands {
                 params.autoprice = true;
             }
 
+            removeIdentifyingParams(params);
+
             let priceKey: string = undefined;
             if (params.id) {
                 priceKey = String(params.id);
@@ -383,10 +357,10 @@ export default class PricelistManagerCommands {
             savedParams.push({ priceKey, params: params as EntryData });
         }
 
-        if (failedNotUsingItemOrSkuParam === count) {
+        if (failed === count) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Bulk add operation aborted: Please only use "sku" or "item" as the item identifying paramater. Thank you.`
+                `❌ Bulk add operation aborted: Please check if you have missing something. Thank you.`
             );
         }
 
@@ -1010,7 +984,6 @@ export default class PricelistManagerCommands {
                 return this.bot.sendMessage(steamID, reply);
             }
 
-            delete params.item;
             params.sku = match.sku;
         } else if (params.sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
@@ -1019,6 +992,8 @@ export default class PricelistManagerCommands {
                 params.sku = SKU.fromObject(item);
             }
         }
+
+        removeIdentifyingParams(params);
 
         let priceKey: string = undefined;
         if (params.id) {
@@ -1209,30 +1184,43 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
-            if (sku === undefined) {
-                if (params.item !== undefined) {
-                    sku = this.bot.schema.getSkuFromName(params.item as string);
+            if (params.item !== undefined) {
+                // Remove by full name
+                const match = this.bot.pricelist.searchByName(params.item as string, false);
 
-                    if (sku.includes('null') || sku.includes('undefined')) {
-                        errorMessage.push(
-                            `❌ Failed to update ${sku}: The sku for "${params.item as string}" returned "${sku}".` +
-                                `\nIf the item name is correct, please let us know in our Discord server.`
-                        );
-                        failed++;
-                        continue;
-                    }
-
-                    delete params.item;
-                } else {
+                if (match === null) {
                     errorMessage.push(
-                        `❌ Failed to update "${itemToUpdate}": Please only use "sku" or "item" parameter, ` +
-                            `OR check if you have missing something. Thank you.`
+                        `❌ Failed to update ${params.item as string}: I could not find any items in my pricelist that contain "${
+                            params.item as string
+                        }"`
                     );
                     failed++;
-                    failedNotUsingItemOrSkuParam++;
+                    continue;
+                } else if (Array.isArray(match)) {
+                    const matchCount = match.length;
+
+                    errorMessage.push(
+                        `❌ Failed to update ${params.item as string}: I've found ${matchCount} items. Try with one of the items shown below:\n${match
+                            .splice(0, 20)
+                            .join(',\n')}`
+                    );
+                    failed++;
                     continue;
                 }
+
+                sku = match.sku;
+            } else if (sku === undefined) {
+                const item = getItemFromParams(steamID, params, this.bot);
+
+                if (item === null) {
+                    failed++;
+                    continue;
+                }
+
+                sku = SKU.fromObject(item);
             }
+
+            removeIdentifyingParams(params);
 
             let priceKey: string = undefined;
             if (params.id) {
@@ -1449,10 +1437,10 @@ export default class PricelistManagerCommands {
             PricelistManagerCommands.isSending = false;
         }
 
-        if (failedNotUsingItemOrSkuParam === count) {
+        if (failed === count) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Bulk update operation aborted: Please only use "sku" or "item" as the item identifying paramater. Thank you.`
+                `❌ Bulk update operation aborted: Please check if you have missing something. Thank you.`
             );
         }
 
@@ -1721,7 +1709,6 @@ export default class PricelistManagerCommands {
                 return this.bot.sendMessage(steamID, reply);
             }
 
-            delete params.item;
             sku = match.sku;
         } else if (sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
@@ -1730,6 +1717,8 @@ export default class PricelistManagerCommands {
                 sku = SKU.fromObject(item);
             }
         }
+
+        removeIdentifyingParams(params);
 
         let priceKey: string = undefined;
         if (params.id) {
@@ -1793,30 +1782,43 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
-            if (sku === undefined) {
-                if (params.item !== undefined) {
-                    sku = this.bot.schema.getSkuFromName(params.item as string);
+            if (params.item !== undefined) {
+                // Remove by full name
+                const match = this.bot.pricelist.searchByName(params.item as string, false);
 
-                    if (sku.includes('null') || sku.includes('undefined')) {
-                        errorMessage.push(
-                            `❌ Failed to remove ${sku}: The sku for "${params.item as string}" returned "${sku}".` +
-                                `\nIf the item name is correct, please let us know in our Discord server.`
-                        );
-                        failed++;
-                        continue;
-                    }
-
-                    delete params.item;
-                } else {
+                if (match === null) {
                     errorMessage.push(
-                        `❌ Failed to remove "${itemToRemove}": Please only use "sku" or "item" parameter, ` +
-                            `OR check if you have missing something. Thank you.`
+                        `❌ Failed to remove ${params.item as string}: I could not find any items in my pricelist that contain "${
+                            params.item as string
+                        }"`
                     );
                     failed++;
-                    failedNotUsingItemOrSkuParam++;
+                    continue;
+                } else if (Array.isArray(match)) {
+                    const matchCount = match.length;
+
+                    errorMessage.push(
+                        `❌ Failed to remove ${params.item as string}: I've found ${matchCount} items. Try with one of the items shown below:\n${match
+                            .splice(0, 20)
+                            .join(',\n')}`
+                    );
+                    failed++;
                     continue;
                 }
+
+                sku = match.sku;
+            } else if (sku === undefined) {
+                const item = getItemFromParams(steamID, params, this.bot);
+
+                if (item === null) {
+                    failed++;
+                    continue;
+                }
+
+                sku = SKU.fromObject(item);
             }
+
+            removeIdentifyingParams(params);
 
             if (this.bot.pricelist.getPrice({ priceKey: sku }) === null) {
                 errorMessage.push(
@@ -1855,10 +1857,10 @@ export default class PricelistManagerCommands {
             PricelistManagerCommands.isSending = false;
         }
 
-        if (failedNotUsingItemOrSkuParam === count) {
+        if (failed === count) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Bulk remove operation aborted: Please only use "sku" or "item" as the item identifying paramater. Thank you.`
+                `❌ Bulk remove operation aborted: Please check if you have missing something. Thank you.`
             );
         }
 
@@ -1971,7 +1973,6 @@ export default class PricelistManagerCommands {
                 return this.bot.sendMessage(steamID, reply);
             }
 
-            delete params.item;
             sku = match.sku;
         } else if (sku === undefined) {
             const item = getItemFromParams(steamID, params, this.bot);
@@ -1980,6 +1981,8 @@ export default class PricelistManagerCommands {
                 sku = SKU.fromObject(item);
             }
         }
+
+        removeIdentifyingParams(params);
 
         if (sku === undefined && undefined === params.id) {
             return this.bot.sendMessage(steamID, '❌ Missing item');
