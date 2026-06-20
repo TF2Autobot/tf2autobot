@@ -88,17 +88,23 @@ export default class DiscordBot {
     }
 
     public async onMessage(message: Message): Promise<void> {
-        if (message.author === this.client.user) {
-            return; // don't talk to myself
-        }
-
         let isWhitelistedWebhook = false;
         if (message.webhookId) {
             const whitelist = this.bot.options.discordWebhookWhitelist;
-            if (!whitelist.includes(message.webhookId)) {
-                return; // Ignore webhook messages that are not whitelisted
+            if (whitelist.includes(message.webhookId)) {
+                isWhitelistedWebhook = true;
             }
-            isWhitelistedWebhook = true;
+        }
+
+        if (!isWhitelistedWebhook && message.author === this.client.user) {
+            return; // don't talk to myself, unless it's a whitelisted webhook
+        }
+
+        if (message.webhookId && !isWhitelistedWebhook) {
+            if (message.content.startsWith(this.prefix)) {
+                log.info(`Ignoring command "${message.content}" from non-whitelisted webhook: ${message.webhookId}`);
+            }
+            return; // Ignore other webhook messages
         }
 
         if (!message.content.startsWith(this.prefix)) {
@@ -122,6 +128,7 @@ export default class DiscordBot {
                 const commandWhitelist = this.bot.options.discordWebhookCommandWhitelist;
 
                 if (!commandWhitelist.includes(command)) {
+                    log.debug(`Webhook command "${command}" is not whitelisted`);
                     return; // Command not whitelisted for webhooks
                 }
 
