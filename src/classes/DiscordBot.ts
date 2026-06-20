@@ -92,8 +92,13 @@ export default class DiscordBot {
             return; // don't talk to myself
         }
 
+        let isWhitelistedWebhook = false;
         if (message.webhookId) {
-            return; // Ignore webhook messages
+            const whitelist = this.bot.options.discordWebhookWhitelist;
+            if (!whitelist.includes(message.webhookId)) {
+                return; // Ignore webhook messages that are not whitelisted
+            }
+            isWhitelistedWebhook = true;
         }
 
         if (!message.content.startsWith(this.prefix)) {
@@ -101,7 +106,9 @@ export default class DiscordBot {
         }
 
         log.info(
-            `Got new message ${String(message.content)} from ${message.author.tag} (${String(message.author.id)})`
+            `Got new message ${String(message.content)} from ${
+                isWhitelistedWebhook ? `webhook ${message.webhookId}` : message.author.tag
+            } (${String(message.author.id)})`
         );
 
         if (!this.bot.isReady) {
@@ -110,6 +117,19 @@ export default class DiscordBot {
         }
 
         try {
+            if (isWhitelistedWebhook) {
+                const command = message.content.slice(this.prefix.length).trim().split(/ +/g).shift()?.toLowerCase();
+                const commandWhitelist = this.bot.options.discordWebhookCommandWhitelist;
+
+                if (!commandWhitelist.includes(command)) {
+                    return; // Command not whitelisted for webhooks
+                }
+
+                const botSteamID = new SteamID(this.bot.client.steamID.getSteamID64());
+                botSteamID.redirectAnswerTo = message;
+                return await this.bot.handler.onMessage(botSteamID, message.content);
+            }
+
             if (!this.isDiscordAdmin(message.author.id)) {
                 // Will return default invalid value
                 const dummySteamID = new SteamID(null);
