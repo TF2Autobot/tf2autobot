@@ -1111,7 +1111,15 @@ export default class Trades {
             matchesPrice = false;
         }
 
-        const summarySteam = t.summarizeToChat(offer, this.bot, 'summary-accepting', false, value, true, offer.isOurOffer);
+        const summarySteam = t.summarizeToChat(
+            offer,
+            this.bot,
+            'summary-accepting',
+            false,
+            value,
+            true,
+            offer.isOurOffer
+        );
         const summaryDiscord = t.summarizeToChat(
             offer,
             this.bot,
@@ -1145,12 +1153,12 @@ export default class Trades {
                 null,
                 [offer.id]
             );
-        } else {
-            this.bot.messageAdmins(msg, []);
         }
+
+        this.bot.messageAdmins(msg, []);
     }
 
-    acceptConfirmation(offer: TradeOffer): Promise<void> {
+    acceptConfirmation(_offer: TradeOffer): Promise<void> {
         return Promise.resolve(); // No longer used but kept for compatibility
     }
 
@@ -1551,6 +1559,16 @@ export default class Trades {
                 (action?.action === 'accept' && offer.state === TradeOfferManager.ETradeOfferState['Accepted']) ||
                 (action?.action === 'decline' && offer.state === TradeOfferManager.ETradeOfferState['Declined'])
                     ? ' (reason: ' + action.reason + ')'
+                    : ''
+            }${
+                offer.state === TradeOfferManager.ETradeOfferState['Canceled']
+                    ? ` (reason: ${
+                          offer.data('canceledByUser') === true
+                              ? 'Canceled by admin'
+                              : oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
+                                ? 'Timed out or failed mobile confirmation'
+                                : 'Canceled by partner or Steam'
+                      })`
                     : ''
             }`
         );

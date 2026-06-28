@@ -8,7 +8,7 @@ export default function cancelled(offer: TradeOffer, oldState: number, bot: Bot)
         const custom = bot.options.commands.cancel.customReply.successCancel;
         reply = custom
             ? custom
-            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Offer was canceled by user.';
+            : '/pre ❌ Ohh nooooes! The offer is no longer available. Reason: Offer was canceled by admin.';
     } else if (oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']) {
         const custom = bot.options.customMessage.failedMobileConfirmation;
         reply = custom

@@ -19,7 +19,6 @@ import path from 'path';
 import * as files from '../lib/files';
 import * as readline from 'readline';
 
-
 import jwt from 'jsonwebtoken';
 import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
@@ -189,8 +188,8 @@ export default class Bot {
             useAccessToken: !this.options.steamApiKey, // https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/Access-Tokens
             language: 'en',
             pollInterval: -1,
-            cancelTime: 15 * 60 * 1000,
-            pendingCancelTime: 1.5 * 60 * 1000,
+            cancelTime: 0,
+            pendingCancelTime: 0,
             globalAssetCache: true,
             assetCacheMaxItems: 50
         });
@@ -1617,7 +1616,11 @@ export default class Bot {
         log.debug('Conf key needed');
 
         if (!this.options.steamIdentitySecret || this.options.steamIdentitySecret === 'X') {
-            return callback(new Error('Manual 2FA mode: No identity secret provided, skipping automatic confirmation.'), 0, '');
+            return callback(
+                new Error('Manual 2FA mode: No identity secret provided, skipping automatic confirmation.'),
+                0,
+                ''
+            );
         }
 
         void this.getTimeOffset.asCallback((err, offset) => {
@@ -1652,17 +1655,22 @@ export default class Bot {
             .then(async () => {
                 if (!this.options.steamSharedSecret || this.options.steamSharedSecret === 'X') {
                     // Manual input or Mobile Approval
-                    log.warn('A login confirmation has been sent to your Steam mobile app. Please approve it on your device.');
-                    return new Promise<string>((resolve) => {
+                    log.warn(
+                        'A login confirmation has been sent to your Steam mobile app. Please approve it on your device.'
+                    );
+                    return new Promise<string>(resolve => {
                         const rl = readline.createInterface({
                             input: process.stdin,
                             output: process.stdout
                         });
-                        
-                        rl.question('If you are using a code instead, enter it here (otherwise just approve on phone): ', (code) => {
-                            rl.close();
-                            resolve(code.trim());
-                        });
+
+                        rl.question(
+                            'If you are using a code instead, enter it here (otherwise just approve on phone): ',
+                            code => {
+                                rl.close();
+                                resolve(code.trim());
+                            }
+                        );
 
                         // Automatically close the prompt if the user approves on their phone
                         const onDone = () => {
