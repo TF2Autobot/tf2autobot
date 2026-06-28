@@ -1219,9 +1219,6 @@ export default class Bot {
                         return resolve();
                     }
 
-                    log.debug(
-                        `TradeOfferManager cancelTime: ${this.manager.cancelTime}, pendingCancelTime: ${this.manager.pendingCancelTime}`
-                    );
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
