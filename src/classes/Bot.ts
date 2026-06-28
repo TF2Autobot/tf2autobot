@@ -379,7 +379,10 @@ export default class Bot {
 
         this.admins
             .filter(steamID => !exclude.includes(steamID.toString()))
-            .forEach(steamID => this.sendMessage(steamID, message));
+            .forEach(steamID => {
+                log.debug(`Mirroring admin message to Discord for ${steamID.getSteamID64()}`);
+                this.sendMessage(steamID, message, true);
+            });
     }
 
     getPrefix(steamID?: SteamID): string {
@@ -1216,6 +1219,9 @@ export default class Bot {
                         return resolve();
                     }
 
+                    log.debug(
+                        `TradeOfferManager cancelTime: ${this.manager.cancelTime}, pendingCancelTime: ${this.manager.pendingCancelTime}`
+                    );
                     this.manager.pollInterval = 5 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
@@ -1523,7 +1529,7 @@ export default class Bot {
         });
     }
 
-    sendMessage(steamID: SteamID | string, message: string): void {
+    sendMessage(steamID: SteamID | string, message: string, sendToDiscord = false): void {
         // Check if Steam messages are globally disabled (but allow messages to admins)
         if (this.options.globalDisable?.messages === true && !this.isAdmin(steamID)) {
             // Don't send Steam messages if globally disabled (Discord messages still go through, admins exempt)
@@ -1542,6 +1548,17 @@ export default class Bot {
         }
 
         const steamID64 = steamID.toString();
+
+        if (sendToDiscord && this.discordBot) {
+            const admin = this.admins.find(a => a.getSteamID64() === steamID64);
+            if (admin && admin.discordID) {
+                log.debug(`Sending Discord notification to admin ${admin.discordID}`);
+                void this.discordBot.sendNotification(admin.discordID, message);
+            } else if (admin) {
+                log.debug(`Admin ${steamID64} does not have a linked Discord ID`);
+            }
+        }
+
         const friend = this.friends.getFriend(steamID64);
 
         if (!friend) {

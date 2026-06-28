@@ -1551,27 +1551,30 @@ export default class Trades {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
-        offer.log(
-            'verbose',
-            `state changed: ${TradeOfferManager.ETradeOfferState[oldState] as string} -> ${
-                TradeOfferManager.ETradeOfferState[offer.state] as string
-            }${
-                (action?.action === 'accept' && offer.state === TradeOfferManager.ETradeOfferState['Accepted']) ||
-                (action?.action === 'decline' && offer.state === TradeOfferManager.ETradeOfferState['Declined'])
-                    ? ' (reason: ' + action.reason + ')'
-                    : ''
-            }${
-                offer.state === TradeOfferManager.ETradeOfferState['Canceled']
-                    ? ` (reason: ${
-                          offer.data('canceledByUser') === true
-                              ? 'Canceled by admin'
-                              : oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation']
-                                ? 'Timed out or failed mobile confirmation'
-                                : 'Canceled by partner or Steam'
-                      })`
-                    : ''
-            }`
-        );
+        const stateName = TradeOfferManager.ETradeOfferState[offer.state] as string;
+        const oldStateName = TradeOfferManager.ETradeOfferState[oldState] as string;
+
+        let reason = '';
+        if (
+            (action?.action === 'accept' && offer.state === TradeOfferManager.ETradeOfferState['Accepted']) ||
+            (action?.action === 'decline' && offer.state === TradeOfferManager.ETradeOfferState['Declined'])
+        ) {
+            reason = ` (reason: ${action.reason})`;
+        } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
+            const canceledByUser = offer.data('canceledByUser') === true;
+            const isCreatedNeedsConfirmation =
+                oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation'];
+
+            reason = ` (reason: ${
+                canceledByUser
+                    ? 'Canceled by admin'
+                    : isCreatedNeedsConfirmation
+                      ? 'Timed out or failed mobile confirmation'
+                      : 'Canceled by partner or Steam'
+            })`;
+        }
+
+        offer.log('verbose', `state changed: ${oldStateName} (${oldState}) -> ${stateName} (${offer.state})${reason}`);
 
         const finishTimestamp = dayjs().valueOf();
 
