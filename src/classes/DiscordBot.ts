@@ -207,6 +207,47 @@ export default class DiscordBot {
             .catch((err: any) => log.error('Failed to send message to Discord:', err));
     }
 
+    public async sendNotification(discordID: Snowflake, messageToSend: string): Promise<void> {
+        const user = await this.client.users.fetch(discordID).catch(err => {
+            log.error('Failed to fetch user by id:', err);
+        });
+
+        if (!user) {
+            return;
+        }
+
+        const formattedMessage = DiscordBot.reformat(messageToSend);
+        const send = async (msg: string) => {
+            try {
+                await user.send(msg);
+                log.info(`Notification sent to ${user.tag} (${user.id}): ${msg}`);
+            } catch (err) {
+                log.error(`Failed to send notification to ${user.tag} (${user.id}):`, err);
+            }
+        };
+
+        if (messageToSend === formattedMessage) {
+            const lines = messageToSend.split('\n');
+            let partialMessage = '';
+            for (let i = 0; i < lines.length; i += 1) {
+                const line = lines[i];
+                if (partialMessage.length + 1 + line.length <= this.MAX_MESSAGE_LENGTH) {
+                    if (i === 0) {
+                        partialMessage += line;
+                    } else {
+                        partialMessage += '\n' + line;
+                    }
+                } else {
+                    await send(partialMessage);
+                    partialMessage = line;
+                }
+            }
+            await send(partialMessage);
+        } else {
+            await send(formattedMessage);
+        }
+    }
+
     private async onClientReady() {
         // https://github.com/TF2Autobot/tf2autobot-giveawaybot/blob/master/src/events/ready.ts
         log.info(

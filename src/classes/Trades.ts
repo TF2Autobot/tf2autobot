@@ -1111,7 +1111,15 @@ export default class Trades {
             matchesPrice = false;
         }
 
-        const summarySteam = t.summarizeToChat(offer, this.bot, 'summary-accepting', false, value, true, offer.isOurOffer);
+        const summarySteam = t.summarizeToChat(
+            offer,
+            this.bot,
+            'summary-accepting',
+            false,
+            value,
+            true,
+            offer.isOurOffer
+        );
         const summaryDiscord = t.summarizeToChat(
             offer,
             this.bot,
@@ -1145,12 +1153,12 @@ export default class Trades {
                 null,
                 [offer.id]
             );
-        } else {
-            this.bot.messageAdmins(msg, []);
         }
+
+        this.bot.messageAdmins(msg, []);
     }
 
-    acceptConfirmation(offer: TradeOffer): Promise<void> {
+    acceptConfirmation(_offer: TradeOffer): Promise<void> {
         return Promise.resolve(); // No longer used but kept for compatibility
     }
 
@@ -1543,17 +1551,30 @@ export default class Trades {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const action: undefined | { action: 'accept' | 'decline'; reason: string } = offer.data('action');
 
-        offer.log(
-            'verbose',
-            `state changed: ${TradeOfferManager.ETradeOfferState[oldState] as string} -> ${
-                TradeOfferManager.ETradeOfferState[offer.state] as string
-            }${
-                (action?.action === 'accept' && offer.state === TradeOfferManager.ETradeOfferState['Accepted']) ||
-                (action?.action === 'decline' && offer.state === TradeOfferManager.ETradeOfferState['Declined'])
-                    ? ' (reason: ' + action.reason + ')'
-                    : ''
-            }`
-        );
+        const stateName = TradeOfferManager.ETradeOfferState[offer.state] as string;
+        const oldStateName = TradeOfferManager.ETradeOfferState[oldState] as string;
+
+        let reason = '';
+        if (
+            (action?.action === 'accept' && offer.state === TradeOfferManager.ETradeOfferState['Accepted']) ||
+            (action?.action === 'decline' && offer.state === TradeOfferManager.ETradeOfferState['Declined'])
+        ) {
+            reason = ` (reason: ${action.reason})`;
+        } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
+            const canceledByUser = offer.data('canceledByUser') === true;
+            const isCreatedNeedsConfirmation =
+                oldState === TradeOfferManager.ETradeOfferState['CreatedNeedsConfirmation'];
+
+            reason = ` (reason: ${
+                canceledByUser
+                    ? 'Canceled by admin'
+                    : isCreatedNeedsConfirmation
+                      ? 'Timed out or failed mobile confirmation'
+                      : 'Canceled by partner or Steam'
+            })`;
+        }
+
+        offer.log('verbose', `state changed: ${oldStateName} (${oldState}) -> ${stateName} (${offer.state})${reason}`);
 
         const finishTimestamp = dayjs().valueOf();
 
