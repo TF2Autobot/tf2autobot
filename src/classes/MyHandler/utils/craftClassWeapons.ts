@@ -5,15 +5,7 @@ export interface CraftWeaponsBySlot {
 }
 
 export type ClassesForCraftableWeapons =
-    | 'scout'
-    | 'soldier'
-    | 'pyro'
-    | 'demoman'
-    | 'heavy'
-    | 'engineer'
-    | 'medic'
-    | 'sniper'
-    | 'spy';
+    'scout' | 'soldier' | 'pyro' | 'demoman' | 'heavy' | 'engineer' | 'medic' | 'sniper' | 'spy';
 
 export type SlotsForCraftableWeapons = 'primary' | 'secondary' | 'melee' | 'pda2';
 

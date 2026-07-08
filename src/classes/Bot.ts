@@ -583,7 +583,6 @@ export default class Bot {
     }
 
     startAutoRefreshListings(): void {
-        return;
         // Automatically check for missing listings every 30 minutes
         let pricelistLength = 0;
 
@@ -639,10 +638,6 @@ export default class Bot {
                     this.listingManager.listings.forEach(listing => {
                         let listingSKU = listing.getSKU();
                         if (listing.intent === 1) {
-                            if (this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-
                             if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
                                 listingSKU = listingSKU.replace(';festive', '');
                             }
@@ -650,18 +645,24 @@ export default class Bot {
                             if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                                 listingSKU = listingSKU.replace(';strange', '');
                             }
-                        } else {
-                            if (/;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
                         }
 
                         let match: Entry | null;
                         const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                        if (null !== assetIdPrice) {
-                            match = assetIdPrice;
-                        } else {
+                        if (assetIdPrice === null) {
                             match = this.pricelist.getPrice({ priceKey: listingSKU });
+
+                            if (
+                                !match &&
+                                listing.intent === 1 &&
+                                this.options.normalize.painted.our &&
+                                /;p\d+/.test(listingSKU)
+                            ) {
+                                const baseSKU = listingSKU.replace(/;p\d+/, '');
+                                match = this.pricelist.getPrice({ priceKey: baseSKU });
+                            }
+                        } else {
+                            match = assetIdPrice;
                         }
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
@@ -680,6 +681,14 @@ export default class Bot {
                         }
 
                         listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
+
+                        if (
+                            this.options.normalize.painted.our &&
+                            /;p\d+/.test(listingSKU) &&
+                            match?.sku !== listingSKU
+                        ) {
+                            listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
+                        }
                     });
 
                     const pricelist = Object.assign({}, this.pricelist.getPrices);
@@ -705,8 +714,6 @@ export default class Bot {
                                 if (
                                     _listings.length === 1 &&
                                     listing.intent === 0 && // We only check if the only listing exist is buy order
-                                    entry.max > 1 &&
-                                    amountAvailable > 0 &&
                                     amountAvailable > entry.min
                                 ) {
                                     // here we only check if the bot already have that item
@@ -1253,7 +1260,7 @@ export default class Bot {
             () => {
                 this.setProperties();
             },
-            24 * 60 * 60 * 1000
+            5 * 60 * 1000 // Every 5 minutes
         );
     }
 
