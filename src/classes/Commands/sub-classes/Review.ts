@@ -186,8 +186,8 @@ export default class ReviewCommands {
                 (valueDiff > 0
                     ? `)\n📈 Profit from overpay: ${valueDiffRef} ref`
                     : valueDiff < 0
-                    ? `)\n📉 Loss from underpay: ${valueDiffRef} ref`
-                    : ')');
+                      ? `)\n📉 Loss from underpay: ${valueDiffRef} ref`
+                      : ')');
         }
 
         const links = generateLinks(offerData.partner.toString());

@@ -44,7 +44,10 @@ export default class TF2Inventory {
 
     private slots: number = null;
 
-    constructor(steamID: SteamID | string, private readonly manager: TradeOfferManager) {
+    constructor(
+        steamID: SteamID | string,
+        private readonly manager: TradeOfferManager
+    ) {
         this.steamID = new SteamID(steamID.toString());
         this.manager = manager;
     }

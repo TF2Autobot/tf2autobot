@@ -59,7 +59,10 @@ export default class Commands {
 
     private adminInventoryReset: NodeJS.Timeout;
 
-    constructor(private readonly bot: Bot, private readonly pricer: IPricer) {
+    constructor(
+        private readonly bot: Bot,
+        private readonly pricer: IPricer
+    ) {
         this.help = new c.HelpCommands(bot);
         this.manager = new c.ManagerCommands(bot);
         this.message = new c.MessageCommand(bot);
@@ -105,6 +108,23 @@ export default class Commands {
         }
 
         if (message.startsWith(prefix)) {
+            // Allow Discord commands even when Steam commands are disabled
+            const isDiscordMessage = steamID instanceof SteamID && steamID.redirectAnswerTo;
+
+            // Check if all commands are globally disabled (skip for Discord)
+            if (this.bot.options.globalDisable?.commands === true && !isAdmin && !isDiscordMessage) {
+                log.debug(`Steam command "${command}" blocked for ${steamID.toString()} (commands globally disabled)`);
+                return;
+            }
+
+            // Check if admin commands are globally disabled (skip for Discord)
+            if (this.bot.options.globalDisable?.adminCommands === true && isAdmin && !isDiscordMessage) {
+                log.debug(
+                    `Steam admin command "${command}" blocked for ${steamID.toString()} (admin commands globally disabled)`
+                );
+                return;
+            }
+
             if (command === 'help') {
                 await this.help.helpCommand(steamID, prefix);
             } else if (command === 'how2trade') {
@@ -153,7 +173,7 @@ export default class Commands {
                 this.queueCommand(steamID);
             } else if (['time', 'uptime', 'pure', 'rate', 'owner', 'discord', 'stock'].includes(command)) {
                 if (command === 'stock') {
-                    return this.misc.miscCommand(steamID, command as Misc, message);
+                    return this.misc.miscCommand(steamID, command, message);
                 }
                 this.misc.miscCommand(steamID, command as Misc);
             } else if (['link', 'links'].includes(command)) {
@@ -177,8 +197,8 @@ export default class Commands {
                     command === 'craftweapons'
                         ? 'craftweapon'
                         : command === 'uncraftweapons'
-                        ? 'uncraftweapon'
-                        : (command as CraftUncraft)
+                          ? 'uncraftweapon'
+                          : (command as CraftUncraft)
                 );
             } else if (['deposit', 'd'].includes(command) && isAdmin) {
                 await this.depositCommand(steamID, message, prefix);
@@ -218,6 +238,8 @@ export default class Commands {
                 this.manager.TF2GCCommand(steamID, message, command as TF2GC);
             } else if (['name', 'avatar'].includes(command) && isAdmin) {
                 this.manager.nameAvatarCommand(steamID, message, command as NameAvatar, prefix);
+            } else if (command === 'changename' && isAdmin) {
+                this.manager.changeNameCommand(steamID, message, prefix);
             } else if (['block', 'unblock'].includes(command) && isAdmin) {
                 this.manager.blockUnblockCommand(steamID, message, command as BlockUnblock);
             } else if (['blockedlist', 'blocklist', 'blist'].includes(command) && isAdmin) {
@@ -896,9 +918,12 @@ export default class Commands {
                 this.adminInventory[steamid] = adminInventory;
 
                 clearTimeout(this.adminInventoryReset);
-                this.adminInventoryReset = setTimeout(() => {
-                    delete this.adminInventory[steamid];
-                }, 5 * 60 * 1000);
+                this.adminInventoryReset = setTimeout(
+                    () => {
+                        delete this.adminInventory[steamid];
+                    },
+                    5 * 60 * 1000
+                );
             } catch (err) {
                 log.error('Error fetching inventory: ', err);
                 return this.bot.sendMessage(
@@ -1061,8 +1086,8 @@ export default class Commands {
             typeof params.ignorepainted === 'boolean'
                 ? params.ignorepainted
                 : typeof params.ignorepainted === 'number'
-                ? !!params.ignorepainted
-                : false;
+                  ? !!params.ignorepainted
+                  : false;
 
         const withGroup =
             params.withgroup === '' || typeof params.withgroup !== 'string'
@@ -1106,7 +1131,6 @@ export default class Commands {
                     continue;
                 }
 
-                // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
                 if (ignorePainted && sku.match(/;[p][0-9]+/) !== null) {
                     delete clonedDict[sku];
                     continue;

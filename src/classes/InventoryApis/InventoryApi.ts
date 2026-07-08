@@ -7,7 +7,10 @@ import { EconItem } from '@tf2autobot/tradeoffer-manager';
 import Bot from '../Bot';
 
 export default class InventoryApi {
-    constructor(private bot: Bot, private optionsKey: string) {}
+    constructor(
+        private bot: Bot,
+        private optionsKey: string
+    ) {}
 
     public isEnabled(): boolean {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
@@ -29,6 +32,11 @@ export default class InventoryApi {
         contextID: string
     ): [string, UnknownDictionaryKnownValues] {
         return ['', {}];
+    }
+
+    // This method may be defined by a class extending InventoryAPI
+    protected getHeaders(): UnknownDictionaryKnownValues {
+        return {};
     }
 
     // Adapted from node-steamcommunity
@@ -58,6 +66,8 @@ export default class InventoryApi {
             return;
         }
 
+        const headers = this.getHeaders();
+
         let pos = 1;
         get([], []);
 
@@ -67,7 +77,8 @@ export default class InventoryApi {
                 params: {
                     ...apiCallParams,
                     start_assetid: start
-                }
+                },
+                headers: headers
             }).then(
                 response => {
                     const result = response.data as GetUserInventoryContentsResult;

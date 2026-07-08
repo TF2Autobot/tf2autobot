@@ -50,9 +50,12 @@ export default class CartQueue {
 
     private queueCheck(steamID: string): void {
         log.debug(`Checking queue position in 3 minutes...`);
-        this.queuePositionCheck = setTimeout(() => {
-            void this.queueCheckRestartBot(steamID);
-        }, 3 * 60 * 1000);
+        this.queuePositionCheck = setTimeout(
+            () => {
+                void this.queueCheckRestartBot(steamID);
+            },
+            3 * 60 * 1000
+        );
     }
 
     private async queueCheckRestartBot(steamID: string): Promise<void> {
@@ -228,12 +231,12 @@ export default class CartQueue {
                         ? custom.processingOffer.donation.replace(/%summarize%/g, summarize)
                         : `⌛ Please wait while I process your donation! ${summarize}.`
                     : isBuyingPremium
-                    ? custom.processingOffer.isBuyingPremium
-                        ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
-                        : `⌛ Please wait while I process your premium purchase! ${summarize}.`
-                    : custom.processingOffer.offer
-                    ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
-                    : `⌛ Please wait while I process your offer! ${summarize}.`;
+                      ? custom.processingOffer.isBuyingPremium
+                          ? custom.processingOffer.isBuyingPremium.replace(/%summarize%/g, summarize)
+                          : `⌛ Please wait while I process your premium purchase! ${summarize}.`
+                      : custom.processingOffer.offer
+                        ? custom.processingOffer.offer.replace(/%summarize%/g, summarize)
+                        : `⌛ Please wait while I process your offer! ${summarize}.`;
 
                 cart.sendNotification = sendNotification;
 
@@ -248,12 +251,12 @@ export default class CartQueue {
                             ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
                             : `⌛ Your donation has been made! Please wait while I accept the mobile confirmation.`
                         : isBuyingPremium
-                        ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                            ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
-                            : `⌛ Your premium purchase has been made! Please wait while I accept the mobile confirmation.`
-                        : custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                        ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
-                        : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
+                          ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
+                              ? custom.hasBeenMadeAcceptingMobileConfirmation.isBuyingPremium
+                              : `⌛ Your premium purchase has been made! Please wait while I accept the mobile confirmation.`
+                          : custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                            ? custom.hasBeenMadeAcceptingMobileConfirmation.offer
+                            : `⌛ Your offer has been made! Please wait while I accept the mobile confirmation.`;
 
                     cart.sendNotification = sendNotification;
 

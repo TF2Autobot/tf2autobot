@@ -175,7 +175,11 @@ export default class Bot {
 
     public periodicCheckAdmin: NodeJS.Timeout;
 
-    constructor(public readonly botManager: BotManager, public options: Options, readonly priceSource: IPricer) {
+    constructor(
+        public readonly botManager: BotManager,
+        public options: Options,
+        readonly priceSource: IPricer
+    ) {
         this.botManager = botManager;
 
         this.client = new SteamUser();
@@ -265,10 +269,13 @@ export default class Bot {
 
     private initResetCacheInterval(): void {
         clearInterval(this.resetRepCache);
-        this.resetRepCache = setInterval(() => {
-            // Reset repCache every 12 hours (well, will always reset on restart)
-            this.repCache = {};
-        }, 12 * 60 * 60 * 1000);
+        this.resetRepCache = setInterval(
+            () => {
+                // Reset repCache every 12 hours (well, will always reset on restart)
+                this.repCache = {};
+            },
+            12 * 60 * 60 * 1000
+        );
     }
 
     private async checkAdminBanned(): Promise<boolean> {
@@ -301,17 +308,20 @@ export default class Bot {
     }
 
     private periodicCheck(): void {
-        this.periodicCheckAdmin = setInterval(() => {
-            void this.checkAdminBanned()
-                .then(banned => {
-                    if (banned) {
-                        return this.botManager.stop(new Error('Not allowed'));
-                    }
-                })
-                .catch(() => {
-                    // ignore error
-                });
-        }, 12 * 60 * 60 * 1000);
+        this.periodicCheckAdmin = setInterval(
+            () => {
+                void this.checkAdminBanned()
+                    .then(banned => {
+                        if (banned) {
+                            return this.botManager.stop(new Error('Not allowed'));
+                        }
+                    })
+                    .catch(() => {
+                        // ignore error
+                    });
+            },
+            12 * 60 * 60 * 1000
+        );
     }
 
     private getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
@@ -468,11 +478,14 @@ export default class Bot {
         void this.checkForUpdates;
 
         // Check for updates every 10 minutes
-        setInterval(() => {
-            this.checkForUpdates.catch(err => {
-                log.error('Failed to check for updates: ', err);
-            });
-        }, 10 * 60 * 1000);
+        setInterval(
+            () => {
+                this.checkForUpdates.catch(err => {
+                    log.error('Failed to check for updates: ', err);
+                });
+            },
+            10 * 60 * 1000
+        );
     }
 
     get checkForUpdates(): Promise<{
@@ -573,7 +586,6 @@ export default class Bot {
     }
 
     startAutoRefreshListings(): void {
-        return;
         // Automatically check for missing listings every 30 minutes
         let pricelistLength = 0;
 
@@ -612,9 +624,12 @@ export default class Bot {
                 this.listingManager.getListings(false, async (err: AxiosError) => {
                     if (err) {
                         log.warn('Error getting listings on auto-refresh listings operation:', filterAxiosError(err));
-                        setTimeout(() => {
-                            this.startAutoRefreshListings();
-                        }, 30 * 60 * 1000);
+                        setTimeout(
+                            () => {
+                                this.startAutoRefreshListings();
+                            },
+                            30 * 60 * 1000
+                        );
                         clearInterval(this.autoRefreshListingsInterval);
                         return;
                     }
@@ -626,10 +641,6 @@ export default class Bot {
                     this.listingManager.listings.forEach(listing => {
                         let listingSKU = listing.getSKU();
                         if (listing.intent === 1) {
-                            if (this.options.normalize.painted.our && /;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
-
                             if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
                                 listingSKU = listingSKU.replace(';festive', '');
                             }
@@ -637,18 +648,24 @@ export default class Bot {
                             if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
                                 listingSKU = listingSKU.replace(';strange', '');
                             }
-                        } else {
-                            if (/;[p][0-9]+/.test(listingSKU)) {
-                                listingSKU = listingSKU.replace(/;[p][0-9]+/, '');
-                            }
                         }
 
                         let match: Entry | null;
                         const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                        if (null !== assetIdPrice) {
-                            match = assetIdPrice;
-                        } else {
+                        if (assetIdPrice === null) {
                             match = this.pricelist.getPrice({ priceKey: listingSKU });
+
+                            if (
+                                !match &&
+                                listing.intent === 1 &&
+                                this.options.normalize.painted.our &&
+                                /;p\d+/.test(listingSKU)
+                            ) {
+                                const baseSKU = listingSKU.replace(/;p\d+/, '');
+                                match = this.pricelist.getPrice({ priceKey: baseSKU });
+                            }
+                        } else {
+                            match = assetIdPrice;
                         }
 
                         if (isFilterCantAfford && listing.intent === 0 && match !== null) {
@@ -667,6 +684,14 @@ export default class Bot {
                         }
 
                         listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
+
+                        if (
+                            this.options.normalize.painted.our &&
+                            /;p\d+/.test(listingSKU) &&
+                            match?.sku !== listingSKU
+                        ) {
+                            listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
+                        }
                     });
 
                     const pricelist = Object.assign({}, this.pricelist.getPrices);
@@ -692,8 +717,6 @@ export default class Bot {
                                 if (
                                     _listings.length === 1 &&
                                     listing.intent === 0 && // We only check if the only listing exist is buy order
-                                    entry.max > 1 &&
-                                    amountAvailable > 0 &&
                                     amountAvailable > entry.min
                                 ) {
                                     // here we only check if the bot already have that item
@@ -1161,9 +1184,12 @@ export default class Bot {
                         log.debug('Getting localization file...');
                         this.getLocalizationFile()
                             .then(() => {
-                                setInterval(() => {
-                                    void this.getLocalizationFile();
-                                }, 24 * 60 * 60 * 1000);
+                                setInterval(
+                                    () => {
+                                        void this.getLocalizationFile();
+                                    },
+                                    24 * 60 * 60 * 1000
+                                );
                                 callback(null);
                             })
                             .catch(err => {
@@ -1238,9 +1264,12 @@ export default class Bot {
     }
 
     private refreshSchemaProperties(): void {
-        this.updateSchemaPropertiesInterval = setInterval(() => {
-            this.setProperties();
-        }, 24 * 60 * 60 * 1000);
+        this.updateSchemaPropertiesInterval = setInterval(
+            () => {
+                this.setProperties();
+            },
+            5 * 60 * 1000 // Every 5 minutes
+        );
     }
 
     setCookies(cookies: string[]): Promise<void> {
@@ -1420,7 +1449,7 @@ export default class Bot {
 
                     if (err.eresult === EResult.AccessDenied) {
                         // Access denied during login
-                        this.deleteRefreshToken().finally(() => {
+                        void this.deleteRefreshToken().finally(() => {
                             reject(err);
                         });
                     } else {
@@ -1504,6 +1533,13 @@ export default class Bot {
     }
 
     sendMessage(steamID: SteamID | string, message: string): void {
+        // Check if Steam messages are globally disabled (but allow messages to admins)
+        if (this.options.globalDisable?.messages === true && !this.isAdmin(steamID)) {
+            // Don't send Steam messages if globally disabled (Discord messages still go through, admins exempt)
+            log.debug(`Message not sent (globally disabled) to ${steamID.toString()}: ${message}`);
+            return;
+        }
+
         if (steamID instanceof SteamID && steamID.redirectAnswerTo) {
             const origMessage = steamID.redirectAnswerTo;
             if (origMessage instanceof DiscordMessage && this.discordBot) {
@@ -1659,7 +1695,7 @@ export default class Bot {
         let offset: number;
         try {
             offset = await this.getTimeOffset;
-        } catch (err) {
+        } catch (_) {
             // ignore error
         }
 

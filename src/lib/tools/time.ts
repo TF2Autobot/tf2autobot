@@ -63,28 +63,28 @@ export function timeNow(opt: Options): { timeUnix: number; time: string; emoji: 
         timeEmoji.includes('T00:') || timeEmoji.includes('T12:')
             ? '🕛'
             : timeEmoji.includes('T01:') || timeEmoji.includes('T13:')
-            ? '🕐'
-            : timeEmoji.includes('T02:') || timeEmoji.includes('T14:')
-            ? '🕑'
-            : timeEmoji.includes('T03:') || timeEmoji.includes('T15:')
-            ? '🕒'
-            : timeEmoji.includes('T04:') || timeEmoji.includes('T16:')
-            ? '🕓'
-            : timeEmoji.includes('T05:') || timeEmoji.includes('T17:')
-            ? '🕔'
-            : timeEmoji.includes('T06:') || timeEmoji.includes('T18:')
-            ? '🕕'
-            : timeEmoji.includes('T07:') || timeEmoji.includes('T19:')
-            ? '🕖'
-            : timeEmoji.includes('T08:') || timeEmoji.includes('T20:')
-            ? '🕗'
-            : timeEmoji.includes('T09:') || timeEmoji.includes('T21:')
-            ? '🕘'
-            : timeEmoji.includes('T10:') || timeEmoji.includes('T22:')
-            ? '🕙'
-            : timeEmoji.includes('T11:') || timeEmoji.includes('T23:')
-            ? '🕚'
-            : '';
+              ? '🕐'
+              : timeEmoji.includes('T02:') || timeEmoji.includes('T14:')
+                ? '🕑'
+                : timeEmoji.includes('T03:') || timeEmoji.includes('T15:')
+                  ? '🕒'
+                  : timeEmoji.includes('T04:') || timeEmoji.includes('T16:')
+                    ? '🕓'
+                    : timeEmoji.includes('T05:') || timeEmoji.includes('T17:')
+                      ? '🕔'
+                      : timeEmoji.includes('T06:') || timeEmoji.includes('T18:')
+                        ? '🕕'
+                        : timeEmoji.includes('T07:') || timeEmoji.includes('T19:')
+                          ? '🕖'
+                          : timeEmoji.includes('T08:') || timeEmoji.includes('T20:')
+                            ? '🕗'
+                            : timeEmoji.includes('T09:') || timeEmoji.includes('T21:')
+                              ? '🕘'
+                              : timeEmoji.includes('T10:') || timeEmoji.includes('T22:')
+                                ? '🕙'
+                                : timeEmoji.includes('T11:') || timeEmoji.includes('T23:')
+                                  ? '🕚'
+                                  : '';
 
     return {
         timeUnix: dayjs().unix(),
@@ -131,12 +131,12 @@ export function convertTime(
                   : ''
           }`
         : timeComp === null
-        ? isMsPC
-            ? `${timePC}`
-            : `${timePC}${showInMS ? ` (${processOrConstructTime} ms)` : ''}`
-        : isMsComp
-        ? `${timeComp}`
-        : `${timeComp}${showInMS ? ` (${completeTime} ms)` : ''}`;
+          ? isMsPC
+              ? `${timePC}`
+              : `${timePC}${showInMS ? ` (${processOrConstructTime} ms)` : ''}`
+          : isMsComp
+            ? `${timeComp}`
+            : `${timeComp}${showInMS ? ` (${completeTime} ms)` : ''}`;
     return timeText;
 }
 

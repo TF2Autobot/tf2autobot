@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment */
-
 import {
     Client,
     GatewayIntentBits,
@@ -23,7 +21,10 @@ export default class DiscordBot {
 
     private MAX_MESSAGE_LENGTH = 2000 - 2; // some characters are reserved
 
-    constructor(private options: Options, private bot: Bot) {
+    constructor(
+        private options: Options,
+        private bot: Bot
+    ) {
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,

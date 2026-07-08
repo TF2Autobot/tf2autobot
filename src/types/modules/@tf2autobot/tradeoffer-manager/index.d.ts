@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 declare module '@tf2autobot/tradeoffer-manager' {
     import { EventEmitter } from 'events';
     import SteamID from 'steamid';
@@ -442,7 +441,7 @@ declare module '@tf2autobot/tradeoffer-manager' {
 
             data(): UnknownKeys<any>;
 
-            data(key: string): any | undefined;
+            data(key: string): any;
 
             data(key: string, value: any): void;
 

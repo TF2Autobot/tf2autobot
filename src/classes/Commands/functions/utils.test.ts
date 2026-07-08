@@ -1,4 +1,6 @@
-import { parseItemAndAmountFromMessage } from '../../../Commands/functions/utils';
+import { parseItemAndAmountFromMessage } from './utils';
+
+import { expect, it } from 'vitest';
 
 it('can parse one word item names', () => {
     let messageArgs = '5 Maul';

@@ -139,7 +139,7 @@ export default class BotManager {
             return this.exit(err);
         }
 
-        this.bot.handler.onShutdown().finally(() => {
+        void this.bot.handler.onShutdown().finally(() => {
             log.debug('Handler finished cleaning up');
             this.exit(err);
         });

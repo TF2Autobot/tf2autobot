@@ -4,7 +4,10 @@ import log from '../../../lib/logger';
 export default class CustomPricerSocketManager {
     public socket: Socket;
 
-    constructor(public url: string, public key?: string) {}
+    constructor(
+        public url: string,
+        public key?: string
+    ) {}
 
     private socketDisconnected(): (reason: string) => void {
         return reason => {
@@ -32,7 +35,7 @@ export default class CustomPricerSocketManager {
 
     init(): void {
         this.shutDown();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment
+
         this.socket = io(this.url, {
             forceNew: true,
             autoConnect: false,

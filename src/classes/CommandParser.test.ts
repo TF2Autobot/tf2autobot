@@ -1,4 +1,5 @@
-import CommandParser from '../CommandParser';
+import CommandParser from './CommandParser';
+import { it, expect } from 'vitest';
 
 it('can parse arrays', () => {
     let message = '!config highValue.sheens=[Team Shine]';
@@ -37,4 +38,18 @@ it('can parse item id commands', () => {
     expect(command).toEqual('add');
     const params = CommandParser.parseParams(CommandParser.removeCommand(message));
     expect(params).toEqual({ id: 10151297782, intent: 'sell', sell: { keys: 1 } });
+});
+
+it('can parse values with &', () => {
+    let message = '!changeName name=Buying spells & hats&i_am_sure=i_am_sure';
+    let params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    expect(params).toEqual({ name: 'Buying spells & hats', i_am_sure: 'i_am_sure' });
+
+    message = `!test key1=value1&key2=value2&&key3=3`;
+    params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    expect(params).toEqual({ key1: 'value1', key2: 'value2&', key3: 3 });
+
+    message = `!test key1=value1&key2=&value2&&key3=[value3]`;
+    params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    expect(params).toEqual({ key1: 'value1', key2: '&value2&', key3: ['value3'] });
 });

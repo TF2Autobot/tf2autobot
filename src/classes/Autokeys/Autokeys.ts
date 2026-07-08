@@ -463,10 +463,10 @@ export default class Autokeys {
                     isBankingKeys && isEnableKeyBanking && this.isActive
                         ? `Banking (Min: ${setMinKeys}, Max: ${setMaxKeys})`
                         : isBuyingKeys && this.isActive
-                        ? `Buying (Min: ${setMinKeys}, Max: ${setMaxKeys})`
-                        : isSellingKeys && this.isActive
-                        ? `Selling (Min: ${setMinKeys}, Max: ${setMaxKeys})`
-                        : 'Not active'
+                          ? `Buying (Min: ${setMinKeys}, Max: ${setMaxKeys})`
+                          : isSellingKeys && this.isActive
+                            ? `Selling (Min: ${setMinKeys}, Max: ${setMaxKeys})`
+                            : 'Not active'
                 }`
         );
     }

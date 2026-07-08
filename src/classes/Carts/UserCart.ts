@@ -217,7 +217,6 @@ export default class UserCart extends Cart {
         let reverse = false;
         let index = 0;
 
-        /* eslint-disable-next-line no-constant-condition */
         while (true) {
             const key = skus[index];
             // Start at highest currency and check if we should pick that
@@ -838,8 +837,8 @@ export default class UserCart extends Cart {
                         checkedDuel
                             ? ' (not enough Dueling Mini-Game with 5x Uses)'
                             : checkNoiseMaker
-                            ? ' (not enough Noise Maker with 25x Uses)'
-                            : ''
+                              ? ' (not enough Noise Maker with 25x Uses)'
+                              : ''
                     }`,
                     {
                         sku: sku,
@@ -855,8 +854,8 @@ export default class UserCart extends Cart {
                         checkedDuel
                             ? ' (not enough Dueling Mini-Game with 5x Uses)'
                             : checkNoiseMaker
-                            ? ' (not enough Noise Maker with 25x Uses)'
-                            : ''
+                              ? ' (not enough Noise Maker with 25x Uses)'
+                              : ''
                     }`
                 );
             }

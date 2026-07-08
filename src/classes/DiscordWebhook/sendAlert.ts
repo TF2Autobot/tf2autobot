@@ -53,7 +53,7 @@ export default function sendAlert(
     bot: Bot,
     msg: string | null = null,
     positionOrCount: number | null = null,
-    err: any | null = null,
+    err: any = null,
     items: string[] | null = null
 ): void {
     let title: string;

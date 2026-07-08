@@ -1,4 +1,10 @@
 {
+    "globalDisable": {
+        "messages": false,
+        "greeting": false,
+        "commands": false,
+        "adminCommands": false
+    },
     "miscSettings": {
         "showOnlyMetal": {
             "enable": true
@@ -445,6 +451,9 @@
             "enable": false
         },
         "steamApis": {
+            "enable": false
+        },
+        "expressLoad": {
             "enable": false
         }
     },

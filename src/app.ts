@@ -1,14 +1,14 @@
 try {
     // only installed in dev mode
-    // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { bootstrap } = require('global-agent');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     bootstrap();
-} catch (e) {
+} catch (_) {
     // no worries
 }
 import 'module-alias/register';
-// eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const { version: BOT_VERSION } = require('../package.json');
 import { getPricer } from './lib/pricer/pricer';
 import { loadOptions } from './classes/Options';

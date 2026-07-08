@@ -83,10 +83,19 @@ export default class Listings {
 
         let doneSomething = false;
 
-        const match =
+        let match =
             data?.enabled === false
                 ? null
                 : this.bot.pricelist.getPrice({ priceKey, onlyEnabled: true, getGenericPrice: checkGenerics });
+
+        if (!match && !isAssetId && this.bot.options.normalize.painted.our && /;p\d+/.test(priceKey)) {
+            const baseSKU = priceKey.replace(/;p\d+/, '');
+            match = this.bot.pricelist.getPrice({
+                priceKey: baseSKU,
+                onlyEnabled: true,
+                getGenericPrice: checkGenerics
+            });
+        }
 
         let hasBuyListing = false;
         let hasSellListing = false;
@@ -117,6 +126,24 @@ export default class Listings {
             }
         } else {
             listings = this.bot.listingManager.findListings(sku);
+
+            if (listings.length === 0 && this.bot.options.normalize.painted.our && !/;p\d+/.test(sku)) {
+                const allListings = this.bot.listingManager.listings;
+                const paintedListings: ListingManager.Listing[] = [];
+
+                for (const listing of Object.values(allListings)) {
+                    if (listing) {
+                        const listingSKU = listing.getSKU();
+                        if (listingSKU?.startsWith(sku + ';p')) {
+                            paintedListings.push(listing);
+                        }
+                    }
+                }
+
+                if (paintedListings.length > 0) {
+                    listings = paintedListings;
+                }
+            }
         }
         listings.forEach(listing => {
             // Skip the listing if it belongs to an asset AND we are checking a SKU
@@ -601,12 +628,12 @@ export default class Listings {
                             (attachment === 's'
                                 ? optD.showSpells
                                 : attachment === 'sp'
-                                ? optD.showStrangeParts
-                                : attachment === 'ke'
-                                ? optD.showKillstreaker
-                                : attachment === 'ks'
-                                ? optD.showSheen
-                                : optD.showPainted && opt.normalize.painted.our)
+                                  ? optD.showStrangeParts
+                                  : attachment === 'ke'
+                                    ? optD.showKillstreaker
+                                    : attachment === 'ks'
+                                      ? optD.showSheen
+                                      : optD.showPainted && opt.normalize.painted.our)
                         ) {
                             if (attachment === 's') highValueString += `${cTSpt}${cT.spells} `;
                             else if (attachment === 'sp') highValueString += `${cTSpt}${cT.strangeParts} `;
@@ -638,10 +665,10 @@ export default class Listings {
                                                 attachment === 's'
                                                     ? optR.spells[name]
                                                     : attachment === 'ke'
-                                                    ? optR.killstreakers[name]
-                                                    : attachment === 'ks'
-                                                    ? optR.sheens[name]
-                                                    : optR.painted[name as PaintedNames].stringNote
+                                                      ? optR.killstreakers[name]
+                                                      : attachment === 'ks'
+                                                        ? optR.sheens[name]
+                                                        : optR.painted[name as PaintedNames].stringNote
                                             )}`
                                         );
                                     }
@@ -655,12 +682,12 @@ export default class Listings {
                                     attachment === 's'
                                         ? `${cTSpt}${cT.spells} `
                                         : attachment === 'sp'
-                                        ? `${cTSpt}${cT.strangeParts} `
-                                        : attachment === 'ke'
-                                        ? `${cTSpt}${cT.killstreaker} `
-                                        : attachment === 'ks'
-                                        ? `${cTSpt}${cT.sheen} `
-                                        : `${cTSpt}${cT.painted} `,
+                                          ? `${cTSpt}${cT.strangeParts} `
+                                          : attachment === 'ke'
+                                            ? `${cTSpt}${cT.killstreaker} `
+                                            : attachment === 'ks'
+                                              ? `${cTSpt}${cT.sheen} `
+                                              : `${cTSpt}${cT.painted} `,
                                     ''
                                 );
                             }
@@ -718,8 +745,8 @@ export default class Listings {
             details = isDueling
                 ? details.replace(/%uses%/g, optDs.duel ? optDs.duel : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)')
                 : isNoiseMaker
-                ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
-                : details.replace(/%uses%/g, '');
+                  ? details.replace(/%uses%/g, optDs.noiseMaker ? optDs.noiseMaker : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)')
+                  : details.replace(/%uses%/g, '');
             //
         } else if (isDueling || isNoiseMaker) {
             details = replaceDetails(this.templates[key], entry, key).replace(
@@ -729,8 +756,8 @@ export default class Listings {
                         ? optDs.duel
                         : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟱x 𝗨𝗦𝗘𝗦)'
                     : optDs.noiseMaker
-                    ? optDs.noiseMaker
-                    : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)'
+                      ? optDs.noiseMaker
+                      : '(𝗢𝗡𝗟𝗬 𝗪𝗜𝗧𝗛 𝟐𝟱x 𝗨𝗦𝗘𝗦)'
             );
 
             details = entry[key].toString().includes('key')

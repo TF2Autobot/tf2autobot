@@ -110,8 +110,8 @@ export default async function sendTradeDeclined(
                                       keyPrices.src === 'manual'
                                           ? 'manual'
                                           : isCustomPricer
-                                          ? 'custom-pricer'
-                                          : 'prices.tf'
+                                            ? 'custom-pricer'
+                                            : 'prices.tf'
                                   })` +
                                   `${
                                       autokeys.isEnabled
@@ -121,8 +121,8 @@ export default async function sendTradeDeclined(
                                                   (status.isBankingKeys
                                                       ? ' (banking)'
                                                       : status.isBuyingKeys
-                                                      ? ' (buying)'
-                                                      : ' (selling)')
+                                                        ? ' (buying)'
+                                                        : ' (selling)')
                                                 : '🛑')
                                           : ''
                                   }`

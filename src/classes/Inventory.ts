@@ -441,13 +441,12 @@ export default class Inventory {
         const itemsCount = items.length;
         const isAdmin = which === 'admin';
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const isNormalizeFestivized = isAdmin ? false : bot.options.normalize.festivized[which];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         const isNormalizeStrangeAsSecondQuality = isAdmin ? false : bot.options.normalize.strangeAsSecondQuality[which];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         const isNormalizePainted = isAdmin ? false : bot.options.normalize.painted[which];
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         const isNormalizeCraftNumber = isAdmin ? false : bot.options.normalize.craftNumber[which];
 
         for (let i = 0; i < itemsCount; i++) {

@@ -173,10 +173,10 @@ export async function sendToAdmin(
         (reasons.includes('⬜_BANNED_CHECK_FAILED')
             ? '\n\nFailed to get reputation status, please manually check if this person is banned before accepting the offer.'
             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
-            ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
-            : reasons.includes('⬜_HALTED')
-            ? '\n\nOffer received while in halt mode, please review the offer.'
-            : '');
+              ? '\n\nSteam is down, please manually check if this person has escrow (trade holds) enabled.'
+              : reasons.includes('⬜_HALTED')
+                ? '\n\nOffer received while in halt mode, please review the offer.'
+                : '');
 
     const message2 =
         t.summarizeToChat(offer, bot, 'review-admin', false, value, true) +

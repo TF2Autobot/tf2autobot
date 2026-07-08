@@ -123,10 +123,10 @@ export default function sendOfferReview(
                         (reasons.includes('⬜_BANNED_CHECK_FAILED')
                             ? '\n\n`Failed to get reputation status, please manually check if this person is banned before accepting the offer.`'
                             : reasons.includes('⬜_ESCROW_CHECK_FAILED')
-                            ? '\n\n`Steam down, please manually check if this person have escrow.`'
-                            : reasons.includes('⬜_HALTED')
-                            ? '\n\n`Offer received during halt mode`'
-                            : '') +
+                              ? '\n\n`Steam down, please manually check if this person have escrow.`'
+                              : reasons.includes('⬜_HALTED')
+                                ? '\n\n`Offer received during halt mode`'
+                                : '') +
                         summary +
                         (message.length !== 0 ? `\n\n💬 Offer message: "${message}"` : '') +
                         (isShowQuickLinks ? `\n\n${quickLinks(partnerNameNoFormat, links)}\n` : '\n'),
@@ -144,8 +144,8 @@ export default function sendOfferReview(
                                           keyPrices.src === 'manual'
                                               ? 'manual'
                                               : isCustomPricer
-                                              ? 'custom-pricer'
-                                              : 'prices.tf'
+                                                ? 'custom-pricer'
+                                                : 'prices.tf'
                                       })`
                                     : '') +
                                 (isShowInventory

@@ -29,18 +29,18 @@ export function getItemAndAmount(
                 (name.includes('!price')
                     ? '!price'
                     : name.includes('!sellcart')
-                    ? '!sellcart'
-                    : name.includes('!buycart')
-                    ? '!buycart'
-                    : name.includes('!sell')
-                    ? '!sell'
-                    : name.includes('!buy')
-                    ? '!buy'
-                    : name.includes('!pc')
-                    ? '!pc'
-                    : name.includes('!s')
-                    ? '!s'
-                    : '!b') +
+                      ? '!sellcart'
+                      : name.includes('!buycart')
+                        ? '!buycart'
+                        : name.includes('!sell')
+                          ? '!sell'
+                          : name.includes('!buy')
+                            ? '!buy'
+                            : name.includes('!pc')
+                              ? '!pc'
+                              : name.includes('!s')
+                                ? '!s'
+                                : '!b') +
                 ' Team Captain"'
         );
         return null;

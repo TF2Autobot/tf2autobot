@@ -361,6 +361,25 @@ export const optionsSchema: jsonschema.Schema = {
         }
     },
     properties: {
+        globalDisable: {
+            type: 'object',
+            properties: {
+                messages: {
+                    type: 'boolean'
+                },
+                greeting: {
+                    type: 'boolean'
+                },
+                commands: {
+                    type: 'boolean'
+                },
+                adminCommands: {
+                    type: 'boolean'
+                }
+            },
+            required: ['messages', 'greeting', 'commands', 'adminCommands'],
+            additionalProperties: false
+        },
         miscSettings: {
             type: 'object',
             properties: {
@@ -1525,9 +1544,12 @@ export const optionsSchema: jsonschema.Schema = {
                 },
                 steamApis: {
                     $ref: '#/definitions/only-enable'
+                },
+                expressLoad: {
+                    $ref: '#/definitions/only-enable'
                 }
             },
-            required: ['steamSupply', 'steamApis'],
+            required: ['steamSupply', 'steamApis', 'expressLoad'],
             additionalProperties: false
         },
         discordChat: {
