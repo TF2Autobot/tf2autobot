@@ -1,7 +1,7 @@
 import SteamID from 'steamid';
 import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
-import { TokenType, SubTokenType } from '../../TF2GC';
+import { SubTokenType } from '../../TF2GC';
 
 import log from '../../../lib/logger';
 import {
@@ -137,7 +137,7 @@ export default class CraftingCommands {
         const amountToCraft = amount === 'max' ? amountCanCraft : amount;
         for (let i = 0; i < amountToCraft; i++) {
             const assetidsToCraft = assetids.splice(0, 3);
-            this.bot.tf2gc.craftToken(assetidsToCraft, tokenType as TokenType, tokenName as SubTokenType, err => {
+            this.bot.tf2gc.craftToken(assetidsToCraft, tokenType, tokenName as SubTokenType, err => {
                 if (err) {
                     log.debug(
                         `Error crafting ${assetidsToCraft.join(', ')} for ${capTokenType} Token - ${capTokenName}`

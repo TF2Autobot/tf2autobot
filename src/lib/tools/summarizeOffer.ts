@@ -82,12 +82,7 @@ export function summarizeToChat(
 }
 
 type SummarizeType =
-    | 'summary-accepted'
-    | 'declined'
-    | 'review-partner'
-    | 'review-admin'
-    | 'summary-accepting'
-    | 'summary-countering';
+    'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting' | 'summary-countering';
 
 import Currencies from '@tf2autobot/tf2-currencies';
 

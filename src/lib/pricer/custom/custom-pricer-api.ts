@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { PricerOptions } from '../../../classes/IPricer';
 
@@ -81,7 +81,7 @@ export default class CustomPricerApi {
         data?: Record<string, any>
     ): Promise<R> {
         const options: AxiosRequestConfig = {
-            method: httpMethod as Method,
+            method: httpMethod,
             url: `${this.url ? this.url : 'https://api.prices.tf'}${path}`,
             headers: {
                 // This one is okay to keep I guess
