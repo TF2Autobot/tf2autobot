@@ -74,7 +74,7 @@
         "winston": "^3.19.0",
         "winston-daily-rotate-file": "^5.0.0",
         "write-file-atomic": "^7.0.0",
-        "ws": "^8.19.0"
+        "ws": "^8.21.0"
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.28.5",
