@@ -1260,7 +1260,7 @@ export default class Bot {
             () => {
                 this.setProperties();
             },
-            24 * 60 * 60 * 1000
+            5 * 60 * 1000 // Every 5 minutes
         );
     }
 
