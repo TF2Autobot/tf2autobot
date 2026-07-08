@@ -81,12 +81,10 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                                   (trade.dict.their[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
                                 : trade.dict.their[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
-                        if (
-                            !(
-                                (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-                                ['5000;6', '5001;6', '5002;6'].includes(sku)
-                            )
-                        ) {
+                        if (!(
+                            (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                            ['5000;6', '5001;6', '5002;6'].includes(sku)
+                        )) {
                             // if it is not currency
                             if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                                 continue; // item is not in pricelist, so we will just skip it
@@ -115,12 +113,10 @@ export default function itemStats(bot: Bot, SKU: string): Promise<{ bought: Item
                                   (trade.dict.our[sku]['amount'] as number) // pollData v2.2.0 until v.2.3.5
                                 : trade.dict.our[sku]; // pollData before v2.2.0 and/or v3.0.0 or later
 
-                        if (
-                            !(
-                                (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
-                                ['5000;6', '5001;6', '5002;6'].includes(sku)
-                            )
-                        ) {
+                        if (!(
+                            (bot.options.miscSettings.weaponsAsCurrency.enable && weapons.includes(sku)) ||
+                            ['5000;6', '5001;6', '5002;6'].includes(sku)
+                        )) {
                             if (!Object.prototype.hasOwnProperty.call(trade.prices, sku)) {
                                 continue; // item is not in pricelist, so we will just skip it
                             }

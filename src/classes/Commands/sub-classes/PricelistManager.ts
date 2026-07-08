@@ -2171,18 +2171,16 @@ export default class PricelistManagerCommands {
         }
 
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
-        if (
-            !(
-                params.enabled !== undefined ||
-                params.max !== undefined ||
-                params.min !== undefined ||
-                params.intent !== undefined ||
-                params.autoprice !== undefined ||
-                params.group !== undefined ||
-                params.promoted !== undefined ||
-                params.isPartialPriced !== undefined
-            )
-        ) {
+        if (!(
+            params.enabled !== undefined ||
+            params.max !== undefined ||
+            params.min !== undefined ||
+            params.intent !== undefined ||
+            params.autoprice !== undefined ||
+            params.group !== undefined ||
+            params.promoted !== undefined ||
+            params.isPartialPriced !== undefined
+        )) {
             return this.bot.sendMessage(
                 steamID,
                 '⚠️ Only parameters available for !find command: enabled, max, min, intent,' +

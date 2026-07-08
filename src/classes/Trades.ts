@@ -361,7 +361,7 @@ export default class Trades {
         offer.data('action', {
             action: action,
             reason: reason
-        } as Action);
+        });
 
         if (action !== 'counter') {
             offer.data('meta', meta);

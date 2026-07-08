@@ -95,7 +95,7 @@ export default class Bans {
                     obj[site] = (fromRepAutobot.contents[site as Sites] as SiteResult).content;
                 }
                 return obj;
-            }, {}) as Contents;
+            }, {});
 
             return {
                 isBanned,
