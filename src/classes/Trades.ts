@@ -28,6 +28,31 @@ import * as t from '../lib/tools/export';
 type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
 type AddOrRemoveMyOrTheirItems = 'addMyItems' | 'removeMyItems' | 'addTheirItems' | 'removeTheirItems';
 type FailedActions = 'failed-accept' | 'failed-decline' | 'failed-counter';
+type HttpError = Error & { code?: string | number };
+type TradeOfferWithEscrow = TradeOffer & { escrowEnds?: Date | null; rawJson?: string; _token?: string | null };
+type TradeHoldDuration = {
+    escrow_end_duration_seconds?: number;
+    escrow_end_date?: number;
+};
+type TradeHoldDurationsResponse = {
+    response?: {
+        my_escrow?: TradeHoldDuration;
+        their_escrow?: TradeHoldDuration;
+        both_escrow?: TradeHoldDuration;
+    };
+};
+type TradeOfferManagerWithApiCall = TradeOfferManager & {
+    _apiCall(
+        httpMethod: 'GET' | 'POST',
+        method: string,
+        version: number,
+        input: UnknownDictionaryKnownValues,
+        callback: (err: Error | null, body?: TradeHoldDurationsResponse) => void
+    ): void;
+};
+
+const STEAM_RETRY_ATTEMPTS = 5;
+const STEAM_RETRY_BASE_DELAY = 5 * 1000;
 
 export default class Trades {
     private itemsInTrade: string[] = [];
@@ -1410,7 +1435,119 @@ export default class Trades {
         log.debug('Checking escrow');
         clearTimeout(this.restartOnEscrowCheckFailed);
 
+        return this.checkEscrowWithWebApi(offer).catch((err: Error) => {
+            log.warn('Failed to check escrow with WebAPI, falling back to SteamCommunity HTML: ', err);
+            return this.checkEscrowWithHtml(offer);
+        });
+    }
+
+    private checkEscrowWithWebApi(offer: TradeOffer): Promise<boolean> {
+        const escrowEnds = this.getEscrowEndsFromOffer(offer);
+
+        if (escrowEnds !== undefined) {
+            log.debug('Done checking escrow with offer WebAPI data');
+            this.escrowCheckFailedCount = 0;
+            return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
+        }
+
+        if (!offer.id) {
+            return this.checkEscrowWithTradeHoldDurations(offer);
+        }
+
         return new Promise((resolve, reject) => {
+            this.bot.manager.getOffer(offer.id, (err, freshOffer) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                const freshEscrowEnds = this.getEscrowEndsFromOffer(freshOffer);
+
+                if (freshEscrowEnds === undefined) {
+                    return reject(new Error(`WebAPI response for offer #${offer.id} did not include escrow_end_date`));
+                }
+
+                log.debug('Done checking escrow with WebAPI getOffer');
+                this.escrowCheckFailedCount = 0;
+                resolve(this.isEscrowEndDateActive(freshEscrowEnds));
+            });
+        });
+    }
+
+    private checkEscrowWithTradeHoldDurations(offer: TradeOffer): Promise<boolean> {
+        const offerWithEscrow = offer as TradeOfferWithEscrow;
+        const manager = this.bot.manager as TradeOfferManagerWithApiCall;
+        const input: UnknownDictionaryKnownValues = {
+            steamid_target: offer.partner.getSteamID64(),
+            trade_offer_access_token: offerWithEscrow._token || ''
+        };
+
+        return new Promise((resolve, reject) => {
+            manager._apiCall('GET', 'GetTradeHoldDurations', 1, input, (err, body) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                if (!this.hasTradeHoldDurationData(body)) {
+                    return reject(new Error('GetTradeHoldDurations response did not include escrow durations'));
+                }
+
+                log.debug('Done checking escrow with trade hold durations WebAPI');
+                this.escrowCheckFailedCount = 0;
+                resolve(this.isTradeHoldActive(body));
+            });
+        });
+    }
+
+    private getEscrowEndsFromOffer(offer: TradeOffer): Date | null | undefined {
+        const offerWithEscrow = offer as TradeOfferWithEscrow;
+
+        if (offerWithEscrow.rawJson) {
+            try {
+                const raw = JSON.parse(offerWithEscrow.rawJson) as { escrow_end_date?: number | null };
+
+                if (
+                    (Object as ObjectConstructor & { hasOwn(object: object, property: PropertyKey): boolean }).hasOwn(
+                        raw,
+                        'escrow_end_date'
+                    )
+                ) {
+                    return raw.escrow_end_date ? new Date(raw.escrow_end_date * 1000) : null;
+                }
+            } catch (err) {
+                log.warn('Failed to parse raw offer data for escrow check: ', err);
+            }
+        }
+
+        return offerWithEscrow.escrowEnds;
+    }
+
+    private isEscrowEndDateActive(escrowEnds: Date | null): boolean {
+        return escrowEnds instanceof Date && escrowEnds.getTime() > Date.now();
+    }
+
+    private hasTradeHoldDurationData(body?: TradeHoldDurationsResponse): body is TradeHoldDurationsResponse {
+        return !!(body?.response?.my_escrow || body?.response?.their_escrow || body?.response?.both_escrow);
+    }
+
+    private isTradeHoldActive(body: TradeHoldDurationsResponse): boolean {
+        const escrows = [body.response?.my_escrow, body.response?.their_escrow, body.response?.both_escrow];
+
+        return escrows.some(escrow => {
+            if (!escrow) {
+                return false;
+            }
+
+            const durationSeconds = Number(escrow.escrow_end_duration_seconds || 0);
+            const endDateSeconds = Number(escrow.escrow_end_date || 0);
+
+            return durationSeconds > 0 || endDateSeconds * 1000 > Date.now();
+        });
+    }
+
+    private checkEscrowWithHtml(offer: TradeOffer): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            let rateLimitAttempts = 0;
+
             const operation = retry.operation({
                 retries: 5,
                 factor: 2,
@@ -1418,11 +1555,31 @@ export default class Trades {
                 randomize: true
             });
 
-            operation.attempt(() => {
+            const attemptEscrowCheck = () => {
                 log.debug('Attempting to check escrow...');
                 offer.getUserDetails((err, me, them) => {
                     log.debug('Escrow callback');
                     if (!err || err.message !== 'Not Logged In') {
+                        if (err && this.isSteamHttp429(err)) {
+                            rateLimitAttempts++;
+
+                            if (rateLimitAttempts < STEAM_RETRY_ATTEMPTS) {
+                                const delay = this.getSteamRetryDelay(rateLimitAttempts);
+
+                                log.warn(
+                                    `Escrow check hit Steam HTTP 429, retrying in ${Math.round(
+                                        delay / 1000
+                                    )}s (${rateLimitAttempts}/${STEAM_RETRY_ATTEMPTS})`
+                                );
+
+                                void timersPromises.setTimeout(delay).then(attemptEscrowCheck);
+                                return;
+                            }
+
+                            log.warn('Escrow check failed because Steam returned HTTP 429; not restarting bot: ', err);
+                            return reject(err);
+                        }
+
                         // No error / not because session expired
                         if (operation.retry(err)) {
                             return;
@@ -1457,8 +1614,19 @@ export default class Trades {
                         operation.retry(err);
                     });
                 });
-            });
+            };
+
+            operation.attempt(attemptEscrowCheck);
         });
+    }
+
+    private isSteamHttp429(err: Error): boolean {
+        const httpError = err as HttpError;
+        return httpError.code === 429 || httpError.code === '429' || httpError.message === 'HTTP error 429';
+    }
+
+    private getSteamRetryDelay(attempt: number): number {
+        return attempt * STEAM_RETRY_BASE_DELAY;
     }
 
     private retryToRestart(steamID: string): void {
