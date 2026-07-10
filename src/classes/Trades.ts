@@ -1231,7 +1231,8 @@ export default class Trades {
                 });
                 break;
             } catch (err) {
-                const message = err instanceof Error ? err.message : String(err);
+                const message =
+                    err instanceof Error ? err.message : JSON.stringify(err, Object.getOwnPropertyNames(err));
                 // Already confirmed / confirmation gone
                 if (message.startsWith('Could not find confirmation for object')) break;
                 if (i === 4) throw err;
