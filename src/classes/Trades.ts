@@ -67,10 +67,6 @@ export default class Trades {
 
     private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
-    private retryAcceptOffer: UnknownDictionary<boolean> = {};
-
-    private resetRetryAcceptOfferTimeout: NodeJS.Timeout;
-
     private retryFetchInventoryTimeout: NodeJS.Timeout;
 
     private calledRetryFetchFreq = 0;
@@ -695,24 +691,6 @@ export default class Trades {
                                         );
                                     }
                                 }
-
-                                if (!this.retryAcceptOffer[offer.id]) {
-                                    // Only retry once
-                                    clearTimeout(this.resetRetryAcceptOfferTimeout);
-                                    this.retryAcceptOffer[offer.id] = true;
-
-                                    setTimeout(() => {
-                                        // Auto-retry after 30 seconds
-                                        void this.retryActionAfterFailure(offer.id, 'accept');
-                                    }, 30 * 1000);
-                                }
-
-                                this.resetRetryAcceptOfferTimeout = setTimeout(
-                                    () => {
-                                        this.retryAcceptOffer = {};
-                                    },
-                                    2 * 60 * 1000
-                                );
                             }
                         });
                     }
@@ -1212,26 +1190,36 @@ export default class Trades {
         });
     }
 
-    acceptConfirmation(offer: TradeOffer): Promise<void> {
-        return new Promise((resolve, reject) => {
-            log.debug(`Accepting mobile confirmation...`, {
-                offerId: offer.id
-            });
-
-            const start = dayjs().valueOf();
-            log.debug('actedOnConfirmationTimestamp', start);
-
-            this.bot.community.acceptConfirmationForObject(this.bot.options.steamIdentitySecret, offer.id, err => {
-                const confirmationTime = dayjs().valueOf() - start;
-                offer.data('confirmationTime', confirmationTime);
-
-                if (err) {
-                    return reject(err);
-                }
-
-                return resolve();
-            });
+    async acceptConfirmation(offer: TradeOffer): Promise<void> {
+        log.debug(`Accepting mobile confirmation...`, {
+            offerId: offer.id
         });
+
+        const start = dayjs().valueOf();
+        log.debug('actedOnConfirmationTimestamp', start);
+
+        for (let i = 0; i < 5; i++) {
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    this.bot.community.acceptConfirmationForObject(
+                        this.bot.options.steamIdentitySecret,
+                        offer.id,
+                        err => (err ? reject(err) : resolve())
+                    );
+                });
+                break;
+            } catch (err) {
+                const message =
+                    err instanceof Error ? err.message : JSON.stringify(err, Object.getOwnPropertyNames(err));
+                // Already confirmed / confirmation gone
+                if (message.startsWith('Could not find confirmation for object')) break;
+                if (i === 4) throw err;
+                log.warn(`Retrying mobile confirmation for offer #${offer.id} (${i + 1}/5): ${message}`);
+                await timersPromises.setTimeout((i + 1) * 5 * 1000);
+            }
+        }
+
+        offer.data('confirmationTime', dayjs().valueOf() - start);
     }
 
     private acceptOfferRetry(offer: TradeOffer, attempts = 0): Promise<string> {
