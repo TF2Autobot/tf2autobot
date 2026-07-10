@@ -2462,7 +2462,6 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
 
     //@ts-ignore
     if (options.bypass?.bannedPeople !== undefined) {
-
         //@ts-ignore
         const mptfCheckValue = options.bypass.bannedPeople?.checkMptfBanned;
 
@@ -2474,7 +2473,6 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
                 checkMptfBanned: process.env.MPTF_API_KEY !== undefined ? mptfCheckValue : false // below v4.13.0 -> v4.13.1
             };
         }
-
 
         //@ts-ignore
         delete options.bypass.bannedPeople;
