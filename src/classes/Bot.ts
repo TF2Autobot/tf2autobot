@@ -1188,7 +1188,16 @@ export default class Bot {
                                 callback(err);
                             });
                     },
-                    (callback): void => {
+                    async (callback): Promise<void> => {
+                        const tradeOfferUrl = await this.getTradeOfferUrl();
+
+                        if (tradeOfferUrl) {
+                            this.tradeOfferUrl = tradeOfferUrl;
+                            /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
+                            return callback(null);
+                        }
+
+                        // Steam can always throw 429 error on this one, especially after weekly Wednesday maintenance
                         this.community.getTradeURL((err, url) => {
                             if (err) {
                                 /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
@@ -1196,6 +1205,7 @@ export default class Bot {
                             }
 
                             this.tradeOfferUrl = url;
+                            this.cacheTradeOfferUrl(tradeOfferUrl);
                             /* eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
                             return callback(null);
                         });
@@ -1521,6 +1531,25 @@ export default class Bot {
 
         await files.writeFile(tokenPath, '', false).catch(() => {
             // Ignore error
+        });
+    }
+
+    private async getTradeOfferUrl(): Promise<string | null> {
+        const tradeOfferUrlPath = this.handler.getPaths.files.tradeOfferUrl;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const tradeOfferUrl = (await files.readFile(tradeOfferUrlPath, false).catch(err => null)) as string;
+
+        if (!tradeOfferUrl) {
+            return null;
+        }
+        return tradeOfferUrl;
+    }
+
+    private cacheTradeOfferUrl(tradeOfferUrl: string): void {
+        const tradeOfferUrlPath = this.handler.getPaths.files.tradeOfferUrl;
+
+        files.writeFile(tradeOfferUrlPath, tradeOfferUrl, false).catch(() => {
+            log.error('Error saving Trade Offer Url.');
         });
     }
 
