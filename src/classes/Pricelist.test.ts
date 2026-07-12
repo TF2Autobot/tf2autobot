@@ -172,7 +172,7 @@ const responses = {
         sku: '5021;6',
         name: 'Mann Co. Supply Crate Key',
         links: {
-            ptf: 'https://prices.tf/items/5021;6',
+            pricedb: 'https://pricedb.io/api/item/5021;6',
             mptf: 'https://marketplace.tf/items/tf2/5021;6',
             scm: 'https://steamcommunity.com/market/listings/440/Mann Co. Supply Crate Key',
             bptf: 'https://backpack.tf/stats/Unique/Mann Co. Supply Crate Key/Tradable/Craftable'
@@ -246,7 +246,7 @@ it('can pricecheck detect custom pricers', () => {
         steamAccountName: 'abc123',
         debug: true,
         debugFile: false,
-        customPricerUrl: 'https://api.prices.tf'
+        customPricerUrl: 'https://pricedb.io/api'
     });
     prices = getPricer({
         pricerUrl: options.customPricerUrl,
@@ -269,7 +269,7 @@ it('can pricecheck detect custom pricers', () => {
         steamAccountName: 'abc123',
         debug: true,
         debugFile: false,
-        customPricerUrl: 'https://api2.prices.tf'
+        customPricerUrl: 'https://pricedb.io/api'
     });
     prices = getPricer({
         pricerUrl: options.customPricerUrl,
