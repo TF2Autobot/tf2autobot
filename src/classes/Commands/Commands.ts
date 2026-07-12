@@ -1389,22 +1389,28 @@ export default class Commands {
             return this.bot.sendMessage(
                 steamID,
                 '❌ Wrong syntax. Example: !premium months=1' +
-                    '\n\n📌 Note: 📌\n- ' +
+                    '\n\n📌 Note: "4 keys for 1 month, 10 keys for three" 📌\n- ' +
                     [
-                        '1 month = 3 keys',
-                        '2 months = 5 keys',
-                        '3 months = 8 keys',
-                        '4 months = 10 keys',
-                        '1 year (12 months) = 30 keys'
+                        '1 month = 4 keys',
+                        '2 months = 8 keys',
+                        '3 months = 10 keys',
+                        '4 months = 14 keys',
+                        '5 months = 18 keys',
+                        '6 months = 20 keys',
+                        '7 months = 24 keys',
+                        '8 months = 28 keys',
+                        '9 months = 30 keys',
+                        '10 months = 34 keys',
+                        '11 months = 38 keys',
+                        '12 months = 40 keys'
                     ].join('\n- ')
             );
         }
 
-        const amountMonths = params.months;
         const numMonths = params.months;
-        const numOdds = numMonths % 2 !== 0 ? (numMonths - 1) / 2 + 1 : (numMonths - 1) / 2;
-        const numEvens = numMonths - numOdds;
-        const amountKeys = Math.round(numOdds * 3 + numEvens * 2);
+        const threeMonthBundles = Math.floor(numMonths / 3); // how many 3-month bundles fit into the total months
+        const remainingMonths = numMonths % 3; // remaining individual months
+        const amountKeys = threeMonthBundles * 10 + remainingMonths * 4; // Multiply bundles by their respective key costs
 
         const ourAmount = this.bot.inventoryManager.getInventory.getAmount({
             priceKey: '5021;6',
@@ -1417,7 +1423,7 @@ export default class Commands {
                 steamID,
                 `❌ I don't have enough keys to buy premium for ${pluralize(
                     'month',
-                    amountMonths,
+                    numMonths,
                     true
                 )}. I have ${pluralize('key', ourAmount, true)} and need ${pluralize(
                     'key',
@@ -1430,9 +1436,9 @@ export default class Commands {
         if (params.i_am_sure !== 'yes_i_am') {
             return this.bot.sendMessage(
                 steamID,
-                `⚠️ Are you sure that you want to buy premium for ${pluralize('month', amountMonths, true)}?` +
+                `⚠️ Are you sure that you want to buy premium for ${pluralize('month', numMonths, true)}?` +
                     `\nThis will cost you ${pluralize('key', amountKeys, true)}.` +
-                    `\nIf yes, retry by sending !premium months=${amountMonths}&i_am_sure=yes_i_am`
+                    `\nIf yes, retry by sending !premium months=${numMonths}&i_am_sure=yes_i_am`
             );
         }
 
