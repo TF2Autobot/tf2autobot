@@ -16,8 +16,8 @@ export default class DonateCart extends Cart {
 
             const start = Date.now();
             const offer = this.bot.manager.createOffer(
-                'https://steamcommunity.com/tradeoffer/new/?partner=240216030&token=duh3W4zi'
-                // Backpack.tf donation bot - https://steamcommunity.com/id/backpacktf001
+                'https://steamcommunity.com/tradeoffer/new/?partner=432099474&token=Cc9yZSv0'
+                // Backpack.tf donation bot - https://steamcommunity.com/id/teenytinybot
             );
 
             const alteredMessages: string[] = [];
