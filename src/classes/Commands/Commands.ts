@@ -1390,16 +1390,11 @@ export default class Commands {
                 steamID,
                 '❌ Wrong syntax. Example: !premium months=1' +
                     '\n\n📌 Note: 📌\n- ' +
-                    [
-                        '1 month = 3 keys',
-                        '2 months = 5 keys',
-                        '3 months = 8 keys',
-                        '4 months = 10 keys',
-                        '1 year (12 months) = 30 keys'
-                    ].join('\n- ')
+                    ['4 keys = 1 month', '10 keys = 3 months'].join('\n- ')
             );
         }
 
+        // TODO, confirming pricing...
         const amountMonths = params.months;
         const numMonths = params.months;
         const numOdds = numMonths % 2 !== 0 ? (numMonths - 1) / 2 + 1 : (numMonths - 1) / 2;
