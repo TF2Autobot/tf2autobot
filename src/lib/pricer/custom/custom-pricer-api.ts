@@ -82,7 +82,7 @@ export default class CustomPricerApi {
     ): Promise<R> {
         const options: AxiosRequestConfig = {
             method: httpMethod,
-            url: `${this.url ? this.url : 'https://api.prices.tf'}${path}`,
+            url: `${this.url ? this.url : 'https://pricedb.io/api'}${path}`,
             headers: {
                 // This one is okay to keep I guess
                 'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
@@ -111,11 +111,13 @@ export default class CustomPricerApi {
     }
 
     requestCheck(sku: string): Promise<CustomPricerPricesRequestCheckResponse> {
-        return this.apiRequest('POST', `/items/${sku}`, { source: 'bptf' });
+        // If no url, since we default to pricedb, then the `items` endpoint should become `item`
+        // https://docs.pricedb.io/docs/pricedb#endpoint-get-api-items
+        return this.apiRequest('POST', `/item${this.url ? '' : 's'}/${sku}`, { source: 'bptf' });
     }
 
     getPrice(sku: string): Promise<CustomPricesGetItemPriceResponse> {
-        return this.apiRequest('GET', `/items/${sku}`, { src: 'bptf' });
+        return this.apiRequest('GET', `/item${this.url ? '' : 's'}/${sku}`, { src: 'bptf' });
     }
 
     getPricelist(): Promise<CustomPricesGetPricelistResponse> {
