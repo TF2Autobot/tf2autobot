@@ -509,6 +509,8 @@ declare module 'steam-user' {
 
         gamesPlayed(apps: Apps, force?: boolean): void;
 
+        getTradeURL(): Promise<{ token: string; url: string }>;
+
         chatMessage(recipient: SteamID | string, message: string): void;
 
         addFriend(steamID: SteamID | string, callback?: (err?: Error, personaName?: string) => void): void;
