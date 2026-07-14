@@ -30,7 +30,7 @@
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "^5.8.0",
-        "@tf2autobot/bptf-login": "github:TF2Autobot/node-bptf-login#use-native-fetch",
+        "@tf2autobot/bptf-login": "github:TF2Autobot/node-bptf-login#8049871",
         "@tf2autobot/filter-axios-error": "^1.5.6",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/steamcommunity": "github:TF2Autobot/node-steamcommunity#23664b9",
