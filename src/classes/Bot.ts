@@ -1026,7 +1026,7 @@ export default class Bot {
                     },
                     (callback): void => {
                         this.schemaManager = new SchemaManager({
-                            updateTime: 1 * 60 * 60 * 1000,
+                            updateTime: 5 * 60 * 1000, // Every 5 minutes
                             lite: true
                         });
 
