@@ -576,7 +576,9 @@ export default class Listings {
     }
 
     private retryRemoveListings(err: any, tries: number, resolve: (value: void | PromiseLike<void>) => void): boolean {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const statusCode = err?.response?.status || err?.status;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if ([502, 503, 504].includes(statusCode) && tries < 5) {
             const delay = Math.min(30000, Math.pow(2, tries) * 1000);
             log.warn(
