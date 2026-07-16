@@ -1565,24 +1565,15 @@ export default class Bot {
         }
     }
 
-    private refreshTradeOfferUrl(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.community.getTradeURL((err, url) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
+    private async refreshTradeOfferUrl(): Promise<void> {
+        const { url } = await this.client.getTradeURL();
 
-                if (!url) {
-                    reject(new Error('Steam did not return a trade offer URL'));
-                    return;
-                }
+        if (!url) {
+            throw new Error('Steam did not return a trade offer URL');
+        }
 
-                this.tradeOfferUrl = url;
-                this.cacheTradeOfferUrl(url);
-                resolve();
-            });
-        });
+        this.tradeOfferUrl = url;
+        this.cacheTradeOfferUrl(url);
     }
 
     private scheduleTradeOfferUrlRetry(attempt = 1): void {
