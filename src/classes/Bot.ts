@@ -559,17 +559,17 @@ export default class Bot {
                 if (process.platform === 'win32') {
                     messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
-                        '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && node dist/app.js'
+                        '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm ci --no-audit && npm run build && node dist/app.js'
                     ];
                 } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
                     messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory:\n',
-                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && pm2 restart ecosystem.json'
+                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm ci --no-audit && npm run build && pm2 restart ecosystem.json'
                     ];
                 } else {
                     messages = [
                         '❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n',
-                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && pm2 restart ecosystem.json'
+                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm ci --no-audit && npm run build && pm2 restart ecosystem.json'
                     ];
                 }
 
@@ -1335,7 +1335,7 @@ export default class Bot {
 
     private get getCookies(): string[] {
         const cookies = this.community._jar
-            .getCookies('https://steamcommunity.com')
+            .getCookiesSync('https://steamcommunity.com')
             .filter(cookie => ['sessionid', 'steamLogin', 'steamLoginSecure'].includes(cookie.key))
             .map(cookie => `${cookie.key}=${cookie.value}`);
         return cookies;
