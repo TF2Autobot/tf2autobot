@@ -502,6 +502,7 @@ export default class Listings {
 
                         this.bot.listingManager.deleteAllListings(err => {
                             if (err) {
+                                if (this.retryRemoveListings(err, tries, resolve)) return;
                                 return reject(err);
                             }
 
@@ -529,14 +530,29 @@ export default class Listings {
                             );
                         };
                         const errorListener = err => {
-                            log.error('Remove all listings individual failed', err);
-                            // it was an error, so we don't listen for success anymore
                             this.bot.listingManager.removeListener('deleteListingsSuccessful', successListener);
+                            if (this.retryRemoveListings(err, tries, resolve)) return;
+                            log.error('Remove all listings individual failed', err);
                             reject(err);
                         };
                         this.bot.listingManager.once('deleteListingsSuccessful', successListener);
                         this.bot.listingManager.once('deleteListingsError', errorListener);
                         this.bot.listingManager.removeListings(...listings);
+                    } else if (retry) {
+                        log.debug('Retry: count changed, continuing with deleteAllListings...');
+                        this.bot.listingManager.deleteAllListings(err => {
+                            if (err) {
+                                if (this.retryRemoveListings(err, tries, resolve)) return;
+                                return reject(err);
+                            }
+
+                            return resolve(
+                                this.removeAllListings({
+                                    tries: tries + 1,
+                                    lastListingsLength: this.bot.listingManager.listings.length
+                                })
+                            );
+                        });
                     }
                 })
                 .catch(err => {
@@ -549,7 +565,7 @@ export default class Listings {
                     );
                     this.bot.listingManager.deleteAllListings(err => {
                         if (err) {
-                            // But if failed to delete all listings, blame bptf 😴
+                            if (this.retryRemoveListings(err, tries, resolve)) return;
                             return reject(err);
                         }
 
@@ -557,6 +573,28 @@ export default class Listings {
                     });
                 });
         });
+    }
+
+    private retryRemoveListings(err: any, tries: number, resolve: (value: void | PromiseLike<void>) => void): boolean {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const statusCode = err?.response?.status || err?.status;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        if ([502, 503, 504].includes(statusCode) && tries < 5) {
+            const delay = Math.min(30000, Math.pow(2, tries) * 1000);
+            log.warn(
+                `Got ${statusCode} error removing listings, retrying in ${delay / 1000}s (attempt ${tries + 1}/5)`
+            );
+            void timersPromises.setTimeout(delay).then(() => {
+                resolve(
+                    this.removeAllListings({
+                        tries: tries + 1,
+                        lastListingsLength: this.bot.listingManager.listings.length
+                    })
+                );
+            });
+            return true;
+        }
+        return false;
     }
 
     redoListings(): Promise<void> {
