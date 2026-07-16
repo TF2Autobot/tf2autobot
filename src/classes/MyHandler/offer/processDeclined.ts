@@ -143,7 +143,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
             case 'ONLY_INVALID_VALUE':
                 declined.reasonDescription =
                     offerReceived.reason +
-                    `: We will receive less than the item(s) value, which also exceeded our exception value of ${opt.offerReceived.invalidValue.exceptionValue.valueInRef} ref`;
+                    `: We will receive less than the item(s) value, which also does not exceed our exception value of ${opt.offerReceived.invalidValue.exceptionValue.valueInRef} ref`;
                 break;
             case 'ONLY_INVALID_ITEMS':
                 declined.reasonDescription =
