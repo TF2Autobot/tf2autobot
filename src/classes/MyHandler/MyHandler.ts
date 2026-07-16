@@ -327,8 +327,8 @@ export default class MyHandler extends Handler {
             const dw = this.opt.discordWebhook.sendAlert;
             const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
 
-            const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced.join(
-                '\n --- '
+            const msg = `All items below has been updated with partial price:\n\n- ${bulkUpdatedPartiallyPriced.join(
+                '\n- '
             )}`;
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onBulkUpdatePartialPriced) {

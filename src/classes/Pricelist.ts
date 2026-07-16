@@ -1114,9 +1114,9 @@ export default class Pricelist extends EventEmitter {
             [
                 `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
                 `current: ${currPrices.buy.toString()}/${currPrices.sell.toString()}`,
-                `pricedb.io: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
-            ].join('\n▸ ') +
-            `\n - Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
+                `pricedb.io: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`,
+                `Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
+            ].join('\n▸ ')
         );
     }
 
