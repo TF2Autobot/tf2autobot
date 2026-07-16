@@ -386,27 +386,6 @@ interface MptfBan {
     type: string;
 }
 
-interface SteamRep {
-    steamrep: Details;
-}
-
-interface Details {
-    flags: Flags;
-    steamID32?: string;
-    steamID64?: string;
-    steamrepurl?: string;
-    reputation?: Reputation;
-}
-
-interface Flags {
-    status: string;
-}
-
-interface Reputation {
-    full?: string;
-    summary?: string;
-}
-
 interface UntrustedJson {
     last_update: number;
     steamids: UntrustedJsonSteamids;
