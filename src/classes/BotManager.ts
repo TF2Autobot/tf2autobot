@@ -215,6 +215,9 @@ export default class BotManager {
 
             // Stop reset Reputation cache
             clearInterval(this.bot.resetRepCache);
+
+            // Stop reconnection timeout and reset state if active
+            this.bot.resetReconnectionState();
         }
 
         // Disconnect from socket server to stop price updates

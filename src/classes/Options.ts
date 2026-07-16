@@ -14,6 +14,15 @@ export const DEFAULTS: JsonOptions = {
         adminCommands: false
     },
 
+    steamConnection: {
+        autoReconnect: {
+            enable: true,
+            maxAttempts: 5,
+            delaySeconds: 30,
+            exponentialBackoff: true
+        }
+    },
+
     miscSettings: {
         showOnlyMetal: {
             enable: true
@@ -1224,6 +1233,18 @@ interface Counteroffer extends OnlyEnable {
     autoDeclineLazyOffer?: boolean;
 }
 
+// ------------ SteamConnection ------------
+
+interface SteamConnection {
+    autoReconnect?: AutoReconnect;
+}
+
+interface AutoReconnect extends OnlyEnable {
+    maxAttempts?: number;
+    delaySeconds?: number;
+    exponentialBackoff?: boolean;
+}
+
 // --------- Misc Settings ----------
 
 interface MiscSettings {
@@ -2168,6 +2189,7 @@ interface StrangeParts {
 
 export interface JsonOptions {
     globalDisable?: GlobalDisable;
+    steamConnection?: SteamConnection;
     miscSettings?: MiscSettings;
     sendAlert?: SendAlert;
     pricelist?: Pricelist;

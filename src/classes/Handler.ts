@@ -44,6 +44,18 @@ export default abstract class Handler {
     abstract onLoggedOn(): void;
 
     /**
+     * Called when the bot is disconnected from Steam
+     * @param eresult - The reason for disconnection
+     * @param msg - Additional message
+     */
+    abstract onDisconnected(eresult: number, msg?: string): void;
+
+    /**
+     * Called when the bot has logged off from Steam
+     */
+    abstract onLoggedOff(): void;
+
+    /**
      * Called when a new login key has been issued
      * @param loginKey - The new login key
      */

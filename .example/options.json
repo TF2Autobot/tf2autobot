@@ -1,4 +1,12 @@
 {
+    "steamConnection": {
+        "autoReconnect": {
+            "enable": true,
+            "maxAttempts": 5,
+            "delaySeconds": 30,
+            "exponentialBackoff": true
+        }
+    },
     "globalDisable": {
         "messages": false,
         "greeting": false,

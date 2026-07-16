@@ -380,6 +380,34 @@ export const optionsSchema: jsonschema.Schema = {
             required: ['messages', 'greeting', 'commands', 'adminCommands'],
             additionalProperties: false
         },
+        steamConnection: {
+            type: 'object',
+            properties: {
+                autoReconnect: {
+                    type: 'object',
+                    properties: {
+                        enable: {
+                            type: 'boolean'
+                        },
+                        maxAttempts: {
+                            type: 'number',
+                            minimum: 1
+                        },
+                        delaySeconds: {
+                            type: 'number',
+                            minimum: 1
+                        },
+                        exponentialBackoff: {
+                            type: 'boolean'
+                        }
+                    },
+                    required: ['enable'],
+                    additionalProperties: false
+                }
+            },
+            required: ['autoReconnect'],
+            additionalProperties: false
+        },
         miscSettings: {
             type: 'object',
             properties: {
