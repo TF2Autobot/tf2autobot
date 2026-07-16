@@ -9,12 +9,12 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
 
     steps:
-    - uses: actions/checkout@v6.0.1
+    - uses: actions/checkout@v6.0.2
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v6.1.0
+      uses: actions/setup-node@v6.3.0
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci --no-audit
