@@ -1315,7 +1315,7 @@ export default class Bot {
 
     private get getCookies(): string[] {
         const cookies = this.community._jar
-            .getCookies('https://steamcommunity.com')
+            .getCookiesSync('https://steamcommunity.com')
             .filter(cookie => ['sessionid', 'steamLogin', 'steamLoginSecure'].includes(cookie.key))
             .map(cookie => `${cookie.key}=${cookie.value}`);
         return cookies;
