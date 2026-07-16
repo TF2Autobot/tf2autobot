@@ -217,12 +217,7 @@ export default class BotManager {
             clearInterval(this.bot.resetRepCache);
 
             // Stop reconnection timeout and reset state if active
-            if (this.bot.reconnectTimeout) {
-                clearTimeout(this.bot.reconnectTimeout);
-                this.bot.reconnectTimeout = null;
-            }
-            this.bot.isReconnecting = false;
-            this.bot.reconnectAttempts = 0;
+            this.bot.resetReconnectionState();
         }
 
         // Disconnect from socket server to stop price updates

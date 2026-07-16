@@ -170,6 +170,18 @@ export default class Bot {
 
     public autoRefreshListingsInterval: NodeJS.Timeout;
 
+    /**
+     * Resets the reconnection state and clears any pending reconnection timeout
+     */
+    public resetReconnectionState(): void {
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+        this.isReconnecting = false;
+        this.reconnectAttempts = 0;
+    }
+
     private alreadyExecutedRefreshlist = false;
 
     set isRecentlyExecuteRefreshlistCommand(setExecuted: boolean) {
