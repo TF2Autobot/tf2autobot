@@ -609,7 +609,6 @@ export default class Bot {
     }
 
     startAutoRefreshListings(): void {
-        // Automatically check for missing listings every 30 minutes
         let pricelistLength = 0;
 
         this.autoRefreshListingsInterval = setInterval(
@@ -617,7 +616,6 @@ export default class Bot {
                 const createListingsEnabled = this.options.miscSettings.createListings.enable;
 
                 if (this.halted) {
-                    // Make sure not to run if halted
                     return;
                 }
 
@@ -634,7 +632,6 @@ export default class Bot {
                         this.startAutoRefreshListings();
                     }, this.executedDelayTime);
 
-                    // reset to default
                     this.setRefreshlistExecutedDelay = 30 * 60 * 1000;
                     clearInterval(this.autoRefreshListingsInterval);
                     return;
@@ -644,175 +641,171 @@ export default class Bot {
                 log.debug('Running automatic check for missing/mismatch listings...');
 
                 const listings: { [sku: string]: Listing[] } = {};
-                this.listingManager.getListings(false, async (err: AxiosError) => {
-                    if (err) {
-                        log.warn('Error getting listings on auto-refresh listings operation:', filterAxiosError(err));
-                        setTimeout(
-                            () => {
-                                this.startAutoRefreshListings();
-                            },
-                            30 * 60 * 1000
-                        );
-                        clearInterval(this.autoRefreshListingsInterval);
-                        return;
-                    }
-
-                    const inventoryManager = this.inventoryManager;
-                    const inventory = inventoryManager.getInventory;
-                    const isFilterCantAfford = this.options.pricelist.filterCantAfford.enable;
-
-                    this.listingManager.listings.forEach(listing => {
-                        let listingSKU = listing.getSKU();
-                        if (listing.intent === 1) {
-                            if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
-                                listingSKU = listingSKU.replace(';festive', '');
-                            }
-
-                            if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                                listingSKU = listingSKU.replace(';strange', '');
-                            }
+                this.listingManager.getListings(false, (err: AxiosError) => {
+                    void (async () => {
+                        if (err) {
+                            log.warn(
+                                'Error getting listings on auto-refresh listings operation:',
+                                filterAxiosError(err)
+                            );
+                            setTimeout(
+                                () => {
+                                    this.startAutoRefreshListings();
+                                },
+                                30 * 60 * 1000
+                            );
+                            clearInterval(this.autoRefreshListingsInterval);
+                            return;
                         }
 
-                        let match: Entry | null;
-                        const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                        if (assetIdPrice === null) {
-                            match = this.pricelist.getPrice({ priceKey: listingSKU });
+                        const inventoryManager = this.inventoryManager;
+                        const inventory = inventoryManager.getInventory;
+                        const isFilterCantAfford = this.options.pricelist.filterCantAfford.enable;
 
-                            if (
-                                !match &&
-                                listing.intent === 1 &&
-                                this.options.normalize.painted.our &&
-                                /;p\d+/.test(listingSKU)
-                            ) {
-                                const baseSKU = listingSKU.replace(/;p\d+/, '');
-                                match = this.pricelist.getPrice({ priceKey: baseSKU });
+                        this.listingManager.listings.forEach(listing => {
+                            let listingSKU = listing.getSKU();
+                            if (listing.intent === 1) {
+                                if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                                    listingSKU = listingSKU.replace(';festive', '');
+                                }
+
+                                if (
+                                    this.options.normalize.strangeAsSecondQuality.our &&
+                                    listingSKU.includes(';strange')
+                                ) {
+                                    listingSKU = listingSKU.replace(';strange', '');
+                                }
                             }
-                        } else {
-                            match = assetIdPrice;
-                        }
 
-                        if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
-                            if (!canAffordToBuy) {
-                                // Listing for buying exist but we can't afford to buy, remove.
-                                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                            let match: Entry | null;
+                            const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
+                            if (null !== assetIdPrice) {
+                                match = assetIdPrice;
+                            } else {
+                                match = this.pricelist.getPrice({ priceKey: listingSKU });
+
+                                if (
+                                    !match &&
+                                    listing.intent === 1 &&
+                                    this.options.normalize.painted.our &&
+                                    /;p\d+/.test(listingSKU)
+                                ) {
+                                    const baseSKU = listingSKU.replace(/;p\d+/, '');
+                                    match = this.pricelist.getPrice({ priceKey: baseSKU });
+                                }
+                            }
+
+                            if (isFilterCantAfford && listing.intent === 0 && match !== null) {
+                                const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
+                                if (!canAffordToBuy) {
+                                    log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                                    listing.remove();
+                                }
+                            }
+
+                            if (listing.intent === 1 && match !== null && !match.enabled) {
+                                log.debug(`Intent sell, removed because not selling: ${match.sku}`);
                                 listing.remove();
                             }
-                        }
 
-                        if (listing.intent === 1 && match !== null && !match.enabled) {
-                            // Listings for selling exist, but the item is currently disabled, remove it.
-                            log.debug(`Intent sell, removed because not selling: ${match.sku}`);
-                            listing.remove();
-                        }
+                            listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
 
-                        listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
-
-                        if (
-                            this.options.normalize.painted.our &&
-                            /;p\d+/.test(listingSKU) &&
-                            match?.sku !== listingSKU
-                        ) {
-                            listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
-                        }
-                    });
-
-                    const pricelist = Object.assign({}, this.pricelist.getPrices);
-                    const keyPrice = this.pricelist.getKeyPrice.metal;
-
-                    for (const priceKey in pricelist) {
-                        if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey)) {
-                            continue;
-                        }
-
-                        const entry = pricelist[priceKey];
-                        const _listings = listings[priceKey];
-
-                        const amountCanBuy = inventoryManager.amountCanTrade({ priceKey, tradeIntent: 'buying' });
-                        const amountAvailable = inventory.getAmount({
-                            priceKey,
-                            includeNonNormalized: false,
-                            tradableOnly: true
+                            if (
+                                this.options.normalize.painted.our &&
+                                /;p\d+/.test(listingSKU) &&
+                                match?.sku !== listingSKU
+                            ) {
+                                listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
+                            }
                         });
 
-                        if (_listings) {
-                            _listings.forEach(listing => {
-                                if (
-                                    _listings.length === 1 &&
-                                    listing.intent === 0 && // We only check if the only listing exist is buy order
-                                    amountAvailable > entry.min
-                                ) {
-                                    // here we only check if the bot already have that item
-                                    log.debug(`Missing sell order listings: ${priceKey}`);
-                                } else if (
-                                    listing.intent === 0 &&
-                                    listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
-                                ) {
-                                    // if intent is buy, we check if the buying price is not same
-                                    log.debug(`Buying price for ${priceKey} not updated`);
-                                } else if (
-                                    listing.intent === 1 &&
-                                    listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
-                                ) {
-                                    // if intent is sell, we check if the selling price is not same
-                                    log.debug(`Selling price for ${priceKey} not updated`);
-                                } else {
-                                    delete pricelist[priceKey];
-                                }
+                        const pricelist = Object.assign({}, this.pricelist.getPrices);
+                        const keyPrice = this.pricelist.getKeyPrice.metal;
+
+                        for (const priceKey in pricelist) {
+                            if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey)) {
+                                continue;
+                            }
+
+                            const entry = pricelist[priceKey];
+                            const _listings = listings[priceKey];
+
+                            const amountCanBuy = inventoryManager.amountCanTrade({ priceKey, tradeIntent: 'buying' });
+                            const amountAvailable = inventory.getAmount({
+                                priceKey,
+                                includeNonNormalized: false,
+                                tradableOnly: true
                             });
 
-                            continue;
+                            if (_listings) {
+                                _listings.forEach(listing => {
+                                    if (_listings.length === 1 && listing.intent === 0 && amountAvailable > entry.min) {
+                                        log.debug(`Missing sell order listings: ${priceKey}`);
+                                    } else if (
+                                        listing.intent === 0 &&
+                                        listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
+                                    ) {
+                                        log.debug(`Buying price for ${priceKey} not updated`);
+                                    } else if (
+                                        listing.intent === 1 &&
+                                        listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
+                                    ) {
+                                        log.debug(`Selling price for ${priceKey} not updated`);
+                                    } else {
+                                        delete pricelist[priceKey];
+                                    }
+                                });
+
+                                continue;
+                            }
+
+                            if (!entry.enabled) {
+                                delete pricelist[priceKey];
+                                log.debug(`${priceKey} disabled, skipping...`);
+                                continue;
+                            }
+
+                            if (
+                                (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
+                                amountAvailable > 0
+                            ) {
+                                log.debug(
+                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${priceKey}`
+                                );
+                            } else {
+                                delete pricelist[priceKey];
+                            }
                         }
 
-                        // listing not exist
+                        const priceKeysToCheck = Object.keys(pricelist);
+                        const pricelistCount = priceKeysToCheck.length;
 
-                        if (!entry.enabled) {
-                            delete pricelist[priceKey];
-                            log.debug(`${priceKey} disabled, skipping...`);
-                            continue;
-                        }
-
-                        if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
-                            amountAvailable > 0
-                        ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
-                            // return this entry
+                        if (pricelistCount > 0) {
                             log.debug(
-                                `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${priceKey}`
+                                'Checking listings for ' +
+                                    pluralize('item', pricelistCount, true) +
+                                    ` [${priceKeysToCheck.join(', ')}]...`
                             );
+
+                            await this.listings.recursiveCheckPricelist(
+                                priceKeysToCheck,
+                                pricelist,
+                                true,
+                                pricelistCount > 4000 ? 400 : 200,
+                                true
+                            );
+
+                            log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
                         } else {
-                            delete pricelist[priceKey];
+                            log.debug('❌ Nothing to refresh.');
                         }
-                    }
 
-                    const priceKeysToCheck = Object.keys(pricelist);
-                    const pricelistCount = priceKeysToCheck.length;
-
-                    if (pricelistCount > 0) {
-                        log.debug(
-                            'Checking listings for ' +
-                                pluralize('item', pricelistCount, true) +
-                                ` [${priceKeysToCheck.join(', ')}]...`
-                        );
-
-                        await this.listings.recursiveCheckPricelist(
-                            priceKeysToCheck,
-                            pricelist,
-                            true,
-                            pricelistCount > 4000 ? 400 : 200,
-                            true
-                        );
-
-                        log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
-                    } else {
-                        log.debug('❌ Nothing to refresh.');
-                    }
-
-                    pricelistLength = pricelistCount;
+                        pricelistLength = pricelistCount;
+                    })().catch(error_ => {
+                        log.error('Auto-refresh listings task failed:', error_);
+                    });
                 });
             },
-            // set check every 60 minutes if pricelist to check was more than 4000 items
             (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
         );
     }
