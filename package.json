@@ -85,7 +85,7 @@
         "@types/express": "^5.0.6",
         "@types/graceful-fs": "^4.1.9",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/node": "^24.13.3",
+        "@types/node": "^26.1.1",
         "@types/pluralize": "^0.0.33",
         "@types/retry": "^0.12.5",
         "@types/semver": "^7.7.1",
