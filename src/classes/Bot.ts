@@ -125,8 +125,6 @@ export default class Bot {
         spy: string[];
     };
 
-    public updateSchemaPropertiesInterval: NodeJS.Timeout;
-
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
 
@@ -899,6 +897,8 @@ export default class Bot {
         this.addListener(this.tf2, 'displayNotification', this.handler.onDisplayNotification.bind(this.handler), true);
         this.addListener(this.tf2, 'itemBroadcast', this.handler.onItemBroadcast.bind(this.handler), true);
 
+        this.addListener(this.schemaManager, 'schema', this.setProperties.bind(this), false);
+
         return new Promise((resolve, reject) => {
             async.eachSeries(
                 [
@@ -1264,18 +1264,6 @@ export default class Bot {
             sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
             spy: this.schema.getWeaponsForCraftingByClass('Spy')
         };
-
-        clearInterval(this.updateSchemaPropertiesInterval);
-        this.refreshSchemaProperties();
-    }
-
-    private refreshSchemaProperties(): void {
-        this.updateSchemaPropertiesInterval = setInterval(
-            () => {
-                this.setProperties();
-            },
-            5 * 60 * 1000 // Every 5 minutes
-        );
     }
 
     setCookies(cookies: string[]): Promise<void> {
