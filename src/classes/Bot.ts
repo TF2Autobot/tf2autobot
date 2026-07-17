@@ -855,9 +855,8 @@ export default class Bot {
                 if (err) {
                     return reject(err);
                 }
-
                 this.schema = this.schemaManager.schema;
-
+                this.addListener(this.schemaManager, 'schema', this.handler.onSchemaUpdate.bind(this.handler), false);
                 return resolve();
             });
         });
@@ -896,8 +895,6 @@ export default class Bot {
         this.addListener(this.tf2, 'systemMessage', this.handler.onSystemMessage.bind(this.handler), true);
         this.addListener(this.tf2, 'displayNotification', this.handler.onDisplayNotification.bind(this.handler), true);
         this.addListener(this.tf2, 'itemBroadcast', this.handler.onItemBroadcast.bind(this.handler), true);
-
-        this.addListener(this.schemaManager, 'schema', this.setProperties.bind(this), false);
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
