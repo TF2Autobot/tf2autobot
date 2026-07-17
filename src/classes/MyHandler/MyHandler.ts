@@ -2750,6 +2750,10 @@ export default class MyHandler extends Handler {
         }
     }
 
+    onSchemaUpdate(): void {
+        this.bot.setProperties();
+    }
+
     refreshPollDataPath() {
         const newPaths = genPaths(this.opt.steamAccountName);
         const pathChanged = newPaths.files.pollData !== this.paths.files.pollData;
