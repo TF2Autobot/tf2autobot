@@ -120,7 +120,8 @@ function getDefindex(item: EconItem): number | null {
 
     const link = item.getAction('Item Wiki Page...');
     if (link !== null) {
-        return parseInt(new URL(link).searchParams.get('id').toString(), 10);
+        const id = new URL(link).searchParams.get('id');
+        return id ? parseInt(id.toString(), 10) : null;
     }
 
     // Last option is to get the name of the item and try and get the defindex that way
