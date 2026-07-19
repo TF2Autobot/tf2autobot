@@ -105,5 +105,9 @@
     "private": true,
     "_moduleAliases": {
         "@pricer": "dist/lib/pricer"
+    },
+    "allowScripts": {
+        "protobufjs@7.6.5": true,
+        "protobufjs@6.11.6": true
     }
 }
