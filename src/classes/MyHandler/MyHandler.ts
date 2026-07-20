@@ -245,8 +245,8 @@ export default class MyHandler extends Handler {
         this.botSteamID = this.bot.client.steamID;
 
         // Get Premium info from backpack.tf
-        this.getBPTFAccountInfo().catch(() => {
-            // Ignore error
+        this.getBPTFAccountInfo().catch(err => {
+            log.error('Error getting Backpack.tf account info', err);
         });
 
         if (this.isCraftingManual === false) {

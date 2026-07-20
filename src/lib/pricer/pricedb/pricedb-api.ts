@@ -33,27 +33,20 @@ export default class PriceDbApi {
     }
 
     async getItemPrice(sku: string): Promise<PriceDbPrice> {
-        const url = `${this.baseUrl}/item/${encodeURIComponent(sku)}`;
-        const response = await apiRequest<PriceDbPrice>({ url });
-        return response;
+        return await apiRequest<PriceDbPrice>({ url: `${this.baseUrl}/item/${encodeURIComponent(sku)}` });
     }
 
     async getBulkPrices(skus: string[]): Promise<PriceDbPrice[]> {
-        const url = `${this.baseUrl}/items-bulk`;
-        const response = await apiRequest<PriceDbPrice[]>({ url, data: skus });
-        return response;
+        return await apiRequest<PriceDbPrice[]>({ url: `${this.baseUrl}/items-bulk`, data: skus });
     }
 
     async getAllPrices(): Promise<PriceDbPrice[]> {
-        const url = `${this.baseUrl}/autob/items`;
-        const response = await apiRequest<PriceDbGetAllPricesResponse>({ url });
-        return response.items;
+        return (await apiRequest<PriceDbGetAllPricesResponse>({ url: `${this.baseUrl}/autob/items` })).items;
     }
 
     async priceCheck(sku: string): Promise<{ success: boolean; message?: string }> {
-        const url = `${this.baseUrl}/autob/items/${encodeURIComponent(sku)}`;
         try {
-            await apiRequest<void>({ url, method: 'POST' });
+            await apiRequest<void>({ url: `${this.baseUrl}/autob/items/${encodeURIComponent(sku)}`, method: 'POST' });
             return { success: true };
         } catch (err) {
             const error = err as FetchError;

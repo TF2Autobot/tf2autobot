@@ -28,7 +28,7 @@ export async function apiRequest<B>({
     method?: Method;
     params?: Record<string, any>;
     data?: Record<string, any> | any[] | string;
-    headers?: Record<string, unknown>;
+    headers?: Record<string, string>;
     timeout?: number;
     apiToken?: string;
 }): Promise<B> {
@@ -36,7 +36,7 @@ export async function apiRequest<B>({
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    const reqHeaders = new Headers(headers as Record<string, string>);
+    const reqHeaders = new Headers(headers);
     reqHeaders.set('User-Agent', 'TF2Autobot@' + process.env.BOT_VERSION);
     if (apiToken) {
         reqHeaders.set('Authorization', `Token ${apiToken}`);
