@@ -12,7 +12,6 @@ import { DictItem } from './Inventory';
 import { PaintedNames } from './Options';
 import ListingManager from '@tf2autobot/bptf-listings';
 import getAttachmentName from '../lib/tools/getAttachmentName';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 /**
  * used when remove all listings has failed once
@@ -557,12 +556,7 @@ export default class Listings {
                 })
                 .catch(err => {
                     // if an error occurred, we bypass checking listings and just call delete all listings
-
-                    log.error(
-                        'Error getting listings info, force delete all listings. Error details: ',
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                        filterAxiosError(err)
-                    );
+                    log.error('Error getting listings info, force delete all listings. Error details: ', err);
                     this.bot.listingManager.deleteAllListings(err => {
                         if (err) {
                             if (this.retryRemoveListings(err, tries, resolve)) return;
