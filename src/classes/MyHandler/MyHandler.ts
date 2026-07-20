@@ -45,7 +45,6 @@ import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 import sendTf2SystemMessage from '../DiscordWebhook/sendTf2SystemMessage';
 import sendTf2DisplayNotification from '../DiscordWebhook/sendTf2DisplayNotification';
@@ -2636,8 +2635,7 @@ export default class MyHandler extends Handler {
         if (Object.keys(pricelist).length === 0) {
             // Ignore errors
             await this.bot.listings.removeAll().catch(err => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                log.error('Error on removing all listings: ', filterAxiosError(err));
+                log.error('Error on removing all listings: ', err);
             });
         }
 

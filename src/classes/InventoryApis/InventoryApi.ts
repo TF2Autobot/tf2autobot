@@ -1,5 +1,3 @@
-import axios, { AxiosError } from 'axios';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { UnknownDictionary, UnknownDictionaryKnownValues } from 'src/types/common';
 import SteamID from 'steamid';
 import CEconItem from '@tf2autobot/steamcommunity/classes/CEconItem';
@@ -48,13 +46,11 @@ export default class InventoryApi {
         callback: (err?: Error, inventory?: EconItem[], currency?: EconItem[], totalInventoryCount?: number) => void
     ): void {
         if (!this.isEnabled()) {
-            callback(new Error("This API is disabled in the bot's options"));
-            return;
+            return callback(new Error("This API is disabled in the bot's options"));
         }
 
         if (!userID) {
-            callback(new Error("The user's SteamID is invalid or missing."));
-            return;
+            return callback(new Error("The user's SteamID is invalid or missing."));
         }
 
         const userSteamID64 = typeof userID === 'string' ? userID : userID.getSteamID64();
@@ -62,8 +58,9 @@ export default class InventoryApi {
         const [apiCallUrl, apiCallParams] = this.getURLAndParams(userSteamID64, appID, contextID);
 
         if (apiCallUrl === '') {
-            callback(new Error('Improper usage of InventoryAPI; descendant class should define getURLAndParams'));
-            return;
+            return callback(
+                new Error('Improper usage of InventoryAPI; descendant class should define getURLAndParams')
+            );
         }
 
         const headers = this.getHeaders();
@@ -72,20 +69,35 @@ export default class InventoryApi {
         get([], []);
 
         function get(inventory: EconItem[], currency: EconItem[], start?: string) {
-            axios({
-                url: apiCallUrl,
-                params: {
-                    ...apiCallParams,
-                    start_assetid: start
-                },
-                headers: headers
-            }).then(
-                response => {
-                    const result = response.data as GetUserInventoryContentsResult;
+            const urlObj = new URL(apiCallUrl);
+            const params = {
+                ...apiCallParams,
+                start_assetid: start
+            };
+            for (const key in params) {
+                if (params[key] !== undefined && params[key] !== null) {
+                    urlObj.searchParams.append(key, String(params[key]));
+                }
+            }
+
+            fetch(urlObj.toString(), {
+                headers
+            })
+                .then(async response => {
+                    let result: GetUserInventoryContentsResult | null = null;
+                    try {
+                        result = (await response.json()) as GetUserInventoryContentsResult;
+                    } catch {
+                        // Failsafe if Steam returns HTML (e.g., 502/503 errors)
+                        const error = new Error(
+                            `Invalid response from Steam (status ${response.status})`
+                        ) as GetUserInventoryContentsError;
+                        error.status = response.status;
+                        return callback(error);
+                    }
 
                     if (response.status === 403 && result === null) {
-                        callback(new Error('This profile is private.'));
-                        return;
+                        return callback(new Error('This profile is private.'));
                     }
 
                     if (response.status == 500 && result && result.error) {
@@ -97,8 +109,7 @@ export default class InventoryApi {
                             // @ts-ignore
                             errToReturn.eresult = match[2];
                         }
-                        callback(errToReturn);
-                        return;
+                        return callback(errToReturn);
                     }
 
                     if (result?.fake_redirect === 0) {
@@ -108,8 +119,7 @@ export default class InventoryApi {
 
                     if (result && result.success && result.total_inventory_count === 0) {
                         // Empty inventory
-                        callback(null, [], [], 0);
-                        return;
+                        return callback(null, [], [], 0);
                     }
 
                     if (!result || !result.success || !result.assets || !result.descriptions) {
@@ -143,11 +153,10 @@ export default class InventoryApi {
                     } else {
                         callback(null, inventory, currency, result.total_inventory_count);
                     }
-                },
-                (err: AxiosError) => {
-                    callback(filterAxiosError(err) as Error);
-                }
-            );
+                })
+                .catch(err => {
+                    callback(err as Error);
+                });
         }
 
         // A bit of optimization; objects are hash tables so it's more efficient to look up by key than to iterate an array
@@ -193,4 +202,9 @@ interface GetUserInventoryContentsResult {
     total_inventory_count?: number;
     success?: number;
     fake_redirect?: 1 | 0;
+}
+
+interface GetUserInventoryContentsError extends Error {
+    message: string;
+    status: number;
 }

@@ -57,14 +57,14 @@ if (process.env.DOCKER !== undefined) {
     );
 }
 
-import SchemaManager from '@tf2autobot/tf2-schema';
+import SchemaManager, { Schema } from '@tf2autobot/tf2-schema';
 import { apiRequest } from './lib/apiRequest';
 
 // Make the schema manager request the schema from schema.autobot.tf
 
 /*eslint-disable */
 SchemaManager.prototype.getSchema = function (callback): void {
-    apiRequest({ method: 'GET', url: 'https://schema.autobot.tf/schema' })
+    apiRequest<Schema>({ method: 'GET', url: 'https://schema.autobot.tf/schema' })
         .then(schema => {
             this.setSchema(schema, true);
             callback(null, this.schema);
@@ -169,27 +169,6 @@ process.on('message', message => {
 
 void botManager.start(options).asCallback(err => {
     if (err) {
-        /*eslint-disable */
-        if (err.response || err.name === 'AxiosError') {
-            // if it's Axios error, filter the error
-
-            const e = new Error(err.message);
-
-            e['code'] = err.code;
-            e['status'] = err.response?.status ?? err.status;
-            e['method'] = err.config?.method ?? err.method;
-            e['url'] = err.config?.url?.replace(/\?.+/, '') ?? err.baseURL?.replace(/\?.+/, ''); // Ignore parameters
-
-            if (typeof err.response?.data === 'string' && err.response?.data?.includes('<html>')) {
-                throw e;
-            }
-
-            e['data'] = err.response?.data;
-
-            throw e;
-        }
-        /*eslint-enable */
-
         throw err;
     }
 

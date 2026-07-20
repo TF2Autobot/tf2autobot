@@ -1,51 +1,97 @@
-import axios, { AxiosRequestConfig, Method, AxiosError } from 'axios';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export interface FetchError extends Error {
+    config: RequestInit;
+    response: Response;
+    status: number;
+    data: any;
+}
+
+export interface FetchRes {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    data: any;
+    config: RequestInit;
+}
 
 export async function apiRequest<B>({
-    method,
     url,
+    method = 'GET',
     params,
     data,
-    headers,
+    headers = {},
+    timeout = 30000,
     apiToken
 }: {
-    method: Method;
     url: string;
+    method?: Method;
     params?: Record<string, any>;
-    data?: Record<string, any>;
+    data?: Record<string, any> | any[] | string;
     headers?: Record<string, unknown>;
-    signal?: AbortSignal;
+    timeout?: number;
     apiToken?: string;
 }): Promise<B> {
-    if (!headers) {
-        headers = {};
+    const urlObj = new URL(url);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    const reqHeaders = new Headers(headers as Record<string, string>);
+    reqHeaders.set('User-Agent', 'TF2Autobot@' + process.env.BOT_VERSION);
+    if (apiToken) {
+        reqHeaders.set('Authorization', `Token ${apiToken}`);
     }
 
-    const options: AxiosRequestConfig = {
+    const options: RequestInit = {
         method,
-        url,
-        headers: {
-            'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION,
-            ...headers
-        },
-        timeout: 30000
+        headers: reqHeaders,
+        signal: controller.signal
     };
 
     if (params) {
-        options.params = params;
+        for (const key in params) {
+            if (params[key] !== undefined && params[key] !== null) {
+                urlObj.searchParams.append(key, String(params[key]));
+            }
+        }
     }
 
-    if (data) {
-        options.data = data;
+    if (data !== undefined) {
+        if (!reqHeaders.has('Content-Type')) {
+            reqHeaders.set('Content-Type', 'application/json');
+        }
+        options.body = typeof data === 'string' ? data : JSON.stringify(data);
     }
 
-    if (apiToken) {
-        options.headers['Authorization'] = `Token ${apiToken}`;
-    }
+    try {
+        const response = await fetch(urlObj.toString(), options);
+        const contentType = response.headers.get('content-type');
+        let responseData: any;
+        const textData = await response.text();
 
-    return new Promise((resolve, reject) => {
-        axios(options)
-            .then(response => resolve(response.data as B))
-            .catch((err: AxiosError) => reject(filterAxiosError(err)));
-    });
+        if (contentType && contentType.includes('application/json')) {
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                responseData = JSON.parse(textData);
+            } catch {
+                responseData = textData;
+            }
+        } else {
+            responseData = textData;
+        }
+
+        if (!response.ok) {
+            const error = new Error(`Request failed with status code ${response.status}`) as FetchError;
+            error.config = options;
+            error.response = response;
+            error.status = response.status;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            error.data = responseData;
+            throw error;
+        }
+
+        return responseData as B;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 }

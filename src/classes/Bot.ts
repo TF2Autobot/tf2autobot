@@ -11,7 +11,6 @@ import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
-import { AxiosError } from 'axios';
 import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
 import fs from 'fs';
@@ -42,9 +41,7 @@ import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
-import { axiosAbortSignal } from '../lib/helpers';
-import { apiRequest } from '../lib/apiRequest';
+import { apiRequest, FetchError } from '../lib/apiRequest';
 
 type Callback = (err?: Error | null) => void;
 type HttpError = Error & { code?: string | number };
@@ -315,8 +312,8 @@ export default class Bot {
             try {
                 await check(steamid);
             } catch (err) {
-                const error = err as AxiosError;
-                if (error?.response?.status === 429) {
+                const error = err as FetchError;
+                if (error?.status === 429) {
                     await new Promise(resolve => setTimeout(resolve, 10000));
                     await check(steamid);
                 } else {
@@ -350,7 +347,7 @@ export default class Bot {
             apiRequest<string>({
                 method: 'GET',
                 url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`,
-                signal: axiosAbortSignal(60000)
+                timeout: 60000
             })
                 .then(content => {
                     this.tf2.setLang(content);
@@ -588,7 +585,7 @@ export default class Bot {
             apiRequest<GithubPackageJson>({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
-                signal: axiosAbortSignal(60000)
+                timeout: 60000
             })
                 .then(data => {
                     return resolve({
@@ -639,13 +636,10 @@ export default class Bot {
                 log.debug('Running automatic check for missing/mismatch listings...');
 
                 const listings: { [sku: string]: Listing[] } = {};
-                this.listingManager.getListings(false, (err: AxiosError) => {
+                this.listingManager.getListings(false, (err: FetchError) => {
                     void (async () => {
                         if (err) {
-                            log.warn(
-                                'Error getting listings on auto-refresh listings operation:',
-                                filterAxiosError(err)
-                            );
+                            log.warn('Error getting listings on auto-refresh listings operation:', err);
                             setTimeout(
                                 () => {
                                     this.startAutoRefreshListings();

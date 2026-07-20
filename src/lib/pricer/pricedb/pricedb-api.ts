@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import { apiRequest, FetchError } from '../../apiRequest';
 
 export interface PriceDbPrice {
     name: string;
@@ -34,33 +34,36 @@ export default class PriceDbApi {
 
     async getItemPrice(sku: string): Promise<PriceDbPrice> {
         const url = `${this.baseUrl}/item/${encodeURIComponent(sku)}`;
-        const response = await axios.get<PriceDbPrice>(url);
-        return response.data;
+        const response = await apiRequest<PriceDbPrice>({ url });
+        return response;
     }
 
     async getBulkPrices(skus: string[]): Promise<PriceDbPrice[]> {
         const url = `${this.baseUrl}/items-bulk`;
-        const response = await axios.post<PriceDbPrice[]>(url, { skus });
-        return response.data;
+        const response = await apiRequest<PriceDbPrice[]>({ url, data: skus });
+        return response;
     }
 
     async getAllPrices(): Promise<PriceDbPrice[]> {
         const url = `${this.baseUrl}/autob/items`;
-        const response = await axios.get<PriceDbGetAllPricesResponse>(url);
-        return response.data.items;
+        const response = await apiRequest<PriceDbGetAllPricesResponse>({ url });
+        return response.items;
     }
 
     async priceCheck(sku: string): Promise<{ success: boolean; message?: string }> {
         const url = `${this.baseUrl}/autob/items/${encodeURIComponent(sku)}`;
         try {
-            await axios.post<void>(url);
+            await apiRequest<void>({ url, method: 'POST' });
             return { success: true };
-        } catch (error) {
-            const axiosError = error as AxiosError<PriceDbErrorResponse>;
-            const errorMessage = axiosError.response?.data?.message ?? 'Price check request failed';
+        } catch (err) {
+            const error = err as FetchError;
             return {
                 success: false,
-                message: errorMessage
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                message:
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    (typeof error.data === 'string' ? error.data : error.data?.message || error.message) ??
+                    'Price check request failed'
             };
         }
     }

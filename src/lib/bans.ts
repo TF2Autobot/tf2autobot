@@ -3,7 +3,6 @@ import log from '../lib/logger';
 import Bot from '../classes/Bot';
 import { ReputationCheck } from '../classes/Options';
 import { LeveledLogMethod } from 'winston';
-import { axiosAbortSignal } from './helpers';
 import { apiRequest } from './apiRequest';
 
 export type Contents = { [website: string]: string };
@@ -298,7 +297,7 @@ export default class Bans {
             apiRequest<UntrustedJson>({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/TF2Autobot/untrusted-steam-ids/master/untrusted.min.json',
-                signal: axiosAbortSignal(60000)
+                timeout: 60000
             })
                 .then(body => {
                     const results = body.steamids[this.steamID];
