@@ -47,7 +47,7 @@
         "cheerio": "^1.1.2",
         "dayjs": "^1.11.21",
         "death": "^1.1.0",
-        "discord.js": "^14.25.1",
+        "discord.js": "^14.27.0",
         "dot-prop": "^10.1.0",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
@@ -58,7 +58,7 @@
         "module-alias": "^2.3.4",
         "pjson": "^1.0.9",
         "pluralize": "^8.0.0",
-        "pm2": "^6.0.14",
+        "pm2": "^7.0.3",
         "pretty-ms": "^9.3.0",
         "reconnecting-websocket": "^4.4.0",
         "retry": "^0.13.1",
@@ -70,8 +70,8 @@
         "valid-url": "^1.0.9",
         "winston": "^3.19.0",
         "winston-daily-rotate-file": "^5.0.0",
-        "write-file-atomic": "^7.0.1",
-        "ws": "^8.21.0"
+        "write-file-atomic": "^8.0.0",
+        "ws": "^8.21.1"
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.29.7",
