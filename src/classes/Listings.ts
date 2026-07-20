@@ -556,12 +556,7 @@ export default class Listings {
                 })
                 .catch(err => {
                     // if an error occurred, we bypass checking listings and just call delete all listings
-
-                    log.error(
-                        'Error getting listings info, force delete all listings. Error details: ',
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                        err
-                    );
+                    log.error('Error getting listings info, force delete all listings. Error details: ', err);
                     this.bot.listingManager.deleteAllListings(err => {
                         if (err) {
                             if (this.retryRemoveListings(err, tries, resolve)) return;
