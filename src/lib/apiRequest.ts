@@ -65,18 +65,13 @@ export async function apiRequest<B>({
 
     try {
         const response = await fetch(urlObj.toString(), options);
-        const contentType = response.headers.get('content-type');
         let responseData: any;
         const textData = await response.text();
 
-        if (contentType && contentType.includes('application/json')) {
-            try {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                responseData = JSON.parse(textData);
-            } catch {
-                responseData = textData;
-            }
-        } else {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            responseData = JSON.parse(textData);
+        } catch {
             responseData = textData;
         }
 
