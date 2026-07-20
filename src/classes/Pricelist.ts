@@ -1230,6 +1230,9 @@ export default class Pricelist extends EventEmitter {
                 return;
             }
 
+            // Only log price change that exists in pricelist and buy/sell value changed
+            log.debug('Received price update from PriceDB:', data);
+
             let pricesChanged = false;
             const currentStock = this.bot.inventoryManager.getInventory.getAmount({
                 priceKey: match.sku,
