@@ -134,7 +134,7 @@ export default class ManagerCommands {
                 const targetedAssetId = params.assetid as string;
                 const sku = this.bot.inventoryManager.getInventory.findByAssetid(targetedAssetId);
 
-                if (params.i_am_sure !== 'yes_i_am') {
+                if (params.confirm !== 'yes' || params.confirm !== true) {
                     return this.bot.sendMessage(
                         steamID,
                         `⚠️ Are you sure that you want to ${command} ${
@@ -143,7 +143,7 @@ export default class ManagerCommands {
                                 : `${this.bot.schema.getName(SKU.fromString(sku), false)}`
                         }?` +
                             `\n- This process is irreversible and will ${command} the item from your bot's backpack!` +
-                            `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                            `\n- If you are sure, try again with confirm=true or confirm=yes as a parameter`
                     );
                 }
 
@@ -262,12 +262,12 @@ export default class ManagerCommands {
                 assetid = assetids[0];
             }
 
-            if (params.i_am_sure !== 'yes_i_am') {
+            if (params.confirm !== 'yes' || params.confirm !== true) {
                 return this.bot.sendMessage(
                     steamID,
                     `/pre ⚠️ Are you sure that you want to ${command} ${name}?` +
                         `\n- This process is irreversible and will ${command} the item from your bot's backpack!` +
-                        `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                        `\n- If you are sure, try again with confirm=true or confirm=yes as a parameter`
                 );
             }
 
@@ -322,12 +322,12 @@ export default class ManagerCommands {
         const inputName = params.name as string;
 
         if (inputName !== undefined) {
-            if (params.i_am_sure !== 'yes_i_am') {
+            if (params.confirm !== 'yes' || params.confirm !== true) {
                 return this.bot.sendMessage(
                     steamID,
                     `⚠️ Are you sure that you want to change your bot's name?` +
                         `\nChanging the name will result in a trading cooldown for a few hours on your bot's account` +
-                        `\nIf yes, retry by sending ${prefix}changeName name=${inputName}&i_am_sure=yes_i_am`
+                        `\nIf yes, retry by sending ${prefix}changeName name=${inputName}&confirm=true or confirm=yes`
                 );
             } else {
                 this.bot.community.editProfile(
