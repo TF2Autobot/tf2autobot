@@ -65,6 +65,8 @@ export default class ManagerCommands {
                 item.craftable = false;
             }
 
+            const backpackString = `${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander`;
+
             if (params.amount === undefined) {
                 // amount parameter not defined by user, set to default 1.
                 params.amount = 1;
@@ -81,24 +83,31 @@ export default class ManagerCommands {
             const assetids = this.bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
             if (assetids.length === 0) {
                 // No backpack expanders
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ I couldn't find any ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander.`
-                );
+                return this.bot.sendMessage(steamID, `❌ I couldn't find any ${backpackString}.`);
             }
 
             if (assetids.length < params.amount) {
                 // User amount more than the bot has
-                return this.bot.sendMessage(
-                    steamID,
-                    `❌ I only have ${assetids.length} ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander available.`
-                );
+                return this.bot.sendMessage(steamID, `❌ I only have ${assetids.length} ${backpackString} available.`);
             }
 
-            this.bot.sendMessage(
-                steamID,
-                `⏳ Executing to use ${params.amount} ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander...`
-            );
+            const currentBackpackSlots = this.bot.tf2.backpackSlots;
+            const futureBackpackSlots = currentBackpackSlots + params.amount * 100;
+            if (futureBackpackSlots > 4000) {
+                const amountCanUse = (4000 - currentBackpackSlots) / 100;
+                if (amountCanUse > 0) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        `❌ Maximum backpack size is 4000 slots, using ${params.amount} will exceed that. The maximum amount of ${backpackString}` +
+                            ` that can be use is only ${amountCanUse}.` +
+                            ` \n\nTry again with !expand craftable=${String(params.craftable)}&amount=${amountCanUse}`
+                    );
+                }
+                // Else already has 4000 slots
+                return this.bot.sendMessage(steamID, `❌ I already have 4000 slots, which is the maximum allowed.`);
+            }
+
+            this.bot.sendMessage(steamID, `⏳ Executing to use ${params.amount} ${backpackString}...`);
             for (let i = 0; i < params.amount; i++) {
                 this.bot.tf2gc.useItem(assetids[i], err => {
                     if (err) {
@@ -111,10 +120,7 @@ export default class ManagerCommands {
                 });
                 await timersPromises.setTimeout(1000); // just in case
             }
-            this.bot.sendMessage(
-                steamID,
-                `✅ Used ${params.amount} ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander!`
-            );
+            this.bot.sendMessage(steamID, `✅ Used ${params.amount} ${backpackString}!`);
         } else {
             // For use and delete commands
             if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
