@@ -41,9 +41,13 @@ it('can parse item id commands', () => {
 });
 
 it('can parse values with &', () => {
-    let message = '!changeName name=Buying spells & hats&i_am_sure=i_am_sure';
+    let message = '!changeName name=Buying spells & hats&confirm=true';
     let params = CommandParser.parseParams(CommandParser.removeCommand(message));
-    expect(params).toEqual({ name: 'Buying spells & hats', i_am_sure: 'i_am_sure' });
+    expect(params).toEqual({ name: 'Buying spells & hats', confirm: true });
+
+    message = '!changeName name=Buying spells & hats&confirm=yes';
+    params = CommandParser.parseParams(CommandParser.removeCommand(message));
+    expect(params).toEqual({ name: 'Buying spells & hats', confirm: 'yes' });
 
     message = `!test key1=value1&key2=value2&&key3=3`;
     params = CommandParser.parseParams(CommandParser.removeCommand(message));

@@ -1433,12 +1433,12 @@ export default class Commands {
             );
         }
 
-        if (params.i_am_sure !== 'yes_i_am') {
+        if (params.confirm !== 'yes' || params.confirm !== true) {
             return this.bot.sendMessage(
                 steamID,
                 `⚠️ Are you sure that you want to buy premium for ${pluralize('month', numMonths, true)}?` +
                     `\nThis will cost you ${pluralize('key', amountKeys, true)}.` +
-                    `\nIf yes, retry by sending !premium months=${numMonths}&i_am_sure=yes_i_am`
+                    `\nIf yes, retry by sending !premium months=${numMonths}&confirm=true or confirm=yes`
             );
         }
 
