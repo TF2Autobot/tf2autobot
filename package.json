@@ -77,7 +77,6 @@
         "@types/bluebird-global": "^3.5.18",
         "@types/death": "^1.1.5",
         "@types/express": "^5.0.6",
-        "@types/graceful-fs": "^4.1.9",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^26.1.1",
         "@types/pluralize": "^0.0.33",
