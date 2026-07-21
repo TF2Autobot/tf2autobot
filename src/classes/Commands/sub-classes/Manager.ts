@@ -48,13 +48,16 @@ export default class ManagerCommands {
         this.bot = bot;
     }
 
-    TF2GCCommand(steamID: SteamID, message: string, command: TF2GC): void {
+    async TF2GCCommand(steamID: SteamID, message: string, command: TF2GC): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (command === 'expand') {
             // Expand command
             if (typeof params.craftable !== 'boolean') {
-                return this.bot.sendMessage(steamID, '⚠️ Missing `craftable=true|false`');
+                return this.bot.sendMessage(
+                    steamID,
+                    '⚠️ Missing `craftable=true|false` parameter, Example: !expand craftable=false (for Non-Craftable Backpack Expander).'
+                );
             }
 
             const item = SKU.fromString('5050;6');
@@ -62,23 +65,56 @@ export default class ManagerCommands {
                 item.craftable = false;
             }
 
+            if (params.amount === undefined) {
+                // amount parameter not defined by user, set to default 1.
+                params.amount = 1;
+            }
+
+            if (params.amount !== undefined && !Number.isInteger(params.amount) && params.amount < 1) {
+                // use defined amount parameter but is not a number;
+                return this.bot.sendMessage(
+                    steamID,
+                    '⚠️ Wrong `amount` parameter, should be a number (positive non-zero integer).'
+                );
+            }
+
             const assetids = this.bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
             if (assetids.length === 0) {
                 // No backpack expanders
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ I couldn't find any ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander`
+                    `❌ I couldn't find any ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander.`
                 );
             }
 
-            this.bot.tf2gc.useItem(assetids[0], err => {
-                if (err) {
-                    log.error('Error trying to expand inventory: ', err);
-                    return this.bot.sendMessage(steamID, `❌ Failed to expand inventory: ${err.message}`);
-                }
+            if (assetids.length < params.amount) {
+                // User amount more than the bot has
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ I only have ${assetids.length} ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander available.`
+                );
+            }
 
-                this.bot.sendMessage(steamID, `✅ Used ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander!`);
-            });
+            this.bot.sendMessage(
+                steamID,
+                `⏳ Executing to use ${params.amount} ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander...`
+            );
+            for (let i = 0; i < params.amount; i++) {
+                this.bot.tf2gc.useItem(assetids[i], err => {
+                    if (err) {
+                        log.error('Error trying to expand inventory: ', err);
+                        return this.bot.sendMessage(
+                            steamID,
+                            `❌ Failed to expand inventory: ${err.message}.${i > 0 ? `\n\n⚠️ Used ${i + 1} before failing.` : ''}`
+                        );
+                    }
+                });
+                await timersPromises.setTimeout(1000); // just in case
+            }
+            this.bot.sendMessage(
+                steamID,
+                `✅ Used ${params.amount} ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander!`
+            );
         } else {
             // For use and delete commands
             if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
