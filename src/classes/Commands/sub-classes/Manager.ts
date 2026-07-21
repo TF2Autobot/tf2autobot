@@ -120,7 +120,10 @@ export default class ManagerCommands {
                 });
                 await timersPromises.setTimeout(1000); // just in case
             }
-            this.bot.sendMessage(steamID, `✅ Used ${params.amount} ${backpackString}!`);
+            this.bot.sendMessage(
+                steamID,
+                `✅ Used ${params.amount} ${backpackString}! Check current slots with !inventory command.`
+            );
         } else {
             // For use and delete commands
             if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
