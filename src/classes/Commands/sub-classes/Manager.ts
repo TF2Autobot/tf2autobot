@@ -48,7 +48,7 @@ export default class ManagerCommands {
         this.bot = bot;
     }
 
-    async TF2GCCommand(steamID: SteamID, message: string, command: TF2GC): Promise<void> {
+    async TF2GCCommand(steamID: SteamID, message: string, command: TF2GC, prefix: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (command === 'expand') {
@@ -56,7 +56,9 @@ export default class ManagerCommands {
             if (typeof params.craftable !== 'boolean') {
                 return this.bot.sendMessage(
                     steamID,
-                    '⚠️ Missing `craftable=true|false` parameter, Example: !expand craftable=false (for Non-Craftable Backpack Expander).'
+                    `⚠️ Missing craftable=true|false parameter, Example: "${prefix}expand craftable=false" (for Non-Craftable Backpack Expander).` +
+                        `\n\nOptional parameter: amount - set how many Backpack Expander you want to use` +
+                        `\nExample: "${prefix}expand craftable=false&amount=10"`
                 );
             }
 
@@ -100,7 +102,7 @@ export default class ManagerCommands {
                         steamID,
                         `❌ Maximum backpack size is 4000 slots, using ${params.amount} will exceed that. The maximum amount of ${backpackString}` +
                             ` that can be use is only ${amountCanUse}.` +
-                            ` \n\nTry again with !expand craftable=${String(params.craftable)}&amount=${amountCanUse}`
+                            ` \n\nTry again with "${prefix}expand craftable=${String(params.craftable)}&amount=${amountCanUse}"`
                     );
                 }
                 // Else already has 4000 slots
@@ -114,7 +116,7 @@ export default class ManagerCommands {
                         log.error('Error trying to expand inventory: ', err);
                         return this.bot.sendMessage(
                             steamID,
-                            `❌ Failed to expand inventory: ${err.message}.${i > 0 ? `\n\n⚠️ Used ${i + 1} before failing.` : ''}`
+                            `❌ Failed to expand inventory: ${err.message}.${i > 0 ? `\n\n ⚠️ Used ${i + 1} before failing.` : ''}`
                         );
                     }
                 });
@@ -122,7 +124,7 @@ export default class ManagerCommands {
             }
             this.bot.sendMessage(
                 steamID,
-                `✅ Used ${params.amount} ${backpackString}! Check current slots with !inventory command.`
+                `✅ Used ${params.amount} ${backpackString}! Check current slots with ${prefix}inventory command.`
             );
         } else {
             // For use and delete commands
@@ -216,7 +218,7 @@ export default class ManagerCommands {
             if (params.sku === undefined) {
                 return this.bot.sendMessage(
                     steamID,
-                    `⚠️ Missing sku property. Example: "!${command} sku=5923;6;untradable"`
+                    `⚠️ Missing sku property. Example: "${prefix}${command} sku=5923;6;untradable"`
                 );
             }
 
@@ -255,7 +257,8 @@ export default class ManagerCommands {
                     return this.bot.sendMessage(
                         steamID,
                         `❌ Looks like an assetid ${targetedAssetId} did not match any assetids associated with ${name}` +
-                            ` in my inventory. Try using the sku to use a random assetid.`
+                            ` in my inventory. Try using the sku to use a random assetid, or send "${prefix}stock ${name}" to` +
+                            ` see available assetids.`
                     );
                 }
             } else {
@@ -299,7 +302,7 @@ export default class ManagerCommands {
             if (!input || input === `!${command}`) {
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ You forgot to add an image url'. Example: "!${`avatar ${example}`} "`
+                    `❌ You forgot to add an image url'. Example: "${prefix}${`avatar ${example}`} "`
                 );
             }
             if (!validUrl.isUri(input)) {
@@ -414,7 +417,7 @@ export default class ManagerCommands {
         });
     }
 
-    blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock): void {
+    blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock, prefix: string): void {
         const steamidAndReason = CommandParser.removeCommand(message);
         const parts = steamidAndReason.split(' ');
 
@@ -424,7 +427,7 @@ export default class ManagerCommands {
         if (!steamid || steamid === `!${command}`) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ You forgot to add their SteamID64. Example: "!${command} 76561198798404909${
+                `❌ You forgot to add their SteamID64. Example: "${prefix}${command} 76561198798404909${
                     command === 'block' ? ' Trying to exploit' : ''
                 }"`
             );
@@ -435,7 +438,7 @@ export default class ManagerCommands {
         if (!targetSteamID.isValid()) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ SteamID is not valid. Example: "!${command} 76561198798404909${
+                `❌ SteamID is not valid. Example: "${prefix}${command} 76561198798404909${
                     command === 'block' ? ' Trying to exploit' : ''
                 }"`
             );
@@ -931,7 +934,7 @@ export default class ManagerCommands {
         return reply;
     }
 
-    refreshSchema(steamID: SteamID): void {
+    refreshSchema(steamID: SteamID, prefix: string): void {
         const newExecutedTime = dayjs().valueOf();
         const timeDiff = newExecutedTime - this.lastExecutedRefreshSchemaTime;
 
@@ -948,7 +951,7 @@ export default class ManagerCommands {
 
             this.bot.schemaManager.getSchema(err => {
                 if (err) {
-                    log.error('Error getting schema on !refreshSchema command:', err);
+                    log.error(`Error getting schema on ${prefix}refreshSchema command:`, err);
                     return this.bot.sendMessage(steamID, `❌ Error getting TF2 Schema: ${JSON.stringify(err)}`);
                 }
 
@@ -971,7 +974,7 @@ export default class ManagerCommands {
         }
     }
 
-    updaterepoCommand(steamID: SteamID): void {
+    updaterepoCommand(steamID: SteamID, prefix: string): void {
         if (!this.bot.isCloned()) {
             return this.bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
         }
@@ -1002,7 +1005,7 @@ export default class ManagerCommands {
                 if (newVersionIsMajor) {
                     return this.bot.sendMessage(
                         steamID,
-                        '⚠️ !updaterepo is not available. Please upgrade the bot manually.'
+                        `⚠️ ${prefix}updaterepo is not available. Please upgrade the bot manually.`
                     );
                 }
 

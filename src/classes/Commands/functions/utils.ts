@@ -22,25 +22,36 @@ export function getItemAndAmount(
     const name = parsedMessage.name;
     let amount = parsedMessage.amount;
 
-    if (['!price', '!sellcart', '!buycart', '!sell', '!buy', '!pc', '!s', '!b'].includes(name)) {
+    if (
+        [
+            `${prefix}price`,
+            `${prefix}sellcart`,
+            `${prefix}buycart`,
+            `${prefix}sell`,
+            `${prefix}buy`,
+            `${prefix}pc`,
+            `${prefix}s`,
+            `${prefix}b`
+        ].includes(name)
+    ) {
         bot.sendMessage(
             steamID,
-            '⚠️ You forgot to add a name. Here\'s an example: "' +
-                (name.includes('!price')
-                    ? '!price'
-                    : name.includes('!sellcart')
-                      ? '!sellcart'
-                      : name.includes('!buycart')
-                        ? '!buycart'
-                        : name.includes('!sell')
-                          ? '!sell'
-                          : name.includes('!buy')
-                            ? '!buy'
-                            : name.includes('!pc')
-                              ? '!pc'
-                              : name.includes('!s')
-                                ? '!s'
-                                : '!b') +
+            `⚠️ You forgot to add a name. Here's an example: "${prefix}` +
+                (name.includes(`${prefix}price`)
+                    ? `price`
+                    : name.includes(`${prefix}sellcart`)
+                      ? `sellcart`
+                      : name.includes(`${prefix}buycart`)
+                        ? 'buycart'
+                        : name.includes(`${prefix}sell`)
+                          ? 'sell'
+                          : name.includes(`${prefix}buy`)
+                            ? 'buy'
+                            : name.includes(`${prefix}pc`)
+                              ? 'pc'
+                              : name.includes(`${prefix}s`)
+                                ? 's'
+                                : 'b') +
                 ' Team Captain"'
         );
         return null;
@@ -426,7 +437,7 @@ export function getItemFromParams(
 
     if (params.craftable !== undefined) {
         if (typeof params.craftable !== 'boolean') {
-            bot.sendMessage(steamID, `Craftable must be "true" or "false".`);
+            bot.sendMessage(steamID, `Parameter "craftable" must be "true" or "false".`);
             return null;
         }
         item.craftable = params.craftable;
@@ -453,7 +464,7 @@ export function getItemFromParams(
 
     if (params.festive !== undefined) {
         if (typeof params.festive !== 'boolean') {
-            bot.sendMessage(steamID, `"festive" (for Festivized item) must be "true" or "false".`);
+            bot.sendMessage(steamID, `Parameter "festive" (for Festivized item) must be "true" or "false".`);
             return null;
         }
         item.festive = params.festive;
@@ -461,7 +472,7 @@ export function getItemFromParams(
 
     if (params.australium !== undefined) {
         if (typeof params.australium !== 'boolean') {
-            bot.sendMessage(steamID, `Australium must be "true" or "false".`);
+            bot.sendMessage(steamID, `Parameter "australium" must be "true" or "false".`);
             return null;
         }
         item.australium = params.australium;
@@ -539,7 +550,7 @@ export function getItemFromParams(
 
     if (params.quality2 !== undefined) {
         if (typeof params.quality2 !== 'boolean') {
-            bot.sendMessage(steamID, `❌ "quality2" must only be type boolean (true or false).`);
+            bot.sendMessage(steamID, `❌ Parameter "quality2" must only be type boolean (true or false).`);
             return null;
         }
 
@@ -661,7 +672,7 @@ export function getItemFromParams(
         if (quality === null) {
             bot.sendMessage(
                 steamID,
-                `❌ Could not find a quality in the schema with the name "${params.outputQuality as string}".`
+                `❌ Could not find a "outputQuality" in the schema with the name "${params.outputQuality as string}".`
             );
             return null;
         }
@@ -670,7 +681,7 @@ export function getItemFromParams(
 
     if (params.crateseries !== undefined) {
         if (typeof params.crateseries !== 'number') {
-            bot.sendMessage(steamID, `❌ crateseries must only be type number!.`);
+            bot.sendMessage(steamID, `❌ Parameter "crateseries" must only be type number!.`);
             return null;
         }
 
