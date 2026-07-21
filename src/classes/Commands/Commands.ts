@@ -235,7 +235,7 @@ export default class Commands {
             } else if (command === 'stopautoadd' && isAdmin) {
                 this.pManager.stopAutoAddCommand();
             } else if (['expand', 'delete', 'use'].includes(command) && isAdmin) {
-                this.manager.TF2GCCommand(steamID, message, command as TF2GC);
+                void this.manager.TF2GCCommand(steamID, message, command as TF2GC);
             } else if (['name', 'avatar'].includes(command) && isAdmin) {
                 this.manager.nameAvatarCommand(steamID, message, command as NameAvatar, prefix);
             } else if (command === 'changename' && isAdmin) {
