@@ -6,6 +6,7 @@ const v = new Validator();
 import * as pl from '../schemas/pricelist-json/export';
 
 v.addSchema(pl.currenciesSchema);
+v.addSchema(pl.limitSchema);
 v.addSchema(pl.pricelistSchema);
 v.addSchema(pl.addSchema);
 v.addSchema(pl.listingSchema);

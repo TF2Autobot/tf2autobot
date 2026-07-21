@@ -44,6 +44,9 @@ export const addSchema: jsonschema.Schema = {
             // sell price
             $ref: 'tf2-currencies'
         },
+        limit: {
+            $ref: 'pricelist-limit'
+        },
         promoted: {
             // 0 = not promote, 1 = promote item (Sell only)
             type: 'integer',
