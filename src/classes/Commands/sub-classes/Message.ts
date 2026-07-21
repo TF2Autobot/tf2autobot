@@ -19,7 +19,7 @@ export default class MessageCommand {
             if (isAdmin) {
                 this.bot.sendMessage(
                     steamID,
-                    '❌ The message command is disabled. Enable it by sending `!config commands.message.enable=true`.'
+                    `❌ The message command is disabled. Enable it by sending "${prefix}config commands.message.enable=true".`
                 );
             } else {
                 this.bot.sendMessage(
@@ -81,7 +81,7 @@ export default class MessageCommand {
                           isShowOwner && adminDetails ? adminDetails.player_name : 'the owner'
                       }: ${reply}` +
                           '\n\n❔ Hint: You can use the !message command to respond to the owner of this bot.' +
-                          '\nExample: !message Hi Thanks!'
+                          `\nExample: ${prefix}message Hi Thanks!`
             );
 
             // Send a notification to the admin with message contents & details

@@ -194,13 +194,18 @@ export default class ReviewCommands {
         reply +=
             `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nRep.tf: ${links.reptf}` +
             (offerData?.action?.action === 'skip'
-                ? `\n\n⚠️ Send "${prefix}accept ${offerId}" to accept or "${prefix}decline ${offerId}" to decline this offer.`
-                : `\n\n⚠️ Send "${prefix}faccept ${offerId}" to force accept, or "${prefix}fdecline ${offerId}" to decline the trade now!`);
+                ? `\n\n ⚠️ Send "${prefix}accept ${offerId}" to accept or "${prefix}decline ${offerId}" to decline this offer.`
+                : `\n\n ⚠️ Send "${prefix}faccept ${offerId}" to force accept, or "${prefix}fdecline ${offerId}" to decline the trade now!`);
 
         this.bot.sendMessage(steamID, reply);
     }
 
-    async actionOnTradeCommand(steamID: SteamID, message: string, command: ActionOnTrade): Promise<void> {
+    async actionOnTradeCommand(
+        steamID: SteamID,
+        message: string,
+        command: ActionOnTrade,
+        prefix: string
+    ): Promise<void> {
         const offerIdAndMessage = CommandParser.removeCommand(message);
         const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
@@ -209,7 +214,7 @@ export default class ReviewCommands {
         if (isNaN(+offerIdRegex) || !offerIdRegex) {
             return this.bot.sendMessage(
                 steamID,
-                `⚠️ Missing offer id. Example: "!${isAccepting ? 'accept' : 'decline'} 3957959294"`
+                `⚠️ Missing offer id. Example: "${prefix}${isAccepting ? 'accept' : 'decline'} 3957959294"`
             );
         }
 
@@ -255,7 +260,7 @@ export default class ReviewCommands {
                                 ? this.bot.options.customMessage.accepted.manual.largeOffer
                                 : '.\nMy owner has manually accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
                                       ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, or add me and use ' +
-                                      'the !sell/!sellcart or !buy/!buycart command.'
+                                      `the ${prefix}sell/${prefix}sellcart or ${prefix}buy/${prefix}buycart command.`
                         );
                     } else {
                         this.bot.sendMessage(
@@ -264,7 +269,7 @@ export default class ReviewCommands {
                                 ? this.bot.options.customMessage.accepted.manual.smallOffer
                                 : '.\nMy owner has manually accepted your offer. The trade should be finalized shortly.' +
                                       ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, or add me and use ' +
-                                      'the !sell/!sellcart or !buy/!buycart command.'
+                                      `the ${prefix}sell/${prefix}sellcart or ${prefix}buy/${prefix}buycart command.`
                         );
                     }
                 }
@@ -298,7 +303,7 @@ export default class ReviewCommands {
         }
     }
 
-    async forceAction(steamID: SteamID, message: string, command: ForceAction): Promise<void> {
+    async forceAction(steamID: SteamID, message: string, command: ForceAction, prefix: string): Promise<void> {
         const offerIdAndMessage = CommandParser.removeCommand(message);
         const offerIdRegex = /\d+/.exec(offerIdAndMessage);
 
@@ -307,7 +312,7 @@ export default class ReviewCommands {
         if (isNaN(+offerIdRegex) || !offerIdRegex) {
             return this.bot.sendMessage(
                 steamID,
-                `⚠️ Missing offer id. Example: "!${isForceAccepting ? 'faccept' : 'fdecline'} 3957959294"`
+                `⚠️ Missing offer id. Example: "${prefix}${isForceAccepting ? 'faccept' : 'fdecline'} 3957959294"`
             );
         }
 

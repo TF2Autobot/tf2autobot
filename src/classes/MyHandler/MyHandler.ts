@@ -2102,6 +2102,7 @@ export default class MyHandler extends Handler {
         preAcceptMessageOpt: OfferType,
         itemsLarge: boolean
     ): void {
+        const prefix = bot.getPrefix(steamID);
         if (itemsLarge) {
             bot.sendMessage(
                 steamID,
@@ -2109,7 +2110,7 @@ export default class MyHandler extends Handler {
                     ? preAcceptMessageOpt.largeOffer
                     : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
                           ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
-                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                          `or add me and use the ${prefix}sell/${prefix}sellcart or ${prefix}buy/${prefix}buycart command.`
             );
         } else {
             bot.sendMessage(
@@ -2118,7 +2119,7 @@ export default class MyHandler extends Handler {
                     ? preAcceptMessageOpt.smallOffer
                     : 'I have accepted your offer. The trade will be finalized shortly.' +
                           ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
-                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                          `or add me and use the ${prefix}sell/${prefix}sellcart or ${prefix}buy/${prefix}buycart command.`
             );
         }
     }
@@ -2428,6 +2429,7 @@ export default class MyHandler extends Handler {
             log.debug(`Now friends with ${steamID.getSteamID64()}`);
         }
 
+        const prefix = this.bot.getPrefix(steamID);
         const isAdmin = this.bot.isAdmin(steamID);
         setImmediate(() => {
             if (!this.bot.friends.isFriend(steamID)) {
@@ -2452,8 +2454,8 @@ export default class MyHandler extends Handler {
                         this.opt.customMessage.welcome
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
-                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                            : `Hi! If you don't know how things work, please type "!${isAdmin ? 'help' : 'how2trade'}"`
+                                  .replace(/%admin%/g, isAdmin ? `${prefix}help` : `${prefix}how2trade`)
+                            : `Hi! If you don't know how things work, please type "${prefix}${isAdmin ? 'help' : 'how2trade'}"`
                     );
                 }
 
@@ -2481,9 +2483,9 @@ export default class MyHandler extends Handler {
                 this.opt.customMessage.welcome
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
-                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                          .replace(/%admin%/g, isAdmin ? `${prefix}help` : `${prefix}how2trade`)
                     : `Hi ${friend.player_name}! If you don't know how things work, please type ` +
-                          `"!${isAdmin ? 'help' : 'how2trade'}"`
+                          `"${prefix}${isAdmin ? 'help' : 'how2trade'}"`
             );
         });
     }

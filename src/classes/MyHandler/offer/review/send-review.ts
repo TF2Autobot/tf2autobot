@@ -190,7 +190,7 @@ export async function sendToAdmin(
         ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'pricedb.io'})` +
         `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
         `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
-        `\n\n⚠️ Send "${prefix}accept ${offer.id}" to accept or "${prefix}decline ${offer.id}" to decline this offer.` +
+        `\n\n ⚠️ Send "${prefix}accept ${offer.id}" to accept or "${prefix}decline ${offer.id}" to decline this offer.` +
         `\n\nVersion ${process.env.BOT_VERSION}`;
 
     const message = message1 + message2 + message3 + message4;

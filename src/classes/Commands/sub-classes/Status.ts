@@ -107,7 +107,7 @@ export default class StatusCommands {
         void sendStats(this.bot, true, steamID);
     }
 
-    statsWipeCommand(steamID: SteamID, message: string): void {
+    statsWipeCommand(steamID: SteamID, message: string, prefix: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (params.confirm !== 'yes' || params.confirm !== true) {
@@ -138,7 +138,7 @@ export default class StatusCommands {
 
             this.bot.handler.commands.useUpdateOptionsCommand(
                 steamID,
-                '!config statistics.lastTotalTrades=0&statistics.startingTimeInUnix=0&statistics.lastTotalProfitMadeInRef=0&statistics.lastTotalProfitOverpayInRef=0&statistics.profitDataSinceInUnix=0'
+                `${prefix}config statistics.lastTotalTrades=0&statistics.startingTimeInUnix=0&statistics.lastTotalProfitMadeInRef=0&statistics.lastTotalProfitOverpayInRef=0&statistics.profitDataSinceInUnix=0`
             );
         } catch (err) {
             this.bot.sendMessage(steamID, `❌ Error while deleting stats: ${JSON.stringify(err)}`);
@@ -407,7 +407,7 @@ export default class StatusCommands {
         } else this.bot.sendMessage(steamID, reply);
     }
 
-    versionCommand(steamID: SteamID): void {
+    versionCommand(steamID: SteamID, prefix: string): void {
         this.bot.sendMessage(
             steamID,
             `Currently running TF2Autobot@v${process.env.BOT_VERSION}. Checking for a new version...`
@@ -430,8 +430,8 @@ export default class StatusCommands {
                         return this.bot.sendMessage(
                             steamID,
                             newVersionIsMajor
-                                ? '⚠️ !updaterepo is not available. Please upgrade the bot manually.'
-                                : `✅ Update now with !updaterepo command now!`
+                                ? `⚠️ ${prefix}updaterepo is not available. Please upgrade the bot manually.`
+                                : `✅ Update now with ${prefix}updaterepo command!`
                         );
                     }
 
