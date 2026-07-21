@@ -71,7 +71,7 @@ export default class ManagerCommands {
             }
 
             if (params.amount !== undefined && !Number.isInteger(params.amount) && params.amount < 1) {
-                // use defined amount parameter but is not a number;
+                // user defined amount parameter but is not a number or less than 1;
                 return this.bot.sendMessage(
                     steamID,
                     '⚠️ Wrong `amount` parameter, should be a number (positive non-zero integer).'
