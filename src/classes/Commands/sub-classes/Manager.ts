@@ -67,7 +67,7 @@ export default class ManagerCommands {
                 item.craftable = false;
             }
 
-            const backpackString = `${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander`;
+            const backpackString = `${!item.craftable ? 'Non-Craftable ' : ''}Backpack Expander`;
 
             if (params.amount === undefined) {
                 // amount parameter not defined by user, set to default 1.
