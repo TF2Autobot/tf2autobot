@@ -175,7 +175,7 @@ function getSummary(
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
-            let oldStock: number | null = 0;
+            let oldStock: number | null;
             const currentStock = bot.inventoryManager.getInventory.getAmount({
                 priceKey,
                 includeNonNormalized: true,

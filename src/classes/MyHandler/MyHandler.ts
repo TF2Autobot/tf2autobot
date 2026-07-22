@@ -648,7 +648,7 @@ export default class MyHandler extends Handler {
                     }
                 }
 
-                let totalGeneric = 0;
+                let totalGeneric: number;
                 // assign amount for sku
                 if (exchange[which].pricedAssetSkus.has(sku)) {
                     totalGeneric = items[which][sku].length - exchange[which].pricedAssetSkuTotals[sku];
