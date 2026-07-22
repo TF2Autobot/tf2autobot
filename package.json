@@ -72,7 +72,7 @@
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.29.7",
-        "@eslint/js": "^9.39.5",
+        "@eslint/js": "^10.0.1",
         "@types/async": "^3.2.25",
         "@types/bluebird-global": "^3.5.18",
         "@types/death": "^1.1.5",
