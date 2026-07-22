@@ -1431,6 +1431,7 @@ export default class Trades {
 
     private checkEscrowWithWebApi(offer: TradeOffer): Promise<boolean> {
         const escrowEnds = this.getEscrowEndsFromOffer(offer);
+        log.debug('escrowEnds', escrowEnds);
 
         if (escrowEnds !== undefined) {
             log.debug('Done checking escrow with offer WebAPI data');
@@ -1438,8 +1439,11 @@ export default class Trades {
             return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
         }
 
+        log.debug('!offer.id', !offer.id);
         if (!offer.id) {
-            return this.checkEscrowWithTradeHoldDurations(offer);
+            const toReturn = this.checkEscrowWithTradeHoldDurations(offer);
+            log.debug('returned checkEscrowWithTradeHoldDurations', toReturn);
+            return toReturn;
         }
 
         return new Promise((resolve, reject) => {
@@ -1449,6 +1453,7 @@ export default class Trades {
                 }
 
                 const freshEscrowEnds = this.getEscrowEndsFromOffer(freshOffer);
+                log.debug('freshEscrowEnds', freshEscrowEnds);
 
                 if (freshEscrowEnds === undefined) {
                     return reject(new Error(`WebAPI response for offer #${offer.id} did not include escrow_end_date`));
@@ -1475,6 +1480,7 @@ export default class Trades {
                     return reject(err);
                 }
 
+                log.debug('manager._apiCall success', body);
                 if (!this.hasTradeHoldDurationData(body)) {
                     return reject(new Error('GetTradeHoldDurations response did not include escrow durations'));
                 }
@@ -1489,9 +1495,11 @@ export default class Trades {
     private getEscrowEndsFromOffer(offer: TradeOffer): Date | null | undefined {
         const offerWithEscrow = offer as TradeOfferWithEscrow;
 
+        log.debug('offerWithEscrow.rawJson', offerWithEscrow.rawJson);
         if (offerWithEscrow.rawJson) {
             try {
                 const raw = JSON.parse(offerWithEscrow.rawJson) as { escrow_end_date?: number | null };
+                log.debug('raw', raw);
 
                 if (
                     (Object as ObjectConstructor & { hasOwn(object: object, property: PropertyKey): boolean }).hasOwn(
@@ -1506,19 +1514,28 @@ export default class Trades {
             }
         }
 
+        log.debug('offerWithEscrow.escrowEnds', offerWithEscrow.escrowEnds);
         return offerWithEscrow.escrowEnds;
     }
 
     private isEscrowEndDateActive(escrowEnds: Date | null): boolean {
-        return escrowEnds instanceof Date && escrowEnds.getTime() > Date.now();
+        log.debug('escrowEnds instanceof Date', escrowEnds instanceof Date);
+        log.debug('escrowEnds.getTime()', escrowEnds.getTime());
+        log.debug('escrowEnds.getTime()', escrowEnds.getTime());
+        const timeNow = Date.now();
+        log.debug('Date.now()', timeNow);
+        return escrowEnds instanceof Date && escrowEnds.getTime() > timeNow;
     }
 
     private hasTradeHoldDurationData(body?: TradeHoldDurationsResponse): body is TradeHoldDurationsResponse {
+        // this probably the culpirt since migrating from deprecated request -> fetch
         return !!(body?.response?.my_escrow || body?.response?.their_escrow || body?.response?.both_escrow);
     }
 
     private isTradeHoldActive(body: TradeHoldDurationsResponse): boolean {
+        // this probably the culpirt since migrating from deprecated request -> fetch
         const escrows = [body.response?.my_escrow, body.response?.their_escrow, body.response?.both_escrow];
+        log.debug('isTradeHoldActive/escrows', escrows);
 
         return escrows.some(escrow => {
             if (!escrow) {
