@@ -1520,8 +1520,7 @@ export default class Trades {
 
     private isEscrowEndDateActive(escrowEnds: Date | null): boolean {
         log.debug('escrowEnds instanceof Date', escrowEnds instanceof Date);
-        log.debug('escrowEnds.getTime()', escrowEnds.getTime());
-        log.debug('escrowEnds.getTime()', escrowEnds.getTime());
+        log.debug('escrowEnds.getTime()', escrowEnds?.getTime());
         const timeNow = Date.now();
         log.debug('Date.now()', timeNow);
         return escrowEnds instanceof Date && escrowEnds.getTime() > timeNow;
