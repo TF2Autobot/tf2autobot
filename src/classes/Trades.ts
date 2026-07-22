@@ -1507,6 +1507,7 @@ export default class Trades {
                         'escrow_end_date'
                     )
                 ) {
+                    log.debug('raw.escrow_end_date', raw.escrow_end_date);
                     return raw.escrow_end_date ? new Date(raw.escrow_end_date * 1000) : null;
                 }
             } catch (err) {
