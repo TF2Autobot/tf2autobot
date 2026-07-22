@@ -1495,7 +1495,6 @@ export default class Trades {
     private getEscrowEndsFromOffer(offer: TradeOffer): Date | null | undefined {
         const offerWithEscrow = offer as TradeOfferWithEscrow;
 
-        log.debug('offerWithEscrow.rawJson', offerWithEscrow.rawJson);
         if (offerWithEscrow.rawJson) {
             try {
                 const raw = JSON.parse(offerWithEscrow.rawJson) as { escrow_end_date?: number | null };
@@ -1528,12 +1527,10 @@ export default class Trades {
     }
 
     private hasTradeHoldDurationData(body?: TradeHoldDurationsResponse): body is TradeHoldDurationsResponse {
-        // this probably the culpirt since migrating from deprecated request -> fetch
         return !!(body?.response?.my_escrow || body?.response?.their_escrow || body?.response?.both_escrow);
     }
 
     private isTradeHoldActive(body: TradeHoldDurationsResponse): boolean {
-        // this probably the culpirt since migrating from deprecated request -> fetch
         const escrows = [body.response?.my_escrow, body.response?.their_escrow, body.response?.both_escrow];
         log.debug('isTradeHoldActive/escrows', escrows);
 
