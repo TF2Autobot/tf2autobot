@@ -774,12 +774,12 @@ export default class Trades {
                             lockKeys = !!ret;
                             return ret;
                         }
-                        const floorCeil = Math[overpay ? 'ceil' : 'floor'];
                         const length = typeof side === 'number' ? side : side[sku]?.length || 0;
                         const amount =
                             Math.min(
                                 length,
-                                Math.max(floorCeil((NonPureWorth * (increaseDifference ? -1 : 1)) / value), 0)
+                                // eslint-disable-next-line prettier/prettier
+                                Math.max(Math[overpay ? 'ceil' : 'floor']((NonPureWorth * (increaseDifference ? -1 : 1)) / value), 0)
                             ) || 0;
 
                         NonPureWorth += amount * value * (increaseDifference ? 1 : -1);
