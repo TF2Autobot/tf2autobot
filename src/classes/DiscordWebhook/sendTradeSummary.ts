@@ -14,8 +14,8 @@ export default async function sendTradeSummary(
     bot: Bot,
     timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
-    timeTakenToCounterOffer: number | undefined,
-    isOfferSent: boolean | undefined,
+    timeTakenToCounterOffer: number,
+    isOfferSent: boolean,
     isAcceptedWithEscrow: boolean
 ): Promise<void> {
     const optBot = bot.options;
