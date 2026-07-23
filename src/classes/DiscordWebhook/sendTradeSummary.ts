@@ -102,7 +102,10 @@ export default async function sendTradeSummary(
               } trade here!`
             : optDW.tradeSummary.mentionOwner.enable &&
                 optDW.ownerID.length > 0 &&
-                (isMentionOurItems || isMentionTheirItems || isMentionOnGreaterValue)
+                (isMentionOurItems ||
+                    isMentionTheirItems ||
+                    isMentionOnGreaterValue ||
+                    (optDW.tradeSummary.mentionOwner.withEscrow && isAcceptedWithEscrow))
               ? optDW.ownerID.map(id => `<@!${id}>`).join(', ')
               : '';
 
