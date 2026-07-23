@@ -17,7 +17,8 @@ export function summarizeToChat(
     withLink: boolean,
     value: ValueDiff,
     isSteamChat: boolean,
-    isOfferSent: boolean | undefined = undefined
+    isOfferSent: boolean | undefined = undefined,
+    isAcceptedWithEscrow: boolean | undefined = undefined
 ): string {
     const generatedSummary = summarize(offer, bot, type, withLink);
 
@@ -65,7 +66,9 @@ export function summarizeToChat(
     const isCountered = offer.data('processCounterTime') !== undefined;
     const reply =
         `\n\n${cTSummary}${
-            isOfferSent !== undefined ? ` (${isOfferSent ? 'chat' : `offer${isCountered ? ' - countered' : ''}`})` : ''
+            isOfferSent !== undefined
+                ? ` (${isOfferSent ? 'chat' : `offer${isCountered ? ' - countered' : ''}`})${isAcceptedWithEscrow ? ' - Trade Hold' : ''}`
+                : ''
         }\n` +
         `${cTAsked} ${generatedSummary.asked}` +
         `\n${cTOffered} ${generatedSummary.offered}` +
