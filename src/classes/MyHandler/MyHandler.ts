@@ -2264,7 +2264,7 @@ export default class MyHandler extends Handler {
 
                 const isAcceptedWithEscrow = offer.state === TradeOfferManager.ETradeOfferState['InEscrow'];
                 offer.data(`isAccepted${isAcceptedWithEscrow ? '_withEscrow' : ''}`, true);
-                offer.log('trade', `has been accepted${isAcceptedWithEscrow ? ' with trade hold.' : ''}.`);
+                offer.log('trade', `has been accepted${isAcceptedWithEscrow ? ' with trade hold' : ''}.`);
 
                 this.autokeys.check();
                 const result = processAccepted(offer, this.bot, timeTakenToComplete, isAcceptedWithEscrow);
