@@ -648,7 +648,7 @@ export default class MyHandler extends Handler {
                     }
                 }
 
-                let totalGeneric = 0;
+                let totalGeneric: number;
                 // assign amount for sku
                 if (exchange[which].pricedAssetSkus.has(sku)) {
                     totalGeneric = items[which][sku].length - exchange[which].pricedAssetSkuTotals[sku];
@@ -2011,7 +2011,7 @@ export default class MyHandler extends Handler {
                     meta: meta
                 };
             } else {
-                // hhhmmmmm should we combine this?
+                // manual review disabled, decline any offer with any reason
                 if (hasOverstocked) {
                     offer.log('info', 'is offering too many, declining...');
 
@@ -2060,6 +2060,28 @@ export default class MyHandler extends Handler {
                         reason: '🟪_DUPE_CHECK_FAILED',
                         meta: meta
                     };
+                } else if (hasEscrowCheckFailed) {
+                    if (isIgnoreEscrowCheckFailed) {
+                        // Valid offer but failed to escrow check and manual review disabled
+                        // and options.offerReceived.escrowCheckFailed.ignoreFailed=true
+                        return;
+                    } // else decline
+                    return {
+                        action: 'decline',
+                        reason: '⬜_ESCROW_CHECK_FAILED',
+                        meta: meta
+                    };
+                } else if (hasBannedCheckFailed) {
+                    if (isIgnoreBannedCheckFailed) {
+                        // Valid offer but failed to ban check and manual review disabled
+                        // and options.offerReceived.bannedCheckFailed.ignoreFailed=true
+                        return;
+                    } // else decline
+                    return {
+                        action: 'decline',
+                        reason: '⬜_BANNED_CHECK_FAILED',
+                        meta: meta
+                    };
                 } else if (hasInvalidValue) {
                     // We are offering more than them, decline the offer
                     offer.log('info', 'is not offering enough, declining...');
@@ -2072,7 +2094,7 @@ export default class MyHandler extends Handler {
                 }
             }
         }
-
+        // else nothing wrong, process accept offer
         offer.log(
             'trade',
             `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
@@ -2230,20 +2252,22 @@ export default class MyHandler extends Handler {
                 }
             }
 
-            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] && !this.sentSummary[offer.id]) {
+            if (
+                (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] ||
+                    offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) &&
+                !this.sentSummary[offer.id]
+            ) {
                 // Only run this if the bot handled the offer and do not send again if already sent once
 
                 clearTimeout(this.resetSentSummaryTimeout);
                 this.sentSummary[offer.id] = true;
 
-                offer.data('isAccepted', true);
-                offer.log('trade', 'has been accepted.');
-
-                // Auto sell and buy keys if ref < minimum
+                const isAcceptedWithEscrow = offer.state === TradeOfferManager.ETradeOfferState['InEscrow'];
+                offer.data(`isAccepted${isAcceptedWithEscrow ? '_withEscrow' : ''}`, true);
+                offer.log('trade', `has been accepted${isAcceptedWithEscrow ? ' with trade hold' : ''}.`);
 
                 this.autokeys.check();
-
-                const result = processAccepted(offer, this.bot, timeTakenToComplete);
+                const result = processAccepted(offer, this.bot, timeTakenToComplete, isAcceptedWithEscrow);
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;

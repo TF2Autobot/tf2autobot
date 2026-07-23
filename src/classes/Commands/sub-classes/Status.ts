@@ -156,7 +156,7 @@ export default class StatusCommands {
 
     async itemStatsCommand(steamID: SteamID, message: string): Promise<void> {
         message = CommandParser.removeCommand(message).trim();
-        let sku = '';
+        let sku: string;
         if (testPriceKey(message)) {
             sku = message;
         } else {

@@ -449,7 +449,7 @@ export default class Trades {
                 const value = t.valueDiff(offer);
 
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
-                    const summary = t.summarizeToChat(offer, this.bot, 'summary-accepting', true, value, false, false);
+                    const summary = t.summarizeToChat(offer, this.bot, 'summary-accepting', true, value, false);
                     sendAlert(
                         `failed-${action}` as FailedActions,
                         this.bot,
@@ -465,8 +465,7 @@ export default class Trades {
                         [offer.id]
                     );
                 } else {
-                    const summary = t.summarizeToChat(offer, this.bot, 'summary-accepting', false, value, true, false);
-
+                    const summary = t.summarizeToChat(offer, this.bot, 'summary-accepting', false, value, true);
                     this.bot.messageAdmins(
                         `Failed to ${action} on the offer #${offer.id}:` +
                             summary +
@@ -648,7 +647,6 @@ export default class Trades {
                                             'summary-accepting',
                                             true,
                                             value,
-                                            false,
                                             false
                                         );
                                         sendAlert(
@@ -669,10 +667,8 @@ export default class Trades {
                                             'summary-accepting',
                                             false,
                                             value,
-                                            true,
-                                            false
+                                            true
                                         );
-
                                         this.bot.messageAdmins(
                                             `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
                                                 summary +
@@ -774,12 +770,16 @@ export default class Trades {
                             lockKeys = !!ret;
                             return ret;
                         }
-                        const floorCeil = Math[overpay ? 'ceil' : 'floor'];
                         const length = typeof side === 'number' ? side : side[sku]?.length || 0;
                         const amount =
                             Math.min(
                                 length,
-                                Math.max(floorCeil((NonPureWorth * (increaseDifference ? -1 : 1)) / value), 0)
+                                Math.max(
+                                    Math[overpay ? 'ceil' : 'floor'](
+                                        (NonPureWorth * (increaseDifference ? -1 : 1)) / value
+                                    ),
+                                    0
+                                )
                             ) || 0;
 
                         NonPureWorth += amount * value * (increaseDifference ? 1 : -1);

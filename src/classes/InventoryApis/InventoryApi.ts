@@ -84,7 +84,7 @@ export default class InventoryApi {
                 headers
             })
                 .then(async response => {
-                    let result: GetUserInventoryContentsResult | null = null;
+                    let result: GetUserInventoryContentsResult | null;
                     try {
                         result = (await response.json()) as GetUserInventoryContentsResult;
                     } catch {
@@ -100,7 +100,7 @@ export default class InventoryApi {
                         return callback(new Error('This profile is private.'));
                     }
 
-                    if (response.status == 500 && result && result.error) {
+                    if (response.status == 500 && result?.error) {
                         const errToReturn = new Error(result.error);
                         const match = result.error.match(/^(.+) \((\d+)\)$/);
                         if (match) {
