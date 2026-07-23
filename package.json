@@ -60,7 +60,7 @@
         "module-alias": "^2.3.4",
         "pjson": "^1.0.9",
         "pluralize": "^8.0.0",
-        "pm2": "^6.0.14",
+        "pm2": "^7.0.3",
         "pretty-ms": "^9.3.0",
         "reconnecting-websocket": "^4.4.0",
         "retry": "^0.13.1",
