@@ -187,7 +187,7 @@ export default function processAccepted(
             offer,
             accepted,
             bot,
-            timeTakenToComplete,
+            isAcceptedWithEscrow ? null : timeTakenToComplete,
             timeTakenToProcessOrConstruct,
             timeTakenToCounterOffer,
             isOfferSent,
@@ -216,7 +216,7 @@ export default function processAccepted(
             itemList,
             keyPrices,
             isOfferSent,
-            timeTakenToComplete,
+            isAcceptedWithEscrow ? null : timeTakenToComplete,
             timeTakenToProcessOrConstruct,
             timeTakenToCounterOffer,
             isAcceptedWithEscrow
@@ -288,7 +288,7 @@ export async function sendToAdmin(
             slots !== undefined ? `/${slots}` : ''
         }` +
         `\n${cTTimeTaken} ${t.convertTime(
-            timeTakenToComplete,
+            isAcceptedWithEscrow ? null : timeTakenToComplete,
             timeTakenToProcessOrConstruct,
             timeTakenToCounterOffer,
             isOfferSent,

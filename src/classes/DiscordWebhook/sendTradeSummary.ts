@@ -148,7 +148,7 @@ export default async function sendTradeSummary(
                 description:
                     summary +
                     `\n${cTTimeTaken} ${t.convertTime(
-                        timeTakenToComplete,
+                        isAcceptedWithEscrow ? null : timeTakenToComplete,
                         timeTakenToProcessOrConstruct,
                         timeTakenToCounterOffer,
                         isOfferSent,
