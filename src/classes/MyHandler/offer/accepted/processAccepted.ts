@@ -10,7 +10,8 @@ import { sendTradeSummary } from '../../../DiscordWebhook/export';
 export default function processAccepted(
     offer: i.TradeOffer,
     bot: Bot,
-    timeTakenToComplete: number
+    timeTakenToComplete: number,
+    isAcceptedWithEscrow: boolean
 ): { theirHighValuedItems: string[]; isDisableSKU: string[]; items: i.Items | undefined } {
     const opt = bot.options;
 
@@ -189,7 +190,8 @@ export default function processAccepted(
             timeTakenToComplete,
             timeTakenToProcessOrConstruct,
             timeTakenToCounterOffer,
-            isOfferSent
+            isOfferSent,
+            isAcceptedWithEscrow
         );
     } else {
         const itemsName = {
@@ -216,7 +218,8 @@ export default function processAccepted(
             isOfferSent,
             timeTakenToComplete,
             timeTakenToProcessOrConstruct,
-            timeTakenToCounterOffer
+            timeTakenToCounterOffer,
+            isAcceptedWithEscrow
         );
     }
 
@@ -236,7 +239,8 @@ export async function sendToAdmin(
     isOfferSent: boolean,
     timeTakenToComplete: number,
     timeTakenToProcessOrConstruct: number,
-    timeTakenToCounterOffer: number | undefined
+    timeTakenToCounterOffer: number | undefined,
+    isAcceptedWithEscrow: boolean
 ): Promise<void> {
     const opt = bot.options;
     const slots = bot.tf2.backpackSlots;
@@ -260,7 +264,7 @@ export async function sendToAdmin(
     } with ${offer.partner.getSteamID64()} is accepted. ✅`;
 
     const message2 =
-        t.summarizeToChat(offer, bot, 'summary-accepted', false, value, true, isOfferSent) +
+        t.summarizeToChat(offer, bot, 'summary-accepted', false, value, true, isOfferSent, isAcceptedWithEscrow) +
         (isShowOfferMessage
             ? (cTOfferMessage && offer.message ? `\n\n${cTOfferMessage}` : '\n\n💬 Offer message:') +
               ` "${offer.message}"`
