@@ -326,20 +326,6 @@ export default class Trades {
 
                 void this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(
                     () => {
-                        if (this.receivedOffers.length === 0) {
-                            // no more offers in queue, reset polling trade offers
-
-                            log.debug('pollInterval re-enabled.');
-                            this.bot.manager.pollInterval = 10 * 1000;
-                            const now = dayjs();
-                            const timeDiffInMs = now.diff(this.bot.lastTimeCallingDoPoll);
-                            if (timeDiffInMs >= 10000) {
-                                // Make sure to call doPoll only if first time or last call is more than or equal to 10 seconds
-                                this.bot.lastTimeCallingDoPoll = now.toDate();
-                                log.debug('doPoll called.');
-                                this.bot.manager.doPoll();
-                            }
-                        }
                         this.finishProcessingOffer(offer.id);
                     }
                 );
@@ -524,6 +510,17 @@ export default class Trades {
         log.debug('Processing next offer');
         if (this.processingOffer || this.receivedOffers.length === 0) {
             log.debug('Already processing offer or queue is empty');
+
+            log.debug('pollInterval re-enabled.');
+            this.bot.manager.pollInterval = 10 * 1000;
+            const now = dayjs();
+            const timeDiffInMs = now.diff(this.bot.lastTimeCallingDoPoll);
+            if (timeDiffInMs >= 10000) {
+                // Make sure to call doPoll only if first time or last call is more than or equal to 10 seconds
+                this.bot.lastTimeCallingDoPoll = now.toDate();
+                log.debug('doPoll called.');
+                this.bot.manager.doPoll();
+            }
             return;
         }
 
