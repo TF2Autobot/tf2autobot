@@ -49,6 +49,8 @@ export default class Trades {
 
     private retryFetchInventoryTimeout: NodeJS.Timeout;
 
+    private rawEscrowJsonValue: Record<string, number>;
+
     private calledRetryFetchFreq = 0;
 
     private offerChangedAcc: { offer: TradeOffer; oldState: number; timeTakenToComplete: number }[] = [];
@@ -1413,17 +1415,30 @@ export default class Trades {
         const escrowEnds = this.getEscrowEndsFromOffer(offer);
 
         if (escrowEnds !== undefined) {
-            log.debug('Done checking escrow with offer WebAPI data');
-            this.escrowCheckFailedCount = 0;
-            return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
+            if (this.rawEscrowJsonValue[offer.id] === 0) {
+                // 0 usually mean no escrow, but Steam can randomly put 0 on people with escrow too
+                // https://github.com/ValveSoftware/steam-for-linux/issues/7133
+                // Do nothing here so we get fresh offer from getOffer, but if stil 0 with escrow, then idk
+            } else {
+                log.debug('Done checking escrow with offer WebAPI data');
+                this.escrowCheckFailedCount = 0;
+                return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
+            }
         }
 
         if (!offer.id) {
+            // This is for offer sent by us because we don't know _token from offer received
+            log.debug('Checking escrow with WebAPI GetTradeHoldDurations...');
             return this.checkEscrowWithTradeHoldDurations(offer);
         }
 
+        log.debug('Checking escrow with WebAPI getOffer...');
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffer(offer.id, (err, freshOffer) => {
+                if (this.rawEscrowJsonValue[offer.id] !== undefined) {
+                    delete this.rawEscrowJsonValue[offer.id];
+                }
+
                 if (err) {
                     return reject(err);
                 }
@@ -1475,6 +1490,7 @@ export default class Trades {
                         'escrow_end_date'
                     )
                 ) {
+                    this.rawEscrowJsonValue[offer.id] = raw.escrow_end_date;
                     return raw.escrow_end_date ? new Date(raw.escrow_end_date * 1000) : null;
                 }
             } catch (err) {
