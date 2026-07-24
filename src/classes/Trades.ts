@@ -1423,9 +1423,16 @@ export default class Trades {
         log.debug('Checking escrow');
         clearTimeout(this.restartOnEscrowCheckFailed);
 
-        return this.checkEscrowWithWebApi(offer).catch((err: Error) => {
-            log.warn('Failed to check escrow with WebAPI, falling back to SteamCommunity HTML: ', err);
-            return this.checkEscrowWithHtml(offer);
+        if (!offer.id) {
+            // This will only get called if we send an offer with their Trade Offer URL
+            // Which for now only possible with !donate or !premium commands for tf2autobot
+            // I believe other forks has autodump feature, etc, which will use this.
+            return this.checkEscrowWithTradeHoldDurations(offer);
+        }
+
+        return this.checkEscrowWithHtml(offer).catch((err: Error) => {
+            log.warn('Failed to check escrow with SteamCommunity HTML, falling back to Web API: ', err);
+            return this.checkEscrowWithWebApi(offer);
         });
     }
 
@@ -1436,10 +1443,6 @@ export default class Trades {
             log.debug('Done checking escrow with offer WebAPI data');
             this.escrowCheckFailedCount = 0;
             return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
-        }
-
-        if (!offer.id) {
-            return this.checkEscrowWithTradeHoldDurations(offer);
         }
 
         return new Promise((resolve, reject) => {
