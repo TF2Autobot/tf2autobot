@@ -6,7 +6,8 @@ import TradeOfferManager, {
     Action,
     ItemsValue,
     ItemsDict,
-    Prices
+    Prices,
+    TradeHoldDurationsResponse
 } from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
@@ -29,27 +30,6 @@ type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
 type AddOrRemoveMyOrTheirItems = 'addMyItems' | 'removeMyItems' | 'addTheirItems' | 'removeTheirItems';
 type FailedActions = 'failed-accept' | 'failed-decline' | 'failed-counter';
 type HttpError = Error & { code?: string | number };
-type TradeOfferWithEscrow = TradeOffer & { escrowEnds?: Date | null; rawJson?: string; _token?: string | null };
-type TradeHoldDuration = {
-    escrow_end_duration_seconds?: number;
-    escrow_end_date?: number;
-};
-type TradeHoldDurationsResponse = {
-    response?: {
-        my_escrow?: TradeHoldDuration;
-        their_escrow?: TradeHoldDuration;
-        both_escrow?: TradeHoldDuration;
-    };
-};
-type TradeOfferManagerWithApiCall = TradeOfferManager & {
-    _apiCall(
-        httpMethod: 'GET' | 'POST',
-        method: string,
-        version: number,
-        input: UnknownDictionaryKnownValues,
-        callback: (err: Error | null, body?: TradeHoldDurationsResponse) => void
-    ): void;
-};
 
 const STEAM_RETRY_ATTEMPTS = 5;
 const STEAM_RETRY_BASE_DELAY = 5 * 1000;
@@ -68,6 +48,8 @@ export default class Trades {
     private restartOnEscrowCheckFailed: NodeJS.Timeout;
 
     private retryFetchInventoryTimeout: NodeJS.Timeout;
+
+    private rawEscrowJsonValue: Record<string, number> = {};
 
     private calledRetryFetchFreq = 0;
 
@@ -1433,17 +1415,33 @@ export default class Trades {
         const escrowEnds = this.getEscrowEndsFromOffer(offer);
 
         if (escrowEnds !== undefined) {
-            log.debug('Done checking escrow with offer WebAPI data');
-            this.escrowCheckFailedCount = 0;
-            return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
+            if (this.rawEscrowJsonValue[offer.id] === 0) {
+                // 0 usually mean no escrow, but Steam can randomly put 0 on people with escrow too
+                // https://github.com/ValveSoftware/steam-for-linux/issues/7133
+                // Do nothing here so we get fresh offer from getOffer, but if stil 0 with escrow, then idk
+            } else {
+                if (this.rawEscrowJsonValue[offer.id] !== undefined) {
+                    delete this.rawEscrowJsonValue[offer.id];
+                }
+                log.debug('Done checking escrow with offer WebAPI data');
+                this.escrowCheckFailedCount = 0;
+                return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
+            }
         }
 
         if (!offer.id) {
+            // This is for offer sent by us because we don't know _token from offer received
+            log.debug('Checking escrow with WebAPI GetTradeHoldDurations...');
             return this.checkEscrowWithTradeHoldDurations(offer);
         }
 
+        log.debug('Checking escrow with WebAPI getOffer...');
         return new Promise((resolve, reject) => {
             this.bot.manager.getOffer(offer.id, (err, freshOffer) => {
+                if (this.rawEscrowJsonValue[offer.id] !== undefined) {
+                    delete this.rawEscrowJsonValue[offer.id];
+                }
+
                 if (err) {
                     return reject(err);
                 }
@@ -1462,15 +1460,13 @@ export default class Trades {
     }
 
     private checkEscrowWithTradeHoldDurations(offer: TradeOffer): Promise<boolean> {
-        const offerWithEscrow = offer as TradeOfferWithEscrow;
-        const manager = this.bot.manager as TradeOfferManagerWithApiCall;
         const input: UnknownDictionaryKnownValues = {
             steamid_target: offer.partner.getSteamID64(),
-            trade_offer_access_token: offerWithEscrow._token || ''
+            trade_offer_access_token: offer._token || '' // This will only work with offer sent by us
         };
 
         return new Promise((resolve, reject) => {
-            manager._apiCall('GET', 'GetTradeHoldDurations', 1, input, (err, body) => {
+            this.bot.manager._apiCall('GET', 'GetTradeHoldDurations', 1, input, (err, body) => {
                 if (err) {
                     return reject(err);
                 }
@@ -1487,11 +1483,9 @@ export default class Trades {
     }
 
     private getEscrowEndsFromOffer(offer: TradeOffer): Date | null | undefined {
-        const offerWithEscrow = offer as TradeOfferWithEscrow;
-
-        if (offerWithEscrow.rawJson) {
+        if (offer.rawJson) {
             try {
-                const raw = JSON.parse(offerWithEscrow.rawJson) as { escrow_end_date?: number | null };
+                const raw = JSON.parse(offer.rawJson) as TradeOfferManager.offerJson;
 
                 if (
                     (Object as ObjectConstructor & { hasOwn(object: object, property: PropertyKey): boolean }).hasOwn(
@@ -1499,6 +1493,7 @@ export default class Trades {
                         'escrow_end_date'
                     )
                 ) {
+                    this.rawEscrowJsonValue[offer.id] = raw.escrow_end_date;
                     return raw.escrow_end_date ? new Date(raw.escrow_end_date * 1000) : null;
                 }
             } catch (err) {
@@ -1506,7 +1501,7 @@ export default class Trades {
             }
         }
 
-        return offerWithEscrow.escrowEnds;
+        return offer.escrowEnds;
     }
 
     private isEscrowEndDateActive(escrowEnds: Date | null): boolean {
