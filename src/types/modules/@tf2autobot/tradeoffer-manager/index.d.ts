@@ -357,6 +357,10 @@ declare module '@tf2autobot/tradeoffer-manager' {
 
             pos: number;
 
+            missing: boolean;
+
+            est_usd: string;
+
             id: string;
 
             background_color: string;
@@ -364,6 +368,8 @@ declare module '@tf2autobot/tradeoffer-manager' {
             icon_url: string;
 
             icon_url_large: string;
+
+            icon_drag_url: string;
 
             tradable: boolean;
 
@@ -415,7 +421,27 @@ declare module '@tf2autobot/tradeoffer-manager' {
                 }
             ];
 
-            app_data?: { def_index: string; quality?: string; quantity?: string; limited?: number };
+            app_data?: {
+                def_index: string;
+                quality?: string;
+                quantity?: string;
+                limited?: string;
+                player_class_ids?: string;
+                highlight_color?: string;
+                filter_data?: [
+                    {
+                        [key: string]: {
+                            element_ids: Record<string, unknown>;
+                        };
+                    }
+                ];
+            };
+
+            owner_descriptions?: any[];
+
+            owner_actions?: any[];
+
+            market_actions?: any[];
 
             // Custom function added to prototype
             getAction(action: string): string | null;
