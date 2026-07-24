@@ -1227,6 +1227,7 @@ export default class Bot {
                     this.manager.pollInterval = 10 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
+                    this.lastTimeCallingDoPoll = dayjs().toDate();
                     this.manager.doPoll();
                     this.startVersionChecker();
                     this.initResetCacheInterval();
