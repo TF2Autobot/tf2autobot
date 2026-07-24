@@ -1542,7 +1542,7 @@ export default class Trades {
             const operation = retry.operation({
                 retries: 5,
                 factor: 2,
-                minTimeout: 1000,
+                minTimeout: 2000,
                 randomize: true
             });
 
