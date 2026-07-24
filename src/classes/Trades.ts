@@ -347,8 +347,19 @@ export default class Trades {
                     () => {
                         if (this.receivedOffers.length === 0) {
                             // no more offers in queue, reset polling trade offers
+
                             this.bot.manager.pollInterval = 10 * 1000;
-                            this.bot.manager.doPoll();
+                            const now = dayjs();
+                            if (this.bot.lastTimeCallingDoPoll === undefined) {
+                                this.bot.lastTimeCallingDoPoll = now.toDate();
+                            }
+
+                            const timeDiffInMs = now.diff(this.bot.lastTimeCallingDoPoll);
+                            if (timeDiffInMs === 0 || timeDiffInMs >= 10000) {
+                                // Make sure to call doPoll only if first time or last call is more than or equal to 10 seconds
+                                this.bot.lastTimeCallingDoPoll = now.toDate();
+                                this.bot.manager.doPoll();
+                            }
                         }
                         this.finishProcessingOffer(offer.id);
                     }

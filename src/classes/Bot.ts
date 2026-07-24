@@ -165,6 +165,8 @@ export default class Bot {
 
     public autoRefreshListingsInterval: NodeJS.Timeout;
 
+    public lastTimeCallingDoPoll: Date;
+
     /**
      * Resets the reconnection state and clears any pending reconnection timeout
      */
