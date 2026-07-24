@@ -6,7 +6,8 @@ import TradeOfferManager, {
     Action,
     ItemsValue,
     ItemsDict,
-    Prices
+    Prices,
+    ActionType
 } from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
@@ -31,7 +32,7 @@ type FailedActions = 'failed-accept' | 'failed-decline' | 'failed-counter';
 type HttpError = Error & { code?: string | number };
 
 const STEAM_RETRY_ATTEMPTS = 5;
-const STEAM_RETRY_BASE_DELAY = 5 * 1000;
+const STEAM_RETRY_BASE_DELAY_SECONDS = 5;
 
 export default class Trades {
     private itemsInTrade: string[] = [];
@@ -123,6 +124,7 @@ export default class Trades {
         }
 
         offer.log('info', 'received offer');
+        this.bot.manager.pollInterval = -1; // Temporarily disable polling trade offers
         this.enqueueOffer(offer);
     }
 
@@ -323,6 +325,18 @@ export default class Trades {
 
                 void this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(
                     () => {
+                        if (this.receivedOffers.length === 0) {
+                            // no more offers in queue, reset polling trade offers
+
+                            this.bot.manager.pollInterval = 10 * 1000;
+                            const now = dayjs();
+                            const timeDiffInMs = now.diff(this.bot.lastTimeCallingDoPoll);
+                            if (timeDiffInMs >= 10000) {
+                                // Make sure to call doPoll only if first time or last call is more than or equal to 10 seconds
+                                this.bot.lastTimeCallingDoPoll = now.toDate();
+                                this.bot.manager.doPoll();
+                            }
+                        }
                         this.finishProcessingOffer(offer.id);
                     }
                 );
@@ -336,7 +350,7 @@ export default class Trades {
     }
 
     applyActionToOffer(
-        action: 'accept' | 'decline' | 'skip' | 'counter',
+        action: ActionType,
         reason: string,
         meta: Meta,
         offer: TradeOfferManager.TradeOffer
@@ -371,7 +385,7 @@ export default class Trades {
             }
         }
 
-        if (action === 'skip') {
+        if (action === 'skip' || action === 'ignore') {
             offer.itemsToGive.forEach(item => {
                 this.unsetItemInTrade = item.assetid;
             });
@@ -408,12 +422,7 @@ export default class Trades {
             });
     }
 
-    private onFailedAction(
-        offer: TradeOffer,
-        action: 'accept' | 'decline' | 'skip' | 'counter',
-        reason: string,
-        err: any
-    ): void {
+    private onFailedAction(offer: TradeOffer, action: ActionType, reason: string, err: any): void {
         log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
 
         /* Ignore notifying admin if eresult is "AlreadyRedeemed" or "InvalidState", or if the message includes that */
@@ -1402,9 +1411,16 @@ export default class Trades {
         log.debug('Checking escrow');
         clearTimeout(this.restartOnEscrowCheckFailed);
 
-        return this.checkEscrowWithWebApi(offer).catch((err: Error) => {
-            log.warn('Failed to check escrow with WebAPI, falling back to SteamCommunity HTML: ', err);
-            return this.checkEscrowWithHtml(offer);
+        if (!offer.id) {
+            // This will only get called if we send an offer with their Trade Offer URL
+            // Which for now only possible with !donate or !premium commands for tf2autobot
+            // I believe other forks has autodump feature, etc, which will use this.
+            return this.checkEscrowWithTradeHoldDurations(offer);
+        }
+
+        return this.checkEscrowWithHtml(offer).catch((err: Error) => {
+            log.warn('Failed to check escrow with SteamCommunity HTML, falling back to Web API: ', err);
+            return this.checkEscrowWithWebApi(offer);
         });
     }
 
@@ -1415,10 +1431,6 @@ export default class Trades {
             log.debug('Done checking escrow with offer WebAPI data');
             this.escrowCheckFailedCount = 0;
             return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
-        }
-
-        if (!offer.id) {
-            return this.checkEscrowWithTradeHoldDurations(offer);
         }
 
         return new Promise((resolve, reject) => {
@@ -1516,7 +1528,7 @@ export default class Trades {
             const operation = retry.operation({
                 retries: 5,
                 factor: 2,
-                minTimeout: 1000,
+                minTimeout: 2000,
                 randomize: true
             });
 
@@ -1590,8 +1602,8 @@ export default class Trades {
         return httpError.code === 429 || httpError.code === '429' || httpError.message === 'HTTP error 429';
     }
 
-    private getSteamRetryDelay(attempt: number): number {
-        return attempt * STEAM_RETRY_BASE_DELAY;
+    private getSteamRetryDelay(attempts: number): number {
+        return exponentialBackoff(attempts) * STEAM_RETRY_BASE_DELAY_SECONDS;
     }
 
     private retryToRestart(steamID: string): void {
@@ -1606,8 +1618,8 @@ export default class Trades {
     private async triggerRestartBot(steamID: string): Promise<void> {
         log.debug(`Escrow check problem occured, current failed count: ${this.escrowCheckFailedCount}`);
 
-        if (this.escrowCheckFailedCount >= 2) {
-            // if escrow check failed more than or equal to 2 times, then perform automatic restart (PM2 only)
+        if (this.escrowCheckFailedCount >= 5) {
+            // if escrow check failed more than or equal to 5 times, then perform automatic restart (PM2 only)
 
             const dwEnabled =
                 this.bot.options.discordWebhook.sendAlert.enable &&

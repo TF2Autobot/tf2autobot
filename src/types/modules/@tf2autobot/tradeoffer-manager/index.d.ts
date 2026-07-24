@@ -200,9 +200,11 @@ declare module '@tf2autobot/tradeoffer-manager' {
         }
 
         export interface Action {
-            action: 'accept' | 'decline' | 'skip' | 'counter';
+            action: ActionType;
             reason: string;
         }
+
+        export type ActionType = 'accept' | 'decline' | 'skip' | 'counter' | 'ignore';
 
         export interface Overstocked {
             reason: '🟦_OVERSTOCKED';
