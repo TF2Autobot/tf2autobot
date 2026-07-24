@@ -144,6 +144,7 @@ export default class Trades {
         }
 
         offer.log('info', 'received offer');
+        this.bot.manager.pollInterval = -1; // Temporarily disable polling trade offers
         this.enqueueOffer(offer);
     }
 
@@ -344,6 +345,11 @@ export default class Trades {
 
                 void this.applyActionToOffer(response.action, response.reason, response.meta || {}, offer).finally(
                     () => {
+                        if (this.receivedOffers.length === 0) {
+                            // no more offers in queue, reset polling trade offers
+                            this.bot.manager.pollInterval = 10 * 1000;
+                            this.bot.manager.doPoll();
+                        }
                         this.finishProcessingOffer(offer.id);
                     }
                 );
