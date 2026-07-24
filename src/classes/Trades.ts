@@ -1632,8 +1632,8 @@ export default class Trades {
     private async triggerRestartBot(steamID: string): Promise<void> {
         log.debug(`Escrow check problem occured, current failed count: ${this.escrowCheckFailedCount}`);
 
-        if (this.escrowCheckFailedCount >= 2) {
-            // if escrow check failed more than or equal to 2 times, then perform automatic restart (PM2 only)
+        if (this.escrowCheckFailedCount >= 5) {
+            // if escrow check failed more than or equal to 5 times, then perform automatic restart (PM2 only)
 
             const dwEnabled =
                 this.bot.options.discordWebhook.sendAlert.enable &&
