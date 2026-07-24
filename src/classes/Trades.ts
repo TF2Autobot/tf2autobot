@@ -1420,6 +1420,9 @@ export default class Trades {
                 // https://github.com/ValveSoftware/steam-for-linux/issues/7133
                 // Do nothing here so we get fresh offer from getOffer, but if stil 0 with escrow, then idk
             } else {
+                if (this.rawEscrowJsonValue[offer.id] !== undefined) {
+                    delete this.rawEscrowJsonValue[offer.id];
+                }
                 log.debug('Done checking escrow with offer WebAPI data');
                 this.escrowCheckFailedCount = 0;
                 return Promise.resolve(this.isEscrowEndDateActive(escrowEnds));
