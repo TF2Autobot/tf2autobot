@@ -5,6 +5,14 @@
         "commands": false,
         "adminCommands": false
     },
+    "steamConnection": {
+        "autoReconnect": {
+            "enable": true,
+            "maxAttempts": 5,
+            "delaySeconds": 30,
+            "exponentialBackoff": true
+        }
+    },
     "miscSettings": {
         "showOnlyMetal": {
             "enable": true
@@ -487,7 +495,8 @@
             "mentionOwner": {
                 "enable": false,
                 "itemSkus": [],
-                "tradeValueInRef": 0
+                "tradeValueInRef": 0,
+                "withEscrow": true
             }
         },
         "declinedTrade": {
