@@ -49,7 +49,7 @@ export default class Trades {
 
     private retryFetchInventoryTimeout: NodeJS.Timeout;
 
-    private rawEscrowJsonValue: Record<string, number>;
+    private rawEscrowJsonValue: Record<string, number> = {};
 
     private calledRetryFetchFreq = 0;
 
