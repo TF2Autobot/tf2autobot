@@ -29,27 +29,6 @@ type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
 type AddOrRemoveMyOrTheirItems = 'addMyItems' | 'removeMyItems' | 'addTheirItems' | 'removeTheirItems';
 type FailedActions = 'failed-accept' | 'failed-decline' | 'failed-counter';
 type HttpError = Error & { code?: string | number };
-type TradeOfferWithEscrow = TradeOffer & { escrowEnds?: Date | null; rawJson?: string; _token?: string | null };
-type TradeHoldDuration = {
-    escrow_end_duration_seconds?: number;
-    escrow_end_date?: number;
-};
-type TradeHoldDurationsResponse = {
-    response?: {
-        my_escrow?: TradeHoldDuration;
-        their_escrow?: TradeHoldDuration;
-        both_escrow?: TradeHoldDuration;
-    };
-};
-type TradeOfferManagerWithApiCall = TradeOfferManager & {
-    _apiCall(
-        httpMethod: 'GET' | 'POST',
-        method: string,
-        version: number,
-        input: UnknownDictionaryKnownValues,
-        callback: (err: Error | null, body?: TradeHoldDurationsResponse) => void
-    ): void;
-};
 
 const STEAM_RETRY_ATTEMPTS = 5;
 const STEAM_RETRY_BASE_DELAY = 5 * 1000;
@@ -1462,15 +1441,13 @@ export default class Trades {
     }
 
     private checkEscrowWithTradeHoldDurations(offer: TradeOffer): Promise<boolean> {
-        const offerWithEscrow = offer as TradeOfferWithEscrow;
-        const manager = this.bot.manager as TradeOfferManagerWithApiCall;
         const input: UnknownDictionaryKnownValues = {
             steamid_target: offer.partner.getSteamID64(),
-            trade_offer_access_token: offerWithEscrow._token || ''
+            trade_offer_access_token: offer._token || ''
         };
 
         return new Promise((resolve, reject) => {
-            manager._apiCall('GET', 'GetTradeHoldDurations', 1, input, (err, body) => {
+            this.bot.manager._apiCall('GET', 'GetTradeHoldDurations', 1, input, (err, body) => {
                 if (err) {
                     return reject(err);
                 }
@@ -1487,11 +1464,9 @@ export default class Trades {
     }
 
     private getEscrowEndsFromOffer(offer: TradeOffer): Date | null | undefined {
-        const offerWithEscrow = offer as TradeOfferWithEscrow;
-
-        if (offerWithEscrow.rawJson) {
+        if (offer.rawJson) {
             try {
-                const raw = JSON.parse(offerWithEscrow.rawJson) as { escrow_end_date?: number | null };
+                const raw = JSON.parse(offer.rawJson) as { escrow_end_date?: number | null };
 
                 if (
                     (Object as ObjectConstructor & { hasOwn(object: object, property: PropertyKey): boolean }).hasOwn(
@@ -1506,18 +1481,20 @@ export default class Trades {
             }
         }
 
-        return offerWithEscrow.escrowEnds;
+        return offer.escrowEnds;
     }
 
     private isEscrowEndDateActive(escrowEnds: Date | null): boolean {
         return escrowEnds instanceof Date && escrowEnds.getTime() > Date.now();
     }
 
-    private hasTradeHoldDurationData(body?: TradeHoldDurationsResponse): body is TradeHoldDurationsResponse {
+    private hasTradeHoldDurationData(
+        body?: TradeOfferManager.TradeHoldDurationsResponse
+    ): body is TradeOfferManager.TradeHoldDurationsResponse {
         return !!(body?.response?.my_escrow || body?.response?.their_escrow || body?.response?.both_escrow);
     }
 
-    private isTradeHoldActive(body: TradeHoldDurationsResponse): boolean {
+    private isTradeHoldActive(body: TradeOfferManager.TradeHoldDurationsResponse): boolean {
         const escrows = [body.response?.my_escrow, body.response?.their_escrow, body.response?.both_escrow];
 
         return escrows.some(escrow => {
