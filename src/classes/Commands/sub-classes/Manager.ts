@@ -1061,7 +1061,7 @@ export default class ManagerCommands {
                     // Bring back to online
                     this.bot.client.setPersona(EPersonaState.Online);
                     this.bot.handler.isUpdatingStatus = false;
-                    this.bot.manager.pollInterval = 5 * 1000;
+                    this.bot.manager.pollInterval = 10 * 1000;
                     return;
                 }
             })
