@@ -255,9 +255,8 @@ export default class Pricelist extends EventEmitter {
     get isUseCustomPricer(): boolean {
         return !(
             this.options.customPricerUrl === undefined ||
-            this.options.customPricerUrl === '' || // empty == default which is api2.prices.tf
-            this.options.customPricerUrl === 'https://api.prices.tf' ||
-            this.options.customPricerUrl === 'https://api2.prices.tf'
+            this.options.customPricerUrl === '' || // empty == default which is https://pricedb.io/api
+            this.options.customPricerUrl === 'https://pricedb.io/api' // Because people link experimenting 🧠
         );
     }
 
@@ -1115,9 +1114,9 @@ export default class Pricelist extends EventEmitter {
             [
                 `old: ${oldPrices.buy.toString()}/${oldPrices.sell.toString()}`,
                 `current: ${currPrices.buy.toString()}/${currPrices.sell.toString()}`,
-                `pricestf: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`
-            ].join('\n▸ ') +
-            `\n - Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
+                `pricedb.io: ${newPrices.buy.toString()}/${newPrices.sell.toString()}`,
+                `Time in pricelist: ${currPrices.time} (${dayjs.unix(currPrices.time).fromNow()})`
+            ].join('\n▸ ')
         );
     }
 
@@ -1195,7 +1194,7 @@ export default class Pricelist extends EventEmitter {
                 // Only update global key rate if key is not in pricelist
                 // OR if exist, it's autoprice enabled (true)
                 // OR if Autokeys and Scrap Adjustment enabled, then check whether
-                // current global key rate are the same as current prices.tf key rate.
+                // current global key rate are the same as current pricedb.io key rate.
                 // if same, means autopriced and need to update to the latest price
                 // (and autokeys/scrap adjustment will update key prices after new trade).
                 // else entirely, key was manually priced and ignore updating global key rate.
@@ -1230,6 +1229,9 @@ export default class Pricelist extends EventEmitter {
                 // Ignore
                 return;
             }
+
+            // Only log price change that exists in pricelist and buy/sell value changed
+            log.debug('Received price update from PriceDB:', data);
 
             let pricesChanged = false;
             const currentStock = this.bot.inventoryManager.getInventory.getAmount({

@@ -2,6 +2,7 @@ import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../../lib/logger';
 import Bot from '../Bot';
+import { Links } from '../../lib/tools/links';
 
 export default function sendAdminMessage(
     steamID: string,
@@ -38,12 +39,6 @@ export default function sendAdminMessage(
     sendWebhook(opt.messages.url, discordAdminMsg, 'partner-message').catch(err => {
         log.warn(`❌ Failed to send admin-message webhook (to ${their.player_name}) on Discord: `, err);
     });
-}
-
-interface Links {
-    steam: string;
-    bptf: string;
-    steamrep: string;
 }
 
 interface Their {

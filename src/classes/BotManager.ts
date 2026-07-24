@@ -204,7 +204,6 @@ export default class BotManager {
             // Stop updating schema
             clearTimeout(this.schemaManager?._updateTimeout);
             clearInterval(this.schemaManager?._updateInterval);
-            clearInterval(this.bot.updateSchemaPropertiesInterval);
 
             // Stop heartbeat and inventory timers
             clearInterval(this.bot.listingManager?._heartbeatInterval);
@@ -215,6 +214,9 @@ export default class BotManager {
 
             // Stop reset Reputation cache
             clearInterval(this.bot.resetRepCache);
+
+            // Stop reconnection timeout and reset state if active
+            this.bot.resetReconnectionState();
         }
 
         // Disconnect from socket server to stop price updates

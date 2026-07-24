@@ -2,6 +2,7 @@ import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../../lib/logger';
 import Bot from '../Bot';
+import { Links } from '../../lib/tools/links';
 
 export default function sendPartnerMessage(
     steamID: string,
@@ -45,12 +46,6 @@ export default function sendPartnerMessage(
             err
         )
     );
-}
-
-interface Links {
-    steam: string;
-    bptf: string;
-    steamrep: string;
 }
 
 interface Their {
