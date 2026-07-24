@@ -17,6 +17,49 @@ declare module '@tf2autobot/tradeoffer-manager' {
         debug: (message: string) => void;
     }
 
+    // Might be incomplete
+    export interface offerJson {
+        tradeofferid: string;
+        accountid_other: number;
+        message: string;
+        expiration_time: number;
+        trade_offer_state: number;
+        items_to_give: OfferItemsJson[];
+        items_to_receive: OfferItemsJson[];
+        is_our_offer: boolean;
+        time_created: number;
+        time_updated: number;
+        from_real_time_trade: boolean;
+        escrow_end_date: number;
+        confirmation_method: number;
+        eresult: number;
+        delay_settlement: boolean;
+        settlement_date: number;
+    }
+
+    interface OfferItemsJson {
+        appid: number;
+        contextid: string;
+        assetid: string;
+        classid: string;
+        instanceid: string;
+        amount: string;
+        missing: boolean;
+        est_usd?: string;
+    }
+
+    type TradeHoldDuration = {
+        escrow_end_duration_seconds?: number;
+        escrow_end_date?: number;
+    };
+    export type TradeHoldDurationsResponse = {
+        response?: {
+            my_escrow?: TradeHoldDuration;
+            their_escrow?: TradeHoldDuration;
+            both_escrow?: TradeHoldDuration;
+        };
+    };
+
     class SteamTradeOfferManager extends EventEmitter {
         constructor(options: any);
 
@@ -63,6 +106,14 @@ declare module '@tf2autobot/tradeoffer-manager' {
                 sent?: SteamTradeOfferManager.TradeOffer[],
                 received?: SteamTradeOfferManager.TradeOffer[]
             ) => void
+        ): void;
+
+        _apiCall(
+            httpMethod: 'GET' | 'POST',
+            method: string,
+            version: number,
+            input: UnknownDictionaryKnownValues,
+            callback: (err: Error | null, body?: TradeHoldDurationsResponse) => void
         ): void;
 
         doPoll(): void;
@@ -432,6 +483,16 @@ declare module '@tf2autobot/tradeoffer-manager' {
             expires: Date;
 
             confirmationMethod: number;
+
+            tradeID?: string | null;
+
+            fromRealTimeTrade: boolean;
+
+            escrowEnds: Date | null;
+
+            rawJson: string;
+
+            _token?: string | null;
 
             _tempData: UnknownKeys<any>;
 
