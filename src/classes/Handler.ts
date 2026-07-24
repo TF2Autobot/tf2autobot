@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import SteamID from 'steamid';
-import TradeOfferManager, { PollData, Meta, CustomError } from '@tf2autobot/tradeoffer-manager';
+import TradeOfferManager, { PollData, Meta, CustomError, ActionType } from '@tf2autobot/tradeoffer-manager';
 import Bot from './Bot';
 import { Entry, PricesDataObject, PricesObject } from './Pricelist';
 import { Blocked } from './MyHandler/interfaces';
@@ -67,7 +67,7 @@ export default abstract class Handler {
      * @param offer - The new trade offer
      */
     abstract onNewTradeOffer(offer: TradeOfferManager.TradeOffer): Promise<null | {
-        action: 'accept' | 'decline' | 'skip' | 'counter';
+        action: ActionType;
         reason: string;
         meta?: Meta;
     }>;
@@ -78,12 +78,7 @@ export default abstract class Handler {
      * @param action - The action
      * @param reason - The reason for the action
      */
-    abstract onOfferAction(
-        offer: TradeOfferManager.TradeOffer,
-        action: 'accept' | 'decline' | 'skip' | 'counter',
-        reason: string,
-        meta: Meta
-    ): void;
+    abstract onOfferAction(offer: TradeOfferManager.TradeOffer, action: ActionType, reason: string, meta: Meta): void;
 
     /**
      * Called when a new login attempt has been made

@@ -6,7 +6,8 @@ import TradeOfferManager, {
     Action,
     ItemsValue,
     ItemsDict,
-    Prices
+    Prices,
+    ActionType
 } from '@tf2autobot/tradeoffer-manager';
 import dayjs from 'dayjs';
 import pluralize from 'pluralize';
@@ -349,7 +350,7 @@ export default class Trades {
     }
 
     applyActionToOffer(
-        action: 'accept' | 'decline' | 'skip' | 'counter',
+        action: ActionType,
         reason: string,
         meta: Meta,
         offer: TradeOfferManager.TradeOffer
@@ -384,7 +385,7 @@ export default class Trades {
             }
         }
 
-        if (action === 'skip') {
+        if (action === 'skip' || action === 'ignore') {
             offer.itemsToGive.forEach(item => {
                 this.unsetItemInTrade = item.assetid;
             });
@@ -421,12 +422,7 @@ export default class Trades {
             });
     }
 
-    private onFailedAction(
-        offer: TradeOffer,
-        action: 'accept' | 'decline' | 'skip' | 'counter',
-        reason: string,
-        err: any
-    ): void {
+    private onFailedAction(offer: TradeOffer, action: ActionType, reason: string, err: any): void {
         log.warn(`Failed to ${action} on the offer #${offer.id}: `, err);
 
         /* Ignore notifying admin if eresult is "AlreadyRedeemed" or "InvalidState", or if the message includes that */
