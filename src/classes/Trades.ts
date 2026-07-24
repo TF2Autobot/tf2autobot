@@ -52,7 +52,7 @@ type TradeOfferManagerWithApiCall = TradeOfferManager & {
 };
 
 const STEAM_RETRY_ATTEMPTS = 5;
-const STEAM_RETRY_BASE_DELAY = 5 * 1000;
+const STEAM_RETRY_BASE_DELAY_SECONDS = 5;
 
 export default class Trades {
     private itemsInTrade: string[] = [];
@@ -1616,8 +1616,8 @@ export default class Trades {
         return httpError.code === 429 || httpError.code === '429' || httpError.message === 'HTTP error 429';
     }
 
-    private getSteamRetryDelay(attempt: number): number {
-        return attempt * STEAM_RETRY_BASE_DELAY;
+    private getSteamRetryDelay(attempts: number): number {
+        return exponentialBackoff(attempts) * STEAM_RETRY_BASE_DELAY_SECONDS;
     }
 
     private retryToRestart(steamID: string): void {
