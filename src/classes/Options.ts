@@ -14,6 +14,15 @@ export const DEFAULTS: JsonOptions = {
         adminCommands: false
     },
 
+    steamConnection: {
+        autoReconnect: {
+            enable: true,
+            maxAttempts: 5,
+            delaySeconds: 30,
+            exponentialBackoff: true
+        }
+    },
+
     miscSettings: {
         showOnlyMetal: {
             enable: true
@@ -540,7 +549,8 @@ export const DEFAULTS: JsonOptions = {
             mentionOwner: {
                 enable: false,
                 itemSkus: [],
-                tradeValueInRef: 0
+                tradeValueInRef: 0,
+                withEscrow: true
             }
         },
         declinedTrade: {
@@ -1224,6 +1234,18 @@ interface Counteroffer extends OnlyEnable {
     autoDeclineLazyOffer?: boolean;
 }
 
+// ------------ SteamConnection ------------
+
+interface SteamConnection {
+    autoReconnect?: AutoReconnect;
+}
+
+interface AutoReconnect extends OnlyEnable {
+    maxAttempts?: number;
+    delaySeconds?: number;
+    exponentialBackoff?: boolean;
+}
+
 // --------- Misc Settings ----------
 
 interface MiscSettings {
@@ -1689,6 +1711,7 @@ interface MiscTradeSummary extends OnlyNote {
 interface MentionOwner extends OnlyEnable {
     itemSkus?: string[];
     tradeValueInRef?: number;
+    withEscrow?: boolean;
 }
 
 interface OfferReviewDW extends OnlyEnable {
@@ -2168,6 +2191,7 @@ interface StrangeParts {
 
 export interface JsonOptions {
     globalDisable?: GlobalDisable;
+    steamConnection?: SteamConnection;
     miscSettings?: MiscSettings;
     sendAlert?: SendAlert;
     pricelist?: Pricelist;

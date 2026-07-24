@@ -5,6 +5,7 @@ import TradeOfferManager, { PollData, Meta, CustomError } from '@tf2autobot/trad
 import Bot from './Bot';
 import { Entry, PricesDataObject, PricesObject } from './Pricelist';
 import { Blocked } from './MyHandler/interfaces';
+import { Schema } from '@tf2autobot/tf2-schema';
 
 export interface OnRun {
     loginAttempts?: number[];
@@ -42,6 +43,18 @@ export default abstract class Handler {
      * Called when the bot has signed in to Steam
      */
     abstract onLoggedOn(): void;
+
+    /**
+     * Called when the bot is disconnected from Steam
+     * @param eresult - The reason for disconnection
+     * @param msg - Additional message
+     */
+    abstract onDisconnected(eresult: number, msg?: string): void;
+
+    /**
+     * Called when the bot has logged off from Steam
+     */
+    abstract onLoggedOff(): void;
 
     /**
      * Called when a new login key has been issued
@@ -275,6 +288,10 @@ export default abstract class Handler {
      * @param defindex -
      */
     onItemBroadcast(message: string, username: string, wasDestruction: boolean, defindex: number): void {
+        // empty function
+    }
+
+    onSchemaUpdate(schema: Schema): void {
         // empty function
     }
 }

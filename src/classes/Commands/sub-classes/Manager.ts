@@ -16,9 +16,8 @@ import Bot from '../../Bot';
 import CommandParser from '../../CommandParser';
 import log from '../../../lib/logger';
 import { pure, testPriceKey } from '../../../lib/tools/export';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
-import { AxiosError } from 'axios';
 import { Entry } from '../../Pricelist';
+import { FetchError } from '../../../lib/apiRequest';
 
 // Bot manager commands
 
@@ -49,13 +48,18 @@ export default class ManagerCommands {
         this.bot = bot;
     }
 
-    TF2GCCommand(steamID: SteamID, message: string, command: TF2GC): void {
+    async TF2GCCommand(steamID: SteamID, message: string, command: TF2GC, prefix: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
         if (command === 'expand') {
             // Expand command
             if (typeof params.craftable !== 'boolean') {
-                return this.bot.sendMessage(steamID, '⚠️ Missing `craftable=true|false`');
+                return this.bot.sendMessage(
+                    steamID,
+                    `⚠️ Missing craftable=true|false parameter, Example: "${prefix}expand craftable=false" (for Non-Craftable Backpack Expander).` +
+                        `\n\nOptional parameter: amount - set how many Backpack Expander you want to use` +
+                        `\nExample: "${prefix}expand craftable=false&amount=10"`
+                );
             }
 
             const item = SKU.fromString('5050;6');
@@ -63,23 +67,65 @@ export default class ManagerCommands {
                 item.craftable = false;
             }
 
-            const assetids = this.bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
-            if (assetids.length === 0) {
-                // No backpack expanders
+            const backpackString = `${!item.craftable ? 'Non-Craftable ' : ''}Backpack Expander`;
+
+            if (params.amount === undefined) {
+                // amount parameter not defined by user, set to default 1.
+                params.amount = 1;
+            }
+
+            if (params.amount !== undefined && !Number.isInteger(params.amount) && params.amount < 1) {
+                // user defined amount parameter but is not a number or less than 1;
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ I couldn't find any ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander`
+                    '⚠️ Wrong `amount` parameter, should be a number (positive non-zero integer).'
                 );
             }
 
-            this.bot.tf2gc.useItem(assetids[0], err => {
-                if (err) {
-                    log.error('Error trying to expand inventory: ', err);
-                    return this.bot.sendMessage(steamID, `❌ Failed to expand inventory: ${err.message}`);
-                }
+            const assetids = this.bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
+            if (assetids.length === 0) {
+                // No backpack expanders
+                return this.bot.sendMessage(steamID, `❌ I couldn't find any ${backpackString}.`);
+            }
 
-                this.bot.sendMessage(steamID, `✅ Used ${!item.craftable ? 'Non-Craftable' : ''} Backpack Expander!`);
-            });
+            if (assetids.length < params.amount) {
+                // User amount more than the bot has
+                return this.bot.sendMessage(steamID, `❌ I only have ${assetids.length} ${backpackString} available.`);
+            }
+
+            const currentBackpackSlots = this.bot.tf2.backpackSlots;
+            const futureBackpackSlots = currentBackpackSlots + params.amount * 100;
+            if (futureBackpackSlots > 4000) {
+                const amountCanUse = (4000 - currentBackpackSlots) / 100;
+                if (amountCanUse > 0) {
+                    return this.bot.sendMessage(
+                        steamID,
+                        `❌ Maximum backpack size is 4000 slots, using ${params.amount} will exceed that. The maximum amount of ${backpackString}` +
+                            ` that can be use is only ${amountCanUse}.` +
+                            ` \n\nTry again with "${prefix}expand craftable=${String(params.craftable)}&amount=${amountCanUse}"`
+                    );
+                }
+                // Else already has 4000 slots
+                return this.bot.sendMessage(steamID, `❌ I already have 4000 slots, which is the maximum allowed.`);
+            }
+
+            this.bot.sendMessage(steamID, `⏳ Executing to use ${params.amount} ${backpackString}...`);
+            for (let i = 0; i < params.amount; i++) {
+                this.bot.tf2gc.useItem(assetids[i], err => {
+                    if (err) {
+                        log.error('Error trying to expand inventory: ', err);
+                        return this.bot.sendMessage(
+                            steamID,
+                            `❌ Failed to expand inventory: ${err.message}.${i > 0 ? `\n\n ⚠️ Used ${i + 1} before failing.` : ''}`
+                        );
+                    }
+                });
+                await timersPromises.setTimeout(1000); // just in case
+            }
+            this.bot.sendMessage(
+                steamID,
+                `✅ Used ${params.amount} ${backpackString}! Check current slots with ${prefix}inventory command.`
+            );
         } else {
             // For use and delete commands
             if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
@@ -90,7 +136,7 @@ export default class ManagerCommands {
                 const targetedAssetId = params.assetid as string;
                 const sku = this.bot.inventoryManager.getInventory.findByAssetid(targetedAssetId);
 
-                if (params.i_am_sure !== 'yes_i_am') {
+                if (params.confirm !== 'yes' || params.confirm !== true) {
                     return this.bot.sendMessage(
                         steamID,
                         `⚠️ Are you sure that you want to ${command} ${
@@ -99,7 +145,7 @@ export default class ManagerCommands {
                                 : `${this.bot.schema.getName(SKU.fromString(sku), false)}`
                         }?` +
                             `\n- This process is irreversible and will ${command} the item from your bot's backpack!` +
-                            `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                            `\n- If you are sure, try again with confirm=true or confirm=yes as a parameter`
                     );
                 }
 
@@ -172,7 +218,7 @@ export default class ManagerCommands {
             if (params.sku === undefined) {
                 return this.bot.sendMessage(
                     steamID,
-                    `⚠️ Missing sku property. Example: "!${command} sku=5923;6;untradable"`
+                    `⚠️ Missing sku property. Example: "${prefix}${command} sku=5923;6;untradable"`
                 );
             }
 
@@ -211,19 +257,20 @@ export default class ManagerCommands {
                     return this.bot.sendMessage(
                         steamID,
                         `❌ Looks like an assetid ${targetedAssetId} did not match any assetids associated with ${name}` +
-                            ` in my inventory. Try using the sku to use a random assetid.`
+                            ` in my inventory. Try using the sku to use a random assetid, or send "${prefix}stock ${name}" to` +
+                            ` see available assetids.`
                     );
                 }
             } else {
                 assetid = assetids[0];
             }
 
-            if (params.i_am_sure !== 'yes_i_am') {
+            if (params.confirm !== 'yes' || params.confirm !== true) {
                 return this.bot.sendMessage(
                     steamID,
                     `/pre ⚠️ Are you sure that you want to ${command} ${name}?` +
                         `\n- This process is irreversible and will ${command} the item from your bot's backpack!` +
-                        `\n- If you are sure, try again with i_am_sure=yes_i_am as a parameter`
+                        `\n- If you are sure, try again with confirm=true or confirm=yes as a parameter`
                 );
             }
 
@@ -255,7 +302,7 @@ export default class ManagerCommands {
             if (!input || input === `!${command}`) {
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ You forgot to add an image url'. Example: "!${`avatar ${example}`} "`
+                    `❌ You forgot to add an image url'. Example: "${prefix}${`avatar ${example}`} "`
                 );
             }
             if (!validUrl.isUri(input)) {
@@ -278,12 +325,12 @@ export default class ManagerCommands {
         const inputName = params.name as string;
 
         if (inputName !== undefined) {
-            if (params.i_am_sure !== 'yes_i_am') {
+            if (params.confirm !== 'yes' || params.confirm !== true) {
                 return this.bot.sendMessage(
                     steamID,
                     `⚠️ Are you sure that you want to change your bot's name?` +
                         `\nChanging the name will result in a trading cooldown for a few hours on your bot's account` +
-                        `\nIf yes, retry by sending ${prefix}changeName name=${inputName}&i_am_sure=yes_i_am`
+                        `\nIf yes, retry by sending ${prefix}changeName name=${inputName}&confirm=true or confirm=yes`
                 );
             } else {
                 this.bot.community.editProfile(
@@ -370,7 +417,7 @@ export default class ManagerCommands {
         });
     }
 
-    blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock): void {
+    blockUnblockCommand(steamID: SteamID, message: string, command: BlockUnblock, prefix: string): void {
         const steamidAndReason = CommandParser.removeCommand(message);
         const parts = steamidAndReason.split(' ');
 
@@ -380,7 +427,7 @@ export default class ManagerCommands {
         if (!steamid || steamid === `!${command}`) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ You forgot to add their SteamID64. Example: "!${command} 76561198798404909${
+                `❌ You forgot to add their SteamID64. Example: "${prefix}${command} 76561198798404909${
                     command === 'block' ? ' Trying to exploit' : ''
                 }"`
             );
@@ -391,7 +438,7 @@ export default class ManagerCommands {
         if (!targetSteamID.isValid()) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ SteamID is not valid. Example: "!${command} 76561198798404909${
+                `❌ SteamID is not valid. Example: "${prefix}${command} 76561198798404909${
                     command === 'block' ? ' Trying to exploit' : ''
                 }"`
             );
@@ -610,16 +657,12 @@ export default class ManagerCommands {
             );
         } else {
             const listings: { [sku: string]: Listing[] } = {};
-            this.bot.listingManager.getListings(false, async (err: AxiosError) => {
+            this.bot.listingManager.getListings(false, async (err: FetchError) => {
                 if (err) {
-                    const e = filterAxiosError(err);
-                    log.error('Unable to refresh listings: ', e);
-
-                    const errStringify = JSON.stringify(e);
-                    const errMessage = errStringify === '' ? e?.message : errStringify;
+                    log.error('Unable to refresh listings: ', err);
                     return this.bot.sendMessage(
                         steamID,
-                        '❌ Unable to refresh listings, please try again later: ' + errMessage
+                        '❌ Unable to refresh listings, please try again later: ' + err.message
                     );
                 }
 
@@ -641,7 +684,7 @@ export default class ManagerCommands {
 
                     let match: Entry | null;
                     const assetIdPrice = this.bot.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                    if (assetIdPrice === null) {
+                    if (null === assetIdPrice) {
                         match = this.bot.pricelist.getPrice({ priceKey: listingSKU });
 
                         if (!match && listing.intent === 1 && opt.normalize.painted.our && /;p\d+/.test(listingSKU)) {
@@ -852,7 +895,7 @@ export default class ManagerCommands {
             (bot.isAdmin(steamID) ? 'Your ' : 'My ') +
             `current Autokeys settings:\n${summary}\n\nDiagram:\n${keysPosition}\n${keysLine}\n${refsPosition}\n${refsLine}\n${xAxisRef}\n`;
         reply += `\n      Key prices: ${keyPrices.buy.toString()}/${keyPrices.sell.toString()} (${
-            keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'
+            keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'pricedb.io'
         })`;
 
         const scrapAdjustmentEnabled = autokeys.isEnableScrapAdjustment;
@@ -891,7 +934,7 @@ export default class ManagerCommands {
         return reply;
     }
 
-    refreshSchema(steamID: SteamID): void {
+    refreshSchema(steamID: SteamID, prefix: string): void {
         const newExecutedTime = dayjs().valueOf();
         const timeDiff = newExecutedTime - this.lastExecutedRefreshSchemaTime;
 
@@ -908,7 +951,7 @@ export default class ManagerCommands {
 
             this.bot.schemaManager.getSchema(err => {
                 if (err) {
-                    log.error('Error getting schema on !refreshSchema command:', err);
+                    log.error(`Error getting schema on ${prefix}refreshSchema command:`, err);
                     return this.bot.sendMessage(steamID, `❌ Error getting TF2 Schema: ${JSON.stringify(err)}`);
                 }
 
@@ -931,7 +974,7 @@ export default class ManagerCommands {
         }
     }
 
-    updaterepoCommand(steamID: SteamID): void {
+    updaterepoCommand(steamID: SteamID, prefix: string): void {
         if (!this.bot.isCloned()) {
             return this.bot.sendMessage(steamID, '❌ You did not clone the bot from Github.');
         }
@@ -941,7 +984,7 @@ export default class ManagerCommands {
                 steamID,
                 `❌ You're not running the bot with PM2!` +
                     `\n\nNavigate to your bot folder and run ` +
-                    `[git reset HEAD --hard && git pull && npm install --no-audit && npm run build] ` +
+                    `[git reset HEAD --hard && git pull && npm ci --no-audit && npm run build] ` +
                     `and then restart your bot.`
             );
         }
@@ -962,7 +1005,7 @@ export default class ManagerCommands {
                 if (newVersionIsMajor) {
                     return this.bot.sendMessage(
                         steamID,
-                        '⚠️ !updaterepo is not available. Please upgrade the bot manually.'
+                        `⚠️ ${prefix}updaterepo is not available. Please upgrade the bot manually.`
                     );
                 }
 
@@ -1004,7 +1047,9 @@ export default class ManagerCommands {
                     );
 
                     this.bot.sendMessage(steamID, '⌛ Installing packages...');
-                    await exec(`npm install${process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''}`);
+                    await exec(
+                        `npm ci${process.env.RUN_ON_ANDROID === 'true' ? ' --no-bin-links --force' : ''} --no-audit`
+                    );
 
                     this.bot.sendMessage(steamID, '⌛ Compiling TypeScript codes into JavaScript...');
                     await exec('npm run build');

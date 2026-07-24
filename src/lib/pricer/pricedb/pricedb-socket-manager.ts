@@ -53,7 +53,6 @@ export default class PriceDbSocketManager extends EventEmitter {
         });
 
         this.socket.on('price', data => {
-            log.debug('Received price update from PriceDB:', data);
             this.emit('price', data);
         });
     }

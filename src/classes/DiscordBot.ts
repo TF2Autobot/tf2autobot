@@ -36,7 +36,7 @@ export default class DiscordBot {
 
         // 'ready' binding should be executed BEFORE the login() is complete
         /* eslint-disable */
-        this.client.on('ready', this.onClientReady.bind(this));
+        this.client.on('clientReady', this.onClientReady.bind(this));
         this.client.on('messageCreate', async message => this.onMessage(message));
         /* eslint-enable */
         this.prefix = this.bot.options.miscSettings?.prefixes?.discord ?? this.prefix;

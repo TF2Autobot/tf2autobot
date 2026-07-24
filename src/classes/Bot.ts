@@ -11,7 +11,6 @@ import TF2 from '@tf2autobot/tf2';
 import dayjs, { Dayjs } from 'dayjs';
 import async from 'async';
 import semver from 'semver';
-import { AxiosError } from 'axios';
 import pluralize from 'pluralize';
 import * as timersPromises from 'timers/promises';
 import fs from 'fs';
@@ -42,9 +41,7 @@ import Options from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
-import { axiosAbortSignal } from '../lib/helpers';
-import { apiRequest } from '../lib/apiRequest';
+import { apiRequest, FetchError } from '../lib/apiRequest';
 
 type Callback = (err?: Error | null) => void;
 type HttpError = Error & { code?: string | number };
@@ -125,8 +122,6 @@ export default class Bot {
         spy: string[];
     };
 
-    public updateSchemaPropertiesInterval: NodeJS.Timeout;
-
     // Settings
     private readonly maxLoginAttemptsWithinPeriod: number = 3;
 
@@ -162,7 +157,25 @@ export default class Bot {
 
     private tradeOfferUrlRetryTimeout: NodeJS.Timeout = null;
 
+    private reconnectAttempts = 0;
+
+    private isReconnecting = false;
+
+    private reconnectTimeout: NodeJS.Timeout = null;
+
     public autoRefreshListingsInterval: NodeJS.Timeout;
+
+    /**
+     * Resets the reconnection state and clears any pending reconnection timeout
+     */
+    public resetReconnectionState(): void {
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+        this.isReconnecting = false;
+        this.reconnectAttempts = 0;
+    }
 
     private alreadyExecutedRefreshlist = false;
 
@@ -299,8 +312,8 @@ export default class Bot {
             try {
                 await check(steamid);
             } catch (err) {
-                const error = err as AxiosError;
-                if (error?.response?.status === 429) {
+                const error = err as FetchError;
+                if (error?.status === 429) {
                     await new Promise(resolve => setTimeout(resolve, 10000));
                     await check(steamid);
                 } else {
@@ -334,7 +347,7 @@ export default class Bot {
             apiRequest<string>({
                 method: 'GET',
                 url: `https://raw.githubusercontent.com/SteamDatabase/GameTracking-TF2/master/tf/resource/tf_${this.options.tf2Language}.txt`,
-                signal: axiosAbortSignal(60000)
+                timeout: 60000
             })
                 .then(content => {
                     this.tf2.setLang(content);
@@ -541,17 +554,17 @@ export default class Bot {
                 if (process.platform === 'win32') {
                     messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory using Command Prompt:\n',
-                        '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && node dist/app.js'
+                        '/code rmdir /s /q node_modules dist && git reset HEAD --hard && git pull --prune && npm ci --no-audit && npm run build && node dist/app.js'
                     ];
                 } else if (['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
                     messages = [
                         '\n💻 To update run the following command inside your tf2autobot directory:\n',
-                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && pm2 restart ecosystem.json'
+                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm ci --no-audit && npm run build && pm2 restart ecosystem.json'
                     ];
                 } else {
                     messages = [
                         '❌ Failed to find what OS your server is running! Kindly run the following standard command for most users inside your tf2autobot folder:\n',
-                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm install --no-audit && npm run build && pm2 restart ecosystem.json'
+                        '/code rm -r node_modules dist && git reset HEAD --hard && git pull --prune && npm ci --no-audit && npm run build && pm2 restart ecosystem.json'
                     ];
                 }
 
@@ -572,7 +585,7 @@ export default class Bot {
             apiRequest<GithubPackageJson>({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/TF2Autobot/tf2autobot/master/package.json',
-                signal: axiosAbortSignal(60000)
+                timeout: 60000
             })
                 .then(data => {
                     return resolve({
@@ -591,7 +604,6 @@ export default class Bot {
     }
 
     startAutoRefreshListings(): void {
-        // Automatically check for missing listings every 30 minutes
         let pricelistLength = 0;
 
         this.autoRefreshListingsInterval = setInterval(
@@ -599,7 +611,6 @@ export default class Bot {
                 const createListingsEnabled = this.options.miscSettings.createListings.enable;
 
                 if (this.halted) {
-                    // Make sure not to run if halted
                     return;
                 }
 
@@ -616,7 +627,6 @@ export default class Bot {
                         this.startAutoRefreshListings();
                     }, this.executedDelayTime);
 
-                    // reset to default
                     this.setRefreshlistExecutedDelay = 30 * 60 * 1000;
                     clearInterval(this.autoRefreshListingsInterval);
                     return;
@@ -626,175 +636,168 @@ export default class Bot {
                 log.debug('Running automatic check for missing/mismatch listings...');
 
                 const listings: { [sku: string]: Listing[] } = {};
-                this.listingManager.getListings(false, async (err: AxiosError) => {
-                    if (err) {
-                        log.warn('Error getting listings on auto-refresh listings operation:', filterAxiosError(err));
-                        setTimeout(
-                            () => {
-                                this.startAutoRefreshListings();
-                            },
-                            30 * 60 * 1000
-                        );
-                        clearInterval(this.autoRefreshListingsInterval);
-                        return;
-                    }
-
-                    const inventoryManager = this.inventoryManager;
-                    const inventory = inventoryManager.getInventory;
-                    const isFilterCantAfford = this.options.pricelist.filterCantAfford.enable;
-
-                    this.listingManager.listings.forEach(listing => {
-                        let listingSKU = listing.getSKU();
-                        if (listing.intent === 1) {
-                            if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
-                                listingSKU = listingSKU.replace(';festive', '');
-                            }
-
-                            if (this.options.normalize.strangeAsSecondQuality.our && listingSKU.includes(';strange')) {
-                                listingSKU = listingSKU.replace(';strange', '');
-                            }
+                this.listingManager.getListings(false, (err: FetchError) => {
+                    void (async () => {
+                        if (err) {
+                            log.warn('Error getting listings on auto-refresh listings operation:', err);
+                            setTimeout(
+                                () => {
+                                    this.startAutoRefreshListings();
+                                },
+                                30 * 60 * 1000
+                            );
+                            clearInterval(this.autoRefreshListingsInterval);
+                            return;
                         }
 
-                        let match: Entry | null;
-                        const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
-                        if (assetIdPrice === null) {
-                            match = this.pricelist.getPrice({ priceKey: listingSKU });
+                        const inventoryManager = this.inventoryManager;
+                        const inventory = inventoryManager.getInventory;
+                        const isFilterCantAfford = this.options.pricelist.filterCantAfford.enable;
 
-                            if (
-                                !match &&
-                                listing.intent === 1 &&
-                                this.options.normalize.painted.our &&
-                                /;p\d+/.test(listingSKU)
-                            ) {
-                                const baseSKU = listingSKU.replace(/;p\d+/, '');
-                                match = this.pricelist.getPrice({ priceKey: baseSKU });
+                        this.listingManager.listings.forEach(listing => {
+                            let listingSKU = listing.getSKU();
+                            if (listing.intent === 1) {
+                                if (this.options.normalize.festivized.our && listingSKU.includes(';festive')) {
+                                    listingSKU = listingSKU.replace(';festive', '');
+                                }
+
+                                if (
+                                    this.options.normalize.strangeAsSecondQuality.our &&
+                                    listingSKU.includes(';strange')
+                                ) {
+                                    listingSKU = listingSKU.replace(';strange', '');
+                                }
                             }
-                        } else {
-                            match = assetIdPrice;
-                        }
 
-                        if (isFilterCantAfford && listing.intent === 0 && match !== null) {
-                            const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
-                            if (!canAffordToBuy) {
-                                // Listing for buying exist but we can't afford to buy, remove.
-                                log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                            let match: Entry | null;
+                            const assetIdPrice = this.pricelist.getPrice({ priceKey: listing.id.slice('440_'.length) });
+                            if (null !== assetIdPrice) {
+                                match = assetIdPrice;
+                            } else {
+                                match = this.pricelist.getPrice({ priceKey: listingSKU });
+
+                                if (
+                                    !match &&
+                                    listing.intent === 1 &&
+                                    this.options.normalize.painted.our &&
+                                    /;p\d+/.test(listingSKU)
+                                ) {
+                                    const baseSKU = listingSKU.replace(/;p\d+/, '');
+                                    match = this.pricelist.getPrice({ priceKey: baseSKU });
+                                }
+                            }
+
+                            if (isFilterCantAfford && listing.intent === 0 && match !== null) {
+                                const canAffordToBuy = inventoryManager.isCanAffordToBuy(match.buy, inventory);
+                                if (!canAffordToBuy) {
+                                    log.debug(`Intent buy, removed because can't afford: ${match.sku}`);
+                                    listing.remove();
+                                }
+                            }
+
+                            if (listing.intent === 1 && match !== null && !match.enabled) {
+                                log.debug(`Intent sell, removed because not selling: ${match.sku}`);
                                 listing.remove();
                             }
-                        }
 
-                        if (listing.intent === 1 && match !== null && !match.enabled) {
-                            // Listings for selling exist, but the item is currently disabled, remove it.
-                            log.debug(`Intent sell, removed because not selling: ${match.sku}`);
-                            listing.remove();
-                        }
+                            listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
 
-                        listings[listingSKU] = (listings[listingSKU] ?? []).concat(listing);
-
-                        if (
-                            this.options.normalize.painted.our &&
-                            /;p\d+/.test(listingSKU) &&
-                            match?.sku !== listingSKU
-                        ) {
-                            listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
-                        }
-                    });
-
-                    const pricelist = Object.assign({}, this.pricelist.getPrices);
-                    const keyPrice = this.pricelist.getKeyPrice.metal;
-
-                    for (const priceKey in pricelist) {
-                        if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey)) {
-                            continue;
-                        }
-
-                        const entry = pricelist[priceKey];
-                        const _listings = listings[priceKey];
-
-                        const amountCanBuy = inventoryManager.amountCanTrade({ priceKey, tradeIntent: 'buying' });
-                        const amountAvailable = inventory.getAmount({
-                            priceKey,
-                            includeNonNormalized: false,
-                            tradableOnly: true
+                            if (
+                                this.options.normalize.painted.our &&
+                                /;p\d+/.test(listingSKU) &&
+                                match?.sku !== listingSKU
+                            ) {
+                                listings[match.sku] = (listings[match.sku] ?? []).concat(listing);
+                            }
                         });
 
-                        if (_listings) {
-                            _listings.forEach(listing => {
-                                if (
-                                    _listings.length === 1 &&
-                                    listing.intent === 0 && // We only check if the only listing exist is buy order
-                                    amountAvailable > entry.min
-                                ) {
-                                    // here we only check if the bot already have that item
-                                    log.debug(`Missing sell order listings: ${priceKey}`);
-                                } else if (
-                                    listing.intent === 0 &&
-                                    listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
-                                ) {
-                                    // if intent is buy, we check if the buying price is not same
-                                    log.debug(`Buying price for ${priceKey} not updated`);
-                                } else if (
-                                    listing.intent === 1 &&
-                                    listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
-                                ) {
-                                    // if intent is sell, we check if the selling price is not same
-                                    log.debug(`Selling price for ${priceKey} not updated`);
-                                } else {
-                                    delete pricelist[priceKey];
-                                }
+                        const pricelist = Object.assign({}, this.pricelist.getPrices);
+                        const keyPrice = this.pricelist.getKeyPrice.metal;
+
+                        for (const priceKey in pricelist) {
+                            if (!Object.prototype.hasOwnProperty.call(pricelist, priceKey)) {
+                                continue;
+                            }
+
+                            const entry = pricelist[priceKey];
+                            const _listings = listings[priceKey];
+
+                            const amountCanBuy = inventoryManager.amountCanTrade({ priceKey, tradeIntent: 'buying' });
+                            const amountAvailable = inventory.getAmount({
+                                priceKey,
+                                includeNonNormalized: false,
+                                tradableOnly: true
                             });
 
-                            continue;
+                            if (_listings) {
+                                _listings.forEach(listing => {
+                                    if (_listings.length === 1 && listing.intent === 0 && amountAvailable > entry.min) {
+                                        log.debug(`Missing sell order listings: ${priceKey}`);
+                                    } else if (
+                                        listing.intent === 0 &&
+                                        listing.currencies.toValue(keyPrice) !== entry.buy.toValue(keyPrice)
+                                    ) {
+                                        log.debug(`Buying price for ${priceKey} not updated`);
+                                    } else if (
+                                        listing.intent === 1 &&
+                                        listing.currencies.toValue(keyPrice) !== entry.sell.toValue(keyPrice)
+                                    ) {
+                                        log.debug(`Selling price for ${priceKey} not updated`);
+                                    } else {
+                                        delete pricelist[priceKey];
+                                    }
+                                });
+
+                                continue;
+                            }
+
+                            if (!entry.enabled) {
+                                delete pricelist[priceKey];
+                                log.debug(`${priceKey} disabled, skipping...`);
+                                continue;
+                            }
+
+                            if (
+                                (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
+                                amountAvailable > 0
+                            ) {
+                                log.debug(
+                                    `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${priceKey}`
+                                );
+                            } else {
+                                delete pricelist[priceKey];
+                            }
                         }
 
-                        // listing not exist
+                        const priceKeysToCheck = Object.keys(pricelist);
+                        const pricelistCount = priceKeysToCheck.length;
 
-                        if (!entry.enabled) {
-                            delete pricelist[priceKey];
-                            log.debug(`${priceKey} disabled, skipping...`);
-                            continue;
-                        }
-
-                        if (
-                            (amountCanBuy > 0 && inventoryManager.isCanAffordToBuy(entry.buy, inventory)) ||
-                            amountAvailable > 0
-                        ) {
-                            // if can amountCanBuy is more than 0 and isCanAffordToBuy is true OR amountAvailable is more than 0
-                            // return this entry
+                        if (pricelistCount > 0) {
                             log.debug(
-                                `Missing${isFilterCantAfford ? '/Re-adding can afford' : ' listings'}: ${priceKey}`
+                                'Checking listings for ' +
+                                    pluralize('item', pricelistCount, true) +
+                                    ` [${priceKeysToCheck.join(', ')}]...`
                             );
+
+                            await this.listings.recursiveCheckPricelist(
+                                priceKeysToCheck,
+                                pricelist,
+                                true,
+                                pricelistCount > 4000 ? 400 : 200,
+                                true
+                            );
+
+                            log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
                         } else {
-                            delete pricelist[priceKey];
+                            log.debug('❌ Nothing to refresh.');
                         }
-                    }
 
-                    const priceKeysToCheck = Object.keys(pricelist);
-                    const pricelistCount = priceKeysToCheck.length;
-
-                    if (pricelistCount > 0) {
-                        log.debug(
-                            'Checking listings for ' +
-                                pluralize('item', pricelistCount, true) +
-                                ` [${priceKeysToCheck.join(', ')}]...`
-                        );
-
-                        await this.listings.recursiveCheckPricelist(
-                            priceKeysToCheck,
-                            pricelist,
-                            true,
-                            pricelistCount > 4000 ? 400 : 200,
-                            true
-                        );
-
-                        log.debug('✅ Done checking ' + pluralize('item', pricelistCount, true));
-                    } else {
-                        log.debug('❌ Nothing to refresh.');
-                    }
-
-                    pricelistLength = pricelistCount;
+                        pricelistLength = pricelistCount;
+                    })().catch(error_ => {
+                        log.error('Auto-refresh listings task failed:', error_);
+                    });
                 });
             },
-            // set check every 60 minutes if pricelist to check was more than 4000 items
             (pricelistLength > 4000 ? 60 : 30) * 60 * 1000
         );
     }
@@ -846,9 +849,8 @@ export default class Bot {
                 if (err) {
                     return reject(err);
                 }
-
                 this.schema = this.schemaManager.schema;
-
+                this.addListener(this.schemaManager, 'schema', this.handler.onSchemaUpdate.bind(this.handler), false);
                 return resolve();
             });
         });
@@ -865,6 +867,8 @@ export default class Bot {
 
         this.addListener(this.client, 'loggedOn', this.handler.onLoggedOn.bind(this.handler), false);
         this.addListener(this.client, 'refreshToken', this.handler.onRefreshToken.bind(this.handler), false);
+        this.addListener(this.client, 'disconnected', this.onDisconnected.bind(this), false);
+        this.addListener(this.client, 'loggedOff', this.onLoggedOff.bind(this), false);
         this.addAsyncListener(this.client, 'friendMessage', this.onMessage.bind(this), true);
         this.addListener(this.client, 'friendRelationship', this.handler.onFriendRelationship.bind(this.handler), true);
         this.addListener(this.client, 'groupRelationship', this.handler.onGroupRelationship.bind(this.handler), true);
@@ -1013,7 +1017,7 @@ export default class Bot {
                     },
                     (callback): void => {
                         this.schemaManager = new SchemaManager({
-                            updateTime: 1 * 60 * 60 * 1000,
+                            updateTime: 5 * 60 * 1000, // Every 5 minutes
                             lite: true
                         });
 
@@ -1218,7 +1222,7 @@ export default class Bot {
                         return resolve();
                     }
 
-                    this.manager.pollInterval = 5 * 1000;
+                    this.manager.pollInterval = 10 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
                     this.manager.doPoll();
@@ -1251,18 +1255,6 @@ export default class Bot {
             sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
             spy: this.schema.getWeaponsForCraftingByClass('Spy')
         };
-
-        clearInterval(this.updateSchemaPropertiesInterval);
-        this.refreshSchemaProperties();
-    }
-
-    private refreshSchemaProperties(): void {
-        this.updateSchemaPropertiesInterval = setInterval(
-            () => {
-                this.setProperties();
-            },
-            5 * 60 * 1000 // Every 5 minutes
-        );
     }
 
     setCookies(cookies: string[]): Promise<void> {
@@ -1315,7 +1307,7 @@ export default class Bot {
 
     private get getCookies(): string[] {
         const cookies = this.community._jar
-            .getCookies('https://steamcommunity.com')
+            .getCookiesSync('https://steamcommunity.com')
             .filter(cookie => ['sessionid', 'steamLogin', 'steamLoginSecure'].includes(cookie.key))
             .map(cookie => `${cookie.key}=${cookie.value}`);
         return cookies;
@@ -1545,24 +1537,15 @@ export default class Bot {
         }
     }
 
-    private refreshTradeOfferUrl(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.community.getTradeURL((err, url) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
+    private async refreshTradeOfferUrl(): Promise<void> {
+        const { url } = await this.client.getTradeURL();
 
-                if (!url) {
-                    reject(new Error('Steam did not return a trade offer URL'));
-                    return;
-                }
+        if (!url) {
+            throw new Error('Steam did not return a trade offer URL');
+        }
 
-                this.tradeOfferUrl = url;
-                this.cacheTradeOfferUrl(url);
-                resolve();
-            });
-        });
+        this.tradeOfferUrl = url;
+        this.cacheTradeOfferUrl(url);
     }
 
     private scheduleTradeOfferUrlRetry(attempt = 1): void {
@@ -1733,6 +1716,84 @@ export default class Bot {
 
                 callback(authCode);
             });
+    }
+
+    private onDisconnected(eresult: EResult, msg?: string): void {
+        log.warn('Disconnected from Steam', { eresult, msg });
+
+        // Notify handler
+        this.handler.onDisconnected(eresult, msg);
+
+        // Check if we should attempt to reconnect
+        const reconnectConfig = this.options.steamConnection?.autoReconnect;
+        if (!reconnectConfig?.enable || this.botManager.isStopping || this.isReconnecting) {
+            return;
+        }
+
+        this.attemptReconnect();
+    }
+
+    private onLoggedOff(): void {
+        log.info('Logged off from Steam');
+        this.handler.onLoggedOff();
+    }
+
+    private attemptReconnect(): void {
+        const reconnectConfig = this.options.steamConnection?.autoReconnect;
+        if (!reconnectConfig?.enable) {
+            return;
+        }
+
+        const maxAttempts = reconnectConfig.maxAttempts ?? 5;
+        if (this.reconnectAttempts >= maxAttempts) {
+            log.error(`Maximum reconnection attempts (${maxAttempts}) reached. Stopping bot...`);
+            this.botManager.stop(new Error('Max reconnection attempts reached'), false, true);
+            return;
+        }
+
+        this.isReconnecting = true;
+        this.reconnectAttempts++;
+
+        let delay = (reconnectConfig.delaySeconds ?? 30) * 1000;
+
+        if (reconnectConfig.exponentialBackoff) {
+            // Exponential backoff: delay * (2 ^ (attempt - 1))
+            delay = delay * Math.pow(2, this.reconnectAttempts - 1);
+            // Cap at 5 minutes
+            delay = Math.min(delay, 5 * 60 * 1000);
+        }
+
+        log.info(`Attempting to reconnect (${this.reconnectAttempts}/${maxAttempts}) in ${delay / 1000} seconds...`);
+
+        this.reconnectTimeout = setTimeout(() => {
+            void (async () => {
+                try {
+                    log.info('Reconnecting to Steam...');
+                    await this.login(await this.getRefreshToken());
+
+                    // Reset reconnection state on successful login
+                    this.isReconnecting = false;
+                    this.reconnectAttempts = 0;
+
+                    log.info('Successfully reconnected to Steam!');
+
+                    // Restore online status and game
+                    if (this.ready) {
+                        this.client.setPersona(EPersonaState.Online);
+                        this.client.gamesPlayed(
+                            this.options.miscSettings.game.playOnlyTF2
+                                ? 440
+                                : [this.options.miscSettings.game.customName || 'Team Fortress 2', 440]
+                        );
+                    }
+                } catch (err) {
+                    log.error('Failed to reconnect:', err);
+                    this.isReconnecting = false;
+                    // Try again
+                    this.attemptReconnect();
+                }
+            })();
+        }, delay);
     }
 
     private async onError(err: CustomError): Promise<void> {

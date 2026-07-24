@@ -98,6 +98,16 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
             case 'NOT_BUYING_KEYS':
                 declined.reasonDescription = offerReceived.reason + ': We are not buying keys.';
                 break;
+            case 'CONTAINS_KEYS_ON_BOTH_SIDES':
+                declined.reasonDescription = offerReceived.reason + ': We are not accepting keys on both sides.';
+                break;
+            case 'CONTAINS_ITEMS_ON_BOTH_SIDES':
+                declined.reasonDescription = offerReceived.reason + ': We are not accepting items on both sides.';
+                break;
+            case 'GIFT_FAILED_CHECK_BANNED':
+                declined.reasonDescription =
+                    offerReceived.reason + ': We failed to ban checks and are unable to accept gift.';
+                break;
             case '🟦_OVERSTOCKED':
                 declined.reasonDescription =
                     offerReceived.reason + ": Offer contains items that'll make us overstocked.";
@@ -131,11 +141,34 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                     ': We are paying more than them and we failed to counter the offer, or Steam might be down, or private inventory (failed to load their inventory).';
                 break;
             case 'ONLY_INVALID_VALUE':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    `: We will receive less than the item(s) value, which also does not exceed our exception value of ${opt.offerReceived.invalidValue.exceptionValue.valueInRef} ref`;
+                break;
             case 'ONLY_INVALID_ITEMS':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    ': Offer contains invalid items and auto-declined on invalid items is enabled.';
+                break;
             case 'ONLY_DISABLED_ITEMS':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    ': Offer contains disabled items and auto-declined on disabled items is enabled.';
+                break;
             case 'ONLY_OVERSTOCKED':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    ': Offer contains overstocked items and auto-declined on overstocked items is enabled.';
+                break;
             case 'ONLY_UNDERSTOCKED':
+                declined.reasonDescription =
+                    offerReceived.reason +
+                    ': Offer contains understocked items and auto-declined on understocked items is enabled.';
+                break;
             case 'ONLY_DUPED_ITEM':
+                declined.reasonDescription =
+                    offerReceived.reason + ': Offer contains duped items and auto-declined on duped items is enabled.';
+                break;
             case 'ONLY_DUPE_CHECK_FAILED':
                 //It was probably faster to make them by hand but :/
                 declined.reasonDescription =
@@ -325,7 +358,7 @@ export function sendToAdmin(
             (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
             (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
             `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-            ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
+            ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'pricedb.io'})` +
             `${
                 autokeys.isEnabled
                     ? ' | Autokeys: ' +

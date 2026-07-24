@@ -2,9 +2,8 @@ import TradeOfferManager, { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { Webhook } from './interfaces';
 import Bot from '../Bot';
 import log from '../../lib/logger';
-import { AxiosError } from 'axios';
-import { ErrorFiltered } from '@tf2autobot/filter-axios-error';
-import { apiRequest } from '../../lib/apiRequest';
+import { apiRequest, FetchError } from '../../lib/apiRequest';
+import { Links } from '../../lib/tools/links';
 
 export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ personaName: string; avatarFull: any }> {
     return new Promise(resolve => {
@@ -46,8 +45,8 @@ export function getPartnerDetails(offer: TradeOffer, bot: Bot): Promise<{ person
     });
 }
 
-export function quickLinks(name: string, links: { steam: string; bptf: string; steamrep: string }): string {
-    return `🔍 ${name}'s info:\n[Steam Profile](${links.steam}) | [backpack.tf](${links.bptf}) | [steamREP](${links.steamrep})`;
+export function quickLinks(name: string, links: Links): string {
+    return `🔍 ${name}'s info:\n[Steam Profile](${links.steam}) | [backpack.tf](${links.bptf}) | [rep.tf](${links.reptf})`;
 }
 
 export function sendWebhook(url: string, webhook: Webhook, event: string, i?: number): Promise<void> {
@@ -61,11 +60,11 @@ export function sendWebhook(url: string, webhook: Webhook, event: string, i?: nu
 
         apiRequest({ method: 'POST', url, data: webhook })
             .then(() => resolve())
-            .catch((err: AxiosError) => reject({ err, webhook }));
+            .catch((err: WebhookError) => reject({ err, webhook }));
     });
 }
 
 export interface WebhookError {
-    err: ErrorFiltered;
+    err: FetchError;
     webhook: Webhook;
 }

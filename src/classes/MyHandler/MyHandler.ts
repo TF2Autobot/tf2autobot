@@ -45,7 +45,6 @@ import genPaths from '../../resources/paths';
 import IPricer from '../IPricer';
 import Options, { OfferType } from '../Options';
 import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
 
 import sendTf2SystemMessage from '../DiscordWebhook/sendTf2SystemMessage';
 import sendTf2DisplayNotification from '../DiscordWebhook/sendTf2DisplayNotification';
@@ -246,8 +245,8 @@ export default class MyHandler extends Handler {
         this.botSteamID = this.bot.client.steamID;
 
         // Get Premium info from backpack.tf
-        this.getBPTFAccountInfo().catch(() => {
-            // Ignore error
+        this.getBPTFAccountInfo().catch(err => {
+            log.error('Error getting Backpack.tf account info', err);
         });
 
         if (this.isCraftingManual === false) {
@@ -327,8 +326,8 @@ export default class MyHandler extends Handler {
             const dw = this.opt.discordWebhook.sendAlert;
             const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
 
-            const msg = `All items below has been updated with partial price:\n\n• ${bulkUpdatedPartiallyPriced.join(
-                '\n --- '
+            const msg = `All items below has been updated with partial price:\n\n- ${bulkUpdatedPartiallyPriced.join(
+                '\n- '
             )}`;
 
             if (this.opt.sendAlert.enable && this.opt.sendAlert.partialPrice.onBulkUpdatePartialPriced) {
@@ -439,6 +438,15 @@ export default class MyHandler extends Handler {
             this.bot.client.setPersona(EPersonaState.Online);
             this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
         }
+    }
+
+    onDisconnected(eresult: number, msg?: string): void {
+        log.warn('Lost connection to Steam', { eresult, msg });
+        // Connection will be handled by Bot.onDisconnected
+    }
+
+    onLoggedOff(): void {
+        log.info('Logged off from Steam');
     }
 
     async onMessage(steamID: SteamID, message: string): Promise<void> {
@@ -640,7 +648,7 @@ export default class MyHandler extends Handler {
                     }
                 }
 
-                let totalGeneric = 0;
+                let totalGeneric: number;
                 // assign amount for sku
                 if (exchange[which].pricedAssetSkus.has(sku)) {
                     totalGeneric = items[which][sku].length - exchange[which].pricedAssetSkuTotals[sku];
@@ -2003,7 +2011,7 @@ export default class MyHandler extends Handler {
                     meta: meta
                 };
             } else {
-                // hhhmmmmm should we combine this?
+                // manual review disabled, decline any offer with any reason
                 if (hasOverstocked) {
                     offer.log('info', 'is offering too many, declining...');
 
@@ -2052,6 +2060,28 @@ export default class MyHandler extends Handler {
                         reason: '🟪_DUPE_CHECK_FAILED',
                         meta: meta
                     };
+                } else if (hasEscrowCheckFailed) {
+                    if (isIgnoreEscrowCheckFailed) {
+                        // Valid offer but failed to escrow check and manual review disabled
+                        // and options.offerReceived.escrowCheckFailed.ignoreFailed=true
+                        return;
+                    } // else decline
+                    return {
+                        action: 'decline',
+                        reason: '⬜_ESCROW_CHECK_FAILED',
+                        meta: meta
+                    };
+                } else if (hasBannedCheckFailed) {
+                    if (isIgnoreBannedCheckFailed) {
+                        // Valid offer but failed to ban check and manual review disabled
+                        // and options.offerReceived.bannedCheckFailed.ignoreFailed=true
+                        return;
+                    } // else decline
+                    return {
+                        action: 'decline',
+                        reason: '⬜_BANNED_CHECK_FAILED',
+                        meta: meta
+                    };
                 } else if (hasInvalidValue) {
                     // We are offering more than them, decline the offer
                     offer.log('info', 'is not offering enough, declining...');
@@ -2064,7 +2094,7 @@ export default class MyHandler extends Handler {
                 }
             }
         }
-
+        // else nothing wrong, process accept offer
         offer.log(
             'trade',
             `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
@@ -2094,6 +2124,7 @@ export default class MyHandler extends Handler {
         preAcceptMessageOpt: OfferType,
         itemsLarge: boolean
     ): void {
+        const prefix = bot.getPrefix(steamID);
         if (itemsLarge) {
             bot.sendMessage(
                 steamID,
@@ -2101,7 +2132,7 @@ export default class MyHandler extends Handler {
                     ? preAcceptMessageOpt.largeOffer
                     : 'I have accepted your offer. The trade may take a while to finalize due to it being a large offer.' +
                           ' If the trade does not finalize after 5-10 minutes has passed, please send your offer again, ' +
-                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                          `or add me and use the ${prefix}sell/${prefix}sellcart or ${prefix}buy/${prefix}buycart command.`
             );
         } else {
             bot.sendMessage(
@@ -2110,7 +2141,7 @@ export default class MyHandler extends Handler {
                     ? preAcceptMessageOpt.smallOffer
                     : 'I have accepted your offer. The trade will be finalized shortly.' +
                           ' If the trade does not finalize after 1-2 minutes has passed, please send your offer again, ' +
-                          'or add me and use the !sell/!sellcart or !buy/!buycart command.'
+                          `or add me and use the ${prefix}sell/${prefix}sellcart or ${prefix}buy/${prefix}buycart command.`
             );
         }
     }
@@ -2221,20 +2252,22 @@ export default class MyHandler extends Handler {
                 }
             }
 
-            if (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] && !this.sentSummary[offer.id]) {
+            if (
+                (offer.state === TradeOfferManager.ETradeOfferState['Accepted'] ||
+                    offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) &&
+                !this.sentSummary[offer.id]
+            ) {
                 // Only run this if the bot handled the offer and do not send again if already sent once
 
                 clearTimeout(this.resetSentSummaryTimeout);
                 this.sentSummary[offer.id] = true;
 
-                offer.data('isAccepted', true);
-                offer.log('trade', 'has been accepted.');
-
-                // Auto sell and buy keys if ref < minimum
+                const isAcceptedWithEscrow = offer.state === TradeOfferManager.ETradeOfferState['InEscrow'];
+                offer.data(`isAccepted${isAcceptedWithEscrow ? '_withEscrow' : ''}`, true);
+                offer.log('trade', `has been accepted${isAcceptedWithEscrow ? ' with trade hold' : ''}.`);
 
                 this.autokeys.check();
-
-                const result = processAccepted(offer, this.bot, timeTakenToComplete);
+                const result = processAccepted(offer, this.bot, timeTakenToComplete, isAcceptedWithEscrow);
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
@@ -2420,6 +2453,7 @@ export default class MyHandler extends Handler {
             log.debug(`Now friends with ${steamID.getSteamID64()}`);
         }
 
+        const prefix = this.bot.getPrefix(steamID);
         const isAdmin = this.bot.isAdmin(steamID);
         setImmediate(() => {
             if (!this.bot.friends.isFriend(steamID)) {
@@ -2444,8 +2478,8 @@ export default class MyHandler extends Handler {
                         this.opt.customMessage.welcome
                             ? this.opt.customMessage.welcome
                                   .replace(/%name%/g, '')
-                                  .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
-                            : `Hi! If you don't know how things work, please type "!${isAdmin ? 'help' : 'how2trade'}"`
+                                  .replace(/%admin%/g, isAdmin ? `${prefix}help` : `${prefix}how2trade`)
+                            : `Hi! If you don't know how things work, please type "${prefix}${isAdmin ? 'help' : 'how2trade'}"`
                     );
                 }
 
@@ -2473,9 +2507,9 @@ export default class MyHandler extends Handler {
                 this.opt.customMessage.welcome
                     ? this.opt.customMessage.welcome
                           .replace(/%name%/g, friend.player_name)
-                          .replace(/%admin%/g, isAdmin ? '!help' : '!how2trade')
+                          .replace(/%admin%/g, isAdmin ? `${prefix}help` : `${prefix}how2trade`)
                     : `Hi ${friend.player_name}! If you don't know how things work, please type ` +
-                          `"!${isAdmin ? 'help' : 'how2trade'}"`
+                          `"${prefix}${isAdmin ? 'help' : 'how2trade'}"`
             );
         });
     }
@@ -2627,8 +2661,7 @@ export default class MyHandler extends Handler {
         if (Object.keys(pricelist).length === 0) {
             // Ignore errors
             await this.bot.listings.removeAll().catch(err => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                log.error('Error on removing all listings: ', filterAxiosError(err));
+                log.error('Error on removing all listings: ', err);
             });
         }
 
@@ -2739,6 +2772,10 @@ export default class MyHandler extends Handler {
         ) {
             sendTf2ItemBroadcast(this.bot, message, username, wasDestruction, defindex);
         }
+    }
+
+    onSchemaUpdate(): void {
+        this.bot.setProperties();
     }
 
     refreshPollDataPath() {

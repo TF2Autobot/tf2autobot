@@ -1,6 +1,5 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import filterAxiosError from '@tf2autobot/filter-axios-error';
 import { PricerOptions } from '../../../classes/IPricer';
+import { apiRequest, Method } from '../../apiRequest';
 
 export interface PricesCurrency {
     keys: number;
@@ -75,47 +74,36 @@ export default class CustomPricerApi {
     ) {}
 
     private apiRequest<R extends CustomPricesResponse>(
-        httpMethod: string,
+        httpMethod: Method,
         path: string,
         params?: Record<string, any>,
         data?: Record<string, any>
     ): Promise<R> {
-        const options: AxiosRequestConfig = {
-            method: httpMethod,
-            url: `${this.url ? this.url : 'https://api.prices.tf'}${path}`,
-            headers: {
-                // This one is okay to keep I guess
-                'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
-            },
-            timeout: 30000
-        };
-
-        if (this.apiToken) {
-            options.headers['Authorization'] = `Token ${this.apiToken}`;
-        }
-
-        if (params) {
-            options.params = params;
-        }
-
-        if (data) {
-            options.data = data;
-        }
-
         return new Promise((resolve, reject) => {
-            axios(options)
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                .then(response => resolve(response.data))
-                .catch((err: AxiosError) => reject(filterAxiosError(err)));
+            apiRequest({
+                url: `${this.url ? this.url : 'https://pricedb.io/api'}${path}`,
+                method: httpMethod,
+                headers: {
+                    'User-Agent': 'TF2Autobot@' + process.env.BOT_VERSION
+                },
+                apiToken: this.apiToken,
+                params,
+                data,
+                timeout: 30000
+            })
+                .then(response => resolve(response as R))
+                .catch(err => reject(err));
         });
     }
 
     requestCheck(sku: string): Promise<CustomPricerPricesRequestCheckResponse> {
-        return this.apiRequest('POST', `/items/${sku}`, { source: 'bptf' });
+        // If no url, since we default to pricedb, then the `items` endpoint should become `item`
+        // https://docs.pricedb.io/docs/pricedb#endpoint-get-api-items
+        return this.apiRequest('POST', `/item${this.url ? '' : 's'}/${sku}`, { source: 'bptf' });
     }
 
     getPrice(sku: string): Promise<CustomPricesGetItemPriceResponse> {
-        return this.apiRequest('GET', `/items/${sku}`, { src: 'bptf' });
+        return this.apiRequest('GET', `/item${this.url ? '' : 's'}/${sku}`, { src: 'bptf' });
     }
 
     getPricelist(): Promise<CustomPricesGetPricelistResponse> {
