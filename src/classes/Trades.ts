@@ -124,7 +124,8 @@ export default class Trades {
         }
 
         offer.log('info', 'received offer');
-        this.bot.manager.pollInterval = -1; // Temporarily disable polling trade offers
+        log.debug('Temporarily disable pollInterval.');
+        this.bot.manager.pollInterval = -1;
         this.enqueueOffer(offer);
     }
 
@@ -328,12 +329,14 @@ export default class Trades {
                         if (this.receivedOffers.length === 0) {
                             // no more offers in queue, reset polling trade offers
 
+                            log.debug('pollInterval re-enabled.');
                             this.bot.manager.pollInterval = 10 * 1000;
                             const now = dayjs();
                             const timeDiffInMs = now.diff(this.bot.lastTimeCallingDoPoll);
                             if (timeDiffInMs >= 10000) {
                                 // Make sure to call doPoll only if first time or last call is more than or equal to 10 seconds
                                 this.bot.lastTimeCallingDoPoll = now.toDate();
+                                log.debug('doPoll called.');
                                 this.bot.manager.doPoll();
                             }
                         }

@@ -36,7 +36,8 @@ export default class CartQueue {
         log.debug(`Added cart to queue at position ${position}`);
 
         this.carts.push(cart);
-        this.bot.manager.pollInterval = -1; // Temporarily disable trade offer polling
+        log.debug('Temporarily disable pollInterval.');
+        this.bot.manager.pollInterval = -1;
 
         setImmediate(() => {
             // Using set immediate so that the queue will first be handled when done with this event loop cycle
@@ -205,12 +206,14 @@ export default class CartQueue {
         if (this.busy || this.carts.length === 0) {
             log.debug('Already handling queue or queue is empty');
 
+            log.debug('pollInterval re-enabled.');
             this.bot.manager.pollInterval = 10 * 1000;
             const now = dayjs();
             const timeDiffInMs = now.diff(this.bot.lastTimeCallingDoPoll);
             if (timeDiffInMs >= 10000) {
                 // Make sure to call doPoll only if first time or last call is more than or equal to 10 seconds
                 this.bot.lastTimeCallingDoPoll = now.toDate();
+                log.debug('doPoll called.');
                 this.bot.manager.doPoll();
             }
 
