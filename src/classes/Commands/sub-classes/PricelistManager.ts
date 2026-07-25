@@ -196,7 +196,7 @@ export default class PricelistManagerCommands {
             });
     }
 
-    async addbulkCommand(steamID: SteamID, message: string): Promise<void> {
+    async addbulkCommand(steamID: SteamID, message: string, prefix: string): Promise<void> {
         if (PricelistManagerCommands.isBulkOperation) {
             return this.bot.sendMessage(
                 steamID,
@@ -209,8 +209,8 @@ export default class PricelistManagerCommands {
         if (!commandRemoved.includes('\n')) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Incorrect usage. If you want to only add one item, please use the !add command.\n` +
-                    `Correct usage example: !addbulk sku=5021;6\nsku=30186;6&intent=buy\nsku=30994;6&sell.metal=4&buy.metal=1\n...` +
+                `❌ Incorrect usage. If you want to only add one item, please use the ${prefix}add command.\n` +
+                    `Correct usage example: ${prefix}addbulk sku=5021;6\nsku=30186;6&intent=buy\nsku=30994;6&sell.metal=4&buy.metal=1\n...` +
                     `(separated by a new line)`
             );
         }
@@ -516,7 +516,7 @@ export default class PricelistManagerCommands {
         if (AutoAddQueue.isRunning()) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Autoadd is still running. Please wait until it's completed or send !stopautoadd to stop.`
+                `❌ Autoadd is still running. Please wait until it's completed or send ${prefix}stopautoadd to stop.`
             );
         }
 
@@ -1158,7 +1158,7 @@ export default class PricelistManagerCommands {
             });
     }
 
-    async updatebulkCommand(steamID: SteamID, message: string): Promise<void> {
+    async updatebulkCommand(steamID: SteamID, message: string, prefix: string): Promise<void> {
         if (PricelistManagerCommands.isBulkOperation) {
             return this.bot.sendMessage(
                 steamID,
@@ -1171,8 +1171,8 @@ export default class PricelistManagerCommands {
         if (!commandRemoved.includes('\n')) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Incorrect usage. If you want to only update one item, please use the !update command.\n` +
-                    `Correct usage example: !updatebulk sku=5021;6\nsku=30186;6&intent=buy\nsku=30994;6&sell.metal=4&buy.metal=1\n...` +
+                `❌ Incorrect usage. If you want to only update one item, please use the ${prefix}update command.\n` +
+                    `Correct usage example: ${prefix}updatebulk sku=5021;6\nsku=30186;6&intent=buy\nsku=30994;6&sell.metal=4&buy.metal=1\n...` +
                     `(separated by a new line)`
             );
         }
@@ -1199,7 +1199,7 @@ export default class PricelistManagerCommands {
             if (params.all !== undefined) {
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ Bulk update operation aborted: "all" parameter can only be used with the !update command!`
+                    `❌ Bulk update operation aborted: "all" parameter can only be used with the ${prefix}update command!`
                 );
             }
 
@@ -1658,12 +1658,12 @@ export default class PricelistManagerCommands {
             }
 
             const removeCount = pricelistLength - Object.keys(newPricelist).length;
-            if (params.i_am_sure !== 'yes_i_am') {
+            if (params.confirm !== 'yes' || params.confirm !== true) {
                 return this.bot.sendMessage(
                     steamID,
                     '/pre ⚠️ Are you sure that you want to remove ' +
                         pluralize('item', removeCount, true) +
-                        '? Try again with i_am_sure=yes_i_am'
+                        '? Try again with confirm=true or confirm=yes'
                 );
             }
 
@@ -1748,7 +1748,7 @@ export default class PricelistManagerCommands {
             });
     }
 
-    removebulkCommand(steamID: SteamID, message: string): void {
+    removebulkCommand(steamID: SteamID, message: string, prefix: string): void {
         if (PricelistManagerCommands.isBulkOperation) {
             return this.bot.sendMessage(
                 steamID,
@@ -1761,8 +1761,8 @@ export default class PricelistManagerCommands {
         if (!commandRemoved.includes('\n')) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Incorrect usage. If you want to only remove one item, please use the !remove command.\n` +
-                    `Correct usage example: !removebulk sku=5021;6\nsku=30186;6\nsku=30994;6\nitem=Genuine Horace\n...` +
+                `❌ Incorrect usage. If you want to only remove one item, please use the ${prefix}remove command.\n` +
+                    `Correct usage example: ${prefix}removebulk sku=5021;6\nsku=30186;6\nsku=30994;6\nitem=Genuine Horace\n...` +
                     `(separated by a new line)`
             );
         }
@@ -1783,7 +1783,7 @@ export default class PricelistManagerCommands {
             if (params.all !== undefined) {
                 return this.bot.sendMessage(
                     steamID,
-                    `❌ Bulk remove operation aborted: "all" parameter can only be used with the !remove command!`
+                    `❌ Bulk remove operation aborted: "all" parameter can only be used with the ${prefix}remove command!`
                 );
             }
 
@@ -2165,7 +2165,7 @@ export default class PricelistManagerCommands {
         PricelistManagerCommands.isSending = false;
     }
 
-    async findCommand(steamID: SteamID, message: string): Promise<void> {
+    async findCommand(steamID: SteamID, message: string, prefix: string): Promise<void> {
         if (PricelistManagerCommands.isSending) {
             return this.bot.sendMessage(steamID, '❌ Please wait.');
         }
@@ -2183,8 +2183,8 @@ export default class PricelistManagerCommands {
         )) {
             return this.bot.sendMessage(
                 steamID,
-                '⚠️ Only parameters available for !find command: enabled, max, min, intent,' +
-                    ' promoted, autoprice, isPartialPriced, or group\nExample: !find intent=bank&max=2'
+                `⚠️ Only parameters available for ${prefix}find command: enabled, max, min, intent,` +
+                    ` promoted, autoprice, isPartialPriced, or group\nExample: ${prefix}find intent=bank&max=2`
             );
         }
 

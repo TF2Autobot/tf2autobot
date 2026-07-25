@@ -2,7 +2,7 @@ import { TradeOffer } from '@tf2autobot/tradeoffer-manager';
 import { quickLinks, sendWebhook } from './utils';
 import { Webhook } from './interfaces';
 import log from '../../lib/logger';
-import { pure, summarizeToChat, listItems, replace, ValueDiff } from '../../lib/tools/export';
+import { pure, summarizeToChat, listItems, replace, ValueDiff, Links } from '../../lib/tools/export';
 
 import Bot from '../Bot';
 import { KeyPrices } from '../Pricelist';
@@ -145,7 +145,7 @@ export default function sendOfferReview(
                                               ? 'manual'
                                               : isCustomPricer
                                                 ? 'custom-pricer'
-                                                : 'prices.tf'
+                                                : 'pricedb.io'
                                       })`
                                     : '') +
                                 (isShowInventory
@@ -211,10 +211,4 @@ interface Review {
     duped: string[];
     dupedFailed: string[];
     highValue: string[];
-}
-
-interface Links {
-    steam: string;
-    bptf: string;
-    steamrep: string;
 }

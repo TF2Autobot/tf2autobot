@@ -185,12 +185,12 @@ export async function sendToAdmin(
     const message3 = list !== '-' ? `\n\nItem lists:\n${list}` : '';
 
     const message4 =
-        `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nSteamREP: ${links.steamrep}` +
+        `\n\nSteam: ${links.steam}\nBackpack.tf: ${links.bptf}\nRep.tf: ${links.reptf}` +
         `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +
-        ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'prices.tf'})` +
+        ` (${keyPrices.src === 'manual' ? 'manual' : isCustomPricer ? 'custom-pricer' : 'pricedb.io'})` +
         `\n${cTTotalItems} ${currentItems}${slots !== undefined ? `/${slots}` : ''}` +
         `\n${cTPureStock} ${t.pure.stock(bot).join(', ').toString()}` +
-        `\n\n⚠️ Send "${prefix}accept ${offer.id}" to accept or "${prefix}decline ${offer.id}" to decline this offer.` +
+        `\n\n ⚠️ Send "${prefix}accept ${offer.id}" to accept or "${prefix}decline ${offer.id}" to decline this offer.` +
         `\n\nVersion ${process.env.BOT_VERSION}`;
 
     const message = message1 + message2 + message3 + message4;

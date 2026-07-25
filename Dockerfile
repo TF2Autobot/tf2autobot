@@ -8,7 +8,7 @@ COPY . /app
 
 RUN npm install pm2 -g && \
     cd /app && \
-    npm install && \
+    npm ci --no-audit && \
     npm run build && \
     rm -rf src/
 

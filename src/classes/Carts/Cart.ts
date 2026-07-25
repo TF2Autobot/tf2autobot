@@ -582,7 +582,7 @@ export default abstract class Cart {
                     Cookie: 'user-id=' + this.bot.userID
                 },
                 params: {
-                    key: process.env.BPTF_API_KEY,
+                    key: this.bot.options.bptfApiKey,
                     steamids: steamID64
                 }
             })

@@ -25,12 +25,15 @@ export default class CraftingCommands {
         this.bot = bot;
     }
 
-    craftTokenCommand(steamID: SteamID, message: string): void {
+    craftTokenCommand(steamID: SteamID, message: string, prefix: string): void {
         const opt = this.bot.options.crafting;
         if (opt.manual === false) {
             return this.bot.sendMessage(
                 steamID,
-                '❌ Please set crafting.manual option to true in order to use this command.'
+                `❌ Please set crafting.manual option to true in order to use this command.` +
+                    `\n- Check current settings with "${prefix}options crafting",` +
+                    `\n- Enable manual crafting with "${prefix}config crafting.manual=true"` +
+                    `\n\n ⚠️ It's recommended to disable manual crafting once you're done.`
             );
         }
 
@@ -54,7 +57,7 @@ export default class CraftingCommands {
         if (parts.length < 2) {
             return this.bot.sendMessage(
                 steamID,
-                '❌ Wrong syntax. Correct syntax: !craftToken <tokenName> <amount>' +
+                `❌ Wrong syntax. Correct syntax: ${prefix}craftToken <tokenName> <amount>` +
                     '\n - TokenName: one of the 9 TF2 class characters, or "primary"/"secondary"/"melee"/"pda2" slot' +
                     '\n - amount: Must be an integer, or "max"'
             );

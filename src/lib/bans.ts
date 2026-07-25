@@ -3,7 +3,6 @@ import log from '../lib/logger';
 import Bot from '../classes/Bot';
 import { ReputationCheck } from '../classes/Options';
 import { LeveledLogMethod } from 'winston';
-import { axiosAbortSignal } from './helpers';
 import { apiRequest } from './apiRequest';
 
 export type Contents = { [website: string]: string };
@@ -17,10 +16,6 @@ interface SiteResult {
     content?: string;
 }
 
-interface SiteResultBptf extends SiteResult {
-    isSteamRepBanned: boolean;
-}
-
 interface BansEntry {
     bot: Bot;
     userID?: string;
@@ -31,17 +26,15 @@ interface BansEntry {
 export interface ResultSources {
     bptf?: SiteResult;
     mptf?: SiteResult;
-    steamrep?: SiteResult;
     untrusted?: SiteResult;
 }
 
-type Sites = 'TF2Autobot' | 'Marketplace.tf' | 'Backpack.tf' | 'Steamrep.com';
+type Sites = 'TF2Autobot' | 'Marketplace.tf' | 'Backpack.tf';
 
 interface RepAutobotTfContents {
     TF2Autobot: SiteResult | 'Error';
     'Marketplace.tf': SiteResult | 'Error';
     'Backpack.tf': SiteResult | 'Error';
-    'Steamrep.com': SiteResult | 'Error';
 }
 
 interface RepAutobotTf {
@@ -55,10 +48,6 @@ interface RepAutobotTf {
 
 export default class Bans {
     private _isBptfBanned: boolean = null;
-
-    private _isBptfSteamRepBanned: boolean = null;
-
-    private _isSteamRepBanned: boolean = null;
 
     private _isCommunityBanned: boolean = null;
 
@@ -110,8 +99,8 @@ export default class Bans {
                 }
             };
             const finalize = (results: ResultSources): IsBanned => {
-                const { bptf, mptf, steamrep, untrusted } = results;
-                const validResults = [bptf, mptf, steamrep, untrusted].filter(r => !!r);
+                const { bptf, mptf, untrusted } = results;
+                const validResults = [bptf, mptf, untrusted].filter(r => !!r);
                 const haveResults = validResults.length > 0;
                 if (haveResults) {
                     result = {
@@ -136,35 +125,21 @@ export default class Bans {
                             ? `banned${untrusted.content !== '' ? ` - ${untrusted.content}` : ''}`
                             : 'clean';
                     }
-
-                    if (steamrep) {
-                        result.contents['Steamrep.com:'] = steamrep.isBanned
-                            ? `banned${steamrep.content !== '' ? ` - ${steamrep.content}` : ''}`
-                            : 'clean';
-                    }
                 }
                 this.logIsBanned(result);
                 return result;
             };
 
-            // Else if rep.tf is not as primary, check from each website first
-            return await Promise.all([
-                this.isListedUntrusted(),
-                this.isMptfBanned(),
-                this.isSteamRepMarked(),
-                this.isBptfBanned()
-            ])
-                .then(([untrusted, mptf, steamrep, bptf]) => {
+            return await Promise.all([this.isListedUntrusted(), this.isMptfBanned(), this.isBptfBanned()])
+                .then(([untrusted, mptf, bptf]) => {
                     // If all success, proceed
-                    return finalize({ bptf, mptf, steamrep, untrusted });
+                    return finalize({ bptf, mptf, untrusted });
                 })
                 .catch(err => {
                     // Else if an error occurred, check if all cache say you are okay
                     if (
                         ![
                             this._isBptfBanned,
-                            this._isBptfSteamRepBanned,
-                            this._isSteamRepBanned,
                             this._isCommunityBanned,
                             this.repOpt.checkMptfBanned && this._isMptfBanned
                         ].some(b => b)
@@ -221,40 +196,11 @@ export default class Bans {
             })
                 .then(result => {
                     this._isBptfBanned = result.isBanned;
-                    this._isBptfSteamRepBanned = result.isSteamRepBanned;
-
                     return resolve({ isBanned: this._isBptfBanned, content: result.content });
                 })
                 .catch(err => {
                     log.warn('Failed to get data from backpack.tf');
                     log.debug(err);
-                    return resolve(undefined);
-                });
-        });
-    }
-
-    private isSteamRepMarked(): Promise<SiteResult | undefined> {
-        return new Promise(resolve => {
-            apiRequest<SteamRep>({
-                method: 'GET',
-                url: 'https://steamrep.com/api/beta4/reputation/' + this.steamID,
-                params: {
-                    json: 1
-                }
-            })
-                .then(body => {
-                    const isSteamRepBanned = body.steamrep.reputation?.summary.toLowerCase().indexOf('scammer') !== -1;
-                    const fullRepInfo = body.steamrep.reputation?.full ?? '';
-
-                    this._isSteamRepBanned = isSteamRepBanned;
-                    return resolve({ isBanned: isSteamRepBanned, content: fullRepInfo });
-                })
-                .catch(err => {
-                    log.warn('Failed to get data from SteamRep');
-                    log.debug(err);
-                    if (this._isBptfSteamRepBanned !== null) {
-                        return resolve({ isBanned: this._isBptfSteamRepBanned });
-                    }
                     return resolve(undefined);
                 });
         });
@@ -315,7 +261,7 @@ export default class Bans {
             apiRequest<UntrustedJson>({
                 method: 'GET',
                 url: 'https://raw.githubusercontent.com/TF2Autobot/untrusted-steam-ids/master/untrusted.min.json',
-                signal: axiosAbortSignal(60000)
+                timeout: 60000
             })
                 .then(body => {
                     const results = body.steamids[this.steamID];
@@ -352,7 +298,7 @@ export function isBptfBanned({
     bptfApiKey: string;
     userID: string;
     showLog?: boolean;
-}): Promise<SiteResultBptf> {
+}): Promise<SiteResult> {
     return new Promise((resolve, reject) => {
         apiRequest<BPTFGetUserInfo>({
             method: 'GET',
@@ -370,10 +316,9 @@ export function isBptfBanned({
                 const user = body.users[steamID];
                 const isBptfBanned =
                     user.bans && (user.bans.all !== undefined || user.bans['all features'] !== undefined);
-                const isSteamRepBanned = user.bans ? user.bans.steamrep_scammer === 1 : false;
                 const banReason = user.bans ? (user.bans.all?.reason ?? user.bans['all features']?.reason ?? '') : '';
 
-                return resolve({ isBanned: isBptfBanned, content: banReason, isSteamRepBanned });
+                return resolve({ isBanned: isBptfBanned, content: banReason });
             })
             .catch(err => {
                 if (err) {
@@ -401,27 +346,6 @@ interface MptfResult {
 interface MptfBan {
     time: number;
     type: string;
-}
-
-interface SteamRep {
-    steamrep: Details;
-}
-
-interface Details {
-    flags: Flags;
-    steamID32?: string;
-    steamID64?: string;
-    steamrepurl?: string;
-    reputation?: Reputation;
-}
-
-interface Flags {
-    status: string;
-}
-
-interface Reputation {
-    full?: string;
-    summary?: string;
 }
 
 interface UntrustedJson {

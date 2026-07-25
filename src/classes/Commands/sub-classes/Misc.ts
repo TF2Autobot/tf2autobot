@@ -30,7 +30,7 @@ export default class MiscCommands {
         );
     }
 
-    miscCommand(steamID: SteamID, command: Misc, message?: string): void {
+    miscCommand(steamID: SteamID, command: Misc, prefix: string, message?: string): void {
         const opt = this.bot.options.commands[command];
         if (!opt.enable) {
             if (!this.bot.isAdmin(steamID)) {
@@ -114,10 +114,10 @@ export default class MiscCommands {
             const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
             let reply = '';
 
-            if (itemNameOrSku !== '!sku') {
+            if (itemNameOrSku !== `${prefix}sku`) {
                 // I don't remember why not `!sku` here.
                 let sku: string = itemNameOrSku;
-                if (itemNameOrSku !== '!stock') {
+                if (itemNameOrSku !== `${prefix}stock`) {
                     if (!testPriceKey(itemNameOrSku)) {
                         // Receive name
                         sku = this.bot.schema.getSkuFromName(itemNameOrSku);
