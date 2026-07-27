@@ -17,6 +17,7 @@ import fs from 'fs';
 import path from 'path';
 import * as files from '../lib/files';
 import { isUsableRefreshToken } from '../lib/refreshToken';
+import { getSteamMaintenanceDelay } from '../lib/steamMaintenance';
 
 import DiscordBot from './DiscordBot';
 import { Message as DiscordMessage } from 'discord.js';
@@ -1768,11 +1769,51 @@ export default class Bot {
             return;
         }
 
+        if (this.deferReconnectForSteamMaintenance()) {
+            return;
+        }
+
         this.attemptReconnect();
+    }
+
+    private deferReconnectForSteamMaintenance(resetAttempts = false): boolean {
+        const maintenanceDelay = getSteamMaintenanceDelay();
+        if (maintenanceDelay === null) {
+            return false;
+        }
+
+        if (resetAttempts) {
+            this.reconnectAttempts = 0;
+        }
+
+        this.isReconnecting = true;
+        if (this.reconnectTimeout) {
+            return true;
+        }
+
+        log.warn(
+            `Deferring Steam recovery for ${Math.ceil(maintenanceDelay / 60000)} minutes during weekly maintenance.`
+        );
+        this.reconnectTimeout = setTimeout(() => {
+            this.reconnectTimeout = null;
+
+            if (this.botManager.isStopping) {
+                this.resetReconnectionState();
+                return;
+            }
+
+            this.attemptReconnect();
+        }, maintenanceDelay);
+
+        return true;
     }
 
     private restartAfterSteamRecoveryFailure(err: Error): void {
         if (this.recoveryRestartRequested) return;
+        if (this.deferReconnectForSteamMaintenance(true)) {
+            return;
+        }
+
         this.recoveryRestartRequested = true;
         log.error('Steam recovery failed; restarting the bot.', err);
         void this.botManager
@@ -1793,6 +1834,10 @@ export default class Bot {
         }
 
         const maxAttempts = reconnectConfig.maxAttempts ?? 5;
+        if (this.deferReconnectForSteamMaintenance(this.reconnectAttempts >= maxAttempts)) {
+            return;
+        }
+
         if (this.reconnectAttempts >= maxAttempts) {
             this.restartAfterSteamRecoveryFailure(new Error('Max reconnection attempts reached'));
             return;
