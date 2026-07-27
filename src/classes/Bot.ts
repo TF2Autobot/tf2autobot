@@ -926,7 +926,7 @@ export default class Bot {
                     async (callback): Promise<void> => {
                         log.info('Signing in to Steam...');
 
-                        this.login(await this.getRefreshToken())
+                        this.login(await this.getRefreshToken(true))
                             .then(() => {
                                 log.info('Signed in to Steam!');
 
@@ -1483,11 +1483,35 @@ export default class Bot {
         return delay * Math.pow(2, attempts - 1) + Math.floor(Math.random() * 1000);
     }
 
-    private async getRefreshToken(): Promise<string | null> {
+    private async getRefreshToken(booting: boolean = undefined): Promise<string | null> {
         const tokenPath = this.handler.getPaths.files.refreshToken;
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const refreshToken = (await files.readFile(tokenPath, false).catch(err => null)) as string;
+        if (booting) {
+            const fileAge = (await files.getFileAge(tokenPath).catch(err => {
+                log.error('Failed to get refreshToken.txt file age', err);
+                return null;
+            })) as files.FileAge;
+
+            if (fileAge !== null) {
+                const fileAgeInDays = Math.floor(fileAge.ageInDays);
+                const dateString = dayjs(fileAge.modifiedTime)
+                    .tz(this.options.timezone || 'UTC')
+                    .toString();
+                log.debug(`The refreshToken.txt file last modified was ${fileAgeInDays} days ago (${dateString})`);
+
+                if (fileAgeInDays >= 90) {
+                    log.debug('Getting fresh refreshToken...');
+                    await this.deleteRefreshToken(booting);
+                }
+            } else {
+                log.warn('Getting file age for refreshToken.txt return null (ignore if starting for the first time).');
+            }
+        }
+
+        const refreshToken = (await files.readFile(tokenPath, false).catch(err => {
+            log.error('Failed to read refreshToken.txt file', err);
+            return null;
+        })) as string;
 
         if (!refreshToken) {
             return null;
@@ -1512,11 +1536,17 @@ export default class Bot {
         return refreshToken;
     }
 
-    private async deleteRefreshToken(): Promise<void> {
+    private async deleteRefreshToken(booting: boolean = undefined): Promise<void> {
         const tokenPath = this.handler.getPaths.files.refreshToken;
 
-        await files.writeFile(tokenPath, '', false).catch(() => {
-            // Ignore error
+        await files.writeFile(tokenPath, '', false).catch(async err => {
+            log.error('Failed to rewrite refreshToken.txt file with empty string', err);
+            log.warn('Retrying with other method...');
+            await files.deleteFile(tokenPath).catch(err_ => {
+                log.error('Failed to delete refreshToken.txt file', err_);
+                // Let it crash?
+                if (booting) throw err_;
+            });
         });
     }
 
