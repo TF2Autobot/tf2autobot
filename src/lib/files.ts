@@ -99,6 +99,27 @@ export function deleteFile(p: string): Promise<void> {
     });
 }
 
+export function getFileAge(p: string): Promise<FileAge | null> {
+    return new Promise((resolve, reject) => {
+        if (!fs.existsSync(p)) {
+            return resolve(null);
+        }
+
+        try {
+            const stats = fs.statSync(p);
+            const modifiedTime = stats.mtime.getTime(); // Last modified time in ms
+            const currentTime = new Date().getTime();
+
+            const ageInMs = currentTime - modifiedTime;
+            const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
+
+            return resolve({ modifiedTime, currentTime, ageInMs, ageInDays });
+        } catch (err) {
+            return reject(err);
+        }
+    });
+}
+
 export function isWritingToFiles(): boolean {
     return filesBeingSaved !== 0;
 }
@@ -113,4 +134,11 @@ export function waitForWriting(checks = 0): Promise<void> {
             resolve(waitForWriting(checks + 1));
         });
     });
+}
+
+export interface FileAge {
+    modifiedTime: number;
+    currentTime: number;
+    ageInMs: number;
+    ageInDays: number;
 }
