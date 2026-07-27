@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - IPC
     tags-ignore:
       - "*"
   pull_request:
