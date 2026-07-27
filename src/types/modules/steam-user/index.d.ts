@@ -434,6 +434,8 @@ declare module 'steam-user' {
     }
 
     export default class SteamUser extends EventEmitter {
+        constructor(options?: { autoRelogin?: boolean; renewRefreshTokens?: boolean });
+
         steamID: SteamID;
 
         limitations: {
