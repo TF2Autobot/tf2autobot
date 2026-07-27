@@ -113,7 +113,7 @@ export function getFileAge(p: string): Promise<FileAge | null> {
             const ageInMs = currentTime - modifiedTime;
             const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
 
-            return resolve({ modifiedTime, currentTime, ageInMs, ageInDays });
+            return resolve({ modifiedTime: stats.mtime, currentTime, ageInMs, ageInDays });
         } catch (err) {
             return reject(err);
         }
@@ -137,7 +137,7 @@ export function waitForWriting(checks = 0): Promise<void> {
 }
 
 export interface FileAge {
-    modifiedTime: number;
+    modifiedTime: Date;
     currentTime: number;
     ageInMs: number;
     ageInDays: number;

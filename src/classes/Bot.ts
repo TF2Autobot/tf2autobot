@@ -1492,9 +1492,19 @@ export default class Bot {
                 return null;
             })) as files.FileAge;
 
-            if (fileAge !== null && Math.floor(fileAge.ageInDays) > 90) {
-                // call delete refreshToken
-                await this.deleteRefreshToken(booting);
+            if (fileAge !== null) {
+                const fileAgeInDays = Math.floor(fileAge.ageInDays);
+                const dateString = dayjs(fileAge.modifiedTime)
+                    .tz(this.options.timezone || 'UTC')
+                    .toString();
+                log.debug(`The refreshToken.txt file last modified was ${fileAgeInDays} days ago (${dateString})`);
+
+                if (fileAgeInDays >= 90) {
+                    log.debug('Getting fresh refreshToken...');
+                    await this.deleteRefreshToken(booting);
+                }
+            } else {
+                log.warn('Getting file age for refreshToken.txt return null (ignore if starting for the first time).');
             }
         }
 
