@@ -1433,7 +1433,7 @@ export default class Commands {
             );
         }
 
-        if (params.confirm !== 'yes' || params.confirm !== true) {
+        if (params.confirm === 'yes' || params.confirm === true) {
             return this.bot.sendMessage(
                 steamID,
                 `⚠️ Are you sure that you want to buy premium for ${pluralize('month', numMonths, true)}?` +
