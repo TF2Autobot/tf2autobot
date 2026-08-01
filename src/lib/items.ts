@@ -1,10 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import { MinimumItem } from '../types/TeamFortress2';
 import SchemaManager from '@tf2autobot/tf2-schema';
-
-import isObject from 'isobject';
 
 export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): MinimumItem {
     const schemaItem = schema.getItemByDefindex(item.defindex);
@@ -136,17 +131,8 @@ export function fixItem(item: MinimumItem, schema: SchemaManager.Schema): Minimu
         }
 
         if (series === null) {
-            const itemsGameItem = schema.raw.items_game.items[item.defindex];
-
-            if (
-                itemsGameItem.static_attrs !== undefined &&
-                itemsGameItem.static_attrs['set supply crate series'] !== undefined
-            ) {
-                if (isObject(itemsGameItem.static_attrs['set supply crate series'])) {
-                    series = itemsGameItem.static_attrs['set supply crate series'].value;
-                } else {
-                    series = itemsGameItem.static_attrs['set supply crate series'];
-                }
+            if (schema.crateSeriesList[item.defindex] !== undefined) {
+                series = schema.crateSeriesList[item.defindex];
             }
         }
 

@@ -398,12 +398,10 @@ function getTarget(item: EconItem, schema: SchemaManager.Schema): number | null 
 
     if (item.market_hash_name.includes('Strangifier')) {
         // Strangifiers
-        const gameItem = schema.raw.items_game.items[defindex];
+        const targetDefindex = schema.getStrangifierTarget(defindex);
 
-        if (gameItem.attributes !== undefined && gameItem.attributes['tool target item'] !== undefined) {
-            return parseInt(gameItem.attributes['tool target item'].value as string, 10);
-        } else if (gameItem.static_attrs !== undefined && gameItem.static_attrs['tool target item'] !== undefined) {
-            return parseInt(gameItem.static_attrs['tool target item'] as string, 10);
+        if (targetDefindex !== null) {
+            return targetDefindex;
         }
 
         // Get schema item using market_hash_name
