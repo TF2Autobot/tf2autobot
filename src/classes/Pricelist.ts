@@ -556,6 +556,9 @@ export default class Pricelist extends EventEmitter {
         if (errors !== null) {
             throw new Error(errors.join(', '));
         }
+
+        entryData.sku = SKU.fromObject(SKU.fromString(entryData.sku));
+
         if (this.hasPrice({ priceKey: entryData.id ?? entryData.sku, onlyEnabled: false })) {
             throw new Error('Item is already priced');
         }
@@ -631,6 +634,8 @@ export default class Pricelist extends EventEmitter {
         if (errors !== null) {
             return Promise.reject(new Error(errors.join(', ')));
         }
+
+        entryData.sku = SKU.fromObject(SKU.fromString(entryData.sku));
 
         if (entryData.sku === '5021;6') {
             if (entryData.buy !== undefined) {
@@ -781,7 +786,10 @@ export default class Pricelist extends EventEmitter {
                 continue;
             }
 
-            this.prices[sku] = Entry.fromData(prices[sku], this.schema);
+            const standardizeSku = SKU.fromObject(SKU.fromString(sku));
+            prices[sku].sku = standardizeSku;
+            // This might cause two different entries created with different sku arrangements to be merged
+            this.prices[standardizeSku] = Entry.fromData(prices[sku], this.schema);
         }
 
         errors = validator(this.prices, 'pricelist');
@@ -1135,7 +1143,8 @@ export default class Pricelist extends EventEmitter {
     }
 
     private handlePriceChange(data: GetItemPriceResponse): void {
-        const match = this.getPrice({ priceKey: data.sku });
+        const standardizeSku = SKU.fromObject(SKU.fromString(data.sku));
+        const match = this.getPrice({ priceKey: standardizeSku });
         const opt = this.bot.options;
         const dw = opt.discordWebhook.priceUpdate;
         const isDwEnabled = dw.enable && dw.url !== '';
@@ -1148,7 +1157,7 @@ export default class Pricelist extends EventEmitter {
                 sell: new Currencies(data.sell)
             };
         } catch (err) {
-            log.error(`Fail to update ${data.sku}`, {
+            log.error(`Fail to update ${standardizeSku} (source sku: ${data.sku})`, {
                 error: err as Error,
                 rawData: data
             });
@@ -1166,7 +1175,7 @@ export default class Pricelist extends EventEmitter {
             return;
         }
 
-        if (data.sku === '5021;6' && this.globalKeyPrices !== undefined) {
+        if (standardizeSku === '5021;6' && this.globalKeyPrices !== undefined) {
             /**New received prices data.*/
 
             const canUseKeyPricesFromSource = Pricelist.verifyKeyPrices(newPrices);
@@ -1392,7 +1401,9 @@ export default class Pricelist extends EventEmitter {
 
     static transformPricesFromPricer(prices: Item[]): { [p: string]: Item } {
         return prices.reduce((obj, i) => {
-            obj[i.sku] = i;
+            const standardizeSku = SKU.fromObject(SKU.fromString(i.sku));
+            i.sku = standardizeSku;
+            obj[standardizeSku] = i;
             return obj;
         }, {});
     }
