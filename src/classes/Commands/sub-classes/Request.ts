@@ -55,7 +55,10 @@ export default class RequestCommands {
                     } else {
                         name = this.bot.schema.getName(SKU.fromString(sku));
                     }
-                    this.bot.sendMessage(steamID, `✅ Requested pricecheck for ${name}, the item will be checked.`);
+                    this.bot.sendMessage(
+                        steamID,
+                        `✅ Requested pricecheck for ${name} (${sku}), the item will be checked.`
+                    );
                 }
             })
             .catch((err: ErrorRequest) => {
@@ -115,9 +118,8 @@ export default class RequestCommands {
             }
 
             sku = SKU.fromObject(item);
-        } else {
-            sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
         }
+        // Intentionally not standardizing the sku here
 
         const name = this.bot.schema.getName(SKU.fromString(sku));
         try {
@@ -132,7 +134,7 @@ export default class RequestCommands {
         } catch (err) {
             return this.bot.sendMessage(
                 steamID,
-                `Error getting price for ${name === null ? sku : name}: ${
+                `Error getting price for ${name === null ? sku : `${name} (${sku})`}: ${
                     (err as ErrorRequest).body && (err as ErrorRequest).body.message
                         ? (err as ErrorRequest).body.message
                         : (err as ErrorRequest).message

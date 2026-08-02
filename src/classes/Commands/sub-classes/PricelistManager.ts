@@ -147,8 +147,12 @@ export default class PricelistManagerCommands {
             params.isPartialPriced = false;
         }
 
-        if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
-            return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+        if (params.sku !== undefined) {
+            if (!testPriceKey(params.sku as string)) {
+                return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            }
+            // Standardize sku being added from here
+            params.sku = SKU.fromObject(SKU.fromString(params.sku as string));
         }
 
         if (params.sku === undefined) {
@@ -234,12 +238,16 @@ export default class PricelistManagerCommands {
 
             params.isPartialPriced = false;
 
-            if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
-                errorMessage.push(
-                    `❌ Failed to add ${params.sku as string}: "sku" should not be empty or wrong format.`
-                );
-                failed++;
-                continue;
+            if (params.sku !== undefined) {
+                if (!testPriceKey(params.sku as string)) {
+                    errorMessage.push(
+                        `❌ Failed to add ${params.sku as string}: "sku" should not be empty or wrong format.`
+                    );
+                    failed++;
+                    continue;
+                }
+                // Standardize sku being added from here
+                params.sku = SKU.fromObject(SKU.fromString(params.sku as string));
             }
 
             if (params.sku === undefined) {
@@ -930,8 +938,12 @@ export default class PricelistManagerCommands {
                 });
         }
 
-        if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
-            return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+        if (params.sku !== undefined) {
+            if (!testPriceKey(params.sku as string)) {
+                return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            }
+            // Standardize sku being updated from here
+            params.sku = SKU.fromObject(SKU.fromString(params.sku as string));
         }
 
         if (params.resetgroup) {
@@ -1203,10 +1215,14 @@ export default class PricelistManagerCommands {
                 );
             }
 
-            if (sku !== undefined && !testPriceKey(sku)) {
-                errorMessage.push(`❌ Failed to update ${sku}: "sku" should not be empty or wrong format.`);
-                failed++;
-                continue;
+            if (sku !== undefined) {
+                if (!testPriceKey(sku)) {
+                    errorMessage.push(`❌ Failed to update ${sku}: "sku" should not be empty or wrong format.`);
+                    failed++;
+                    continue;
+                }
+                // Standardize sku being updated from here
+                sku = SKU.fromObject(SKU.fromString(sku));
             }
 
             if (sku === undefined) {
@@ -1691,8 +1707,12 @@ export default class PricelistManagerCommands {
 
         let sku = params.sku as string;
 
-        if (sku !== undefined && !testPriceKey(sku)) {
-            return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+        if (sku !== undefined) {
+            if (!testPriceKey(sku)) {
+                return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            }
+            // Standardize sku being removed from here
+            sku = SKU.fromObject(SKU.fromString(sku));
         }
 
         if (params.item !== undefined) {
@@ -1788,10 +1808,14 @@ export default class PricelistManagerCommands {
                 );
             }
 
-            if (sku !== undefined && !testPriceKey(sku)) {
-                errorMessage.push(`❌ Failed to remove ${sku}: "sku" should not be empty or wrong format.`);
-                failed++;
-                continue;
+            if (sku !== undefined) {
+                if (!testPriceKey(sku)) {
+                    errorMessage.push(`❌ Failed to remove ${sku}: "sku" should not be empty or wrong format.`);
+                    failed++;
+                    continue;
+                }
+                // Standardize sku being removed from here
+                sku = SKU.fromObject(SKU.fromString(sku));
             }
 
             if (sku === undefined) {
@@ -1941,8 +1965,12 @@ export default class PricelistManagerCommands {
     getCommand(steamID: SteamID, message: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(removeLinkProtocol(message)));
         let sku = params.sku as string;
-        if (sku !== undefined && !testPriceKey(sku)) {
-            return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+        if (sku !== undefined) {
+            if (!testPriceKey(sku)) {
+                return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            }
+            // Standardize sku from here
+            sku = SKU.fromObject(SKU.fromString(sku));
         }
 
         if (params.item !== undefined) {
