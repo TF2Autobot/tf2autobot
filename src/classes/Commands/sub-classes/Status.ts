@@ -110,7 +110,8 @@ export default class StatusCommands {
     statsWipeCommand(steamID: SteamID, message: string, prefix: string): void {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
 
-        if (params.confirm !== 'yes' || params.confirm !== true) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        if (!['yes', true].includes(params.confirm)) {
             return this.bot.sendMessage(
                 steamID,
                 `⚠️ Are you sure you want to delete all stats?` +
