@@ -1658,7 +1658,8 @@ export default class PricelistManagerCommands {
             }
 
             const removeCount = pricelistLength - Object.keys(newPricelist).length;
-            if (params.confirm === 'yes' || params.confirm === true) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            if (!['yes', true].includes(params.confirm)) {
                 return this.bot.sendMessage(
                     steamID,
                     '/pre ⚠️ Are you sure that you want to remove ' +
