@@ -128,8 +128,12 @@ export default class ManagerCommands {
             );
         } else {
             // For use and delete commands
-            if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
-                return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            if (params.sku !== undefined) {
+                if (!testPriceKey(params.sku as string)) {
+                    return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+                }
+                // Standardize sku from here
+                params.sku = SKU.fromObject(SKU.fromString(params.sku as string));
             }
 
             if (params.assetid !== undefined && params.sku === undefined) {

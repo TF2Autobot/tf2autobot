@@ -557,8 +557,6 @@ export default class Pricelist extends EventEmitter {
             throw new Error(errors.join(', '));
         }
 
-        entryData.sku = SKU.fromObject(SKU.fromString(entryData.sku));
-
         if (this.hasPrice({ priceKey: entryData.id ?? entryData.sku, onlyEnabled: false })) {
             throw new Error('Item is already priced');
         }
@@ -634,8 +632,6 @@ export default class Pricelist extends EventEmitter {
         if (errors !== null) {
             return Promise.reject(new Error(errors.join(', ')));
         }
-
-        entryData.sku = SKU.fromObject(SKU.fromString(entryData.sku));
 
         if (entryData.sku === '5021;6') {
             if (entryData.buy !== undefined) {
