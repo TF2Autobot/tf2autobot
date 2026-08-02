@@ -788,7 +788,7 @@ export default class Pricelist extends EventEmitter {
 
             const standardizeSku = SKU.fromObject(SKU.fromString(sku));
             prices[sku].sku = standardizeSku;
-            // This might cause two different entries created with different sku arrangements to be merged
+            // This will cause two or more different entries created with different sku arrangements to be merged
             this.prices[standardizeSku] = Entry.fromData(prices[sku], this.schema);
         }
 
