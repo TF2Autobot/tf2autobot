@@ -931,7 +931,7 @@ export default class Bot {
                     async (callback): Promise<void> => {
                         log.info('Signing in to Steam...');
 
-                        this.login(await this.getRefreshToken(true))
+                        this.login(await this.getRefreshToken())
                             .then(() => {
                                 log.info('Signed in to Steam!');
 
@@ -1482,30 +1482,8 @@ export default class Bot {
         return delay * Math.pow(2, attempts - 1) + Math.floor(Math.random() * 1000);
     }
 
-    private async getRefreshToken(booting: boolean = undefined): Promise<string | null> {
+    private async getRefreshToken(): Promise<string | null> {
         const tokenPath = this.handler.getPaths.files.refreshToken;
-
-        if (booting) {
-            const fileAge = (await files.getFileAge(tokenPath).catch(err => {
-                log.error('Failed to get refreshToken.txt file age', err);
-                return null;
-            })) as files.FileAge;
-
-            if (fileAge !== null) {
-                const fileAgeInDays = Math.floor(fileAge.ageInDays);
-                const dateString = dayjs(fileAge.modifiedTime)
-                    .tz(this.options.timezone || 'UTC')
-                    .toString();
-                log.debug(`The refreshToken.txt file last modified was ${fileAgeInDays} days ago (${dateString})`);
-
-                if (fileAgeInDays >= 90) {
-                    log.debug('Getting fresh refreshToken...');
-                    await this.deleteRefreshToken();
-                }
-            } else {
-                log.warn('Getting file age for refreshToken.txt return null (ignore if starting for the first time).');
-            }
-        }
 
         const refreshToken = (await files.readFile(tokenPath, false).catch(err => {
             log.error('Failed to read refreshToken.txt file', err);
