@@ -26,7 +26,7 @@
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
     "updaterepo": true,
-    "updateMessage": "Resolves Steam HTTP 429 issue (but not if truly rate limited). If still persist please let us know.",
+    "updateMessage": "Please create a backup of your pricelist.json before updating to the latest version. Read the release note. Thank you.",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
         "@tf2autobot/bptf-listings": "^5.9.3",
