@@ -10,6 +10,7 @@ import log from '../lib/logger';
 import validator from '../lib/validator';
 import { sendWebHookPriceUpdateV1, sendAlert, sendFailedPriceUpdate } from './DiscordWebhook/export';
 import IPricer, { GetItemPriceResponse, Item } from './IPricer';
+import * as timersPromises from 'timers/promises';
 
 export enum PricelistChangedSource {
     Command = 'COMMAND',
@@ -423,15 +424,24 @@ export default class Pricelist extends EventEmitter {
 
         if (entry.autoprice && !entry.isPartialPriced && !isBulk) {
             // skip this part if autoprice is false and/or isPartialPriced is true
-            const price: GetItemPriceResponse = await this.priceSource.getPrice(entry.sku).catch(err => {
-                throw new Error(
-                    `Unable to get current prices for ${entry.sku}: ${
-                        (err as ErrorRequest).body && (err as ErrorRequest).body.message
-                            ? (err as ErrorRequest).body.message
-                            : (err as ErrorRequest).message
-                    }`
-                );
-            });
+            let price: GetItemPriceResponse;
+            try {
+                price = await this.priceSource.getPrice(entry.sku);
+            } catch (err) {
+                log.warn('Failed to get item price, retrying with legacy sku generation...', err);
+                const legacySku = SKU.fromObject(SKU.fromString(entry.sku), true);
+
+                await timersPromises.setTimeout(1000);
+                price = await this.priceSource.getPrice(legacySku).catch(err_ => {
+                    throw new Error(
+                        `Unable to get current prices for ${entry.sku}: ${
+                            (err_ as ErrorRequest).body && (err_ as ErrorRequest).body.message
+                                ? (err_ as ErrorRequest).body.message
+                                : (err_ as ErrorRequest).message
+                        }`
+                    );
+                });
+            }
 
             const newPrices = {
                 buy: new Currencies(price.buy),
@@ -529,10 +539,18 @@ export default class Pricelist extends EventEmitter {
         try {
             return await this.priceSource.getPrice(sku).then(response => new ParsedPrice(response));
         } catch (err) {
-            const errStringify = JSON.stringify(err);
-            const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
-            log.debug(`getItemPrices failed ${errMessage}`);
-            return null;
+            // Try with legacy sku
+            log.warn('getItemPrices failed, retrying with legacy sku generation...', err);
+            const legacySku = SKU.fromObject(SKU.fromString(sku), true);
+            try {
+                await timersPromises.setTimeout(1000);
+                return await this.priceSource.getPrice(legacySku).then(response => new ParsedPrice(response));
+            } catch (err_) {
+                const errStringify = JSON.stringify(err_);
+                const errMessage = errStringify === '' ? (err_ as Error)?.message : errStringify;
+                log.warn(`getItemPrices failed ${errMessage}`);
+                return null;
+            }
         }
     }
 
