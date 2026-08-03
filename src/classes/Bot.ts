@@ -170,8 +170,6 @@ export default class Bot {
 
     public autoRefreshListingsInterval: NodeJS.Timeout;
 
-    public lastTimeCallingDoPoll: Date;
-
     /**
      * Resets the reconnection state and clears any pending reconnection timeout
      */
@@ -215,10 +213,10 @@ export default class Bot {
             useAccessToken: !this.options.steamApiKey, // https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/Access-Tokens
             language: 'en',
             pollInterval: -1,
+            minimumPollInterval: 5 * 1000, // set minimum between doPoll() calls
             cancelTime: 15 * 60 * 1000,
             pendingCancelTime: 1.5 * 60 * 1000,
-            globalAssetCache: true,
-            assetCacheMaxItems: 50
+            globalAssetCache: false
         });
 
         this.bptf = new BptfLogin();
@@ -1232,7 +1230,6 @@ export default class Bot {
                     this.manager.pollInterval = 10 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
-                    this.lastTimeCallingDoPoll = dayjs().toDate();
                     this.manager.doPoll();
                     this.startVersionChecker();
                     this.initResetCacheInterval();
