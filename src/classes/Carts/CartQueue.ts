@@ -1,6 +1,5 @@
 import SteamID from 'steamid';
 import * as inspect from 'util';
-import dayjs from 'dayjs';
 import pluralize from 'pluralize';
 import Cart from './Cart';
 import Bot from '../Bot';
@@ -8,6 +7,7 @@ import log from '../../lib/logger';
 import { sendAlert } from '../DiscordWebhook/export';
 import { uptime } from '../../lib/tools/export';
 import { isBptfBanned } from '../../lib/bans';
+import { getSteamMaintenanceDelay } from '../../lib/steamMaintenance';
 
 export default class CartQueue {
     private carts: Cart[] = [];
@@ -50,14 +50,11 @@ export default class CartQueue {
         return position;
     }
 
-    private queueCheck(steamID: string): void {
-        log.debug(`Checking queue position in 3 minutes...`);
-        this.queuePositionCheck = setTimeout(
-            () => {
-                void this.queueCheckRestartBot(steamID);
-            },
-            3 * 60 * 1000
-        );
+    private queueCheck(steamID: string, delay = 3 * 60 * 1000): void {
+        log.debug(`Checking queue position in ${Math.ceil(delay / 60000)} minutes...`);
+        this.queuePositionCheck = setTimeout(() => {
+            void this.queueCheckRestartBot(steamID);
+        }, delay);
     }
 
     private async queueCheckRestartBot(steamID: string): Promise<void> {
@@ -96,17 +93,12 @@ export default class CartQueue {
                 }
             }
 
-            const now = dayjs().tz('UTC').format('dddd THH:mm');
-            const array30Minutes = [];
-            array30Minutes.length = 30;
+            const maintenanceDelay = getSteamMaintenanceDelay();
 
-            const isSteamNotGoodNow =
-                now.includes('Tuesday') && array30Minutes.some((v, i) => now.includes(`T23:${i < 10 ? `0${i}` : i}`));
-
-            if (isSteamNotGoodNow) {
-                // do not restart during Steam weekly maintenance, try again after 3 minutes
+            if (maintenanceDelay !== null) {
+                // Do not restart during Steam weekly maintenance; retry after the window.
                 clearTimeout(this.queuePositionCheck);
-                this.queueCheck(steamID);
+                this.queueCheck(steamID, maintenanceDelay);
 
                 log.warn('Failed to perform restart - Steam is not good now: ');
 
@@ -208,15 +200,7 @@ export default class CartQueue {
 
             log.debug('pollInterval re-enabled.');
             this.bot.manager.pollInterval = 10 * 1000;
-            const now = dayjs();
-            const timeDiffInMs = now.diff(this.bot.lastTimeCallingDoPoll);
-            if (timeDiffInMs >= 10000) {
-                // Make sure to call doPoll only if first time or last call is more than or equal to 10 seconds
-                this.bot.lastTimeCallingDoPoll = now.toDate();
-                log.debug('doPoll called.');
-                this.bot.manager.doPoll();
-            }
-
+            this.bot.manager.doPoll();
             return;
         }
 

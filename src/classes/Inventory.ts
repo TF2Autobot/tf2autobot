@@ -243,10 +243,7 @@ export default class Inventory {
 
             const schemaItem = this.bot.schema.getItemBySKU(sku);
             if (schemaItem) {
-                const canBeFestivized =
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    this.bot.schema.raw.items_game.items[`${schemaItem.defindex}`].tags?.can_be_festivized == 1;
-
+                const canBeFestivized = this.bot.schema.isFestivizable(schemaItem.defindex);
                 // Festivized
                 if (
                     !sku.includes(';festive') &&
