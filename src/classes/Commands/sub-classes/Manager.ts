@@ -128,15 +128,20 @@ export default class ManagerCommands {
             );
         } else {
             // For use and delete commands
-            if (params.sku !== undefined && !testPriceKey(params.sku as string)) {
-                return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+            if (params.sku !== undefined) {
+                if (!testPriceKey(params.sku as string)) {
+                    return this.bot.sendMessage(steamID, `❌ "sku" should not be empty or wrong format.`);
+                }
+                // Standardize sku from here
+                params.sku = SKU.fromObject(SKU.fromString(params.sku as string));
             }
 
             if (params.assetid !== undefined && params.sku === undefined) {
                 const targetedAssetId = params.assetid as string;
                 const sku = this.bot.inventoryManager.getInventory.findByAssetid(targetedAssetId);
 
-                if (params.confirm !== 'yes' || params.confirm !== true) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                if (!['yes', true].includes(params.confirm)) {
                     return this.bot.sendMessage(
                         steamID,
                         `⚠️ Are you sure that you want to ${command} ${
@@ -265,7 +270,8 @@ export default class ManagerCommands {
                 assetid = assetids[0];
             }
 
-            if (params.confirm !== 'yes' || params.confirm !== true) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            if (!['yes', true].includes(params.confirm)) {
                 return this.bot.sendMessage(
                     steamID,
                     `/pre ⚠️ Are you sure that you want to ${command} ${name}?` +
@@ -325,7 +331,8 @@ export default class ManagerCommands {
         const inputName = params.name as string;
 
         if (inputName !== undefined) {
-            if (params.confirm !== 'yes' || params.confirm !== true) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            if (!['yes', true].includes(params.confirm)) {
                 return this.bot.sendMessage(
                     steamID,
                     `⚠️ Are you sure that you want to change your bot's name?` +

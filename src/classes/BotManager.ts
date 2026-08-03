@@ -1,5 +1,4 @@
 import async from 'async';
-import SchemaManager from '@tf2autobot/tf2-schema';
 import pm2 from 'pm2';
 import Bot from './Bot';
 import log from '../lib/logger';
@@ -15,8 +14,6 @@ import IPricer from './IPricer';
 const REQUIRED_OPTS = ['STEAM_ACCOUNT_NAME', 'STEAM_PASSWORD', 'STEAM_SHARED_SECRET', 'STEAM_IDENTITY_SECRET'];
 
 export default class BotManager {
-    private schemaManager: SchemaManager;
-
     public bot: Bot = null;
 
     private stopRequested = false;
@@ -95,9 +92,6 @@ export default class BotManager {
                     }
 
                     this.pricer.connect(this.bot?.options.enableSocket);
-
-                    this.schemaManager = this.bot.schemaManager;
-
                     return resolve();
                 }
             );
@@ -199,21 +193,25 @@ export default class BotManager {
             this.bot.manager.pollInterval = -1;
 
             // Stop reading Discord
-            this.bot.discordBot?.stop();
+            if (this.bot.discordBot) {
+                this.bot.discordBot.stop();
+            }
 
             // Stop updating schema
-            clearTimeout(this.schemaManager?._updateTimeout);
-            clearInterval(this.schemaManager?._updateInterval);
+            if (this.bot.schemaManager) {
+                clearTimeout(this.bot.schemaManager._updateTimeout);
+                clearInterval(this.bot.schemaManager._updateInterval);
+                this.bot.schemaManager.removeAllListeners();
+            }
 
-            // Stop heartbeat and inventory timers
-            clearInterval(this.bot.listingManager?._heartbeatInterval);
-            clearInterval(this.bot.listingManager?._inventoryInterval);
+            if (this.bot.pricelist) {
+                clearInterval(this.bot.pricelist.checkAssetidInPricelistInterval);
+                this.bot.pricelist.removeAllListeners();
+            }
 
-            // Stop check assetid pricelist cache
-            clearInterval(this.bot.pricelist?.checkAssetidInPricelistInterval);
-
-            // Stop reset Reputation cache
             clearInterval(this.bot.resetRepCache);
+            clearInterval(this.bot.autoRefreshListingsInterval);
+            clearInterval(this.bot.sendStatsInterval);
 
             // Stop reconnection timeout and reset state if active
             this.bot.resetReconnectionState();
@@ -231,9 +229,14 @@ export default class BotManager {
         this.exiting = true;
 
         if (this.bot !== null) {
-            this.bot.manager.shutdown();
             this.bot.listingManager?.shutdown();
+            this.bot.listingManager?.removeAllListeners();
+            this.bot.tf2.removeAllListeners();
+            this.bot.manager.shutdown();
+            this.bot.manager.removeAllListeners();
+            this.bot.community.removeAllListeners();
             this.bot.client.logOff();
+            this.bot.client.removeAllListeners();
         }
 
         log.debug('Waiting for files to be saved');

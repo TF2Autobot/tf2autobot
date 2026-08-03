@@ -24,6 +24,7 @@ import log from '../lib/logger';
 import { exponentialBackoff } from '../lib/helpers';
 import { sendAlert } from './DiscordWebhook/export';
 import { isBptfBanned } from '../lib/bans';
+import { getSteamMaintenanceDelay } from '../lib/steamMaintenance';
 import * as t from '../lib/tools/export';
 
 type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
@@ -513,14 +514,7 @@ export default class Trades {
 
             log.debug('pollInterval re-enabled.');
             this.bot.manager.pollInterval = 10 * 1000;
-            const now = dayjs();
-            const timeDiffInMs = now.diff(this.bot.lastTimeCallingDoPoll);
-            if (timeDiffInMs >= 10000) {
-                // Make sure to call doPoll only if first time or last call is more than or equal to 10 seconds
-                this.bot.lastTimeCallingDoPoll = now.toDate();
-                log.debug('doPoll called.');
-                this.bot.manager.doPoll();
-            }
+            this.bot.manager.doPoll();
             return;
         }
 
@@ -1606,13 +1600,10 @@ export default class Trades {
         return exponentialBackoff(attempts) * STEAM_RETRY_BASE_DELAY_SECONDS;
     }
 
-    private retryToRestart(steamID: string): void {
-        this.restartOnEscrowCheckFailed = setTimeout(
-            () => {
-                void this.triggerRestartBot(steamID);
-            },
-            3 * 60 * 1000
-        );
+    private retryToRestart(steamID: string, delay = 3 * 60 * 1000): void {
+        this.restartOnEscrowCheckFailed = setTimeout(() => {
+            void this.triggerRestartBot(steamID);
+        }, delay);
     }
 
     private async triggerRestartBot(steamID: string): Promise<void> {
@@ -1657,17 +1648,12 @@ export default class Trades {
                 }
             }
 
-            const now = dayjs().tz('UTC').format('dddd THH:mm');
-            const array30Minutes = [];
-            array30Minutes.length = 30;
+            const maintenanceDelay = getSteamMaintenanceDelay();
 
-            const isSteamNotGoodNow =
-                now.includes('Tuesday') && array30Minutes.some((v, i) => now.includes(`T23:${i < 10 ? `0${i}` : i}`));
-
-            if (isSteamNotGoodNow) {
-                // do not restart during Steam weekly maintenance, try again after 3 minutes
+            if (maintenanceDelay !== null) {
+                // Do not restart during Steam weekly maintenance; retry after the window.
                 clearTimeout(this.restartOnEscrowCheckFailed);
-                this.retryToRestart(steamID);
+                this.retryToRestart(steamID, maintenanceDelay);
 
                 log.warn('Failed to perform restart - Steam is not good now: ');
 

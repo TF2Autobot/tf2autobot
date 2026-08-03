@@ -26,6 +26,11 @@ export default class PriceDbSocketManager extends EventEmitter {
         this.isConnecting = true;
         log.debug('Connecting to PriceDB WebSocket...');
 
+        if (this.socket) {
+            this.socket.removeAllListeners();
+            this.socket.disconnect();
+        }
+
         this.socket = io(this.url, {
             transports: ['websocket'],
             timeout: 10000,
@@ -77,11 +82,13 @@ export default class PriceDbSocketManager extends EventEmitter {
 
     disconnect(): void {
         if (this.socket) {
+            this.socket.removeAllListeners();
             this.socket.disconnect();
             this.socket = null;
         }
         this.isConnecting = false;
         this.reconnectAttempts = 0;
+        this.removeAllListeners();
     }
 
     init(): void {
