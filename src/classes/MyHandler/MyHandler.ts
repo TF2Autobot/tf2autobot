@@ -367,37 +367,13 @@ export default class MyHandler extends Handler {
     }
 
     onShutdown(): Promise<void> {
-        if (this.poller) {
-            clearInterval(this.poller);
-        }
-
-        if (this.refreshTimeout) {
-            clearInterval(this.refreshTimeout);
-        }
-
-        if (this.bot.sendStatsInterval) {
-            clearInterval(this.bot.sendStatsInterval);
-        }
-
-        if (this.bot.autoRefreshListingsInterval) {
-            clearInterval(this.bot.autoRefreshListingsInterval);
-        }
-
-        if (this.classWeaponsTimeout) {
-            clearTimeout(this.classWeaponsTimeout);
-        }
-
-        if (this.retryRequest) {
-            clearTimeout(this.retryRequest);
-        }
-
-        if (this.bot.periodicCheckAdmin) {
-            clearInterval(this.bot.periodicCheckAdmin);
-        }
-
-        if (this.pollDataInterval) {
-            clearInterval(this.pollDataInterval);
-        }
+        if (this.poller) clearInterval(this.poller);
+        if (this.refreshTimeout) clearInterval(this.refreshTimeout);
+        if (this.classWeaponsTimeout) clearTimeout(this.classWeaponsTimeout);
+        if (this.retryRequest) clearTimeout(this.retryRequest);
+        if (this.bot.periodicCheckAdmin) clearInterval(this.bot.periodicCheckAdmin);
+        if (this.pollDataInterval) clearInterval(this.pollDataInterval);
+        if (this.resetSentSummaryTimeout) clearTimeout(this.resetSentSummaryTimeout);
 
         return new Promise(resolve => {
             if (this.opt.autokeys.enable) {

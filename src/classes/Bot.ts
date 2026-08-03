@@ -203,8 +203,6 @@ export default class Bot {
         public options: Options,
         readonly priceSource: IPricer
     ) {
-        this.botManager = botManager;
-
         this.client = new SteamUser({ autoRelogin: false });
         this.community = new SteamCommunity();
         this.manager = new TradeOfferManager({
@@ -319,7 +317,7 @@ export default class Bot {
             } catch (err) {
                 const error = err as FetchError;
                 if (error?.status === 429) {
-                    await new Promise(resolve => setTimeout(resolve, 10000));
+                    await timersPromises.setTimeout(10000);
                     await check(steamid);
                 } else {
                     throw err;
