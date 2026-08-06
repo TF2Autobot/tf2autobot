@@ -94,7 +94,7 @@ class PriceUpdateFailedQueue {
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
             .then(() => this.dequeue())
             .catch((e: WebhookError) => {
-                log.warn(`❌ Failed to send price update error for ${sku} to Discord: `, e);
+                log.warn(`❌ Failed to send price update error for ${sku} to Discord: `, e.err);
                 if (e?.err?.status === 429) {
                     const retryAfter = (e.err.data as WebhookErrorData)?.retry_after;
                     this.sleepTime = typeof retryAfter === 'number' ? Math.ceil(retryAfter * 1000) : 3000;
