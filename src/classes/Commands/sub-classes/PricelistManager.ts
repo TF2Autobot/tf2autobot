@@ -181,8 +181,8 @@ export default class PricelistManagerCommands {
 
         let priceKey: string = undefined;
         if (params.id) {
-            priceKey = String(params.id);
             params.id = String(params.id);
+            priceKey = params.id;
             // force intent sell for assetid added
             params.intent = 1;
         }
@@ -383,8 +383,10 @@ export default class PricelistManagerCommands {
 
             let priceKey: string = undefined;
             if (params.id) {
-                priceKey = String(params.id);
                 params.id = String(params.id);
+                priceKey = params.id;
+                // force intent sell
+                params.intent = 1;
             }
             priceKey = priceKey ? priceKey : params.sku;
 
