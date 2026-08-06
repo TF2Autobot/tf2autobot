@@ -17,23 +17,16 @@ export default class PriceDbSocketManager extends EventEmitter {
         super();
     }
 
-    connect(): void {
-        if (this.socket && this.socket.connected) {
-            log.debug('PriceDB socket already connected');
-            return;
-        }
-
-        this.isConnecting = true;
-        log.debug('Connecting to PriceDB WebSocket...');
-
+    init(reconnect = false): void {
         if (this.socket) {
-            this.socket.removeAllListeners();
-            this.socket.disconnect();
+            this.shutdown(reconnect);
         }
 
         this.socket = io(this.url, {
+            forceNew: true,
             transports: ['websocket'],
             timeout: 10000,
+            autoConnect: false,
             reconnection: false // We'll handle reconnection manually
         });
 
@@ -62,6 +55,18 @@ export default class PriceDbSocketManager extends EventEmitter {
         });
     }
 
+    connect(): void {
+        if (this.socket && this.socket.connected) {
+            log.debug('PriceDB socket already connected');
+            return;
+        }
+
+        this.isConnecting = true;
+        log.debug('Connecting to PriceDB WebSocket...');
+
+        this.socket.connect();
+    }
+
     private handleReconnect(): void {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             log.error('Max reconnection attempts reached for PriceDB WebSocket');
@@ -76,6 +81,7 @@ export default class PriceDbSocketManager extends EventEmitter {
         );
 
         setTimeout(() => {
+            this.init(true);
             this.connect();
         }, delay);
     }
@@ -84,18 +90,14 @@ export default class PriceDbSocketManager extends EventEmitter {
         if (this.socket) {
             this.socket.removeAllListeners();
             this.socket.disconnect();
-            this.socket = null;
+            this.socket = undefined;
         }
         this.isConnecting = false;
         this.reconnectAttempts = 0;
-        this.removeAllListeners();
     }
 
-    init(): void {
-        this.connect();
-    }
-
-    shutdown(): void {
+    shutdown(reconnect = false): void {
         this.disconnect();
+        if (!reconnect) this.removeAllListeners(); // not while reconnecting
     }
 }
