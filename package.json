@@ -26,10 +26,10 @@
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
     "updaterepo": true,
-    "updateMessage": "Please create a backup of your pricelist.json before updating to the latest version. Read the release note. Thank you.",
+    "updateMessage": "Patch only for those that use custom pricer. Skip if not related.",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
-        "@tf2autobot/bptf-listings": "^5.9.3",
+        "@tf2autobot/bptf-listings": "^5.9.4",
         "@tf2autobot/bptf-login": "^2.5.1",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/steamcommunity": "^3.50.6",
