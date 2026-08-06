@@ -1585,7 +1585,7 @@ export default class Bot {
         if (!alreadyAcknowledge) {
             // This should only be done once
             this.community.acknowledgeTradeProtection(err => {
-                log.warn('Error on acknowledgeTradeProtection', err);
+                if (err) log.warn('Error on acknowledgeTradeProtection', err);
             });
 
             files.writeFile(path, true, true).catch(err => {
