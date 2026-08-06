@@ -416,6 +416,7 @@ class AlertPpuQueue {
         }
 
         sendWebhook(alert.url, alert.webhook, 'alert')
+            .then(() => this.dequeue())
             .catch((e: WebhookError) => {
                 if (e.err.status === 429) {
                     log.warn(`❌ Failed to send alert to Discord: `, e.err);
@@ -426,7 +427,6 @@ class AlertPpuQueue {
             })
             .finally(() => {
                 this.isProcessing = false;
-                this.dequeue();
                 void this.process();
             });
     }
