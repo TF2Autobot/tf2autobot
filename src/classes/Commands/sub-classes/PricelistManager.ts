@@ -1046,7 +1046,7 @@ export default class PricelistManagerCommands {
             priceKey = params.id;
 
             if (typeof params.intent === 'number' && [0, 2].includes(params.intent)) {
-                this.bot.sendMessage(
+                return this.bot.sendMessage(
                     steamID,
                     `❌ Failed to update ${params.id}: Intent should only be sell for assetid!`
                 );
