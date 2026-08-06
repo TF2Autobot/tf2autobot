@@ -1204,7 +1204,7 @@ export default class Bot {
                             });
                     },
                     (callback: Callback): void => {
-                        void this.setupTradeOfferUrl()
+                        this.setupTradeOfferUrl()
                             .then(() => callback(null))
                             .catch(err => callback(err as Error));
                     }
@@ -1225,6 +1225,7 @@ export default class Bot {
                         return resolve();
                     }
 
+                    void this.checkTradeProtectionAcknowledged();
                     this.manager.pollInterval = 10 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
@@ -1574,6 +1575,23 @@ export default class Bot {
         files.writeFile(tradeOfferUrlPath, tradeOfferUrl, false).catch(() => {
             log.error('Error saving Trade Offer Url.');
         });
+    }
+
+    // Reference: https://github.com/tf2-automatic/tf2-automatic/blob/9b98d2e5b6e3b0b9d0b82651debada7d2fd57b99/apps/bot/src/bot/bot.service.ts#L601
+    private async checkTradeProtectionAcknowledged(): Promise<void> {
+        const path = this.handler.getPaths.files.tradeProtectionAcknowledge;
+        const alreadyAcknowledge = (await files.readFile(path, true).catch(() => null)) as boolean;
+
+        if (!alreadyAcknowledge) {
+            // This should only be done once
+            this.community.acknowledgeTradeProtection(err => {
+                log.warn('Error on acknowledgeTradeProtection', err);
+            });
+
+            files.writeFile(path, true, true).catch(err => {
+                log.error('Error saving Trade Protection Acknowlege file', err);
+            });
+        }
     }
 
     sendMessage(steamID: SteamID | string, message: string): void {

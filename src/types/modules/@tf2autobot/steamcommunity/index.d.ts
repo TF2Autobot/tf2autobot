@@ -86,6 +86,8 @@ declare module '@tf2autobot/steamcommunity' {
         acceptConfirmationForObject(identitySecret: string, objectID: string, callback: (err?: Error) => void): void;
 
         getFriendsList(callback: (err?: Error, friendlist?: SteamCommunity.FriendList) => void): void;
+
+        acknowledgeTradeProtection(callback?: (err?: Error) => void): void;
     }
 
     namespace SteamCommunity {
