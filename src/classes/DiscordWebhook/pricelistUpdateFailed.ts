@@ -1,4 +1,4 @@
-import { sendWebhook } from './utils';
+import { sendWebhook, WebhookError, WebhookErrorData } from './utils';
 import { Webhook } from './interfaces';
 import log from '../../lib/logger';
 import { GetItemPriceResponse } from '../IPricer';
@@ -51,6 +51,10 @@ class PriceUpdateFailedQueue {
         this.url = url;
     }
 
+    private static sleepTime = 1000;
+
+    private static isRateLimited = false;
+
     private static isProcessing = false;
 
     static enqueue(sku: string, webhook: Webhook): void {
@@ -80,17 +84,25 @@ class PriceUpdateFailedQueue {
 
         this.isProcessing = true;
 
-        if (this.size() >= 5) {
-            await timersPromises.setTimeout(500);
+        await timersPromises.setTimeout(this.sleepTime);
+
+        if (this.isRateLimited) {
+            this.sleepTime = 1000;
+            this.isRateLimited = false;
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
-            .catch(err => {
-                log.warn(`❌ Failed to send price update error for ${sku} to Discord: `, err);
+            .then(() => this.dequeue())
+            .catch((e: WebhookError) => {
+                log.warn(`❌ Failed to send price update error for ${sku} to Discord: `, e);
+                if (e?.err?.status === 429) {
+                    const retryAfter = (e.err.data as WebhookErrorData)?.retry_after;
+                    this.sleepTime = typeof retryAfter === 'number' ? Math.ceil(retryAfter * 1000) : 3000;
+                    this.isRateLimited = true;
+                }
             })
             .finally(() => {
                 this.isProcessing = false;
-                this.dequeue();
                 void this.process();
             });
     }
