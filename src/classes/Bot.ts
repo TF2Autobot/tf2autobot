@@ -201,7 +201,7 @@ export default class Bot {
         public options: Options,
         readonly priceSource: IPricer
     ) {
-        this.client = new SteamUser({ autoRelogin: false });
+        this.client = new SteamUser({ autoRelogin: false, saveAppTickets: false });
         this.community = new SteamCommunity();
         this.manager = new TradeOfferManager({
             steam: this.client,
