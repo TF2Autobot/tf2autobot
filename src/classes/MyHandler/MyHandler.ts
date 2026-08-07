@@ -51,6 +51,7 @@ import sendTf2SystemMessage from '../DiscordWebhook/sendTf2SystemMessage';
 import sendTf2DisplayNotification from '../DiscordWebhook/sendTf2DisplayNotification';
 import sendTf2ItemBroadcast from '../DiscordWebhook/sendTf2ItemBroadcast';
 import { apiRequest } from '../../lib/apiRequest';
+import ListingManager from '@tf2autobot/bptf-listings';
 
 const filterReasons = (reasons: string[]) => {
     const filtered = new Set(reasons);
@@ -2774,12 +2775,31 @@ export default class MyHandler extends Handler {
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
 
-    onCreateListingsSuccessful(response: { created: number; archived: number; errors: any[] }): void {
-        log.debug('Successfully create listings:', response);
+    filterBptfListingsResponseError(exs: ListingManager.ListingsSuccessfulError[]): Record<string, any> {
+        const filtered: Record<string, any> = {};
+        if (Array.isArray(exs) && exs.length > 0) {
+            filtered.count = exs.length;
+            for (const ex of exs) {
+                if (ex.listing?.id && ex.error?.message) filtered[ex.listing.id] = ex.error.message;
+            }
+            return filtered;
+        }
     }
 
-    onUpdateListingsSuccessful(response: { updated: number; errors: any[] }): void {
-        log.debug('Successfully update listings:', response);
+    onCreateListingsSuccessful(response: {
+        created: number;
+        archived: number;
+        errors: ListingManager.ListingsSuccessfulError[];
+    }): void {
+        const filteredErrors = this.filterBptfListingsResponseError(response.errors);
+        delete response.errors;
+        log.debug('Successfully create listings:', Object.assign(response, { errors: filteredErrors }));
+    }
+
+    onUpdateListingsSuccessful(response: { updated: number; errors: ListingManager.ListingsSuccessfulError[] }): void {
+        const filteredErrors = this.filterBptfListingsResponseError(response.errors);
+        delete response.errors;
+        log.debug('Successfully update listings:', Object.assign(response, { errors: filteredErrors }));
     }
 
     onDeleteListingsSuccessful(response: Record<string, unknown>): void {
