@@ -16,9 +16,7 @@ export interface OnRun {
 }
 
 export default abstract class Handler {
-    protected constructor(readonly bot: Bot) {
-        this.bot = bot;
-    }
+    protected constructor(readonly bot: Bot) {}
 
     get steamID(): SteamID {
         return this.bot.client.steamID;

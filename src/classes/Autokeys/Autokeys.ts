@@ -118,9 +118,7 @@ export default class Autokeys {
 
     private OldKeyPrices: { buy: Currencies; sell: Currencies };
 
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     check(): void {
         log.debug(`checking autokeys (Enabled: ${String(this.isEnabled)})`);

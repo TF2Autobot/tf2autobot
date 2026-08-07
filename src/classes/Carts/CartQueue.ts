@@ -16,9 +16,7 @@ export default class CartQueue {
 
     private queuePositionCheck: NodeJS.Timeout;
 
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     enqueue(cart: Cart, isDonating: boolean, isBuyingPremium: boolean): number {
         // TODO: Priority queueing

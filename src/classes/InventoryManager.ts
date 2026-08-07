@@ -6,13 +6,7 @@ export default class InventoryManager {
     constructor(
         private readonly pricelist: Pricelist,
         private inventory: Inventory = null
-    ) {
-        if (inventory !== null) {
-            this.inventory = inventory;
-        }
-
-        this.pricelist = pricelist;
-    }
+    ) {}
 
     set setInventory(inventory: Inventory) {
         this.inventory = inventory;

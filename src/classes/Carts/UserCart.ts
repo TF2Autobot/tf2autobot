@@ -435,19 +435,12 @@ export default class UserCart extends Cart {
 
                 // Remove the item from the cart
                 this.removeOurItem(priceKey, Infinity);
+                const itemName = this.bot.schemaManager.schema.getName(SKU.fromString(entry.sku), false);
 
                 if (ourAssetidsCount === 0) {
-                    alteredMessage =
-                        "I don't have any " +
-                        pluralize(this.bot.schemaManager.schema.getName(SKU.fromString(entry.sku), false));
+                    alteredMessage = "I don't have any " + pluralize(itemName);
                 } else {
-                    alteredMessage =
-                        'I only have ' +
-                        pluralize(
-                            this.bot.schemaManager.schema.getName(SKU.fromString(entry.sku), false),
-                            ourAssetidsCount,
-                            true
-                        );
+                    alteredMessage = 'I only have ' + pluralize(itemName, ourAssetidsCount, true);
 
                     // Add the max amount to the cart
                     this.addOurItem(priceKey, amount);
@@ -551,20 +544,13 @@ export default class UserCart extends Cart {
             if (amount > theirAssetidsCount) {
                 // Remove the item from the cart
                 this.removeTheirItem(sku, Infinity);
+                const itemName = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
                 if (theirAssetidsCount === 0) {
-                    alteredMessage =
-                        "you don't have any " +
-                        pluralize(this.bot.schemaManager.schema.getName(SKU.fromString(sku), false));
+                    alteredMessage = "you don't have any " + pluralize(itemName);
                 } else {
                     amount = theirAssetidsCount;
-                    alteredMessage =
-                        'you only have ' +
-                        pluralize(
-                            this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
-                            theirAssetidsCount,
-                            true
-                        );
+                    alteredMessage = 'you only have ' + pluralize(itemName, theirAssetidsCount, true);
 
                     // Add the max amount to the cart
                     this.addTheirItem(sku, amount);

@@ -1,8 +1,8 @@
 import SteamID from 'steamid';
 import { EconItem, ItemAttributes, PartialSKUWithMention } from '@tf2autobot/tradeoffer-manager';
-import { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
+import SchemaManager, { Effect, Paints, StrangeParts } from '@tf2autobot/tf2-schema';
 import SKU from '@tf2autobot/tf2-sku';
-import { HighValue } from './Options';
+import Options, { HighValue } from './Options';
 import Bot from './Bot';
 import { noiseMakers, spellsData, killstreakersData, sheensData } from '../lib/data';
 import Pricelist from './Pricelist';
@@ -143,14 +143,16 @@ export default class Inventory {
     private set setItems(items: EconItem[]) {
         this.tradable = Inventory.createDictionary(
             items.filter(item => item.tradable),
-            this.bot,
+            this.bot.schemaManager.schema,
             this.bot.strangeParts,
+            this.bot.options,
             this.which
         );
         this.nonTradable = Inventory.createDictionary(
             items.filter(item => !item.tradable),
-            this.bot,
+            this.bot.schemaManager.schema,
             this.bot.strangeParts,
+            this.bot.options,
             this.which
         );
     }
@@ -429,26 +431,21 @@ export default class Inventory {
 
     private static createDictionary(
         items: EconItem[],
-        bot: Bot,
-        strangeParts: StrangeParts,
+        schema: SchemaManager.Schema,
+        strangeParts: SchemaManager.StrangeParts,
+        options: Options,
         which: 'our' | 'their' | 'admin'
     ): Dict {
         const dict: Dict = {};
-
-        const itemsCount = items.length;
         const isAdmin = which === 'admin';
+        const isNormalizeFestivized = isAdmin ? false : options.normalize.festivized[which];
+        const isNormalizeStrangeAsSecondQuality = isAdmin ? false : options.normalize.strangeAsSecondQuality[which];
+        const isNormalizePainted = isAdmin ? false : options.normalize.painted[which];
+        const isNormalizeCraftNumber = isAdmin ? false : options.normalize.craftNumber[which];
 
-        const isNormalizeFestivized = isAdmin ? false : bot.options.normalize.festivized[which];
-
-        const isNormalizeStrangeAsSecondQuality = isAdmin ? false : bot.options.normalize.strangeAsSecondQuality[which];
-
-        const isNormalizePainted = isAdmin ? false : bot.options.normalize.painted[which];
-
-        const isNormalizeCraftNumber = isAdmin ? false : bot.options.normalize.craftNumber[which];
-
-        for (let i = 0; i < itemsCount; i++) {
-            const getSku = items[i].getSKU(
-                bot.schemaManager.schema,
+        for (const itemx of items) {
+            const getSku = itemx.getSKU(
+                schema,
                 isNormalizeFestivized,
                 isNormalizeStrangeAsSecondQuality,
                 isNormalizePainted,
@@ -466,22 +463,22 @@ export default class Inventory {
                 sku = removePaintedPartialSku(sku);
             }
 
-            const attributes = this.highValue(sku, items[i], bot.schemaManager.schema.paints, strangeParts);
+            const attributes = this.highValue(sku, itemx, schema.paints, strangeParts);
             const attributesCount = Object.keys(attributes).length;
 
             const isUses =
-                sku === '241;6' ? isFull(items[i], 'duel') : noiseMakers.has(sku) ? isFull(items[i], 'noise') : null;
+                sku === '241;6' ? isFull(itemx, 'duel') : noiseMakers.has(sku) ? isFull(itemx, 'noise') : null;
 
             if (attributesCount === 0 && isUses === null) {
-                (dict[sku] = dict[sku] || []).push({ id: items[i].id });
+                (dict[sku] = dict[sku] || []).push({ id: itemx.id });
             } else {
                 if (isUses !== null) {
                     (dict[sku] = dict[sku] || []).push({
-                        id: items[i].id,
+                        id: itemx.id,
                         isFullUses: isUses
                     });
                 } else {
-                    (dict[sku] = dict[sku] || []).push({ id: items[i].id, hv: attributes });
+                    (dict[sku] = dict[sku] || []).push({ id: itemx.id, hv: attributes });
                 }
             }
         }

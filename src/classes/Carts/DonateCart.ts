@@ -38,21 +38,12 @@ export default class DonateCart extends Cart {
                     amount = ourAssetidsCount;
                     // Remove the item from the cart
                     this.removeOurItem(sku);
+                    const itemName = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
                     if (ourAssetidsCount === 0) {
-                        alteredMessages.push(
-                            "I don't have any " +
-                                pluralize(this.bot.schemaManager.schema.getName(SKU.fromString(sku), false))
-                        );
+                        alteredMessages.push("I don't have any " + pluralize(itemName));
                     } else {
-                        alteredMessages.push(
-                            'I only have ' +
-                                pluralize(
-                                    this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
-                                    ourAssetidsCount,
-                                    true
-                                )
-                        );
+                        alteredMessages.push('I only have ' + pluralize(itemName, ourAssetidsCount, true));
 
                         // Add the max amount to the offer
                         this.addOurItem(sku, ourAssetidsCount);

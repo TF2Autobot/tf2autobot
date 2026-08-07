@@ -65,9 +65,7 @@ export default class TF2GC {
 
     private jobs: Job[] = [];
 
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     smeltMetal(defindex: 5001 | 5002, callback?: (err: Error | null) => void): void {
         if (![5001, 5002].includes(defindex)) {

@@ -1,15 +1,20 @@
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import { Meta, DupedItems } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../../Bot';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Options from '../../../../Options';
 
-export default function duped(meta: Meta, bot: Bot): { note: string; name: string[] } {
-    const opt = bot.options.discordWebhook.offerReview;
+export default function duped(
+    meta: Meta,
+    schema: SchemaManager.Schema,
+    options: Options
+): { note: string; name: string[] } {
+    const opt = options.discordWebhook.offerReview;
     const dupedItemsNameOur: string[] = [];
     const dupedItemsNameTheir: string[] = [];
 
     (meta.reasons.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as DupedItems[]).forEach(el => {
-        const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku), false);
+        const name = schema.getName(SKU.fromString(el.sku), false);
 
         if (opt.enable && opt.url !== '') {
             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
@@ -22,7 +27,7 @@ export default function duped(meta: Meta, bot: Bot): { note: string; name: strin
     });
 
     const dupedItemsNameTheirCount = dupedItemsNameTheir.length;
-    const note = bot.options.manualReview.duped.note;
+    const note = options.manualReview.duped.note;
 
     return {
         note: note

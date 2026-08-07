@@ -40,7 +40,6 @@ export default class Listings {
     private templates: { buy: string; sell: string };
 
     constructor(private readonly bot: Bot) {
-        this.bot = bot;
         this.templates = {
             buy:
                 this.bot.options.details.buy ||
