@@ -2807,8 +2807,14 @@ export default class MyHandler extends Handler {
         log.debug('Successfully update listings:', Object.assign(response, { errors: filteredErrors }));
     }
 
-    onDeleteListingsSuccessful(response: Record<string, unknown>): void {
-        log.debug('Successfully delete listings:', response);
+    onDeleteListingsSuccessful(response: {
+        deleted: number;
+        skipped: ListingManager.ListingData[]; // I assume it's like this
+        errors: ListingManager.ListingsSuccessfulError[]; // I assume it's the same
+    }): void {
+        const filteredErrors = filterBptfListingsResponseError(response.errors);
+        delete response.errors;
+        log.debug('Successfully delete listings:', Object.assign(response, { errors: filteredErrors }));
     }
 
     onDeleteArchivedListingSuccessful(response: boolean): void {
