@@ -2044,7 +2044,7 @@ class PriceUpdateQueue {
         this.url = url;
     }
 
-    private static sleepTime = 1000;
+    private static sleepTime = 1500;
 
     private static isRateLimited = false;
 
@@ -2080,7 +2080,7 @@ class PriceUpdateQueue {
         await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
-            this.sleepTime = 1000;
+            this.sleepTime = 1500;
             this.isRateLimited = false;
         }
 
@@ -2091,7 +2091,7 @@ class PriceUpdateQueue {
 
                 if (e?.err?.status === 429) {
                     const retryAfter = (e.err.data as WebhookErrorData)?.retry_after;
-                    this.sleepTime = typeof retryAfter === 'number' ? Math.ceil(retryAfter * 1000) : 3000;
+                    this.sleepTime = typeof retryAfter === 'number' ? retryAfter * 1000 + 100 : 3000;
                     this.isRateLimited = true;
                 }
             })
