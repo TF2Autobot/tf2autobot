@@ -10,7 +10,7 @@ export default function invalidItems(meta: Meta, bot: Bot): { note: string; name
     const invalidForOur: string[] = []; // Display for owner
 
     (meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as InvalidItems[]).forEach(el => {
-        const name = testPriceKey(el.sku) ? bot.schema.getName(SKU.fromString(el.sku), false) : el.sku;
+        const name = testPriceKey(el.sku) ? bot.schemaManager.schema.getName(SKU.fromString(el.sku), false) : el.sku;
 
         if (opt.enable && opt.url !== '') {
             // show both item name and pricedb.io price

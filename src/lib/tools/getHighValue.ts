@@ -56,7 +56,7 @@ export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName
                         }
 
                         toJoin.push(
-                            `${getAttachmentName(attachment, pSKU, bot.schema.paints, bot.strangeParts)}${
+                            `${getAttachmentName(attachment, pSKU, bot.schemaManager.schema.paints, bot.strangeParts)}${
                                 attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
                             }${items[sku][attachment as Attachment][pSKU] === true ? ' 🌟' : ''}`
                         );
@@ -69,7 +69,7 @@ export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName
         });
 
         const nameSku = Pricelist.isAssetId(sku) ? bot.pricelist.getPrice({ priceKey: sku }).sku : sku;
-        itemsWithName[bot.schema.getName(SKU.fromString(nameSku.replace(/;p\d+/, '')))] = toString;
+        itemsWithName[bot.schemaManager.schema.getName(SKU.fromString(nameSku.replace(/;p\d+/, '')))] = toString;
     }
 
     return itemsWithName;

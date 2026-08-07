@@ -9,7 +9,7 @@ export default function understocked(meta: Meta, bot: Bot): { note: string; name
     const understockedForOur: string[] = [];
 
     (meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[]).forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
+        const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku), false);
 
         if (opt.enable && opt.url !== '') {
             understockedForOur.push(`_${name}_ (can only sell ${el.amountCanTrade}, taking ${el.amountTaking})`);

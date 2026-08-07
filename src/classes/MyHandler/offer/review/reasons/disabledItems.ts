@@ -9,7 +9,7 @@ export default function disabledItems(meta: Meta, bot: Bot): { note: string; nam
     const disabledForOur: string[] = []; // Display for owner
 
     (meta.reasons.filter(el => el.reason.includes('🟧_DISABLED_ITEMS')) as DisabledItems[]).forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku));
+        const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku));
 
         if (opt.enable && opt.url !== '') {
             disabledForOur.push(`_${name}_`);

@@ -9,7 +9,7 @@ export default function duped(meta: Meta, bot: Bot): { note: string; name: strin
     const dupedItemsNameTheir: string[] = [];
 
     (meta.reasons.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as DupedItems[]).forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
+        const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku), false);
 
         if (opt.enable && opt.url !== '') {
             // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.

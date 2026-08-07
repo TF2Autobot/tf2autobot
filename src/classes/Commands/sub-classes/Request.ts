@@ -40,7 +40,7 @@ export default class RequestCommands {
 
             sku = SKU.fromObject(item);
         } else {
-            sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
+            sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schemaManager.schema));
         }
 
         void this.priceSource
@@ -53,7 +53,7 @@ export default class RequestCommands {
                     if (body.name) {
                         name = body.name;
                     } else {
-                        name = this.bot.schema.getName(SKU.fromString(sku));
+                        name = this.bot.schemaManager.schema.getName(SKU.fromString(sku));
                     }
                     this.bot.sendMessage(
                         steamID,
@@ -121,7 +121,7 @@ export default class RequestCommands {
         }
         // Intentionally not standardizing the sku here
 
-        const name = this.bot.schema.getName(SKU.fromString(sku));
+        const name = this.bot.schemaManager.schema.getName(SKU.fromString(sku));
         try {
             const price = await this.priceSource.getPrice(sku);
             const currBuy = new Currencies(price.buy);

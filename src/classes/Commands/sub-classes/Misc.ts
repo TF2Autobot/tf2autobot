@@ -120,7 +120,7 @@ export default class MiscCommands {
                 if (itemNameOrSku !== `${prefix}stock`) {
                     if (!testPriceKey(itemNameOrSku)) {
                         // Receive name
-                        sku = this.bot.schema.getSkuFromName(itemNameOrSku);
+                        sku = this.bot.schemaManager.schema.getSkuFromName(itemNameOrSku);
 
                         if (sku.includes('null') || sku.includes('undefined')) {
                             return this.bot.sendMessage(
@@ -131,7 +131,7 @@ export default class MiscCommands {
                     }
 
                     const itemDicts = this.bot.inventoryManager.getInventory.getItems[sku] ?? [];
-                    const name = this.bot.schema.getName(SKU.fromString(sku), false);
+                    const name = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
                     reply = `/pre I currently have ${itemDicts.length} of ${name} (${sku}).`;
 
@@ -149,7 +149,7 @@ export default class MiscCommands {
                                         const hvName = getAttachmentName(
                                             attachment,
                                             pSku,
-                                            this.bot.schema.paints,
+                                            this.bot.schemaManager.schema.paints,
                                             this.bot.strangeParts
                                         );
 
@@ -185,7 +185,7 @@ export default class MiscCommands {
                 }
 
                 items.push({
-                    name: this.bot.schema.getName(SKU.fromString(sku), false),
+                    name: this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
                     amount: dict[sku].length
                 });
             }
@@ -321,8 +321,8 @@ export default class MiscCommands {
             steamID,
             '/code ' +
                 JSON.stringify(
-                    Object.keys(this.bot.schema.paints).reduce((obj, name) => {
-                        obj[name] = `p${this.bot.schema.paints[name]}`;
+                    Object.keys(this.bot.schemaManager.schema.paints).reduce((obj, name) => {
+                        obj[name] = `p${this.bot.schemaManager.schema.paints[name]}`;
                         return obj;
                     }, {}),
                     null,
@@ -340,7 +340,7 @@ export default class MiscCommands {
                 const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 if (amount > 0) {
                     items.push({
-                        name: this.bot.schema.getName(SKU.fromString(sku), false),
+                        name: this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
                         amount: amount
                     });
                 }
@@ -349,7 +349,7 @@ export default class MiscCommands {
             weapons.forEach(sku => {
                 const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 items.push({
-                    name: this.bot.schema.getName(SKU.fromString(sku), false),
+                    name: this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
                     amount: amount
                 });
             });

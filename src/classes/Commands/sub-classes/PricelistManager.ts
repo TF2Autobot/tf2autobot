@@ -157,7 +157,7 @@ export default class PricelistManagerCommands {
 
         if (params.sku === undefined) {
             if (params.item !== undefined) {
-                params.sku = this.bot.schema.getSkuFromName(params.item as string);
+                params.sku = this.bot.schemaManager.schema.getSkuFromName(params.item as string);
 
                 if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
                     return this.bot.sendMessage(
@@ -252,7 +252,7 @@ export default class PricelistManagerCommands {
 
             if (params.sku === undefined) {
                 if (params.item !== undefined) {
-                    params.sku = this.bot.schema.getSkuFromName(params.item as string);
+                    params.sku = this.bot.schemaManager.schema.getSkuFromName(params.item as string);
 
                     if ((params.sku as string).includes('null') || (params.sku as string).includes('undefined')) {
                         errorMessage.push(
@@ -336,7 +336,7 @@ export default class PricelistManagerCommands {
             if (params.promoted !== undefined) {
                 if (!isPremium) {
                     errorMessage.push(
-                        `❌ Failed to add ${this.bot.schema.getName(SKU.fromString(params.sku as string))} (${
+                        `❌ Failed to add ${this.bot.schemaManager.schema.getName(SKU.fromString(params.sku as string))} (${
                             params.sku as string
                         }): This account is not Backpack.tf Premium. You can't use "promoted" parameter.`
                     );
@@ -352,7 +352,7 @@ export default class PricelistManagerCommands {
                     }
                 } else if (typeof params.promoted !== 'number' || params.promoted < 0 || params.promoted > 1) {
                     errorMessage.push(
-                        `❌ Failed to add ${this.bot.schema.getName(SKU.fromString(params.sku as string))} (${
+                        `❌ Failed to add ${this.bot.schemaManager.schema.getName(SKU.fromString(params.sku as string))} (${
                             params.sku as string
                         }): "promoted" parameter must be either 0 (false) or 1 (true)`
                     );
@@ -467,7 +467,7 @@ export default class PricelistManagerCommands {
                         .then(() => added++)
                         .catch(err => {
                             errorMessage.push(
-                                `❌ Error adding ${this.bot.schema.getName(SKU.fromString(entry.params.sku))} (${
+                                `❌ Error adding ${this.bot.schemaManager.schema.getName(SKU.fromString(entry.params.sku))} (${
                                     entry.params.sku
                                 }): ${(err as Error)?.message}`
                             );
@@ -508,7 +508,7 @@ export default class PricelistManagerCommands {
                     .then(() => added++)
                     .catch(err => {
                         errorMessage.push(
-                            `❌ Error adding ${this.bot.schema.getName(SKU.fromString(entry.params.sku))} (${
+                            `❌ Error adding ${this.bot.schemaManager.schema.getName(SKU.fromString(entry.params.sku))} (${
                                 entry.params.sku
                             }): ${(err as Error)?.message}`
                         );
@@ -1242,7 +1242,7 @@ export default class PricelistManagerCommands {
 
             if (sku === undefined) {
                 if (params.item !== undefined) {
-                    sku = this.bot.schema.getSkuFromName(params.item as string);
+                    sku = this.bot.schemaManager.schema.getSkuFromName(params.item as string);
 
                     if (sku.includes('null') || sku.includes('undefined')) {
                         errorMessage.push(
@@ -1286,7 +1286,7 @@ export default class PricelistManagerCommands {
 
             if (this.bot.pricelist.getPrice({ priceKey }) === null) {
                 errorMessage.push(
-                    `❌ Failed to update ${this.bot.schema.getName(
+                    `❌ Failed to update ${this.bot.schemaManager.schema.getName(
                         SKU.fromString(sku)
                     )} (${sku}): ❌ Item is not in the pricelist.`
                 );
@@ -1296,7 +1296,7 @@ export default class PricelistManagerCommands {
 
             if (!this.bot.pricelist.hasPrice({ priceKey })) {
                 errorMessage.push(
-                    `❌ Failed to update ${this.bot.schema.getName(
+                    `❌ Failed to update ${this.bot.schemaManager.schema.getName(
                         SKU.fromString(sku)
                     )} (${sku}): ❌ Item was not properly priced. Try remove and re-add the item.`
                 );
@@ -1540,7 +1540,7 @@ export default class PricelistManagerCommands {
                                 errorMessage.push(`❌ Error removing ${entry.priceKey}): ${(err as Error)?.message}`);
                             } else {
                                 errorMessage.push(
-                                    `❌ Error removing ${this.bot.schema.getName(
+                                    `❌ Error removing ${this.bot.schemaManager.schema.getName(
                                         SKU.fromString(String(entry.priceKey))
                                     )} (${entry.priceKey}): ${(err as Error)?.message}`
                                 );
@@ -1588,7 +1588,7 @@ export default class PricelistManagerCommands {
                             errorMessage.push(`❌ Error removing ${entry.priceKey}): ${(err as Error)?.message}`);
                         } else {
                             errorMessage.push(
-                                `❌ Error removing ${this.bot.schema.getName(
+                                `❌ Error removing ${this.bot.schemaManager.schema.getName(
                                     SKU.fromString(String(entry.priceKey))
                                 )} (${entry.priceKey}): ${(err as Error)?.message}`
                             );
@@ -1847,7 +1847,7 @@ export default class PricelistManagerCommands {
 
             if (sku === undefined) {
                 if (params.item !== undefined) {
-                    sku = this.bot.schema.getSkuFromName(params.item as string);
+                    sku = this.bot.schemaManager.schema.getSkuFromName(params.item as string);
 
                     if (sku.includes('null') || sku.includes('undefined')) {
                         errorMessage.push(
@@ -1872,7 +1872,7 @@ export default class PricelistManagerCommands {
 
             if (this.bot.pricelist.getPrice({ priceKey: sku }) === null) {
                 errorMessage.push(
-                    `❌ Failed to remove ${this.bot.schema.getName(
+                    `❌ Failed to remove ${this.bot.schemaManager.schema.getName(
                         SKU.fromString(sku)
                     )} (${sku}): ❌ Item is not in the pricelist.`
                 );
@@ -1930,7 +1930,7 @@ export default class PricelistManagerCommands {
                         errorMessage.push(`❌ Error removing ${priceKey}): ${(err as Error)?.message}`);
                     } else {
                         errorMessage.push(
-                            `❌ Error removing ${this.bot.schema.getName(
+                            `❌ Error removing ${this.bot.schemaManager.schema.getName(
                                 SKU.fromString(String(priceKey))
                             )} (${priceKey}): ${(err as Error)?.message}`
                         );
@@ -2481,7 +2481,7 @@ class AutoAddQueue {
 
             this.bot.sendMessage(
                 this.steamID,
-                `----------\n⚠️ ${this.bot.schema.getName(SKU.fromString(this.sku))} (${
+                `----------\n⚠️ ${this.bot.schemaManager.schema.getName(SKU.fromString(this.sku))} (${
                     this.sku
                 }) already in pricelist, skipping...` +
                     `\n📜 Status: ${this.added} added, ${this.skipped} skipped, ${this.failed} failed / ${this.total} total, ${remaining} remaining`

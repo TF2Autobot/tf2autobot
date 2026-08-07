@@ -147,7 +147,7 @@ export default class ManagerCommands {
                         `⚠️ Are you sure that you want to ${command} ${
                             sku === null
                                 ? `the item with asset ID ${targetedAssetId}`
-                                : `${this.bot.schema.getName(SKU.fromString(sku), false)}`
+                                : `${this.bot.schemaManager.schema.getName(SKU.fromString(sku), false)}`
                         }?` +
                             `\n- This process is irreversible and will ${command} the item from your bot's backpack!` +
                             `\n- If you are sure, try again with confirm=true or confirm=yes as a parameter`
@@ -158,7 +158,7 @@ export default class ManagerCommands {
                     const theItem =
                         sku === null
                             ? targetedAssetId
-                            : `${this.bot.schema.getName(SKU.fromString(sku), false)} (${targetedAssetId})`;
+                            : `${this.bot.schemaManager.schema.getName(SKU.fromString(sku), false)} (${targetedAssetId})`;
 
                     if (err) {
                         log.warn(`Error trying to ${command} ${theItem}: `, err);
@@ -245,7 +245,7 @@ export default class ManagerCommands {
             }
 
             const assetids = this.bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
-            const name = this.bot.schema.getName(item, false);
+            const name = this.bot.schemaManager.schema.getName(item, false);
 
             if (assetids.length === 0) {
                 // Item not found
@@ -961,10 +961,7 @@ export default class ManagerCommands {
                     log.error(`Error getting schema on ${prefix}refreshSchema command:`, err);
                     return this.bot.sendMessage(steamID, `❌ Error getting TF2 Schema: ${JSON.stringify(err)}`);
                 }
-
-                log.debug('Refreshing TF2 Schema...');
-                this.bot.schema = this.bot.schemaManager.schema;
-                this.bot.setProperties();
+                // Do nothing on success as tf2-schema will emit "schema" event
 
                 this.executedRefreshSchema = true;
                 this.executeRefreshSchemaTimeout = setTimeout(

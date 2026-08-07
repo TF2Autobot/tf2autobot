@@ -156,7 +156,9 @@ export default class ReviewCommands {
                     continue;
                 }
 
-                const name = testPriceKey(sku) ? this.bot.schema.getName(SKU.fromString(sku), false) : sku;
+                const name = testPriceKey(sku)
+                    ? this.bot.schemaManager.schema.getName(SKU.fromString(sku), false)
+                    : sku;
 
                 summary.push(name + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
             }

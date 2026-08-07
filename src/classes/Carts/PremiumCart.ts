@@ -41,12 +41,17 @@ export default class PremiumCart extends Cart {
 
                     if (ourAssetidsCount === 0) {
                         alteredMessages.push(
-                            "I don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false))
+                            "I don't have any " +
+                                pluralize(this.bot.schemaManager.schema.getName(SKU.fromString(sku), false))
                         );
                     } else {
                         alteredMessages.push(
                             'I only have ' +
-                                pluralize(this.bot.schema.getName(SKU.fromString(sku), false), ourAssetidsCount, true)
+                                pluralize(
+                                    this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
+                                    ourAssetidsCount,
+                                    true
+                                )
                         );
 
                         // Add the max amount to the offer

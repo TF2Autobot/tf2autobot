@@ -57,8 +57,6 @@ export interface SteamTokens {
 
 export default class Bot {
     // Modules and classes
-    schema: SchemaManager.Schema;
-
     readonly bptf: BptfLogin;
 
     readonly tf2: TF2;
@@ -852,7 +850,6 @@ export default class Bot {
                 if (err) {
                     return reject(err);
                 }
-                this.schema = this.schemaManager.schema;
                 this.addListener(this.schemaManager, 'schema', this.handler.onSchemaUpdate.bind(this.handler), false);
                 return resolve();
             });
@@ -1031,7 +1028,7 @@ export default class Bot {
                     (callback: (err?) => void): void => {
                         log.info('Initializing pricelist...');
 
-                        this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
+                        this.pricelist = new Pricelist(this.priceSource, this.schemaManager.schema, this.options, this);
                         this.addListener(
                             this.pricelist,
                             'pricelist',
@@ -1057,7 +1054,11 @@ export default class Bot {
                                     log.debug('Initializing inventory...');
                                     this.inventoryManager = new InventoryManager(this.pricelist);
                                     // only call this here, and in Commands/Options
-                                    Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
+                                    Inventory.setOptions(
+                                        this.schemaManager.schema.paints,
+                                        this.strangeParts,
+                                        this.options.highValue
+                                    );
                                     this.inventoryManager.setInventory = new Inventory(
                                         this.client.steamID,
                                         this,
@@ -1077,7 +1078,7 @@ export default class Bot {
                                             (this.options.useragentHeaderCustom !== ''
                                                 ? ` - ${this.options.useragentHeaderCustom}`
                                                 : ' - Run your own bot for free'),
-                                        schema: this.schema
+                                        schema: this.schemaManager.schema
                                     });
 
                                     this.listingManager.token = this.options.bptfAccessToken;
@@ -1245,20 +1246,20 @@ export default class Bot {
     }
 
     setProperties(): void {
-        this.effects = this.schema.getUnusualEffects();
-        this.strangeParts = this.schema.getStrangeParts();
-        this.craftWeapons = this.schema.getCraftableWeaponsForTrading();
-        this.uncraftWeapons = this.schema.getUncraftableWeaponsForTrading();
+        this.effects = this.schemaManager.schema.getUnusualEffects();
+        this.strangeParts = this.schemaManager.schema.getStrangeParts();
+        this.craftWeapons = this.schemaManager.schema.getCraftableWeaponsForTrading();
+        this.uncraftWeapons = this.schemaManager.schema.getUncraftableWeaponsForTrading();
         this.craftWeaponsByClass = {
-            scout: this.schema.getWeaponsForCraftingByClass('Scout'),
-            soldier: this.schema.getWeaponsForCraftingByClass('Soldier'),
-            pyro: this.schema.getWeaponsForCraftingByClass('Pyro'),
-            demoman: this.schema.getWeaponsForCraftingByClass('Demoman'),
-            heavy: this.schema.getWeaponsForCraftingByClass('Heavy'),
-            engineer: this.schema.getWeaponsForCraftingByClass('Engineer'),
-            medic: this.schema.getWeaponsForCraftingByClass('Medic'),
-            sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
-            spy: this.schema.getWeaponsForCraftingByClass('Spy')
+            scout: this.schemaManager.schema.getWeaponsForCraftingByClass('Scout'),
+            soldier: this.schemaManager.schema.getWeaponsForCraftingByClass('Soldier'),
+            pyro: this.schemaManager.schema.getWeaponsForCraftingByClass('Pyro'),
+            demoman: this.schemaManager.schema.getWeaponsForCraftingByClass('Demoman'),
+            heavy: this.schemaManager.schema.getWeaponsForCraftingByClass('Heavy'),
+            engineer: this.schemaManager.schema.getWeaponsForCraftingByClass('Engineer'),
+            medic: this.schemaManager.schema.getWeaponsForCraftingByClass('Medic'),
+            sniper: this.schemaManager.schema.getWeaponsForCraftingByClass('Sniper'),
+            spy: this.schemaManager.schema.getWeaponsForCraftingByClass('Spy')
         };
     }
 

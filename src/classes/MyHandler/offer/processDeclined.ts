@@ -192,7 +192,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                         .filter(el => el.reason === '🟨_INVALID_ITEMS')
                         .forEach(el => {
                             const name = t.testPriceKey(el.sku)
-                                ? bot.schema.getName(SKU.fromString(el.sku), false)
+                                ? bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)
                                 : el.sku;
 
                             declined.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
@@ -204,8 +204,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                         .forEach(el => {
                             declined.disabledItems.push(
                                 isWebhookEnabled
-                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                    : bot.schema.getName(SKU.fromString(el.sku), false)
+                                    ? `_${bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)}_`
+                                    : bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)
                             );
                         });
                     break;
@@ -214,8 +214,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                         declined.overstocked.push(
                             `${
                                 isWebhookEnabled
-                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                    : bot.schema.getName(SKU.fromString(el.sku), false)
+                                    ? `_${bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)}_`
+                                    : bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)
                             } (amount can buy was ${el.amountCanTrade}, offered ${el.amountOffered})`
                         );
                     });
@@ -226,8 +226,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                             declined.understocked.push(
                                 `${
                                     isWebhookEnabled
-                                        ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                        : bot.schema.getName(SKU.fromString(el.sku), false)
+                                        ? `_${bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)}_`
+                                        : bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)
                                 } (amount can sell was ${el.amountCanTrade}, taken ${el.amountTaking})`
                             );
                         }
@@ -237,8 +237,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                     (meta.reasons.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as i.DupedItems[]).forEach(el => {
                         declined.dupedItems.push(
                             isWebhookEnabled
-                                ? `_${bot.schema.getName(SKU.fromString(el.sku))}_`
-                                : bot.schema.getName(SKU.fromString(el.sku))
+                                ? `_${bot.schemaManager.schema.getName(SKU.fromString(el.sku))}_`
+                                : bot.schemaManager.schema.getName(SKU.fromString(el.sku))
                         );
                     });
                     break;

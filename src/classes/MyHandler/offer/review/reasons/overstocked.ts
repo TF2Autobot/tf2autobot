@@ -9,7 +9,7 @@ export default function overstocked(meta: Meta, bot: Bot): { note: string; name:
     const overstockedForOur: string[] = [];
 
     (meta.reasons.filter(el => el.reason.includes('🟦_OVERSTOCKED')) as Overstocked[]).forEach(el => {
-        const name = bot.schema.getName(SKU.fromString(el.sku), false);
+        const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku), false);
 
         if (opt.enable && opt.url !== '') {
             overstockedForOur.push(`_${name}_ (can only buy ${el.amountCanTrade}, offering ${el.amountOffered})`);

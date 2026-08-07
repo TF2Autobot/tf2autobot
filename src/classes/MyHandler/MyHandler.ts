@@ -353,7 +353,10 @@ export default class MyHandler extends Handler {
                 `All partially priced items below has been reset to use the current prices ` +
                 `because no longer in stock or exceed the threshold:\n\n• ${bulkResetPartiallyPriced
                     .map(sku => {
-                        const name = this.bot.schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
+                        const name = this.bot.schemaManager.schema.getName(
+                            SKU.fromString(sku),
+                            this.opt.tradeSummary.showProperName
+                        );
                         return `${isDwEnabled ? `[${name}](https://autobot.tf/items/${sku})` : name} (${sku})`;
                     })
                     .join('\n• ')}`;

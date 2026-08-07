@@ -335,7 +335,7 @@ export default class Commands {
         if (itemsOrSkus.length === 1) {
             if (!testPriceKey(itemNamesOrSkus)) {
                 // Receive name
-                const sku = this.bot.schema.getSkuFromName(itemNamesOrSkus);
+                const sku = this.bot.schemaManager.schema.getSkuFromName(itemNamesOrSkus);
 
                 if (sku.includes('null') || sku.includes('undefined')) {
                     return this.bot.sendMessage(
@@ -347,7 +347,7 @@ export default class Commands {
                 this.bot.sendMessage(steamID, `• ${sku}\nhttps://autobot.tf/items/${sku}`);
             } else {
                 // Receive sku
-                const name = this.bot.schema.getName(SKU.fromString(itemNamesOrSkus), false);
+                const name = this.bot.schemaManager.schema.getName(SKU.fromString(itemNamesOrSkus), false);
                 this.bot.sendMessage(steamID, `• ${name}\nhttps://autobot.tf/items/${itemNamesOrSkus}`);
             }
         } else {
@@ -355,9 +355,12 @@ export default class Commands {
             itemsOrSkus.forEach(item => {
                 if (!testPriceKey(item)) {
                     // Receive name
-                    results.push({ source: item, generated: this.bot.schema.getSkuFromName(item) });
+                    results.push({ source: item, generated: this.bot.schemaManager.schema.getSkuFromName(item) });
                 } else {
-                    results.push({ source: item, generated: this.bot.schema.getName(SKU.fromString(item), false) });
+                    results.push({
+                        source: item,
+                        generated: this.bot.schemaManager.schema.getName(SKU.fromString(item), false)
+                    });
                 }
             });
 
@@ -894,7 +897,7 @@ export default class Commands {
 
             params.sku = SKU.fromObject(item);
         } else {
-            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
+            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schemaManager.schema));
         }
 
         const sku = params.sku as string;
@@ -904,7 +907,7 @@ export default class Commands {
             return this.bot.sendMessage(steamID, `❌ amount should only be an integer.`);
         }
 
-        const itemName = this.bot.schema.getName(SKU.fromString(sku), false);
+        const itemName = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
         const steamid = steamID.getSteamID64();
 
@@ -999,7 +1002,7 @@ export default class Commands {
 
             params.sku = SKU.fromObject(item);
         } else {
-            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
+            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schemaManager.schema));
         }
 
         const sku = params.sku as string;
@@ -1024,7 +1027,7 @@ export default class Commands {
             tradableOnly: true
         });
         const amountCanTrade = ourAmount - cartAmount;
-        const name = this.bot.schema.getName(SKU.fromString(sku), false);
+        const name = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {
@@ -1257,7 +1260,7 @@ export default class Commands {
 
             params.sku = SKU.fromObject(item);
         } else {
-            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schema));
+            params.sku = SKU.fromObject(fixItem(SKU.fromString(params.sku as string), this.bot.schemaManager.schema));
         }
 
         const sku = params.sku as string;
@@ -1265,7 +1268,7 @@ export default class Commands {
         if (!['725;6;uncraftable', '5021;6', '126;6', '143;6', '162;6'].includes(sku)) {
             return this.bot.sendMessage(
                 steamID,
-                `❌ Invalid item ${this.bot.schema.getName(
+                `❌ Invalid item ${this.bot.schemaManager.schema.getName(
                     SKU.fromString(sku),
                     false
                 )}. Items that can only be donated to Backpack.tf:\n• ` +
@@ -1299,7 +1302,7 @@ export default class Commands {
         });
         const amountCanTrade = ourAmount - cart.getOurCount(sku) - cartAmount;
 
-        const name = this.bot.schema.getName(SKU.fromString(sku), false);
+        const name = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
         // Correct trade if needed
         if (amountCanTrade <= 0) {

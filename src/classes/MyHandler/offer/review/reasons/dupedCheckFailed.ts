@@ -12,7 +12,7 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
         if (el.withError === false) {
             // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
 
-            const name = bot.schema.getName(SKU.fromString(el.sku as string), false);
+            const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku as string), false);
 
             if (opt.enable && opt.url !== '') {
                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
@@ -27,7 +27,7 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
         } else {
             // Else if 🟪_DUPE_CHECK_FAILED occurred with error, then this sku/assetid is string[].
             for (let i = 0; i < el.sku.length; i++) {
-                const name = bot.schema.getName(SKU.fromString(el.sku[i]), false);
+                const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku[i]), false);
 
                 if (opt.enable && opt.url !== '') {
                     // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.

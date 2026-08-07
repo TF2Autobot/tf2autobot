@@ -322,7 +322,7 @@ export default class CraftingCommands {
                 melee: [],
                 pda2: []
             };
-            const craftableWeapons = this.bot.schema.getCraftableWeaponsSchema();
+            const craftableWeapons = this.bot.schemaManager.schema.getCraftableWeaponsSchema();
             const count = craftableWeapons.length;
 
             for (let i = 0; i < count; i++) {

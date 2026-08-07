@@ -44,7 +44,7 @@ export default function processAccepted(
                     .filter(el => el.reason === '🟨_INVALID_ITEMS')
                     .forEach(el => {
                         const name = t.testPriceKey(el.sku)
-                            ? bot.schema.getName(SKU.fromString(el.sku), false)
+                            ? bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)
                             : el.sku;
 
                         accepted.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
@@ -58,8 +58,8 @@ export default function processAccepted(
                     .forEach(el => {
                         accepted.disabledItems.push(
                             isWebhookEnabled
-                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                : bot.schema.getName(SKU.fromString(el.sku), false)
+                                ? `_${bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)}_`
+                                : bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)
                         );
                     });
             }
@@ -70,8 +70,8 @@ export default function processAccepted(
                     accepted.overstocked.push(
                         `${
                             isWebhookEnabled
-                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                : bot.schema.getName(SKU.fromString(el.sku), false)
+                                ? `_${bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)}_`
+                                : bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)
                         } (amount can buy was ${el.amountCanTrade}, offered ${el.amountOffered})`
                     );
                 });
@@ -84,8 +84,8 @@ export default function processAccepted(
                     accepted.understocked.push(
                         `${
                             isWebhookEnabled
-                                ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                : bot.schema.getName(SKU.fromString(el.sku), false)
+                                ? `_${bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)}_`
+                                : bot.schemaManager.schema.getName(SKU.fromString(el.sku), false)
                         } (amount can sell was ${el.amountCanTrade}, taken ${el.amountTaking})`
                     );
                 });

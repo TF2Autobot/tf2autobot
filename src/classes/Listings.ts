@@ -649,7 +649,7 @@ export default class Listings {
                 const cTEnd = optD.customText.ender;
 
                 const optR = opt.detailsExtra;
-                const getPaints = this.bot.schema.paints;
+                const getPaints = this.bot.schemaManager.schema.paints;
                 const getStrangeParts = this.bot.strangeParts;
 
                 const hv = item.hv;

@@ -438,11 +438,16 @@ export default class UserCart extends Cart {
 
                 if (ourAssetidsCount === 0) {
                     alteredMessage =
-                        "I don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(entry.sku), false));
+                        "I don't have any " +
+                        pluralize(this.bot.schemaManager.schema.getName(SKU.fromString(entry.sku), false));
                 } else {
                     alteredMessage =
                         'I only have ' +
-                        pluralize(this.bot.schema.getName(SKU.fromString(entry.sku), false), ourAssetidsCount, true);
+                        pluralize(
+                            this.bot.schemaManager.schema.getName(SKU.fromString(entry.sku), false),
+                            ourAssetidsCount,
+                            true
+                        );
 
                     // Add the max amount to the cart
                     this.addOurItem(priceKey, amount);
@@ -549,12 +554,17 @@ export default class UserCart extends Cart {
 
                 if (theirAssetidsCount === 0) {
                     alteredMessage =
-                        "you don't have any " + pluralize(this.bot.schema.getName(SKU.fromString(sku), false));
+                        "you don't have any " +
+                        pluralize(this.bot.schemaManager.schema.getName(SKU.fromString(sku), false));
                 } else {
                     amount = theirAssetidsCount;
                     alteredMessage =
                         'you only have ' +
-                        pluralize(this.bot.schema.getName(SKU.fromString(sku), false), theirAssetidsCount, true);
+                        pluralize(
+                            this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
+                            theirAssetidsCount,
+                            true
+                        );
 
                     // Add the max amount to the cart
                     this.addTheirItem(sku, amount);
@@ -1165,7 +1175,7 @@ export default class UserCart extends Cart {
             if (Pricelist.isAssetId(priceKey)) {
                 str += `${this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false }).name} (${priceKey})`;
             } else {
-                str += this.bot.schema.getName(SKU.fromString(priceKey), false);
+                str += this.bot.schemaManager.schema.getName(SKU.fromString(priceKey), false);
             }
         }
 
@@ -1180,7 +1190,7 @@ export default class UserCart extends Cart {
                 continue;
             }
 
-            str += `\n- ${this.their[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
+            str += `\n- ${this.their[sku]}x ${this.bot.schemaManager.schema.getName(SKU.fromString(sku), false)}`;
         }
 
         if (!isBuyer) {

@@ -241,9 +241,9 @@ export default class Inventory {
             const normPainted = optNormalize.painted;
             const normStrange = optNormalize.strangeAsSecondQuality;
 
-            const schemaItem = this.bot.schema.getItemBySKU(sku);
+            const schemaItem = this.bot.schemaManager.schema.getItemBySKU(sku);
             if (schemaItem) {
-                const canBeFestivized = this.bot.schema.isFestivizable(schemaItem.defindex);
+                const canBeFestivized = this.bot.schemaManager.schema.isFestivizable(schemaItem.defindex);
                 // Festivized
                 if (
                     !sku.includes(';festive') &&
@@ -263,7 +263,7 @@ export default class Inventory {
                     normPainted.amountIncludeNonPainted &&
                     !normPainted.our
                 ) {
-                    const paintPartialSKU = Object.values(this.bot.schema.paints);
+                    const paintPartialSKU = Object.values(this.bot.schemaManager.schema.paints);
                     for (const pSKU of paintPartialSKU) {
                         accAmount += this.findBySKU(`${sku};p${pSKU}`, tradableOnly).length;
                     }
@@ -448,7 +448,7 @@ export default class Inventory {
 
         for (let i = 0; i < itemsCount; i++) {
             const getSku = items[i].getSKU(
-                bot.schema,
+                bot.schemaManager.schema,
                 isNormalizeFestivized,
                 isNormalizeStrangeAsSecondQuality,
                 isNormalizePainted,
@@ -466,7 +466,7 @@ export default class Inventory {
                 sku = removePaintedPartialSku(sku);
             }
 
-            const attributes = this.highValue(sku, items[i], bot.schema.paints, strangeParts);
+            const attributes = this.highValue(sku, items[i], bot.schemaManager.schema.paints, strangeParts);
             const attributesCount = Object.keys(attributes).length;
 
             const isUses =
@@ -693,7 +693,7 @@ export function getSkuAmountCanTrade(
         mostCanTrade: amountCanTrade > amountCanTradeGeneric ? amountCanTrade : amountCanTradeGeneric,
         name:
             amountCanTrade > amountCanTradeGeneric
-                ? bot.schema.getName(SKU.fromString(sku))
-                : genericNameAndMatch(bot.schema.getName(SKU.fromString(sku), false), bot.effects).name
+                ? bot.schemaManager.schema.getName(SKU.fromString(sku))
+                : genericNameAndMatch(bot.schemaManager.schema.getName(SKU.fromString(sku), false), bot.effects).name
     };
 }

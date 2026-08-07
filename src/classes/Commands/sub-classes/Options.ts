@@ -938,7 +938,7 @@ export default class OptionsCommands {
 
                 if (knownParams.highValue !== undefined) {
                     void this.bot.inventoryManager.getInventory.fetch();
-                    Inventory.setOptions(this.bot.schema.paints, this.bot.strangeParts, opt.highValue);
+                    Inventory.setOptions(this.bot.schemaManager.schema.paints, this.bot.strangeParts, opt.highValue);
                 }
 
                 if (typeof knownParams.normalize === 'object') {
@@ -1073,7 +1073,8 @@ export default class OptionsCommands {
                 opt.highValue.painted.exceptionSkus.length = 0;
             }
 
-            if (isChanged) Inventory.setOptions(this.bot.schema.paints, this.bot.strangeParts, opt.highValue);
+            if (isChanged)
+                Inventory.setOptions(this.bot.schemaManager.schema.paints, this.bot.strangeParts, opt.highValue);
         }
 
         if (knownParams.statistics?.sendStats?.time !== undefined) {
