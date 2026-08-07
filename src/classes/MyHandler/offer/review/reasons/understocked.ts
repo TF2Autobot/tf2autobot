@@ -1,15 +1,20 @@
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import { Meta, Understocked } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../../Bot';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Options from '../../../../Options';
 
-export default function understocked(meta: Meta, bot: Bot): { note: string; name: string[] } {
-    const opt = bot.options.discordWebhook.offerReview;
+export default function understocked(
+    meta: Meta,
+    schema: SchemaManager.Schema,
+    options: Options
+): { note: string; name: string[] } {
+    const opt = options.discordWebhook.offerReview;
     const understockedForTheir: string[] = [];
     const understockedForOur: string[] = [];
 
     (meta.reasons.filter(el => el.reason.includes('🟩_UNDERSTOCKED')) as Understocked[]).forEach(el => {
-        const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku), false);
+        const name = schema.getName(SKU.fromString(el.sku), false);
 
         if (opt.enable && opt.url !== '') {
             understockedForOur.push(`_${name}_ (can only sell ${el.amountCanTrade}, taking ${el.amountTaking})`);
@@ -19,7 +24,7 @@ export default function understocked(meta: Meta, bot: Bot): { note: string; name
         understockedForTheir.push(`${el.amountCanTrade} - ${name}`);
     });
 
-    const note = bot.options.manualReview.understocked.note;
+    const note = options.manualReview.understocked.note;
 
     return {
         note: note

@@ -15,9 +15,7 @@ type ActionOnTrade = 'accept' | 'accepttrade' | 'decline' | 'declinetrade';
 type ForceAction = 'faccept' | 'fdecline';
 
 export default class ReviewCommands {
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     tradesCommand(steamID: SteamID, prefix: string): void {
         // Go through polldata and find active offers
@@ -148,25 +146,17 @@ export default class ReviewCommands {
             if (dict === null) {
                 return 'unknown items';
             }
-
             const summary: string[] = [];
-
+            const schema = this.bot.schemaManager.schema;
             for (const sku in dict) {
                 if (!Object.prototype.hasOwnProperty.call(dict, sku)) {
                     continue;
                 }
-
-                const name = testPriceKey(sku)
-                    ? this.bot.schemaManager.schema.getName(SKU.fromString(sku), false)
-                    : sku;
-
+                const name = testPriceKey(sku) ? schema.getName(SKU.fromString(sku), false) : sku;
                 summary.push(name + (dict[sku] > 1 ? ` x${dict[sku]}` : '')); // dict[sku] = amount
             }
 
-            if (summary.length === 0) {
-                return 'nothing';
-            }
-
+            if (summary.length === 0) return 'nothing';
             return summary.join(', ');
         };
 

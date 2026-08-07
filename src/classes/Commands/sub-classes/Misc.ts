@@ -14,9 +14,7 @@ type Misc = 'time' | 'uptime' | 'pure' | 'rate' | 'owner' | 'discord' | 'stock';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
 
 export default class MiscCommands {
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     links(steamID: SteamID): void {
         const botSteamID = this.bot.client.steamID.getSteamID64();
@@ -111,6 +109,7 @@ export default class MiscCommands {
             }
             this.bot.sendMessage(steamID, reply);
         } else {
+            const schema = this.bot.schemaManager.schema;
             const itemNameOrSku = CommandParser.removeCommand(removeLinkProtocol(message));
             let reply = '';
 
@@ -120,7 +119,7 @@ export default class MiscCommands {
                 if (itemNameOrSku !== `${prefix}stock`) {
                     if (!testPriceKey(itemNameOrSku)) {
                         // Receive name
-                        sku = this.bot.schemaManager.schema.getSkuFromName(itemNameOrSku);
+                        sku = schema.getSkuFromName(itemNameOrSku);
 
                         if (sku.includes('null') || sku.includes('undefined')) {
                             return this.bot.sendMessage(
@@ -131,7 +130,7 @@ export default class MiscCommands {
                     }
 
                     const itemDicts = this.bot.inventoryManager.getInventory.getItems[sku] ?? [];
-                    const name = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
+                    const name = schema.getName(SKU.fromString(sku), false);
 
                     reply = `/pre I currently have ${itemDicts.length} of ${name} (${sku}).`;
 
@@ -149,7 +148,7 @@ export default class MiscCommands {
                                         const hvName = getAttachmentName(
                                             attachment,
                                             pSku,
-                                            this.bot.schemaManager.schema.paints,
+                                            schema.paints,
                                             this.bot.strangeParts
                                         );
 
@@ -185,7 +184,7 @@ export default class MiscCommands {
                 }
 
                 items.push({
-                    name: this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
+                    name: schema.getName(SKU.fromString(sku), false),
                     amount: dict[sku].length
                 });
             }
@@ -317,12 +316,13 @@ export default class MiscCommands {
     }
 
     paintsCommand(steamID: SteamID): void {
+        const paints = this.bot.schemaManager.schema.paints;
         this.bot.sendMessage(
             steamID,
             '/code ' +
                 JSON.stringify(
-                    Object.keys(this.bot.schemaManager.schema.paints).reduce((obj, name) => {
-                        obj[name] = `p${this.bot.schemaManager.schema.paints[name]}`;
+                    Object.keys(paints).reduce((obj, name) => {
+                        obj[name] = `p${paints[name]}`;
                         return obj;
                     }, {}),
                     null,
@@ -334,13 +334,14 @@ export default class MiscCommands {
     private getWeaponsStock(showOnlyExist: boolean, weapons: string[]): string[] {
         const items: { amount: number; name: string }[] = [];
         const inventory = this.bot.inventoryManager.getInventory;
+        const schema = this.bot.schemaManager.schema;
 
         if (showOnlyExist) {
             weapons.forEach(sku => {
                 const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 if (amount > 0) {
                     items.push({
-                        name: this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
+                        name: schema.getName(SKU.fromString(sku), false),
                         amount: amount
                     });
                 }
@@ -349,7 +350,7 @@ export default class MiscCommands {
             weapons.forEach(sku => {
                 const amount = inventory.getAmount({ priceKey: sku, includeNonNormalized: false });
                 items.push({
-                    name: this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
+                    name: schema.getName(SKU.fromString(sku), false),
                     amount: amount
                 });
             });

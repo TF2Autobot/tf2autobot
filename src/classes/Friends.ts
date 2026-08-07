@@ -7,9 +7,7 @@ import { apiRequest } from '../lib/apiRequest';
 export default class Friends {
     maxFriends: number | undefined;
 
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     getFriend(steamID: SteamID | string): Friend | null {
         const steamID64 = steamID.toString();

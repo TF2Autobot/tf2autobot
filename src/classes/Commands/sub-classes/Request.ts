@@ -18,10 +18,6 @@ export default class RequestCommands {
         private readonly bot: Bot,
         private priceSource: IPricer
     ) {
-        this.bot = bot;
-
-        this.priceSource = priceSource;
-
         Pricecheck.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
@@ -33,7 +29,7 @@ export default class RequestCommands {
         }
 
         if (sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = getItemFromParams(steamID, params, this.bot, this.bot.schemaManager.schema);
             if (item === null) {
                 return;
             }
@@ -112,7 +108,7 @@ export default class RequestCommands {
         }
 
         if (sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = getItemFromParams(steamID, params, this.bot, this.bot.schemaManager.schema);
             if (item === null) {
                 return;
             }
@@ -168,9 +164,7 @@ class Pricecheck {
     constructor(
         private readonly bot: Bot,
         private readonly steamID: SteamID
-    ) {
-        this.bot = bot;
-    }
+    ) {}
 
     set enqueue(skus: string[]) {
         this.skus = skus;

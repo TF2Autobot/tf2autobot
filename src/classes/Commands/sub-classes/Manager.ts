@@ -44,9 +44,7 @@ export default class ManagerCommands {
 
     private isSendingBlockedList = false;
 
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     async TF2GCCommand(steamID: SteamID, message: string, command: TF2GC, prefix: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
@@ -139,15 +137,14 @@ export default class ManagerCommands {
             if (params.assetid !== undefined && params.sku === undefined) {
                 const targetedAssetId = params.assetid as string;
                 const sku = this.bot.inventoryManager.getInventory.findByAssetid(targetedAssetId);
+                const name = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 if (!['yes', true].includes(params.confirm)) {
                     return this.bot.sendMessage(
                         steamID,
                         `⚠️ Are you sure that you want to ${command} ${
-                            sku === null
-                                ? `the item with asset ID ${targetedAssetId}`
-                                : `${this.bot.schemaManager.schema.getName(SKU.fromString(sku), false)}`
+                            sku === null ? `the item with asset ID ${targetedAssetId}` : `${name}`
                         }?` +
                             `\n- This process is irreversible and will ${command} the item from your bot's backpack!` +
                             `\n- If you are sure, try again with confirm=true or confirm=yes as a parameter`
@@ -155,10 +152,7 @@ export default class ManagerCommands {
                 }
 
                 return this.bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](targetedAssetId, err => {
-                    const theItem =
-                        sku === null
-                            ? targetedAssetId
-                            : `${this.bot.schemaManager.schema.getName(SKU.fromString(sku), false)} (${targetedAssetId})`;
+                    const theItem = sku === null ? targetedAssetId : `${name} (${targetedAssetId})`;
 
                     if (err) {
                         log.warn(`Error trying to ${command} ${theItem}: `, err);

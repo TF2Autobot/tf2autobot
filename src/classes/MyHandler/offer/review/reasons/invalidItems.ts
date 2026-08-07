@@ -1,16 +1,21 @@
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import { Meta, InvalidItems } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../../Bot';
 import { testPriceKey } from '../../../../../lib/tools/export';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Options from '../../../../Options';
 
-export default function invalidItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
-    const opt = bot.options.discordWebhook.offerReview;
+export default function invalidItems(
+    meta: Meta,
+    schema: SchemaManager.Schema,
+    options: Options
+): { note: string; name: string[] } {
+    const opt = options.discordWebhook.offerReview;
     const invalidForTheir: string[] = []; // Display for trade partner
     const invalidForOur: string[] = []; // Display for owner
 
     (meta.reasons.filter(el => el.reason.includes('🟨_INVALID_ITEMS')) as InvalidItems[]).forEach(el => {
-        const name = testPriceKey(el.sku) ? bot.schemaManager.schema.getName(SKU.fromString(el.sku), false) : el.sku;
+        const name = testPriceKey(el.sku) ? schema.getName(SKU.fromString(el.sku), false) : el.sku;
 
         if (opt.enable && opt.url !== '') {
             // show both item name and pricedb.io price
@@ -25,7 +30,7 @@ export default function invalidItems(meta: Meta, bot: Bot): { note: string; name
     });
 
     const invalidForTheirCount = invalidForTheir.length;
-    const note = bot.options.manualReview.invalidItems.note;
+    const note = options.manualReview.invalidItems.note;
 
     return {
         note: note

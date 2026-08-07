@@ -1,8 +1,10 @@
 import { TradeOffer, Prices } from '@tf2autobot/tradeoffer-manager';
 import SKU from '@tf2autobot/tf2-sku';
 import Currencies from '@tf2autobot/tf2-currencies';
-import Bot from '../../classes/Bot';
 import { replace, testPriceKey } from '../tools/export';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Options from '../../classes/Options';
+import Pricelist from '../../classes/Pricelist';
 
 interface Items {
     invalid: string[];
@@ -14,8 +16,17 @@ interface Items {
     highValue: string[];
 }
 
-export default function listItems(offer: TradeOffer, bot: Bot, items: Items, isSteamChat: boolean): string {
-    const itemsPrices = bot.options.tradeSummary.showItemPrices ? listPrices(offer, bot, isSteamChat) : '';
+export default function listItems(
+    offer: TradeOffer,
+    schema: SchemaManager.Schema,
+    options: Options,
+    pricelist: Pricelist,
+    items: Items,
+    isSteamChat: boolean
+): string {
+    const itemsPrices = options.tradeSummary.showItemPrices
+        ? listPrices(offer, schema, options, pricelist, isSteamChat)
+        : '';
     let list = itemsPrices;
 
     const itemsPricesLength = itemsPrices.length;
@@ -104,12 +115,18 @@ export default function listItems(offer: TradeOffer, bot: Bot, items: Items, isS
     return replace.itemName(list);
 }
 
-function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
+function listPrices(
+    offer: TradeOffer,
+    schema: SchemaManager.Schema,
+    options: Options,
+    pricelist: Pricelist,
+    isSteamChat: boolean
+): string {
     const prices = offer.data('prices') as Prices;
 
     let text = '';
     const toJoin: string[] = [];
-    const properName = bot.options.tradeSummary.showProperName;
+    const properName = options.tradeSummary.showProperName;
 
     let buyPrice: string;
     let sellPrice: string;
@@ -124,14 +141,14 @@ function listPrices(offer: TradeOffer, bot: Bot, isSteamChat: boolean): string {
         buyPrice = new Currencies(prices[priceKey].buy).toString();
         sellPrice = new Currencies(prices[priceKey].sell).toString();
 
-        const entry = bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
+        const entry = pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
 
         if (entry !== null) {
             autoprice = entry.autoprice ? `autopriced${entry.isPartialPriced ? ' - ppu' : ''}` : 'manual';
         }
 
         const name = testPriceKey(priceKey)
-            ? bot.schemaManager.schema.getName(SKU.fromString(entry?.sku ?? priceKey), properName)
+            ? schema.getName(SKU.fromString(entry?.sku ?? priceKey), properName)
             : priceKey;
 
         toJoin.push(

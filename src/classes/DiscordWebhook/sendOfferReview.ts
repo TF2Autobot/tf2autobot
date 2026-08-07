@@ -72,8 +72,18 @@ export default function sendOfferReview(
     const currentItems = bot.inventoryManager.getInventory.getTotalItems;
     const isCustomPricer = bot.pricelist.isUseCustomPricer;
 
-    const summary = summarizeToChat(offer, bot, 'review-admin', true, value, false);
-    const itemList = listItems(offer, bot, itemsName, false);
+    const summary = summarizeToChat({
+        offer,
+        schema: bot.schemaManager.schema,
+        options: bot.options,
+        pricelist: bot.pricelist,
+        inventoryManager: bot.inventoryManager,
+        type: 'review-admin',
+        withLink: true,
+        value,
+        isSteamChat: false
+    });
+    const itemList = listItems(offer, bot.schemaManager.schema, bot.options, bot.pricelist, itemsName, false);
 
     const cT = bot.options.tradeSummary.customText;
     const cTKeyRate = cT.keyRate.discordWebhook ? cT.keyRate.discordWebhook : '🔑 Key rate:';
@@ -196,7 +206,7 @@ export default function sendOfferReview(
         sendWebhook(opt.offerReview.url, webhookReview, 'offer-review').catch(err => {
             log.warn(`❌ Failed to send offer-review webhook (#${offer.id}) to Discord: `, err);
 
-            const itemListx = listItems(offer, bot, itemsName, true);
+            const itemListx = listItems(offer, bot.schemaManager.schema, bot.options, bot.pricelist, itemsName, true);
 
             void sendToAdmin(bot, offer, reasons, value, keyPrices, itemListx, links);
         });

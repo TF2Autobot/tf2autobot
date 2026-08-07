@@ -3,9 +3,7 @@ import * as timersPromises from 'timers/promises';
 import Bot from '../../Bot';
 
 export default class HelpCommands {
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     async helpCommand(steamID: SteamID, prefix: string): Promise<void> {
         const isAdmin = this.bot.isAdmin(steamID);

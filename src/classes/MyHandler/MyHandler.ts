@@ -348,15 +348,13 @@ export default class MyHandler extends Handler {
         if (bulkResetPartiallyPriced.length > 0) {
             const dw = this.opt.discordWebhook.sendAlert;
             const isDwEnabled = dw.enable && (dw.url.main !== '' || dw.url.partialPriceUpdate !== '');
+            const schema = this.bot.schemaManager.schema;
 
             const msg =
                 `All partially priced items below has been reset to use the current prices ` +
                 `because no longer in stock or exceed the threshold:\n\n• ${bulkResetPartiallyPriced
                     .map(sku => {
-                        const name = this.bot.schemaManager.schema.getName(
-                            SKU.fromString(sku),
-                            this.opt.tradeSummary.showProperName
-                        );
+                        const name = schema.getName(SKU.fromString(sku), this.opt.tradeSummary.showProperName);
                         return `${isDwEnabled ? `[${name}](https://autobot.tf/items/${sku})` : name} (${sku})`;
                     })
                     .join('\n• ')}`;
@@ -735,7 +733,15 @@ export default class MyHandler extends Handler {
             offer.log(
                 'trade',
                 `is from an admin, accepting. Summary:\n${JSON.stringify(
-                    summarize(offer, this.bot, 'summary-accepting', false),
+                    summarize(
+                        offer,
+                        this.bot.schemaManager.schema,
+                        this.bot.options,
+                        this.bot.pricelist,
+                        this.bot.inventoryManager,
+                        'summary-accepting',
+                        false
+                    ),
                     null,
                     4
                 )}`
@@ -973,7 +979,15 @@ export default class MyHandler extends Handler {
                     offer.log(
                         'trade',
                         `is a gift offer, accepting. Summary:\n${JSON.stringify(
-                            summarize(offer, this.bot, 'summary-accepting', false),
+                            summarize(
+                                offer,
+                                this.bot.schemaManager.schema,
+                                this.bot.options,
+                                this.bot.pricelist,
+                                this.bot.inventoryManager,
+                                'summary-accepting',
+                                false
+                            ),
                             null,
                             4
                         )}`
@@ -1082,7 +1096,13 @@ export default class MyHandler extends Handler {
 
             // Inform admin via Steam Chat or Discord Webhook Something Wrong Alert.
             const highValueOurNames: string[] = [];
-            const itemsName = getHighValueItems(getHighValue.our.items, this.bot);
+            const itemsName = getHighValueItems(
+                getHighValue.our.items,
+                this.bot.schemaManager.schema,
+                this.bot.strangeParts,
+                this.bot.options,
+                this.bot.pricelist
+            );
 
             if (opt.sendAlert.enable && opt.sendAlert.highValue.tryingToTake) {
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
@@ -1903,7 +1923,15 @@ export default class MyHandler extends Handler {
                               }DISABLED_ITEMS`
                             : '')
                     }, but offer value is greater or equal, accepting. Summary:\n${JSON.stringify(
-                        summarize(offer, this.bot, 'summary-accepting', false),
+                        summarize(
+                            offer,
+                            this.bot.schemaManager.schema,
+                            this.bot.options,
+                            this.bot.pricelist,
+                            this.bot.inventoryManager,
+                            'summary-accepting',
+                            false
+                        ),
                         null,
                         4
                     )}`
@@ -1946,7 +1974,15 @@ export default class MyHandler extends Handler {
                     offer.log(
                         'info',
                         `offer need to counter.\nSummary:\n${JSON.stringify(
-                            summarize(offer, this.bot, 'summary-countering', false),
+                            summarize(
+                                offer,
+                                this.bot.schemaManager.schema,
+                                this.bot.options,
+                                this.bot.pricelist,
+                                this.bot.inventoryManager,
+                                'summary-countering',
+                                false
+                            ),
                             null,
                             4
                         )}`
@@ -2107,7 +2143,19 @@ export default class MyHandler extends Handler {
         // else nothing wrong, process accept offer
         offer.log(
             'trade',
-            `accepting. Summary:\n${JSON.stringify(summarize(offer, this.bot, 'summary-accepting', false), null, 4)}`
+            `accepting. Summary:\n${JSON.stringify(
+                summarize(
+                    offer,
+                    this.bot.schemaManager.schema,
+                    this.bot.options,
+                    this.bot.pricelist,
+                    this.bot.inventoryManager,
+                    'summary-accepting',
+                    false
+                ),
+                null,
+                4
+            )}`
         );
 
         if (opt.offerReceived.sendPreAcceptMessage.enable && this.bot.friends.isFriend(offer.partner)) {
@@ -2277,7 +2325,13 @@ export default class MyHandler extends Handler {
                 offer.log('trade', `has been accepted${isAcceptedWithEscrow ? ' with trade hold' : ''}.`);
 
                 this.autokeys.check();
-                const result = processAccepted(offer, this.bot, timeTakenToComplete, isAcceptedWithEscrow);
+                const result = processAccepted(
+                    offer,
+                    this.bot,
+                    this.bot.schemaManager.schema,
+                    timeTakenToComplete,
+                    isAcceptedWithEscrow
+                );
 
                 highValue.isDisableSKU = result.isDisableSKU;
                 highValue.theirItems = result.theirHighValuedItems;
@@ -2320,7 +2374,7 @@ export default class MyHandler extends Handler {
             log.debug(uptime());
 
             // Update listings
-            updateListings(offer, this.bot, highValue);
+            updateListings(offer, this.bot, this.bot.schemaManager.schema, highValue);
 
             // Invite to group
             this.inviteToGroups(offer.partner);

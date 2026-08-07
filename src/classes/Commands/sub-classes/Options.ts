@@ -36,9 +36,7 @@ export type OptionsKeys =
 let isSending = false;
 
 export default class OptionsCommands {
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     async optionsCommand(steamID: SteamID, message: string, prefix: string): Promise<void> {
         if (isSending) {

@@ -1,15 +1,20 @@
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import { Meta, DisabledItems } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../../Bot';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Options from '../../../../Options';
 
-export default function disabledItems(meta: Meta, bot: Bot): { note: string; name: string[] } {
-    const opt = bot.options.discordWebhook.offerReview;
+export default function disabledItems(
+    meta: Meta,
+    schema: SchemaManager.Schema,
+    options: Options
+): { note: string; name: string[] } {
+    const opt = options.discordWebhook.offerReview;
     const disabledForTheir: string[] = []; // Display for trade partner
     const disabledForOur: string[] = []; // Display for owner
 
     (meta.reasons.filter(el => el.reason.includes('🟧_DISABLED_ITEMS')) as DisabledItems[]).forEach(el => {
-        const name = bot.schemaManager.schema.getName(SKU.fromString(el.sku));
+        const name = schema.getName(SKU.fromString(el.sku));
 
         if (opt.enable && opt.url !== '') {
             disabledForOur.push(`_${name}_`);
@@ -22,7 +27,7 @@ export default function disabledItems(meta: Meta, bot: Bot): { note: string; nam
     });
 
     const disabledForTheirCount = disabledForTheir.length;
-    const note = bot.options.manualReview.disabledItems.note;
+    const note = options.manualReview.disabledItems.note;
 
     return {
         note: note

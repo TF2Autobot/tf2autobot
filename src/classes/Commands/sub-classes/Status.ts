@@ -13,9 +13,7 @@ import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 // Bot status
 
 export default class StatusCommands {
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     async statsCommand(steamID: SteamID): Promise<void> {
         const tradesFromEnv = this.bot.options.statistics.lastTotalTrades;

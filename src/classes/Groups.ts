@@ -3,9 +3,7 @@ import Bot from './Bot';
 import log from '../lib/logger';
 
 export default class Groups {
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     inviteToGroups(steamID: SteamID | string, groups: string[]): void {
         if (!this.bot.friends.isFriend(steamID)) {

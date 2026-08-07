@@ -12,12 +12,14 @@ import log from '../../../../lib/logger';
 import { sendAlert } from '../../../DiscordWebhook/export';
 import { PaintedNames } from '../../../Options';
 import { testPriceKey } from '../../../../lib/tools/export';
+import SchemaManager from '@tf2autobot/tf2-schema';
 
 let craftWeapons: string[] = [];
 
 export default function updateListings(
     offer: TradeOffer,
     bot: Bot,
+    schema: SchemaManager.Schema,
     highValue: { isDisableSKU: string[]; theirItems: string[]; items: Items }
 ): void {
     const opt = bot.options;
@@ -84,7 +86,7 @@ export default function updateListings(
         }
 
         const item = SKU.fromString(priceKey);
-        const name = bot.schemaManager.schema.getName(item, false);
+        const name = schema.getName(item, false);
 
         const isNotPure = !pure.includes(priceKey);
         const isNotPureOrWeapons = !pureWithWeapons.includes(priceKey);
@@ -224,7 +226,7 @@ export default function updateListings(
 
             const priceFromOptions =
                 opt.detailsExtra.painted[
-                    bot.schemaManager.schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames
+                    schema.getPaintNameByDecimal(parseInt(pSKU.replace('p', ''), 10)) as PaintedNames
                 ].price;
 
             const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
@@ -263,7 +265,7 @@ export default function updateListings(
                 .addPrice({ entryData: entry, emitChange: true })
                 .then(data => {
                     const msg =
-                        `✅ Automatically added ${bot.schemaManager.schema.getName(SKU.fromString(paintedSKU), false)}` +
+                        `✅ Automatically added ${schema.getName(SKU.fromString(paintedSKU), false)}` +
                         ` (${paintedSKU}) to sell.` +
                         `\nBase price: ${priceListEntry.buy.toString()}/${priceListEntry.sell.toString()}` +
                         `\nSelling for: ${data.sell.toString()} ` +
@@ -286,7 +288,7 @@ export default function updateListings(
                 })
                 .catch(err => {
                     const msg =
-                        `❌ Failed to add ${bot.schemaManager.schema.getName(SKU.fromString(paintedSKU), false)}` +
+                        `❌ Failed to add ${schema.getName(SKU.fromString(paintedSKU), false)}` +
                         ` (${paintedSKU}) to sell automatically: ${(err as Error).message}`;
 
                     log.warn(`Failed to add ${paintedSKU} to sell automatically:`, err);
@@ -304,8 +306,7 @@ export default function updateListings(
             //
         } else if (isAutoAddPaintedFromAdmin) {
             const priceFromOptions =
-                opt.detailsExtra.painted[bot.schemaManager.schema.getPaintNameByDecimal(item.paint) as PaintedNames]
-                    .price;
+                opt.detailsExtra.painted[schema.getPaintNameByDecimal(item.paint) as PaintedNames].price;
 
             const keyPriceInRef = bot.pricelist.getKeyPrice.metal;
             const keyPriceInScrap = Currencies.toScrap(keyPriceInRef);

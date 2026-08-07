@@ -34,21 +34,12 @@ export default class AdminCart extends Cart {
                     amount = ourAssetidsCount;
                     // Remove the item from the cart
                     this.removeOurItem(sku);
+                    const itemName = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
                     if (ourAssetidsCount === 0) {
-                        alteredMessages.push(
-                            "I don't have any " +
-                                pluralize(this.bot.schemaManager.schema.getName(SKU.fromString(sku), false))
-                        );
+                        alteredMessages.push("I don't have any " + pluralize(itemName));
                     } else {
-                        alteredMessages.push(
-                            'I only have ' +
-                                pluralize(
-                                    this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
-                                    ourAssetidsCount,
-                                    true
-                                )
-                        );
+                        alteredMessages.push('I only have ' + pluralize(itemName, ourAssetidsCount, true));
 
                         // Add the max amount to the offer
                         this.addOurItem(sku, ourAssetidsCount);
@@ -138,21 +129,12 @@ export default class AdminCart extends Cart {
                             amount = theirAssetidsCount;
                             // Remove the item from the cart
                             this.removeTheirItem(sku);
+                            const itemName = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
                             if (theirAssetidsCount === 0) {
-                                alteredMessages.push(
-                                    "you don't have any " +
-                                        pluralize(this.bot.schemaManager.schema.getName(SKU.fromString(sku), false))
-                                );
+                                alteredMessages.push("you don't have any " + pluralize(itemName));
                             } else {
-                                alteredMessages.push(
-                                    'you only have ' +
-                                        pluralize(
-                                            this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
-                                            theirAssetidsCount,
-                                            true
-                                        )
-                                );
+                                alteredMessages.push('you only have ' + pluralize(itemName, theirAssetidsCount, true));
 
                                 // Add the max amount to the offer substract current added amount
                                 this.addTheirItem(
