@@ -2775,29 +2775,18 @@ export default class MyHandler extends Handler {
         this.bot.client.gamesPlayed(this.opt.miscSettings.game.playOnlyTF2 ? 440 : [this.customGameName, 440]);
     }
 
-    filterBptfListingsResponseError(exs: ListingManager.ListingsSuccessfulError[]): Record<string, any> {
-        const filtered: Record<string, any> = {};
-        if (Array.isArray(exs) && exs.length > 0) {
-            filtered.count = exs.length;
-            for (const ex of exs) {
-                if (ex.listing?.id && ex.error?.message) filtered[ex.listing.id] = ex.error.message;
-            }
-            return filtered;
-        }
-    }
-
     onCreateListingsSuccessful(response: {
         created: number;
         archived: number;
         errors: ListingManager.ListingsSuccessfulError[];
     }): void {
-        const filteredErrors = this.filterBptfListingsResponseError(response.errors);
+        const filteredErrors = filterBptfListingsResponseError(response.errors);
         delete response.errors;
         log.debug('Successfully create listings:', Object.assign(response, { errors: filteredErrors }));
     }
 
     onUpdateListingsSuccessful(response: { updated: number; errors: ListingManager.ListingsSuccessfulError[] }): void {
-        const filteredErrors = this.filterBptfListingsResponseError(response.errors);
+        const filteredErrors = filterBptfListingsResponseError(response.errors);
         delete response.errors;
         log.debug('Successfully update listings:', Object.assign(response, { errors: filteredErrors }));
     }
@@ -2918,6 +2907,17 @@ export default class MyHandler extends Handler {
             .catch(err => {
                 log.error('Failed to update polldata path:', err);
             });
+    }
+}
+
+function filterBptfListingsResponseError(exs: ListingManager.ListingsSuccessfulError[]): Record<string, any> {
+    const filtered: Record<string, any> = {};
+    if (Array.isArray(exs) && exs.length > 0) {
+        filtered.count = exs.length;
+        for (const ex of exs) {
+            if (ex.listing?.id && ex.error?.message) filtered[ex.listing.id] = ex.error.message;
+        }
+        return filtered;
     }
 }
 
