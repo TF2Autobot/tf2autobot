@@ -5,6 +5,7 @@
     "main": "dist/app.js",
     "scripts": {
         "release": "np --no-cleanup --no-publish",
+        "prebuild": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
         "build": "tsc -p ./tsconfig.build.json",
         "pretest": "npm run lint",
         "test": "vitest run",
