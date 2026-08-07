@@ -2780,19 +2780,29 @@ export default class MyHandler extends Handler {
     }
 
     onItemSchemaUpdate(): void {
-        // When tf2 emit "itemSchemaLoaded" event, we request schema after 5 minutes timeout
+        // When tf2 emit "itemSchema" event, we request schema after 5 minutes timeout
         // Because schema.autobot.tf will request every 2 minutes
+        log.debug('Schema update event, updating schema in 5 minutes...');
         const delay = 5 * 60 * 1000;
         clearTimeout(this.getSchemaTimeout);
 
         this.getSchemaTimeout = setTimeout(() => {
-            this.bot.schemaManager.getSchema(err => {
-                if (err) {
-                    log.warn('Error updating schema:', err);
+            this.bot
+                .getLocalizationFile()
+                .then(() => {
+                    this.bot.schemaManager.getSchema(err => {
+                        if (err) {
+                            log.warn('Error updating schema:', err);
+                            return this.onItemSchemaUpdate(); // we try again 5 minutes later
+                        }
+                        // Do nothing on success, tf2-schema will emit "schema" event and below method will be called
+                        log.debug('Schema update successful.');
+                    });
+                })
+                .catch(err => {
+                    log.warn('Error getting localization file', err);
                     return this.onItemSchemaUpdate(); // we try again 5 minutes later
-                }
-                // Do nothing on success, tf2-schema will emit "schema" event and below method will be called
-            });
+                });
         }, delay);
     }
 

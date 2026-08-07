@@ -343,7 +343,7 @@ export default class Bot {
         );
     }
 
-    private getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
+    getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
         return new Promise((resolve, reject) => {
             apiRequest<string>({
                 method: 'GET',
@@ -1192,18 +1192,8 @@ export default class Bot {
                     (callback: (err?) => void): void => {
                         log.debug('Getting localization file...');
                         this.getLocalizationFile()
-                            .then(() => {
-                                setInterval(
-                                    () => {
-                                        void this.getLocalizationFile();
-                                    },
-                                    24 * 60 * 60 * 1000
-                                );
-                                callback(null);
-                            })
-                            .catch(err => {
-                                callback(err);
-                            });
+                            .then(() => callback(null))
+                            .catch(err => callback(err));
                     },
                     (callback: Callback): void => {
                         this.setupTradeOfferUrl()
