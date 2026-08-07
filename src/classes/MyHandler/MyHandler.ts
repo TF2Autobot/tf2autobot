@@ -1938,7 +1938,7 @@ export default class MyHandler extends Handler {
                     )}`
                 );
 
-                if (opt.offerReceived.sendPreAcceptMessage.enable) {
+                if (!this.opt.globalDisable.offerMessages && opt.offerReceived.sendPreAcceptMessage.enable) {
                     const preAcceptMessage = opt.customMessage.accepted.automatic;
 
                     MyHandler.sendPreAcceptedMessage(
@@ -2159,7 +2159,11 @@ export default class MyHandler extends Handler {
             )}`
         );
 
-        if (opt.offerReceived.sendPreAcceptMessage.enable && this.bot.friends.isFriend(offer.partner)) {
+        if (
+            !this.opt.globalDisable.offerMessages &&
+            opt.offerReceived.sendPreAcceptMessage.enable &&
+            this.bot.friends.isFriend(offer.partner)
+        ) {
             const preAcceptMessage = opt.customMessage.accepted.automatic;
 
             MyHandler.sendPreAcceptedMessage(
@@ -2226,20 +2230,27 @@ export default class MyHandler extends Handler {
                 const notifyOpt = this.opt.steamChat.notifyTradePartner;
 
                 if (offer.state === TradeOfferManager.ETradeOfferState['Accepted']) {
-                    if (notifyOpt.onSuccessAccepted) accepted(offer, this.bot);
-
+                    if (notifyOpt.onSuccessAccepted && !this.opt.globalDisable.offerMessages) {
+                        accepted(offer, this.bot);
+                    }
                     if (offer.data('donation')) {
                         this.bot.messageAdmins('✅ Success! Your donation has been sent and received!', []);
                     } else if (offer.data('buyBptfPremium')) {
                         this.bot.messageAdmins('✅ Success! Your premium purchase has been sent and received!', []);
                     }
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InEscrow']) {
-                    if (notifyOpt.onSuccessAcceptedEscrow) acceptEscrow(offer, this.bot);
+                    if (notifyOpt.onSuccessAcceptedEscrow && !this.opt.globalDisable.offerMessages) {
+                        acceptEscrow(offer, this.bot);
+                    }
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Declined']) {
-                    if (notifyOpt.onDeclined) declined(offer, this.bot);
+                    if (notifyOpt.onDeclined && !this.opt.globalDisable.offerMessages) {
+                        declined(offer, this.bot);
+                    }
                     offer.data('isDeclined', true);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['Canceled']) {
-                    if (notifyOpt.onCancelled) cancelled(offer, oldState, this.bot);
+                    if (notifyOpt.onCancelled && !this.opt.globalDisable.offerMessages) {
+                        cancelled(offer, oldState, this.bot);
+                    }
 
                     if (offer.data('canceledByUser') === true) {
                         // do nothing
@@ -2250,7 +2261,9 @@ export default class MyHandler extends Handler {
                     }
                     MyHandler.removePolldataKeys(offer);
                 } else if (offer.state === TradeOfferManager.ETradeOfferState['InvalidItems']) {
-                    if (notifyOpt.onTradedAway) invalid(offer, this.bot);
+                    if (notifyOpt.onTradedAway && !this.opt.globalDisable.offerMessages) {
+                        invalid(offer, this.bot);
+                    }
                     offer.data('isInvalid', true);
                     MyHandler.removePolldataKeys(offer);
                 }
@@ -2611,16 +2624,19 @@ export default class MyHandler extends Handler {
                 const friendSteamID = friend.steamID;
                 const getFriend = this.bot.friends.getFriend(friendSteamID);
 
-                this.bot.sendMessage(
-                    friendSteamID,
-                    this.opt.customMessage.clearFriends
-                        ? this.opt.customMessage.clearFriends.replace(
-                              /%name%/g,
-                              getFriend ? getFriend.player_name : friendSteamID
-                          )
-                        : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. ' +
-                              'Please feel free to add me again if you want to trade at a later time!'
-                );
+                if (!this.bot.options.globalDisable.unfriendMessage) {
+                    this.bot.sendMessage(
+                        friendSteamID,
+                        this.opt.customMessage.clearFriends
+                            ? this.opt.customMessage.clearFriends.replace(
+                                  /%name%/g,
+                                  getFriend ? getFriend.player_name : friendSteamID
+                              )
+                            : '/quote I am cleaning up my friend list and you have randomly been selected to be removed. ' +
+                                  'Please feel free to add me again if you want to trade at a later time!'
+                    );
+                }
+
                 this.bot.client.removeFriend(friendSteamID);
             });
         }
