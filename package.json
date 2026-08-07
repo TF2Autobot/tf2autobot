@@ -81,7 +81,7 @@
         "@types/node": "^26.1.1",
         "@types/pluralize": "^0.0.33",
         "@types/retry": "^0.12.5",
-        "@types/semver": "^7.7.1",
+        "@types/semver": "^7.8.0",
         "@types/valid-url": "^1.0.7",
         "@types/write-file-atomic": "^4.0.3",
         "eslint": "^10.7.0",
