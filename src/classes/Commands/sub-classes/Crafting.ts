@@ -21,9 +21,7 @@ export default class CraftingCommands {
 
     private isCrafting = false;
 
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     craftTokenCommand(steamID: SteamID, message: string, prefix: string): void {
         const opt = this.bot.options.crafting;
@@ -322,7 +320,7 @@ export default class CraftingCommands {
                 melee: [],
                 pda2: []
             };
-            const craftableWeapons = this.bot.schema.getCraftableWeaponsSchema();
+            const craftableWeapons = this.bot.schemaManager.schema.getCraftableWeaponsSchema();
             const count = craftableWeapons.length;
 
             for (let i = 0; i < count; i++) {

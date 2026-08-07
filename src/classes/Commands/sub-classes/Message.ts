@@ -6,9 +6,7 @@ import { generateLinks, timeNow } from '../../../lib/tools/export';
 import { sendPartnerMessage, sendAdminMessage } from '../../DiscordWebhook/export';
 
 export default class MessageCommand {
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     message(steamID: SteamID, message: string, prefix: string): void {
         const isAdmin = this.bot.isAdmin(steamID);

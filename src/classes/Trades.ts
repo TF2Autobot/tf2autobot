@@ -26,6 +26,7 @@ import { sendAlert } from './DiscordWebhook/export';
 import { isBptfBanned } from '../lib/bans';
 import { getSteamMaintenanceDelay } from '../lib/steamMaintenance';
 import * as t from '../lib/tools/export';
+import { SummarizeToChatRequirement } from '../lib/tools/summarizeOffer';
 
 type PureSKU = '5021;6' | '5002;6' | '5001;6' | '5000;6';
 type AddOrRemoveMyOrTheirItems = 'addMyItems' | 'removeMyItems' | 'addTheirItems' | 'removeTheirItems';
@@ -54,9 +55,7 @@ export default class Trades {
 
     private offerChangedAcc: { offer: TradeOffer; oldState: number; timeTakenToComplete: number }[] = [];
 
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     onPollData(pollData: TradeOfferManager.PollData): void {
         this.bot.handler.onPollData(pollData);
@@ -425,9 +424,20 @@ export default class Trades {
 
             if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                 const value = t.valueDiff(offer);
+                const req: SummarizeToChatRequirement = {
+                    offer,
+                    schema: this.bot.schemaManager.schema,
+                    options: this.bot.options,
+                    pricelist: this.bot.pricelist,
+                    inventoryManager: this.bot.inventoryManager,
+                    type: 'summary-accepting',
+                    withLink: true,
+                    value,
+                    isSteamChat: false
+                };
 
                 if (opt.discordWebhook.sendAlert.enable && opt.discordWebhook.sendAlert.url.main !== '') {
-                    const summary = t.summarizeToChat(offer, this.bot, 'summary-accepting', true, value, false);
+                    const summary = t.summarizeToChat(req);
                     sendAlert(
                         `failed-${action}` as FailedActions,
                         this.bot,
@@ -443,7 +453,9 @@ export default class Trades {
                         [offer.id]
                     );
                 } else {
-                    const summary = t.summarizeToChat(offer, this.bot, 'summary-accepting', false, value, true);
+                    req.withLink = false;
+                    req.isSteamChat = true;
+                    const summary = t.summarizeToChat(req);
                     this.bot.messageAdmins(
                         `Failed to ${action} on the offer #${offer.id}:` +
                             summary +
@@ -618,19 +630,22 @@ export default class Trades {
 
                                 if (opt.sendAlert.enable && opt.sendAlert.failedAccept) {
                                     const value = t.valueDiff(offer);
-
+                                    const req: SummarizeToChatRequirement = {
+                                        offer,
+                                        schema: this.bot.schemaManager.schema,
+                                        options: this.bot.options,
+                                        pricelist: this.bot.pricelist,
+                                        inventoryManager: this.bot.inventoryManager,
+                                        type: 'summary-accepting',
+                                        withLink: true,
+                                        value,
+                                        isSteamChat: false
+                                    };
                                     if (
                                         opt.discordWebhook.sendAlert.enable &&
                                         opt.discordWebhook.sendAlert.url.main !== ''
                                     ) {
-                                        const summary = t.summarizeToChat(
-                                            offer,
-                                            this.bot,
-                                            'summary-accepting',
-                                            true,
-                                            value,
-                                            false
-                                        );
+                                        const summary = t.summarizeToChat(req);
                                         sendAlert(
                                             `error-accept`,
                                             this.bot,
@@ -643,14 +658,9 @@ export default class Trades {
                                             [offer.id]
                                         );
                                     } else {
-                                        const summary = t.summarizeToChat(
-                                            offer,
-                                            this.bot,
-                                            'summary-accepting',
-                                            false,
-                                            value,
-                                            true
-                                        );
+                                        req.withLink = false;
+                                        req.isSteamChat = true;
+                                        const summary = t.summarizeToChat(req);
                                         this.bot.messageAdmins(
                                             `Error while trying to accept mobile confirmation on offer #${offer.id}:` +
                                                 summary +
@@ -1684,7 +1694,13 @@ export default class Trades {
                             if (!restarting) {
                                 return sendAlert('failedPM2', this.bot);
                             }
-                            this.bot.sendMessage(steamID, '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...');
+                            if (this.bot.friends.isFriend(steamID)) {
+                                // Only send if friend
+                                this.bot.sendMessage(
+                                    steamID,
+                                    '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...'
+                                );
+                            }
                         })
                         .catch(err => {
                             log.warn('Error occurred while trying to restart: ', err);
@@ -1707,7 +1723,12 @@ export default class Trades {
                                 );
                             }
                             this.bot.messageAdmins(`🔄 Restarting...`, []);
-                            this.bot.sendMessage(steamID, '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...');
+                            if (this.bot.friends.isFriend(steamID)) {
+                                this.bot.sendMessage(
+                                    steamID,
+                                    '🙇‍♂️ Sorry! Something went wrong. I am restarting myself...'
+                                );
+                            }
                         })
                         .catch(err => {
                             log.warn('Error occurred while trying to restart: ', err);

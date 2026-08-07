@@ -1,6 +1,8 @@
 {
     "globalDisable": {
         "messages": false,
+        "offerMessages": false,
+        "unfriendMessage": false,
         "greeting": false,
         "commands": false,
         "adminCommands": false

@@ -1,9 +1,10 @@
 import TradeOfferManager, { CustomError } from '@tf2autobot/tradeoffer-manager';
-import { sendWebhook, WebhookError } from './utils';
+import { sendWebhook, WebhookError, WebhookErrorData } from './utils';
 import { Webhook } from './interfaces';
 import { timeNow, uptime } from '../../lib/tools/time';
 import Bot from '../Bot';
 import * as timersPromises from 'timers/promises';
+import log from '../../lib/logger';
 
 type AlertType =
     | 'lowPure'
@@ -331,7 +332,7 @@ interface Alert {
 class AlertQueue {
     private static alerts: Alert[] = [];
 
-    private static sleepTime = 1000;
+    private static sleepTime = 1500;
 
     private static isRateLimited = false;
 
@@ -359,22 +360,21 @@ class AlertQueue {
         await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
-            this.sleepTime = 1000;
+            this.sleepTime = 1500;
             this.isRateLimited = false;
         }
 
         sendWebhook(alert.url, alert.webhook, 'alert')
+            .then(() => this.dequeue())
             .catch((e: WebhookError) => {
                 if (e.err.status === 429) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    const retryAfter = e.err.data?.retry_after as number;
-                    this.sleepTime = typeof retryAfter === 'number' ? Math.ceil(retryAfter * 1000) : 3000;
+                    const retryAfter = (e.err.data as WebhookErrorData)?.retry_after;
+                    this.sleepTime = typeof retryAfter === 'number' ? retryAfter * 1000 + 100 : 3000;
                     this.isRateLimited = true;
                 }
             })
             .finally(() => {
                 this.isProcessing = false;
-                this.dequeue();
                 void this.process();
             });
     }
@@ -383,7 +383,7 @@ class AlertQueue {
 class AlertPpuQueue {
     private static alerts: Alert[] = [];
 
-    private static sleepTime = 1000;
+    private static sleepTime = 1500;
 
     private static isRateLimited = false;
 
@@ -411,22 +411,22 @@ class AlertPpuQueue {
         await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
-            this.sleepTime = 1000;
+            this.sleepTime = 1500;
             this.isRateLimited = false;
         }
 
         sendWebhook(alert.url, alert.webhook, 'alert')
+            .then(() => this.dequeue())
             .catch((e: WebhookError) => {
                 if (e.err.status === 429) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    const retryAfter = e.err.data?.retry_after as number;
-                    this.sleepTime = typeof retryAfter === 'number' ? Math.ceil(retryAfter * 1000) : 3000;
+                    log.warn(`❌ Failed to send alert to Discord: `, e.err);
+                    const retryAfter = (e.err.data as WebhookErrorData)?.retry_after;
+                    this.sleepTime = typeof retryAfter === 'number' ? retryAfter * 1000 + 100 : 3000;
                     this.isRateLimited = true;
                 }
             })
             .finally(() => {
                 this.isProcessing = false;
-                this.dequeue();
                 void this.process();
             });
     }

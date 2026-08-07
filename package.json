@@ -5,6 +5,7 @@
     "main": "dist/app.js",
     "scripts": {
         "release": "np --no-cleanup --no-publish",
+        "prebuild": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
         "build": "tsc -p ./tsconfig.build.json",
         "pretest": "npm run lint",
         "test": "vitest run",
@@ -26,16 +27,16 @@
         "url": "https://github.com/TF2Autobot/tf2autobot/issues"
     },
     "updaterepo": true,
-    "updateMessage": "Patch only for those that use custom pricer. Skip if not related.",
+    "updateMessage": "",
     "homepage": "https://github.com/TF2Autobot/tf2autobot#readme",
     "dependencies": {
-        "@tf2autobot/bptf-listings": "^5.9.4",
+        "@tf2autobot/bptf-listings": "^5.9.6",
         "@tf2autobot/bptf-login": "^2.5.1",
         "@tf2autobot/jsonlint": "^1.0.0",
         "@tf2autobot/steamcommunity": "^3.50.6",
         "@tf2autobot/tf2": "^1.4.0",
         "@tf2autobot/tf2-currencies": "^2.0.1",
-        "@tf2autobot/tf2-schema": "^4.9.1",
+        "@tf2autobot/tf2-schema": "^4.10.0",
         "@tf2autobot/tf2-sku": "^3.1.0",
         "@tf2autobot/tradeoffer-manager": "^2.20.8",
         "async": "^3.2.6",

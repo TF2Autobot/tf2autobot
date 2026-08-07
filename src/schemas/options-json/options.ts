@@ -367,6 +367,12 @@ export const optionsSchema: jsonschema.Schema = {
                 messages: {
                     type: 'boolean'
                 },
+                offerMessages: {
+                    type: 'boolean'
+                },
+                unfriendMessage: {
+                    type: 'boolean'
+                },
                 greeting: {
                     type: 'boolean'
                 },
@@ -377,7 +383,7 @@ export const optionsSchema: jsonschema.Schema = {
                     type: 'boolean'
                 }
             },
-            required: ['messages', 'greeting', 'commands', 'adminCommands'],
+            required: ['messages', 'offerMessages', 'unfriendMessage', 'greeting', 'commands', 'adminCommands'],
             additionalProperties: false
         },
         steamConnection: {

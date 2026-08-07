@@ -18,10 +18,6 @@ export default class RequestCommands {
         private readonly bot: Bot,
         private priceSource: IPricer
     ) {
-        this.bot = bot;
-
-        this.priceSource = priceSource;
-
         Pricecheck.setRequestCheckFn(this.priceSource.requestCheck.bind(this.priceSource));
     }
 
@@ -33,14 +29,14 @@ export default class RequestCommands {
         }
 
         if (sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = getItemFromParams(steamID, params, this.bot, this.bot.schemaManager.schema);
             if (item === null) {
                 return;
             }
 
             sku = SKU.fromObject(item);
         } else {
-            sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schema));
+            sku = SKU.fromObject(fixItem(SKU.fromString(sku), this.bot.schemaManager.schema));
         }
 
         void this.priceSource
@@ -53,7 +49,7 @@ export default class RequestCommands {
                     if (body.name) {
                         name = body.name;
                     } else {
-                        name = this.bot.schema.getName(SKU.fromString(sku));
+                        name = this.bot.schemaManager.schema.getName(SKU.fromString(sku));
                     }
                     this.bot.sendMessage(
                         steamID,
@@ -112,7 +108,7 @@ export default class RequestCommands {
         }
 
         if (sku === undefined) {
-            const item = getItemFromParams(steamID, params, this.bot);
+            const item = getItemFromParams(steamID, params, this.bot, this.bot.schemaManager.schema);
             if (item === null) {
                 return;
             }
@@ -121,7 +117,7 @@ export default class RequestCommands {
         }
         // Intentionally not standardizing the sku here
 
-        const name = this.bot.schema.getName(SKU.fromString(sku));
+        const name = this.bot.schemaManager.schema.getName(SKU.fromString(sku));
         try {
             const price = await this.priceSource.getPrice(sku);
             const currBuy = new Currencies(price.buy);
@@ -168,9 +164,7 @@ class Pricecheck {
     constructor(
         private readonly bot: Bot,
         private readonly steamID: SteamID
-    ) {
-        this.bot = bot;
-    }
+    ) {}
 
     set enqueue(skus: string[]) {
         this.skus = skus;
