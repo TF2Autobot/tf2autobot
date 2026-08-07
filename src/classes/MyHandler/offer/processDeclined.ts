@@ -4,10 +4,10 @@ import Bot from '../../Bot';
 import * as t from '../../../lib/tools/export';
 import sendTradeDeclined from '../../DiscordWebhook/sendTradeDeclined';
 import { KeyPrices } from '../../../classes/Pricelist';
+import SchemaManager from '@tf2autobot/tf2-schema';
 
-export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
+export default function processDeclined(offer: i.TradeOffer, bot: Bot, schema: SchemaManager.Schema): void {
     const opt = bot.options;
-    const schema = bot.schemaManager.schema;
 
     const declined: Declined = {
         //nonTf2Items: [],

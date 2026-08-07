@@ -2359,7 +2359,7 @@ export default class MyHandler extends Handler {
                 clearTimeout(this.resetSentSummaryTimeout);
                 this.sentSummary[offer.id] = true;
 
-                processDeclined(offer, this.bot);
+                processDeclined(offer, this.bot, this.bot.schemaManager.schema);
                 MyHandler.removePolldataKeys(offer);
             }
         }

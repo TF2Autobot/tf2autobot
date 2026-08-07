@@ -138,45 +138,34 @@ export default function summarize(
     const theirCount = Object.keys(items.their).length;
 
     const isCompressSummary = (ourCount > 15 && theirCount > 15) || ourCount + theirCount > 28; // Estimate until limit reached
-    const reqOur = {
-        dict: items.our,
-        schema,
-        options,
-        pricelist,
-        inventoryManager,
-        which: 'our',
-        type,
-        withLink,
-        showStockChanges,
-        isCompressSummary
-    };
-
-    const reqTheir = {
-        dict: items.their,
-        schema,
-        options,
-        pricelist,
-        inventoryManager,
-        which: 'their',
-        type,
-        withLink,
-        showStockChanges,
-        isCompressSummary
+    const req = (which: 'our' | 'their') => {
+        return {
+            dict: items[which],
+            schema,
+            options,
+            pricelist,
+            inventoryManager,
+            which,
+            type,
+            withLink,
+            showStockChanges,
+            isCompressSummary
+        };
     };
 
     if (!value) {
         // If trade with ADMINS or Gift
         return {
-            asked: getSummary(reqOur),
-            offered: getSummary(reqTheir)
+            asked: getSummary(req('our')),
+            offered: getSummary(req('their'))
         };
     } else {
         // If trade with trade partner
         const opening = showStockChanges ? '〚' : ' (';
         const closing = showStockChanges ? '〛' : ')';
         return {
-            asked: `${new Currencies(value.our).toString()}` + `${opening}${getSummary(reqOur)}${closing}`,
-            offered: `${new Currencies(value.their).toString()}` + `${opening}${getSummary(reqTheir)}${closing}`
+            asked: `${new Currencies(value.our).toString()}` + `${opening}${getSummary(req('our'))}${closing}`,
+            offered: `${new Currencies(value.their).toString()}` + `${opening}${getSummary(req('their'))}${closing}`
         };
     }
 }
