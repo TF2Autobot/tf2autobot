@@ -5,7 +5,7 @@ import TradeOfferManager, { PollData, Meta, CustomError, ActionType } from '@tf2
 import Bot from './Bot';
 import { Entry, PricesDataObject, PricesObject } from './Pricelist';
 import { Blocked } from './MyHandler/interfaces';
-import { Schema } from '@tf2autobot/tf2-schema';
+import SchemaManager, { Schema } from '@tf2autobot/tf2-schema';
 
 export interface OnRun {
     loginAttempts?: number[];
@@ -283,6 +283,10 @@ export default abstract class Handler {
      * @param defindex -
      */
     onItemBroadcast(message: string, username: string, wasDestruction: boolean, defindex: number): void {
+        // empty function
+    }
+
+    onItemSchemaUpdate(itemsGame: any): void {
         // empty function
     }
 

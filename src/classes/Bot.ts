@@ -892,6 +892,7 @@ export default class Bot {
         this.addListener(this.tf2, 'systemMessage', this.handler.onSystemMessage.bind(this.handler), true);
         this.addListener(this.tf2, 'displayNotification', this.handler.onDisplayNotification.bind(this.handler), true);
         this.addListener(this.tf2, 'itemBroadcast', this.handler.onItemBroadcast.bind(this.handler), true);
+        this.addListener(this.tf2, 'itemSchemaLoaded', this.handler.onItemSchemaUpdate.bind(this.handler), true);
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
@@ -1020,7 +1021,7 @@ export default class Bot {
                     },
                     (callback): void => {
                         this.schemaManager = new SchemaManager({
-                            updateTime: 5 * 60 * 1000, // Every 5 minutes
+                            updateTime: -1, // disabled, we listen for itemSchemaLoaded from tf2
                             lite: true
                         });
 

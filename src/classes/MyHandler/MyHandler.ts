@@ -196,6 +196,8 @@ export default class MyHandler extends Handler {
 
     private pollDataInterval: NodeJS.Timeout;
 
+    private getSchemaTimeout: NodeJS.Timeout;
+
     constructor(
         public bot: Bot,
         private priceSource: IPricer
@@ -374,6 +376,7 @@ export default class MyHandler extends Handler {
         if (this.bot.periodicCheckAdmin) clearInterval(this.bot.periodicCheckAdmin);
         if (this.pollDataInterval) clearInterval(this.pollDataInterval);
         if (this.resetSentSummaryTimeout) clearTimeout(this.resetSentSummaryTimeout);
+        if (this.getSchemaTimeout) clearTimeout(this.getSchemaTimeout);
 
         return new Promise(resolve => {
             if (this.opt.autokeys.enable) {
@@ -2771,6 +2774,23 @@ export default class MyHandler extends Handler {
         ) {
             sendTf2ItemBroadcast(this.bot, message, username, wasDestruction, defindex);
         }
+    }
+
+    onItemSchemaUpdate(): void {
+        // When tf2 emit "itemSchemaLoaded" event, we request schema after 5 minutes timeout
+        // Because schema.autobot.tf will request every 2 minutes
+        const delay = 5 * 60 * 1000;
+        clearTimeout(this.getSchemaTimeout);
+
+        this.getSchemaTimeout = setTimeout(() => {
+            this.bot.schemaManager.getSchema(err => {
+                if (err) {
+                    log.warn('Error updating schema:', err);
+                    return this.onItemSchemaUpdate(); // we try again 5 minutes later
+                }
+                // Do nothing on success, tf2-schema will emit "schema" event and below method will be called
+            });
+        }, delay);
     }
 
     onSchemaUpdate(): void {
