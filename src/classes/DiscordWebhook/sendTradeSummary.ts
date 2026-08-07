@@ -45,16 +45,19 @@ export default async function sendTradeSummary(
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer);
-    const summary = t.summarizeToChat(
+    const summary = t.summarizeToChat({
         offer,
-        bot,
-        'summary-accepted',
-        true,
+        schema: bot.schemaManager.schema,
+        options: bot.options,
+        pricelist: bot.pricelist,
+        inventoryManager: bot.inventoryManager,
+        type: 'summary-accepted',
+        withLink: true,
         value,
-        false,
+        isSteamChat: false,
         isOfferSent,
         isAcceptedWithEscrow
-    );
+    });
 
     // Mention owner on the sku(s) specified in discordWebhook.tradeSummary.mentionOwner.itemSkus
     const enableMentionOnSpecificSKU = optDW.tradeSummary.mentionOwner.enable;
@@ -115,7 +118,7 @@ export default async function sendTradeSummary(
     const links = t.generateLinks(offer.partner.toString());
     const misc = optDW.tradeSummary.misc;
 
-    const itemList = t.listItems(offer, bot, itemsName, false);
+    const itemList = t.listItems(offer, bot.schemaManager.schema, bot.options, bot.pricelist, itemsName, false);
     const slots = bot.tf2.backpackSlots;
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
@@ -253,7 +256,7 @@ export default async function sendTradeSummary(
                 err
             );
 
-            const itemListx = t.listItems(offer, bot, itemsName, true);
+            const itemListx = t.listItems(offer, bot.schemaManager.schema, bot.options, bot.pricelist, itemsName, true);
 
             void sendToAdmin(
                 bot,

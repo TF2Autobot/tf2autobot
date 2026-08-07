@@ -40,7 +40,6 @@ export default class Listings {
     private templates: { buy: string; sell: string };
 
     constructor(private readonly bot: Bot) {
-        this.bot = bot;
         this.templates = {
             buy:
                 this.bot.options.details.buy ||
@@ -649,7 +648,7 @@ export default class Listings {
                 const cTEnd = optD.customText.ender;
 
                 const optR = opt.detailsExtra;
-                const getPaints = this.bot.schema.paints;
+                const getPaints = this.bot.schemaManager.schema.paints;
                 const getStrangeParts = this.bot.strangeParts;
 
                 const hv = item.hv;

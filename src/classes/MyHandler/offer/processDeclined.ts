@@ -7,6 +7,7 @@ import { KeyPrices } from '../../../classes/Pricelist';
 
 export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
     const opt = bot.options;
+    const schema = bot.schemaManager.schema;
 
     const declined: Declined = {
         //nonTf2Items: [],
@@ -192,7 +193,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                         .filter(el => el.reason === '🟨_INVALID_ITEMS')
                         .forEach(el => {
                             const name = t.testPriceKey(el.sku)
-                                ? bot.schema.getName(SKU.fromString(el.sku), false)
+                                ? schema.getName(SKU.fromString(el.sku), false)
                                 : el.sku;
 
                             declined.invalidItems.push(`${isWebhookEnabled ? `_${name}_` : name} - ${el.price}`);
@@ -204,8 +205,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                         .forEach(el => {
                             declined.disabledItems.push(
                                 isWebhookEnabled
-                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                    : bot.schema.getName(SKU.fromString(el.sku), false)
+                                    ? `_${schema.getName(SKU.fromString(el.sku), false)}_`
+                                    : schema.getName(SKU.fromString(el.sku), false)
                             );
                         });
                     break;
@@ -214,8 +215,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                         declined.overstocked.push(
                             `${
                                 isWebhookEnabled
-                                    ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                    : bot.schema.getName(SKU.fromString(el.sku), false)
+                                    ? `_${schema.getName(SKU.fromString(el.sku), false)}_`
+                                    : schema.getName(SKU.fromString(el.sku), false)
                             } (amount can buy was ${el.amountCanTrade}, offered ${el.amountOffered})`
                         );
                     });
@@ -226,8 +227,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                             declined.understocked.push(
                                 `${
                                     isWebhookEnabled
-                                        ? `_${bot.schema.getName(SKU.fromString(el.sku), false)}_`
-                                        : bot.schema.getName(SKU.fromString(el.sku), false)
+                                        ? `_${schema.getName(SKU.fromString(el.sku), false)}_`
+                                        : schema.getName(SKU.fromString(el.sku), false)
                                 } (amount can sell was ${el.amountCanTrade}, taken ${el.amountTaking})`
                             );
                         }
@@ -237,8 +238,8 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
                     (meta.reasons.filter(el => el.reason.includes('🟫_DUPED_ITEMS')) as i.DupedItems[]).forEach(el => {
                         declined.dupedItems.push(
                             isWebhookEnabled
-                                ? `_${bot.schema.getName(SKU.fromString(el.sku))}_`
-                                : bot.schema.getName(SKU.fromString(el.sku))
+                                ? `_${schema.getName(SKU.fromString(el.sku))}_`
+                                : schema.getName(SKU.fromString(el.sku))
                         );
                     });
                     break;
@@ -248,7 +249,13 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
         if (highValue && highValue['has'] === undefined) {
             if (Object.keys(highValue.items.their).length > 0) {
                 // doing this to check if their side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(highValue.items.their, bot);
+                const itemsName = t.getHighValueItems(
+                    highValue.items.their,
+                    bot.schemaManager.schema,
+                    bot.strangeParts,
+                    bot.options,
+                    bot.pricelist
+                );
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -261,7 +268,13 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
 
             if (Object.keys(highValue.items.our).length > 0) {
                 // doing this to check if our side have any high value items, if so, push each name into accepted.highValue const.
-                const itemsName = t.getHighValueItems(highValue.items.our, bot);
+                const itemsName = t.getHighValueItems(
+                    highValue.items.our,
+                    bot.schemaManager.schema,
+                    bot.strangeParts,
+                    bot.options,
+                    bot.pricelist
+                );
 
                 for (const name in itemsName) {
                     if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -276,7 +289,13 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
         // This is for offer that bot created from commands
 
         if (highValue.items && Object.keys(highValue.items.their).length > 0) {
-            const itemsName = t.getHighValueItems(highValue.items.their, bot);
+            const itemsName = t.getHighValueItems(
+                highValue.items.their,
+                bot.schemaManager.schema,
+                bot.strangeParts,
+                bot.options,
+                bot.pricelist
+            );
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -288,7 +307,13 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
         }
 
         if (highValue.items && Object.keys(highValue.items.our).length > 0) {
-            const itemsName = t.getHighValueItems(highValue.items.our, bot);
+            const itemsName = t.getHighValueItems(
+                highValue.items.our,
+                bot.schemaManager.schema,
+                bot.strangeParts,
+                bot.options,
+                bot.pricelist
+            );
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -318,7 +343,7 @@ export default function processDeclined(offer: i.TradeOffer, bot: Bot): void {
         };
         const keyPrices = bot.pricelist.getKeyPrices;
         const value = t.valueDiff(offer);
-        const itemList = t.listItems(offer, bot, itemsName, true);
+        const itemList = t.listItems(offer, bot.schemaManager.schema, bot.options, bot.pricelist, itemsName, true);
 
         sendToAdmin(bot, offer, value, itemList, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
     }
@@ -354,7 +379,18 @@ export function sendToAdmin(
         `${customInitializer ? customInitializer : '/me'} Trade #${
             offer.id
         } with ${offer.partner.getSteamID64()} was declined. ❌` +
-            t.summarizeToChat(offer, bot, 'declined', false, value, true, isOfferSent) +
+            t.summarizeToChat({
+                offer,
+                schema: bot.schemaManager.schema,
+                options: bot.options,
+                pricelist: bot.pricelist,
+                inventoryManager: bot.inventoryManager,
+                type: 'declined',
+                withLink: false,
+                value,
+                isSteamChat: true,
+                isOfferSent
+            }) +
             (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '') +
             (itemList !== '-' ? `\n\nItem lists:\n${itemList}` : '') +
             `\n\n${cTKeyRate} ${keyPrices.buy.toString()}/${keyPrices.sell.toString()}` +

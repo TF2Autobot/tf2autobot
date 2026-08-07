@@ -1,10 +1,15 @@
 import SKU from '@tf2autobot/tf2-sku';
 import pluralize from 'pluralize';
 import { Meta, DupeCheckFailed } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../../../Bot';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Options from '../../../../Options';
 
-export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; name: string[] } {
-    const opt = bot.options.discordWebhook.offerReview;
+export default function dupedCheckFailed(
+    meta: Meta,
+    schema: SchemaManager.Schema,
+    options: Options
+): { note: string; name: string[] } {
+    const opt = options.discordWebhook.offerReview;
     const dupedFailedItemsNameOur: string[] = [];
     const dupedFailedItemsNameTheir: string[] = [];
 
@@ -12,7 +17,7 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
         if (el.withError === false) {
             // If 🟪_DUPE_CHECK_FAILED occurred without error, then this sku/assetid is string.
 
-            const name = bot.schema.getName(SKU.fromString(el.sku as string), false);
+            const name = schema.getName(SKU.fromString(el.sku as string), false);
 
             if (opt.enable && opt.url !== '') {
                 // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
@@ -27,7 +32,7 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
         } else {
             // Else if 🟪_DUPE_CHECK_FAILED occurred with error, then this sku/assetid is string[].
             for (let i = 0; i < el.sku.length; i++) {
-                const name = bot.schema.getName(SKU.fromString(el.sku[i]), false);
+                const name = schema.getName(SKU.fromString(el.sku[i]), false);
 
                 if (opt.enable && opt.url !== '') {
                     // if Discord Webhook for review offer enabled, then make it link the item name to the backpack.tf item history page.
@@ -43,7 +48,7 @@ export default function dupedCheckFailed(meta: Meta, bot: Bot): { note: string; 
         }
     });
 
-    const note = bot.options.manualReview.dupedCheckFailed.note;
+    const note = options.manualReview.dupedCheckFailed.note;
 
     return {
         note: note

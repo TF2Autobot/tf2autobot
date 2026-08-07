@@ -62,7 +62,7 @@ export default class PriceCheckQueue {
             if (body.name) {
                 name = body.name;
             } else {
-                name = this.bot.schema.getName(SKU.fromString(sku));
+                name = this.bot.schemaManager.schema.getName(SKU.fromString(sku));
             }
             log.debug(`✅ Requested pricecheck for ${name} (${sku}).`);
         } catch (err) {

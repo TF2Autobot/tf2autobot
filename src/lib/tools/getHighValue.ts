@@ -1,32 +1,36 @@
 import SKU from '@tf2autobot/tf2-sku';
 import { Items } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../classes/Bot';
 import { testPriceKey } from '../tools/export';
 import getAttachmentName from './getAttachmentName';
 import Pricelist from '../../classes/Pricelist';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Options from '../../classes/Options';
 
 interface ItemsWithName {
     [name: string]: string;
 }
 
-export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName {
+export default function getHighValueItems(
+    items: Items,
+    schema: SchemaManager.Schema,
+    strangeParts: SchemaManager.StrangeParts,
+    options: Options,
+    pricelist: Pricelist
+): ItemsWithName {
     const itemsWithName: ItemsWithName = {};
-
-    const cT = bot.options.tradeSummary.customText;
-    const normalizePaint = bot.options.normalize.painted.our === false || bot.options.normalize.painted.their === false;
+    const cT = options.tradeSummary.customText;
+    const normalizePaint = options.normalize.painted.our === false || options.normalize.painted.their === false;
     let hasNotFull = false;
 
     for (const sku in items) {
         if (!Object.prototype.hasOwnProperty.call(items, sku)) {
             continue;
         }
-
         if (!testPriceKey(sku)) {
             continue;
         }
 
         let toString = '';
-
         const toJoin: string[] = [];
 
         Object.keys(items[sku]).forEach(attachment => {
@@ -56,7 +60,7 @@ export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName
                         }
 
                         toJoin.push(
-                            `${getAttachmentName(attachment, pSKU, bot.schema.paints, bot.strangeParts)}${
+                            `${getAttachmentName(attachment, pSKU, schema.paints, strangeParts)}${
                                 attachment === 'p' && normalizePaint ? ` (${sku.replace(/;p\d+/, '')};${pSKU})` : ''
                             }${items[sku][attachment as Attachment][pSKU] === true ? ' 🌟' : ''}`
                         );
@@ -68,8 +72,8 @@ export default function getHighValueItems(items: Items, bot: Bot): ItemsWithName
             }
         });
 
-        const nameSku = Pricelist.isAssetId(sku) ? bot.pricelist.getPrice({ priceKey: sku }).sku : sku;
-        itemsWithName[bot.schema.getName(SKU.fromString(nameSku.replace(/;p\d+/, '')))] = toString;
+        const nameSku = Pricelist.isAssetId(sku) ? pricelist.getPrice({ priceKey: sku }).sku : sku;
+        itemsWithName[schema.getName(SKU.fromString(nameSku.replace(/;p\d+/, '')))] = toString;
     }
 
     return itemsWithName;

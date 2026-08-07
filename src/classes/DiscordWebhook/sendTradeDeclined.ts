@@ -43,7 +43,19 @@ export default async function sendTradeDeclined(
 
     const keyPrices = bot.pricelist.getKeyPrices;
     const value = t.valueDiff(offer);
-    const summary = t.summarizeToChat(offer, bot, 'declined', true, value, false, isOfferSent);
+
+    const summary = t.summarizeToChat({
+        offer,
+        schema: bot.schemaManager.schema,
+        options: bot.options,
+        pricelist: bot.pricelist,
+        inventoryManager: bot.inventoryManager,
+        type: 'declined',
+        withLink: true,
+        value,
+        isSteamChat: false,
+        isOfferSent
+    });
 
     const details = await getPartnerDetails(offer, bot);
 
@@ -51,7 +63,7 @@ export default async function sendTradeDeclined(
     const links = t.generateLinks(offer.partner.toString());
     const misc = optDW.declinedTrade.misc;
 
-    const itemList = t.listItems(offer, bot, itemsName, false);
+    const itemList = t.listItems(offer, bot.schemaManager.schema, bot.options, bot.pricelist, itemsName, false);
     const slots = bot.tf2.backpackSlots;
     const autokeys = bot.handler.autokeys;
     const status = autokeys.getOverallStatus;
@@ -190,7 +202,7 @@ export default async function sendTradeDeclined(
                 err
             );
 
-            const itemListx = t.listItems(offer, bot, itemsName, true);
+            const itemListx = t.listItems(offer, bot.schemaManager.schema, bot.options, bot.pricelist, itemsName, true);
             sendToAdmin(bot, offer, value, itemListx, keyPrices, isOfferSent, timeTakenToProcessOrConstruct);
         });
     });
