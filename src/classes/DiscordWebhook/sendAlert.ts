@@ -332,7 +332,7 @@ interface Alert {
 class AlertQueue {
     private static alerts: Alert[] = [];
 
-    private static sleepTime = 1000;
+    private static sleepTime = 1500;
 
     private static isRateLimited = false;
 
@@ -360,7 +360,7 @@ class AlertQueue {
         await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
-            this.sleepTime = 1000;
+            this.sleepTime = 1500;
             this.isRateLimited = false;
         }
 
@@ -369,7 +369,7 @@ class AlertQueue {
             .catch((e: WebhookError) => {
                 if (e.err.status === 429) {
                     const retryAfter = (e.err.data as WebhookErrorData)?.retry_after;
-                    this.sleepTime = typeof retryAfter === 'number' ? Math.ceil(retryAfter * 1000) : 3000;
+                    this.sleepTime = typeof retryAfter === 'number' ? retryAfter * 1000 + 100 : 3000;
                     this.isRateLimited = true;
                 }
             })
@@ -383,7 +383,7 @@ class AlertQueue {
 class AlertPpuQueue {
     private static alerts: Alert[] = [];
 
-    private static sleepTime = 1000;
+    private static sleepTime = 1500;
 
     private static isRateLimited = false;
 
@@ -411,7 +411,7 @@ class AlertPpuQueue {
         await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
-            this.sleepTime = 1000;
+            this.sleepTime = 1500;
             this.isRateLimited = false;
         }
 
@@ -421,7 +421,7 @@ class AlertPpuQueue {
                 if (e.err.status === 429) {
                     log.warn(`❌ Failed to send alert to Discord: `, e.err);
                     const retryAfter = (e.err.data as WebhookErrorData)?.retry_after;
-                    this.sleepTime = typeof retryAfter === 'number' ? Math.ceil(retryAfter * 1000) : 3000;
+                    this.sleepTime = typeof retryAfter === 'number' ? retryAfter * 1000 + 100 : 3000;
                     this.isRateLimited = true;
                 }
             })
