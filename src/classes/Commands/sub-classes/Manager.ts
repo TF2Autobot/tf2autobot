@@ -988,13 +988,6 @@ export default class ManagerCommands {
             );
         }
 
-        if (!['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ The current OS you're running the bot with is not yet supported. OS: ${process.platform}`
-            );
-        }
-
         this.bot.checkForUpdates
             .then(async ({ hasNewVersion, newVersionIsMajor }) => {
                 if (!hasNewVersion) {
@@ -1039,11 +1032,6 @@ export default class ManagerCommands {
 
                     this.bot.sendMessage(steamID, '⌛ Pulling changes...');
                     await exec('git pull --prune');
-
-                    this.bot.sendMessage(steamID, '⌛ Deleting node_modules and dist directories...');
-                    await exec(
-                        process.platform === 'win32' ? 'rmdir /s /q node_modules dist' : 'rm -rf node_modules dist'
-                    );
 
                     this.bot.sendMessage(steamID, '⌛ Installing packages...');
                     await exec(
