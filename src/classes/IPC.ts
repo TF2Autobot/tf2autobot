@@ -7,7 +7,7 @@ import fs, { promises as fsp } from 'fs';
 import path from 'path';
 import Options, { getOptionsPath, JsonOptions, removeCliOptions } from './Options';
 import generateCert from '../lib/tools/generateCert';
-import { Entry, EntryData } from './Pricelist';
+import { Entry } from './Pricelist';
 import { deepMerge } from '../lib/tools/deep-merge';
 import validator from '../lib/validator';
 
@@ -53,11 +53,8 @@ export default class ipcHandler extends IPC {
             this.config.networkHost = this.options.tlsHost;
             this.config.networkPort = this.options.tlsPort;
             if (!fs.existsSync(this.publicKey) || !fs.existsSync(this.privateKey)) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const { certificate, privateKey } = generateCert();
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 fs.writeFileSync(this.publicKey, certificate);
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 fs.writeFileSync(this.privateKey, privateKey);
             }
 
@@ -73,9 +70,7 @@ export default class ipcHandler extends IPC {
             } as Record<string, unknown>; //Ignore TS once again
         }
 
-        // eslint-disable-next-line
         const onConnected = () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
             this.ourServer = this.of.autobot_gui;
             log.debug('connected IPC');
 
@@ -113,7 +108,7 @@ export default class ipcHandler extends IPC {
         }
         priceKey = priceKey ? priceKey : item.sku;
         this.bot.pricelist
-            .addPrice({ entryData: item as EntryData, emitChange: true })
+            .addPrice({ entryData: item, emitChange: true })
             .then(item => {
                 this.ourServer.emit('itemAdded', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })
@@ -131,7 +126,7 @@ export default class ipcHandler extends IPC {
         }
         priceKey = priceKey ? priceKey : item.sku;
         this.bot.pricelist
-            .updatePrice({ priceKey, entryData: item as EntryData, emitChange: true })
+            .updatePrice({ priceKey, entryData: item, emitChange: true })
             .then(item => {
                 this.ourServer.emit('itemUpdated', Object.assign(item, priceKey === item.sku ? {} : { id: priceKey }));
             })

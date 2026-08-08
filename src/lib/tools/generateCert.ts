@@ -1,19 +1,16 @@
-import fs from 'fs';
 import forge from 'node-forge';
 
 const DEFAULT_C = 'Australia';
 const DEFAULT_ST = 'Victoria';
 const DEFAULT_L = 'Melbourne';
 
-const makeNumberPositive = hexString => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+const makeNumberPositive = (hexString: string) => {
     let mostSignificativeHexDigitAsInt = parseInt(hexString[0], 16);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     if (mostSignificativeHexDigitAsInt < 8) return hexString;
 
     mostSignificativeHexDigitAsInt -= 8;
-    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+
     return mostSignificativeHexDigitAsInt.toString() + hexString.substring(1);
 };
 
@@ -31,7 +28,7 @@ const getCertNotBefore = () => {
 };
 
 // Get CA Expiration Date (Valid for 100 Years)
-const getCANotAfter = notBefore => {
+const getCANotAfter = (notBefore: Date) => {
     const year = notBefore.getFullYear() + 100;
     const month = (notBefore.getMonth() + 1).toString().padStart(2, '0');
     const day = notBefore.getDate();
