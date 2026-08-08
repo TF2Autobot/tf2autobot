@@ -1,13 +1,12 @@
-import Bot from '../../../../Bot';
+import Options from '../../../../Options';
+import { KeyPrices } from '../../../../Pricelist';
 
 export default function invalidValue(
-    bot: Bot,
+    keyPrices: KeyPrices,
+    options: Options,
     value: { diff: number; diffRef: number; diffKey: string }
 ): { note: string; missing: string } {
-    const keyPrices = bot.pricelist.getKeyPrices;
-
-    const note = bot.options.manualReview.invalidValue.note;
-
+    const note = options.manualReview.invalidValue.note;
     return {
         note: note ? `🟥_INVALID_VALUE - ${note}` : "🟥_INVALID_VALUE - You're taking too much in value.",
         missing:

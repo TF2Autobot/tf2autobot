@@ -5,7 +5,7 @@ import TradeOfferManager, { PollData, Meta, CustomError, ActionType } from '@tf2
 import Bot from './Bot';
 import { Entry, PricesDataObject, PricesObject } from './Pricelist';
 import { Blocked } from './MyHandler/interfaces';
-import { Schema } from '@tf2autobot/tf2-schema';
+import SchemaManager, { Schema } from '@tf2autobot/tf2-schema';
 
 export interface OnRun {
     loginAttempts?: number[];
@@ -16,9 +16,7 @@ export interface OnRun {
 }
 
 export default abstract class Handler {
-    protected constructor(readonly bot: Bot) {
-        this.bot = bot;
-    }
+    protected constructor(readonly bot: Bot) {}
 
     get steamID(): SteamID {
         return this.bot.client.steamID;
@@ -284,6 +282,10 @@ export default abstract class Handler {
      * @param defindex -
      */
     onItemBroadcast(message: string, username: string, wasDestruction: boolean, defindex: number): void {
+        // empty function
+    }
+
+    onItemSchemaUpdate(itemsGame: any): void {
         // empty function
     }
 

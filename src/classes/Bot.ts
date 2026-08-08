@@ -60,8 +60,6 @@ export default class Bot {
     // Modules and classes
     readonly ipc?: ipcHandler;
 
-    schema: SchemaManager.Schema;
-
     readonly bptf: BptfLogin;
 
     readonly tf2: TF2;
@@ -206,7 +204,7 @@ export default class Bot {
         public options: Options,
         readonly priceSource: IPricer
     ) {
-        this.client = new SteamUser({ autoRelogin: false });
+        this.client = new SteamUser({ autoRelogin: false, saveAppTickets: false });
         this.community = new SteamCommunity();
         this.manager = new TradeOfferManager({
             steam: this.client,
@@ -348,7 +346,7 @@ export default class Bot {
         );
     }
 
-    private getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
+    getLocalizationFile(attempt: 'first' | 'retry' = 'first'): Promise<void> {
         return new Promise((resolve, reject) => {
             apiRequest<string>({
                 method: 'GET',
@@ -855,7 +853,6 @@ export default class Bot {
                 if (err) {
                     return reject(err);
                 }
-                this.schema = this.schemaManager.schema;
                 this.addListener(this.schemaManager, 'schema', this.handler.onSchemaUpdate.bind(this.handler), false);
                 return resolve();
             });
@@ -895,6 +892,7 @@ export default class Bot {
         this.addListener(this.tf2, 'systemMessage', this.handler.onSystemMessage.bind(this.handler), true);
         this.addListener(this.tf2, 'displayNotification', this.handler.onDisplayNotification.bind(this.handler), true);
         this.addListener(this.tf2, 'itemBroadcast', this.handler.onItemBroadcast.bind(this.handler), true);
+        this.addListener(this.tf2, 'itemSchema', this.handler.onItemSchemaUpdate.bind(this.handler), true);
 
         return new Promise((resolve, reject) => {
             async.eachSeries(
@@ -1024,7 +1022,7 @@ export default class Bot {
                     },
                     (callback): void => {
                         this.schemaManager = new SchemaManager({
-                            updateTime: 5 * 60 * 1000, // Every 5 minutes
+                            updateTime: -1, // disabled, we listen for itemSchemaLoaded from tf2
                             lite: true
                         });
 
@@ -1034,7 +1032,7 @@ export default class Bot {
                     (callback: (err?) => void): void => {
                         log.info('Initializing pricelist...');
 
-                        this.pricelist = new Pricelist(this.priceSource, this.schema, this.options, this);
+                        this.pricelist = new Pricelist(this.priceSource, this.schemaManager.schema, this.options, this);
                         this.addListener(
                             this.pricelist,
                             'pricelist',
@@ -1064,7 +1062,11 @@ export default class Bot {
                                     log.debug('Initializing inventory...');
                                     this.inventoryManager = new InventoryManager(this.pricelist);
                                     // only call this here, and in Commands/Options
-                                    Inventory.setOptions(this.schema.paints, this.strangeParts, this.options.highValue);
+                                    Inventory.setOptions(
+                                        this.schemaManager.schema.paints,
+                                        this.strangeParts,
+                                        this.options.highValue
+                                    );
                                     this.inventoryManager.setInventory = new Inventory(
                                         this.client.steamID,
                                         this,
@@ -1084,7 +1086,7 @@ export default class Bot {
                                             (this.options.useragentHeaderCustom !== ''
                                                 ? ` - ${this.options.useragentHeaderCustom}`
                                                 : ' - Run your own bot for free'),
-                                        schema: this.schema
+                                        schema: this.schemaManager.schema
                                     });
 
                                     this.listingManager.token = this.options.bptfAccessToken;
@@ -1198,21 +1200,11 @@ export default class Bot {
                     (callback: (err?) => void): void => {
                         log.debug('Getting localization file...');
                         this.getLocalizationFile()
-                            .then(() => {
-                                setInterval(
-                                    () => {
-                                        void this.getLocalizationFile();
-                                    },
-                                    24 * 60 * 60 * 1000
-                                );
-                                callback(null);
-                            })
-                            .catch(err => {
-                                callback(err);
-                            });
+                            .then(() => callback(null))
+                            .catch(err => callback(err));
                     },
                     (callback: Callback): void => {
-                        void this.setupTradeOfferUrl()
+                        this.setupTradeOfferUrl()
                             .then(() => callback(null))
                             .catch(err => callback(err as Error));
                     }
@@ -1233,6 +1225,7 @@ export default class Bot {
                         return resolve();
                     }
 
+                    void this.checkTradeProtectionAcknowledged();
                     this.manager.pollInterval = 10 * 1000;
                     this.setReady = true;
                     this.handler.onReady();
@@ -1251,20 +1244,20 @@ export default class Bot {
     }
 
     setProperties(): void {
-        this.effects = this.schema.getUnusualEffects();
-        this.strangeParts = this.schema.getStrangeParts();
-        this.craftWeapons = this.schema.getCraftableWeaponsForTrading();
-        this.uncraftWeapons = this.schema.getUncraftableWeaponsForTrading();
+        this.effects = this.schemaManager.schema.getUnusualEffects();
+        this.strangeParts = this.schemaManager.schema.getStrangeParts();
+        this.craftWeapons = this.schemaManager.schema.getCraftableWeaponsForTrading();
+        this.uncraftWeapons = this.schemaManager.schema.getUncraftableWeaponsForTrading();
         this.craftWeaponsByClass = {
-            scout: this.schema.getWeaponsForCraftingByClass('Scout'),
-            soldier: this.schema.getWeaponsForCraftingByClass('Soldier'),
-            pyro: this.schema.getWeaponsForCraftingByClass('Pyro'),
-            demoman: this.schema.getWeaponsForCraftingByClass('Demoman'),
-            heavy: this.schema.getWeaponsForCraftingByClass('Heavy'),
-            engineer: this.schema.getWeaponsForCraftingByClass('Engineer'),
-            medic: this.schema.getWeaponsForCraftingByClass('Medic'),
-            sniper: this.schema.getWeaponsForCraftingByClass('Sniper'),
-            spy: this.schema.getWeaponsForCraftingByClass('Spy')
+            scout: this.schemaManager.schema.getWeaponsForCraftingByClass('Scout'),
+            soldier: this.schemaManager.schema.getWeaponsForCraftingByClass('Soldier'),
+            pyro: this.schemaManager.schema.getWeaponsForCraftingByClass('Pyro'),
+            demoman: this.schemaManager.schema.getWeaponsForCraftingByClass('Demoman'),
+            heavy: this.schemaManager.schema.getWeaponsForCraftingByClass('Heavy'),
+            engineer: this.schemaManager.schema.getWeaponsForCraftingByClass('Engineer'),
+            medic: this.schemaManager.schema.getWeaponsForCraftingByClass('Medic'),
+            sniper: this.schemaManager.schema.getWeaponsForCraftingByClass('Sniper'),
+            spy: this.schemaManager.schema.getWeaponsForCraftingByClass('Spy')
         };
     }
 
@@ -1582,6 +1575,26 @@ export default class Bot {
         files.writeFile(tradeOfferUrlPath, tradeOfferUrl, false).catch(() => {
             log.error('Error saving Trade Offer Url.');
         });
+    }
+
+    // Reference: https://github.com/tf2-automatic/tf2-automatic/blob/9b98d2e5b6e3b0b9d0b82651debada7d2fd57b99/apps/bot/src/bot/bot.service.ts#L601
+    private async checkTradeProtectionAcknowledged(): Promise<void> {
+        const path = this.handler.getPaths.files.tradeProtectionAcknowledge;
+        const alreadyAcknowledge = (await files.readFile(path, true).catch(() => null)) as boolean;
+
+        if (!alreadyAcknowledge) {
+            // This should only be done once
+            this.community.acknowledgeTradeProtection(err => {
+                if (err) {
+                    log.warn('Error on acknowledgeTradeProtection', err);
+                    return;
+                }
+
+                files.writeFile(path, true, true).catch(err => {
+                    log.error('Error saving Trade Protection Acknowlege file', err);
+                });
+            });
+        }
     }
 
     sendMessage(steamID: SteamID | string, message: string): void {

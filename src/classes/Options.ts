@@ -9,6 +9,8 @@ import { Currency } from '../types/TeamFortress2';
 export const DEFAULTS: JsonOptions = {
     globalDisable: {
         messages: false,
+        offerMessages: false,
+        unfriendMessage: false,
         greeting: false,
         commands: false,
         adminCommands: false
@@ -1196,6 +1198,8 @@ interface OnlyEnable {
 
 interface GlobalDisable {
     messages?: boolean;
+    offerMessages?: boolean;
+    unfriendMessage?: boolean;
     greeting?: boolean;
     commands?: boolean;
     adminCommands?: boolean;

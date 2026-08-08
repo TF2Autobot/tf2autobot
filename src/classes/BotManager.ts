@@ -25,7 +25,6 @@ export default class BotManager {
     private exiting = false;
 
     constructor(private readonly pricer: IPricer) {
-        this.pricer = pricer;
         this.extendTradeOfferApis();
     }
 

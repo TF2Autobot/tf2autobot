@@ -8,7 +8,7 @@ import { Webhook, sendWebhook } from './export';
 import log from '../../lib/logger';
 import { BuyAndSell } from '../Pricelist';
 import Options from '../Options';
-import { WebhookError } from './utils';
+import { WebhookError, WebhookErrorData } from './utils';
 import { BotInfo } from '../MyHandler/MyHandler';
 
 const australiumImageURL: { [defindex: number]: string } = {
@@ -2044,7 +2044,7 @@ class PriceUpdateQueue {
         this.url = url;
     }
 
-    private static sleepTime = 1000;
+    private static sleepTime = 1500;
 
     private static isRateLimited = false;
 
@@ -2080,26 +2080,23 @@ class PriceUpdateQueue {
         await timersPromises.setTimeout(this.sleepTime);
 
         if (this.isRateLimited) {
-            this.sleepTime = 1000;
+            this.sleepTime = 1500;
             this.isRateLimited = false;
         }
 
         sendWebhook(this.url, this.priceUpdate[sku], 'pricelist-update')
+            .then(() => this.dequeue())
             .catch((e: WebhookError) => {
-                log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, e);
+                log.warn(`❌ Failed to send ${sku} price update webhook to Discord: `, e.err);
 
-                /*eslint-disable */
-                if (typeof e.err?.data !== 'string') {
-                    if (e.err.data.message === 'The resource is being rate limited.') {
-                        this.sleepTime = e.err.data.retry_after;
-                        this.isRateLimited = true;
-                    }
+                if (e?.err?.status === 429) {
+                    const retryAfter = (e.err.data as WebhookErrorData)?.retry_after;
+                    this.sleepTime = typeof retryAfter === 'number' ? retryAfter * 1000 + 100 : 3000;
+                    this.isRateLimited = true;
                 }
-                /*eslint-enable */
             })
             .finally(() => {
                 this.isProcessing = false;
-                this.dequeue();
                 void this.process();
             });
     }

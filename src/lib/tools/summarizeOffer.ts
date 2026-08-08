@@ -1,7 +1,32 @@
 import { TradeOffer, ItemsDict, OurTheirItemsDict, ItemsValue } from '@tf2autobot/tradeoffer-manager';
-import Bot from '../../classes/Bot';
 import SKU from '@tf2autobot/tf2-sku';
 import { ValueDiff, replace, testPriceKey } from '../tools/export';
+
+export interface SummarizeToChatRequirement {
+    offer: TradeOffer;
+    schema: SchemaManager.Schema;
+    options: Options;
+    pricelist: Pricelist;
+    inventoryManager: InventoryManager;
+    type: SummarizeType;
+    withLink: boolean;
+    value: ValueDiff;
+    isSteamChat: boolean;
+    isOfferSent?: boolean | undefined;
+    isAcceptedWithEscrow?: boolean | undefined;
+}
+interface GetSummaryRequirement {
+    dict: OurTheirItemsDict;
+    schema: SchemaManager.Schema;
+    options: Options;
+    pricelist: Pricelist;
+    inventoryManager: InventoryManager;
+    which: string;
+    type: string;
+    withLink: boolean;
+    showStockChanges: boolean;
+    isCompressSummary: boolean;
+}
 
 const pureEmoji = new Map<string, string>();
 pureEmoji
@@ -10,19 +35,22 @@ pureEmoji
     .set('5001;6', '<:tf2reclaimed:813048057352421417>')
     .set('5000;6', '<:tf2scrap:813048057577996348>');
 
-export function summarizeToChat(
-    offer: TradeOffer,
-    bot: Bot,
-    type: SummarizeType,
-    withLink: boolean,
-    value: ValueDiff,
-    isSteamChat: boolean,
-    isOfferSent: boolean | undefined = undefined,
-    isAcceptedWithEscrow: boolean | undefined = undefined
-): string {
-    const generatedSummary = summarize(offer, bot, type, withLink);
+export function summarizeToChat({
+    offer,
+    schema,
+    options,
+    pricelist,
+    inventoryManager,
+    type,
+    withLink,
+    value,
+    isSteamChat,
+    isOfferSent = undefined,
+    isAcceptedWithEscrow = undefined
+}: SummarizeToChatRequirement): string {
+    const generatedSummary = summarize(offer, schema, options, pricelist, inventoryManager, type, withLink);
 
-    const cT = bot.options.tradeSummary.customText;
+    const cT = options.tradeSummary.customText;
     const cTSummary = isSteamChat
         ? cT.summary.steamChat
             ? cT.summary.steamChat
@@ -88,81 +116,85 @@ type SummarizeType =
     'summary-accepted' | 'declined' | 'review-partner' | 'review-admin' | 'summary-accepting' | 'summary-countering';
 
 import Currencies from '@tf2autobot/tf2-currencies';
+import SchemaManager from '@tf2autobot/tf2-schema';
+import Options from '../../classes/Options';
+import Pricelist from '../../classes/Pricelist';
+import InventoryManager from '../../classes/InventoryManager';
 
 export default function summarize(
     offer: TradeOffer,
-    bot: Bot,
+    schema: SchemaManager.Schema,
+    options: Options,
+    pricelist: Pricelist,
+    inventoryManager: InventoryManager,
     type: SummarizeType,
     withLink: boolean
 ): { asked: string; offered: string } {
     const value = offer.data('value') as ItemsValue;
     const items = (offer.data('dict') as ItemsDict) || { our: null, their: null };
-    const showStockChanges = bot.options.tradeSummary.showStockChanges;
+    const showStockChanges = options.tradeSummary.showStockChanges;
 
     const ourCount = Object.keys(items.our).length;
     const theirCount = Object.keys(items.their).length;
 
     const isCompressSummary = (ourCount > 15 && theirCount > 15) || ourCount + theirCount > 28; // Estimate until limit reached
+    const req = (which: 'our' | 'their') => {
+        return {
+            dict: items[which],
+            schema,
+            options,
+            pricelist,
+            inventoryManager,
+            which,
+            type,
+            withLink,
+            showStockChanges,
+            isCompressSummary
+        };
+    };
 
     if (!value) {
         // If trade with ADMINS or Gift
         return {
-            asked: getSummary(items.our, bot, 'our', type, withLink, showStockChanges, isCompressSummary),
-            offered: getSummary(items.their, bot, 'their', type, withLink, showStockChanges, isCompressSummary)
+            asked: getSummary(req('our')),
+            offered: getSummary(req('their'))
         };
     } else {
         // If trade with trade partner
         const opening = showStockChanges ? '〚' : ' (';
         const closing = showStockChanges ? '〛' : ')';
         return {
-            asked:
-                `${new Currencies(value.our).toString()}` +
-                `${opening}${getSummary(
-                    items.our,
-                    bot,
-                    'our',
-                    type,
-                    withLink,
-                    showStockChanges,
-                    isCompressSummary
-                )}${closing}`,
-            offered:
-                `${new Currencies(value.their).toString()}` +
-                `${opening}${getSummary(
-                    items.their,
-                    bot,
-                    'their',
-                    type,
-                    withLink,
-                    showStockChanges,
-                    isCompressSummary
-                )}${closing}`
+            asked: `${new Currencies(value.our).toString()}` + `${opening}${getSummary(req('our'))}${closing}`,
+            offered: `${new Currencies(value.their).toString()}` + `${opening}${getSummary(req('their'))}${closing}`
         };
     }
 }
 
-function getSummary(
-    dict: OurTheirItemsDict,
-    bot: Bot,
-    which: string,
-    type: string,
-    withLink: boolean,
-    showStockChanges: boolean,
-    isCompressSummary: boolean
-): string {
+function getSummary({
+    dict,
+    schema,
+    options,
+    pricelist,
+    inventoryManager,
+    which,
+    type,
+    withLink,
+    showStockChanges,
+    isCompressSummary
+}: GetSummaryRequirement): string {
     if (dict === null) {
         return 'unknown items';
     }
 
     const summary: string[] = [];
-    const properName = bot.options.tradeSummary.showProperName;
+    const properName = options.tradeSummary.showProperName;
 
     for (const priceKey in dict) {
         if (!Object.prototype.hasOwnProperty.call(dict, priceKey)) {
             continue;
         }
 
-        const entry = bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
+        const entry = pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: false });
         const isTF2Items = testPriceKey(priceKey);
 
         // compatible with pollData from before v3.0.0 / before v2.2.0 and/or v3.0.0 or later ↓
@@ -173,13 +205,13 @@ function getSummary(
             type === 'summary-accepted' ? (entry?.sku ?? priceKey).replace(/;p\d+/, '') : (entry?.sku ?? priceKey);
 
         const generateName = isTF2Items
-            ? `${bot.schema.getName(SKU.fromString(sku), properName)}${entry?.id ? ` - ${entry.id}` : ''}`
+            ? `${schema.getName(SKU.fromString(sku), properName)}${entry?.id ? ` - ${entry.id}` : ''}`
             : priceKey; // Non-TF2 items
         const name = properName ? generateName : replace.itemName(generateName ? generateName : 'unknown');
 
         if (showStockChanges) {
             let oldStock: number | null;
-            const currentStock = bot.inventoryManager.getInventory.getAmount({
+            const currentStock = inventoryManager.getInventory.getAmount({
                 priceKey,
                 includeNonNormalized: true,
                 tradableOnly: true
@@ -204,11 +236,7 @@ function getSummary(
             if (withLink && isTF2Items) {
                 summary.push(
                     `[${
-                        bot.options.tradeSummary.showPureInEmoji
-                            ? pureEmoji.has(sku)
-                                ? pureEmoji.get(sku)
-                                : name
-                            : name
+                        options.tradeSummary.showPureInEmoji ? (pureEmoji.has(sku) ? pureEmoji.get(sku) : name) : name
                     }](https://autobot.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''} (${
                         (summaryAccepted || summaryInProcess) && oldStock !== null ? `${oldStock} → ` : ''
                     }${
@@ -242,11 +270,7 @@ function getSummary(
             if (withLink && isTF2Items) {
                 summary.push(
                     `[${
-                        bot.options.tradeSummary.showPureInEmoji
-                            ? pureEmoji.has(sku)
-                                ? pureEmoji.get(sku)
-                                : name
-                            : name
+                        options.tradeSummary.showPureInEmoji ? (pureEmoji.has(sku) ? pureEmoji.get(sku) : name) : name
                     }](https://autobot.tf/items/${sku})${amount > 1 ? ` x${amount}` : ''}`
                 );
             } else {

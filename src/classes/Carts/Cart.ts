@@ -260,7 +260,7 @@ export default abstract class Cart {
             if (Pricelist.isAssetId(priceKey)) {
                 itemName = this.bot.pricelist.getPriceBySkuOrAsset({ priceKey }).name + ` (${priceKey})`;
             } else {
-                itemName = this.bot.schema.getName(SKU.fromString(priceKey), false);
+                itemName = this.bot.schemaManager.schema.getName(SKU.fromString(priceKey), false);
             }
 
             items.push({ name: itemName, amount: this.our[priceKey] });
@@ -292,7 +292,7 @@ export default abstract class Cart {
             }
 
             items.push({
-                name: this.bot.schema.getName(SKU.fromString(sku), false),
+                name: this.bot.schemaManager.schema.getName(SKU.fromString(sku), false),
                 amount: this.their[sku]
             });
         }
@@ -520,7 +520,7 @@ export default abstract class Cart {
             if (Pricelist.isAssetId(priceKey)) {
                 str += `${this.bot.pricelist.getPrice({ priceKey, onlyEnabled: false }).name} (${priceKey})`;
             } else {
-                str += this.bot.schema.getName(SKU.fromString(priceKey), false);
+                str += this.bot.schemaManager.schema.getName(SKU.fromString(priceKey), false);
             }
         }
 
@@ -531,7 +531,7 @@ export default abstract class Cart {
                     continue;
                 }
 
-                str += `\n- ${this.their[sku]}x ${this.bot.schema.getName(SKU.fromString(sku), false)}`;
+                str += `\n- ${this.their[sku]}x ${this.bot.schemaManager.schema.getName(SKU.fromString(sku), false)}`;
             }
         }
 

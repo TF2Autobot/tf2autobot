@@ -68,3 +68,9 @@ export interface WebhookError {
     err: FetchError;
     webhook: Webhook;
 }
+
+export interface WebhookErrorData {
+    message: string;
+    retry_after: number;
+    global: boolean;
+}

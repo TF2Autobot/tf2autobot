@@ -97,13 +97,11 @@ export default class CustomPricerApi {
     }
 
     requestCheck(sku: string): Promise<CustomPricerPricesRequestCheckResponse> {
-        // If no url, since we default to pricedb, then the `items` endpoint should become `item`
-        // https://docs.pricedb.io/docs/pricedb#endpoint-get-api-items
-        return this.apiRequest('POST', `/item/${sku}`, { source: 'bptf' });
+        return this.apiRequest('POST', `/items/${sku}`, { source: 'bptf' });
     }
 
     getPrice(sku: string): Promise<CustomPricesGetItemPriceResponse> {
-        return this.apiRequest('GET', `/item/${sku}`, { src: 'bptf' });
+        return this.apiRequest('GET', `/items/${sku}`, { src: 'bptf' });
     }
 
     getPricelist(): Promise<CustomPricesGetPricelistResponse> {

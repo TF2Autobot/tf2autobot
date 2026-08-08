@@ -13,7 +13,7 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
     const time = t.timeNow(bot.options);
     const keyPrices = bot.pricelist.getKeyPrices;
     const links = t.generateLinks(offer.partner.toString());
-    const content = processReview(offer, meta, bot);
+    const content = processReview(offer, meta, bot.schemaManager.schema, bot.options, keyPrices);
 
     const hasCustomNote = !(opt.manualReview.invalidItems.note !== '' ||
         opt.manualReview.disabledItems.note !== '' ||
@@ -28,7 +28,7 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
     const isNotifyTradePartner = opt.steamChat.notifyTradePartner.onOfferForReview;
 
     // Notify partner and admin that the offer is waiting for manual review
-    if (isNotifyTradePartner) {
+    if (!opt.globalDisable.offerMessages && isNotifyTradePartner) {
         if (
             reasons.includes('⬜_BANNED_CHECK_FAILED') ||
             reasons.includes('⬜_ESCROW_CHECK_FAILED') ||
@@ -66,7 +66,17 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
                 `⚠️ Your offer is pending review.\nReasons: ${reasons}` +
                     (opt.manualReview.showOfferSummary
                         ? t
-                              .summarizeToChat(offer, bot, 'review-partner', false, content.value, true)
+                              .summarizeToChat({
+                                  offer,
+                                  schema: bot.schemaManager.schema,
+                                  options: bot.options,
+                                  pricelist: bot.pricelist,
+                                  inventoryManager: bot.inventoryManager,
+                                  type: 'review-partner',
+                                  withLink: false,
+                                  value: content.value,
+                                  isSteamChat: true
+                              })
                               .replace('Asked', '  My side')
                               .replace('Offered', 'Your side') +
                           (reasons.includes('🟥_INVALID_VALUE') && !reasons.includes('🟨_INVALID_ITEMS')
@@ -97,7 +107,13 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
     const highValueItems: string[] = [];
     if (meta?.highValue?.items) {
         if (Object.keys(meta.highValue.items.their).length > 0) {
-            const itemsName = t.getHighValueItems(meta.highValue.items.their, bot);
+            const itemsName = t.getHighValueItems(
+                meta.highValue.items.their,
+                bot.schemaManager.schema,
+                bot.strangeParts,
+                bot.options,
+                bot.pricelist
+            );
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -109,7 +125,13 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
         }
 
         if (Object.keys(meta.highValue.items.our).length > 0) {
-            const itemsName = t.getHighValueItems(meta.highValue.items.our, bot);
+            const itemsName = t.getHighValueItems(
+                meta.highValue.items.our,
+                bot.schemaManager.schema,
+                bot.strangeParts,
+                bot.options,
+                bot.pricelist
+            );
 
             for (const name in itemsName) {
                 if (!Object.prototype.hasOwnProperty.call(itemsName, name)) {
@@ -135,7 +157,7 @@ export default async function sendReview(offer: TradeOffer, bot: Bot, meta: Meta
         sendOfferReview(offer, reasons, time.time, keyPrices, content.value, links, items, bot);
         //
     } else {
-        const list = t.listItems(offer, bot, items, true);
+        const list = t.listItems(offer, bot.schemaManager.schema, bot.options, bot.pricelist, items, true);
 
         // add delay here because Steam said RateLimitExceeded
         if (isNotifyTradePartner) await timersPromises.setTimeout(2000);
@@ -179,8 +201,17 @@ export async function sendToAdmin(
                 : '');
 
     const message2 =
-        t.summarizeToChat(offer, bot, 'review-admin', false, value, true) +
-        (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '');
+        t.summarizeToChat({
+            offer,
+            schema: bot.schemaManager.schema,
+            options: bot.options,
+            pricelist: bot.pricelist,
+            inventoryManager: bot.inventoryManager,
+            type: 'review-admin',
+            withLink: false,
+            value,
+            isSteamChat: true
+        }) + (offerMessage.length !== 0 ? `\n\n💬 Offer message: "${offerMessage}"` : '');
 
     const message3 = list !== '-' ? `\n\nItem lists:\n${list}` : '';
 

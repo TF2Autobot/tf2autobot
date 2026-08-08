@@ -248,7 +248,6 @@ export default class Pricelist extends EventEmitter {
         private bot?: Bot
     ) {
         super();
-        this.schema = schema;
         this.maxAge = this.options.pricelist.priceAge.maxInSeconds || 8 * 60 * 60;
         this.boundHandlePriceChange = this.handlePriceChange.bind(this);
     }
@@ -800,10 +799,7 @@ export default class Pricelist extends EventEmitter {
                 continue;
             }
 
-            const standardizeSku = SKU.fromObject(SKU.fromString(sku));
-            prices[sku].sku = standardizeSku;
-            // This will cause two or more different entries created with different sku arrangements to be merged
-            this.prices[standardizeSku] = Entry.fromData(prices[sku], this.schema);
+            this.prices[sku] = Entry.fromData(prices[sku], this.schema);
         }
 
         errors = validator(this.prices, 'pricelist');

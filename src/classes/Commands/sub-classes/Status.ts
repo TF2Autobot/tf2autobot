@@ -13,9 +13,7 @@ import SteamTradeOfferManager from '@tf2autobot/tradeoffer-manager';
 // Bot status
 
 export default class StatusCommands {
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     async statsCommand(steamID: SteamID): Promise<void> {
         const tradesFromEnv = this.bot.options.statistics.lastTotalTrades;
@@ -161,7 +159,7 @@ export default class StatusCommands {
         if (testPriceKey(message)) {
             sku = message;
         } else {
-            sku = this.bot.schema.getSkuFromName(message);
+            sku = this.bot.schemaManager.schema.getSkuFromName(message);
 
             if (sku.includes('null') || sku.includes('undefined')) {
                 return this.bot.sendMessage(
@@ -176,7 +174,7 @@ export default class StatusCommands {
         let soldMessage = '';
         let adminOnlyMessage = '';
 
-        let reply = `Recorded sales for ${this.bot.schema.getName(SKU.fromString(sku))}\n\n`;
+        let reply = `Recorded sales for ${this.bot.schemaManager.schema.getName(SKU.fromString(sku))}\n\n`;
 
         const weapons = this.bot.handler.isWeaponsAsCurrency.enable
             ? this.bot.handler.isWeaponsAsCurrency.withUncraft

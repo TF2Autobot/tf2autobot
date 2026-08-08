@@ -44,9 +44,7 @@ export default class ManagerCommands {
 
     private isSendingBlockedList = false;
 
-    constructor(private readonly bot: Bot) {
-        this.bot = bot;
-    }
+    constructor(private readonly bot: Bot) {}
 
     async TF2GCCommand(steamID: SteamID, message: string, command: TF2GC, prefix: string): Promise<void> {
         const params = CommandParser.parseParams(CommandParser.removeCommand(message));
@@ -139,15 +137,14 @@ export default class ManagerCommands {
             if (params.assetid !== undefined && params.sku === undefined) {
                 const targetedAssetId = params.assetid as string;
                 const sku = this.bot.inventoryManager.getInventory.findByAssetid(targetedAssetId);
+                const name = this.bot.schemaManager.schema.getName(SKU.fromString(sku), false);
 
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 if (!['yes', true].includes(params.confirm)) {
                     return this.bot.sendMessage(
                         steamID,
                         `⚠️ Are you sure that you want to ${command} ${
-                            sku === null
-                                ? `the item with asset ID ${targetedAssetId}`
-                                : `${this.bot.schema.getName(SKU.fromString(sku), false)}`
+                            sku === null ? `the item with asset ID ${targetedAssetId}` : `${name}`
                         }?` +
                             `\n- This process is irreversible and will ${command} the item from your bot's backpack!` +
                             `\n- If you are sure, try again with confirm=true or confirm=yes as a parameter`
@@ -155,10 +152,7 @@ export default class ManagerCommands {
                 }
 
                 return this.bot.tf2gc[command === 'use' ? 'useItem' : 'deleteItem'](targetedAssetId, err => {
-                    const theItem =
-                        sku === null
-                            ? targetedAssetId
-                            : `${this.bot.schema.getName(SKU.fromString(sku), false)} (${targetedAssetId})`;
+                    const theItem = sku === null ? targetedAssetId : `${name} (${targetedAssetId})`;
 
                     if (err) {
                         log.warn(`Error trying to ${command} ${theItem}: `, err);
@@ -245,7 +239,7 @@ export default class ManagerCommands {
             }
 
             const assetids = this.bot.inventoryManager.getInventory.findBySKU(SKU.fromObject(item), false);
-            const name = this.bot.schema.getName(item, false);
+            const name = this.bot.schemaManager.schema.getName(item, false);
 
             if (assetids.length === 0) {
                 // Item not found
@@ -478,19 +472,20 @@ export default class ManagerCommands {
         const removeFriends = async (total: number, friendsToRemove: string[], blockedFriends: string[]) => {
             for (const steamid of friendsToRemove) {
                 if (!blockedFriends.includes(steamid)) {
-                    const getFriend = this.bot.friends.getFriend(steamid);
-
-                    this.bot.sendMessage(
-                        steamid,
-                        this.bot.options.customMessage.clearFriends
-                            ? this.bot.options.customMessage.clearFriends.replace(
-                                  /%name%/g,
-                                  getFriend ? getFriend.player_name : steamid
-                              )
-                            : `/quote Hey ${
-                                  getFriend ? getFriend.player_name : steamid
-                              }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
-                    );
+                    if (!this.bot.options.globalDisable.unfriendMessage) {
+                        const getFriend = this.bot.friends.getFriend(steamid);
+                        this.bot.sendMessage(
+                            steamid,
+                            this.bot.options.customMessage.clearFriends
+                                ? this.bot.options.customMessage.clearFriends.replace(
+                                      /%name%/g,
+                                      getFriend ? getFriend.player_name : steamid
+                                  )
+                                : `/quote Hey ${
+                                      getFriend ? getFriend.player_name : steamid
+                                  }! My owner has performed friend list clearance. Please feel free to add me again if you want to trade at a later time!`
+                        );
+                    }
                 } else {
                     log.info(`Blocked user ${steamid} has been successfully unfriended!`);
                 }
@@ -961,10 +956,7 @@ export default class ManagerCommands {
                     log.error(`Error getting schema on ${prefix}refreshSchema command:`, err);
                     return this.bot.sendMessage(steamID, `❌ Error getting TF2 Schema: ${JSON.stringify(err)}`);
                 }
-
-                log.debug('Refreshing TF2 Schema...');
-                this.bot.schema = this.bot.schemaManager.schema;
-                this.bot.setProperties();
+                // Do nothing on success as tf2-schema will emit "schema" event
 
                 this.executedRefreshSchema = true;
                 this.executeRefreshSchemaTimeout = setTimeout(
@@ -993,13 +985,6 @@ export default class ManagerCommands {
                     `\n\nNavigate to your bot folder and run ` +
                     `[git reset HEAD --hard && git pull && npm ci --no-audit && npm run build] ` +
                     `and then restart your bot.`
-            );
-        }
-
-        if (!['win32', 'linux', 'darwin', 'openbsd', 'freebsd'].includes(process.platform)) {
-            return this.bot.sendMessage(
-                steamID,
-                `❌ The current OS you're running the bot with is not yet supported. OS: ${process.platform}`
             );
         }
 
@@ -1047,11 +1032,6 @@ export default class ManagerCommands {
 
                     this.bot.sendMessage(steamID, '⌛ Pulling changes...');
                     await exec('git pull --prune');
-
-                    this.bot.sendMessage(steamID, '⌛ Deleting node_modules and dist directories...');
-                    await exec(
-                        process.platform === 'win32' ? 'rmdir /s /q node_modules dist' : 'rm -rf node_modules dist'
-                    );
 
                     this.bot.sendMessage(steamID, '⌛ Installing packages...');
                     await exec(
