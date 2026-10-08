@@ -93,7 +93,6 @@ export default class PriceDbSocketManager extends EventEmitter {
             this.socket = undefined;
         }
         this.isConnecting = false;
-        this.reconnectAttempts = 0;
     }
 
     shutdown(reconnect = false): void {

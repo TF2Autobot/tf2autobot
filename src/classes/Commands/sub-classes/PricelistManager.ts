@@ -767,8 +767,8 @@ export default class PricelistManagerCommands {
             const keyPrice = this.bot.pricelist.getKeyPrice;
             if (typeof params.buy === 'object' || typeof params.sell === 'object') {
                 if (
-                    (params.buy !== null && params.sell === undefined) ||
-                    (params.buy === undefined && params.sell !== null)
+                    (typeof params.buy === 'object' && params.sell === undefined) ||
+                    (typeof params.sell === 'object' && params.buy === undefined)
                 ) {
                     return this.bot.sendMessage(steamID, `❌ You must include both buying and selling prices.`);
                 } else if (
