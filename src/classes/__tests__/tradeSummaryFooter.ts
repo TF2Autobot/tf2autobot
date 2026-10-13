@@ -6,8 +6,8 @@ function profits(n: number): ProfitData {
     return {
         profits: Array.from({ length: n }, (_, i) => ({
             name: `Item ${i}`,
-            buy: '8 keys',
-            sell: '12 keys',
+            buy: { keys: 8, metal: 0 },
+            sell: { keys: 12, metal: 0 },
             profitScrap: (i + 1) * 100,
             heldForMs: 3600 * 1000
         })),
@@ -63,7 +63,54 @@ describe('buildDetailBlock', () => {
 
         expect(lines).toHaveLength(2);
         expect(lines[0]).toContain('Item 0');
-        expect(lines[0]).toContain('8 keys → 12 keys');
+        expect(detail).toContain('**Cost basis:** 8 keys → **Sold:** 12 keys');
+    });
+
+    it('normalizes a mixed-sign cost before displaying the reported loss', () => {
+        const sale: ProfitData = {
+            profits: [
+                {
+                    name: 'Globetrotter',
+                    buy: { keys: 1, metal: -60.44 },
+                    sell: { keys: 0, metal: 3 },
+                    profitScrap: -7,
+                    heldForMs: 1012_000
+                }
+            ],
+            missing: []
+        };
+        const detail = buildDetailBlock('', OFFER_MESSAGE_LABEL, [], [], sale, 64.22);
+
+        expect(detail).toContain('📉 **Globetrotter · Loss: 0.77 ref**');
+        expect(detail).toContain('**Cost basis:** 3.77 ref → **Sold:** 3 ref');
+        expect(detail).toContain('Held: 16m 52s');
+        expect(detail).not.toContain('-60.44');
+        expect(detail).not.toContain('-0.77');
+    });
+
+    it.each<[number, string, string]>([
+        [9, '📈', 'Profit: 1 ref'],
+        [0, '➖', 'Break-even: 0 ref'],
+        [-9, '📉', 'Loss: 1 ref']
+    ])('labels the result for %i scrap instead of leaving an unexplained amount', (scrap, icon, label) => {
+        const data = profits(1);
+        data.profits[0].profitScrap = scrap;
+        const detail = buildDetailBlock('', OFFER_MESSAGE_LABEL, [], [], data, 60);
+
+        expect(detail).toContain(`${icon} **Item 0 · ${label}**`);
+    });
+
+    it('labels a net loss when aggregating several sales', () => {
+        const data = profits(4);
+        data.profits.forEach(p => {
+            p.profitScrap = -9;
+        });
+        const detail = buildDetailBlock('', OFFER_MESSAGE_LABEL, [], [], data, 60);
+
+        expect(detail).toContain('Net loss: 4 ref');
+        expect(detail).toContain('across 4 items');
+        expect(detail).toContain('best Item 0 · Loss: 1 ref');
+        expect(detail).not.toContain('-4 ref');
     });
 
     it('aggregates once there are too many sales to name', () => {
