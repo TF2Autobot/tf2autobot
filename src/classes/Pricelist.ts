@@ -209,7 +209,7 @@ export class Entry implements EntryData {
 
     /**
      * Get FIFO (First In, First Out) purchase price - the price paid for the oldest items in stock
-     * This is used for PPU protection to ensure we never sell below the cost of the oldest purchased items
+     * Expired lots remain in the queue until sold; callers check their protection threshold separately.
      */
     getFIFOPurchasePrice(): Currencies | null {
         if (this.purchaseHistory.length === 0) {
@@ -230,31 +230,6 @@ export class Entry implements EntryData {
             return null;
         }
         return this.purchaseHistory[0].timestamp;
-    }
-
-    /**
-     * Remove expired purchases from history based on PPU threshold
-     * Returns true if any purchases were removed
-     */
-    removeExpiredPurchases(thresholdSeconds: number): boolean {
-        const currentTime = Math.floor(Date.now() / 1000);
-        let removed = false;
-
-        // Remove purchases from the front of the array (oldest first) that have exceeded threshold
-        while (this.purchaseHistory.length > 0) {
-            const oldest = this.purchaseHistory[0];
-            const age = currentTime - oldest.timestamp;
-
-            if (age >= thresholdSeconds) {
-                this.purchaseHistory.shift();
-                removed = true;
-            } else {
-                // Stop when we hit a purchase that's still within threshold
-                break;
-            }
-        }
-
-        return removed;
     }
 
     static fromData(data: EntryData, schema: SchemaManager.Schema): Entry {
@@ -1255,13 +1230,9 @@ export default class Pricelist extends EventEmitter {
                     ? Math.floor(Date.now() / 1000) - currPrice.lastInStockTime < stockGracePeriod
                     : false;
 
-                //use partial price update conditions
-                // Clean up expired purchases from history first
-                const hadExpiredPurchases = currPrice.removeExpiredPurchases(ppu.thresholdInSeconds);
-
                 // Use oldest purchase time for threshold - we want to protect based on when items were purchased
                 const oldestPurchaseTime = currPrice.getOldestPurchaseTime();
-                const lastUpdateTime = oldestPurchaseTime || currPrice.partialPriceTime || currPrice.time;
+                const lastUpdateTime = oldestPurchaseTime ?? currPrice.partialPriceTime ?? currPrice.time;
                 const isNotExceedThreshold = Math.floor(Date.now() / 1000) - lastUpdateTime < ppu.thresholdInSeconds;
                 const isNotExcluded = !excludedSKU.includes(sku);
 
@@ -1514,8 +1485,13 @@ export default class Pricelist extends EventEmitter {
             const buyChangesValue = Math.round(newBuyValue - oldBuyValue);
             const sellChangesValue = Math.round(newSellValue - oldSellValue);
 
-            if (buyChangesValue === 0 && sellChangesValue === 0) {
-                // Ignore
+            const ppu = opt.pricelist.partialPriceUpdate;
+            const oldestPurchaseTime = match.getOldestPurchaseTime();
+            const lastUpdateTime = oldestPurchaseTime ?? match.partialPriceTime ?? match.time;
+            const isNotExceedThreshold = Math.floor(Date.now() / 1000) - lastUpdateTime < ppu.thresholdInSeconds;
+
+            // Equal prices must still release a floor whose purchase protection has expired.
+            if (buyChangesValue === 0 && sellChangesValue === 0 && (!match.isPartialPriced || isNotExceedThreshold)) {
                 return;
             }
 
@@ -1526,7 +1502,6 @@ export default class Pricelist extends EventEmitter {
                 tradableOnly: true
             });
 
-            const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = currentStock > 0;
 
             // Update last in stock time
@@ -1540,13 +1515,6 @@ export default class Pricelist extends EventEmitter {
                 ? Math.floor(Date.now() / 1000) - match.lastInStockTime < stockGracePeriod
                 : false;
 
-            // Clean up expired purchases from history first
-            const hadExpiredPurchases = match.removeExpiredPurchases(ppu.thresholdInSeconds);
-
-            // Use oldest purchase time for threshold - we want to protect based on when items were purchased
-            const oldestPurchaseTime = match.getOldestPurchaseTime();
-            const lastUpdateTime = oldestPurchaseTime || match.partialPriceTime || match.time;
-            const isNotExceedThreshold = Math.floor(Date.now() / 1000) - lastUpdateTime < ppu.thresholdInSeconds;
             const isNotExcluded = !['5021;6'].concat(ppu.excludeSKU).includes(match.sku);
 
             // Remove max === 1 restriction if configured

@@ -2378,6 +2378,11 @@ export default class PricelistManagerCommands {
                 continue;
             }
 
+            const oldestPurchaseTime = entry.getOldestPurchaseTime();
+            if (oldestPurchaseTime !== null && now - oldestPurchaseTime >= ppu.thresholdInSeconds) {
+                continue;
+            }
+
             // Check current stock
             const currentStock = this.bot.inventoryManager.getInventory.getAmount({
                 priceKey: sku,
