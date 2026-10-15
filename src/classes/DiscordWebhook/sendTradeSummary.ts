@@ -8,7 +8,7 @@ import log from '../../lib/logger';
 import * as t from '../../lib/tools/export';
 import Bot from '../Bot';
 import { sendToAdmin } from '../MyHandler/offer/accepted/processAccepted';
-import { calculateFifoProfit, getFifoCostBasis, type FIFOEntry } from '../InventoryCostBasis';
+import { calculateFifoProfit, getFifoCostBasis, type FIFOEntry, type FIFOPrice } from '../InventoryCostBasis';
 import type { TradeCardMeta, TradeCardOptions } from './tradeCard';
 import { renderCard as renderCardInWorker } from './tradeCard/cardRenderClient';
 import { TradeCardPayload } from './tradeCard/cardRenderProtocol';
@@ -826,6 +826,16 @@ function highValueLines(items: string[]): string[] {
     return shown;
 }
 
+function formatCurrencyValue(scrap: number, keyRateMetal: number): string {
+    return scrap === 0 ? '0 ref' : Currencies.toCurrencies(scrap, keyRateMetal).toString();
+}
+
+function formatProfitResult(scrap: number, keyRateMetal: number, net = false): string {
+    const outcome = scrap > 0 ? 'Profit' : scrap < 0 ? 'Loss' : 'Break-even';
+    const label = net ? `Net ${outcome.toLowerCase()}` : outcome;
+    return `${label}: ${formatCurrencyValue(Math.abs(scrap), keyRateMetal)}`;
+}
+
 function profitLines(data: ProfitData, keyRateMetal: number): string[] {
     const lines: string[] = [];
 
@@ -833,9 +843,13 @@ function profitLines(data: ProfitData, keyRateMetal: number): string[] {
         // Few enough to name individually, which is the interesting case.
         for (const p of data.profits) {
             lines.push(
-                `${profitIndicator(p.profitScrap)} ${clamp(p.name, NAME_CAP)} ${p.buy} → ${p.sell}  ·  ` +
-                    `${Currencies.toCurrencies(p.profitScrap, keyRateMetal).toString()}  ·  ` +
-                    `${formatDuration(p.heldForMs)}`
+                `${profitIndicator(p.profitScrap)} **${escapeMarkdown(clamp(p.name, NAME_CAP))} · ${formatProfitResult(
+                    p.profitScrap,
+                    keyRateMetal
+                )}**`,
+                `**Cost basis:** ${formatCurrencyValue(new Currencies(p.buy).toValue(keyRateMetal), keyRateMetal)} → ` +
+                    `**Sold:** ${formatCurrencyValue(new Currencies(p.sell).toValue(keyRateMetal), keyRateMetal)}`,
+                `Held: ${formatDuration(p.heldForMs)}`
             );
         }
     } else if (data.profits.length > 0) {
@@ -844,9 +858,9 @@ function profitLines(data: ProfitData, keyRateMetal: number): string[] {
         const best = data.profits.reduce((a, b) => (b.profitScrap > a.profitScrap ? b : a), data.profits[0]);
 
         lines.push(
-            `${profitIndicator(total)} ${Currencies.toCurrencies(total, keyRateMetal).toString()} across ` +
-                `${data.profits.length} items  ·  best ${clamp(best.name, NAME_CAP)} ` +
-                `${Currencies.toCurrencies(best.profitScrap, keyRateMetal).toString()}`
+            `${profitIndicator(total)} **${formatProfitResult(total, keyRateMetal, true)}** across ` +
+                `${data.profits.length} items  ·  best ${escapeMarkdown(clamp(best.name, NAME_CAP))} · ` +
+                `${formatProfitResult(best.profitScrap, keyRateMetal)}`
         );
     }
 
@@ -997,8 +1011,8 @@ function priceValue(price: unknown, keyRateMetal: number): number {
 /** One realised sale, before it is formatted for the detail block. */
 interface ItemProfit {
     name: string;
-    buy: string;
-    sell: string;
+    buy: FIFOPrice;
+    sell: FIFOPrice;
     profitScrap: number;
     /** How long we held it before this sale. */
     heldForMs: number;
@@ -1072,8 +1086,8 @@ function collectItemProfits(offer: TradeOffer, bot: Bot): ProfitData {
                 return;
             }
 
-            const buyPrice = new Currencies(getFifoCostBasis(fifoEntry));
-            const sellPrice = new Currencies({ keys: fallbackSell.keys, metal: fallbackSell.metal });
+            const buyPrice = getFifoCostBasis(fifoEntry);
+            const sellPrice = { keys: fallbackSell.keys, metal: fallbackSell.metal };
             const keyRateMetal = bot.pricelist.getKeyPrice.metal;
 
             // One signed scrap total, split by toCurrencies afterwards: deriving both
@@ -1084,8 +1098,8 @@ function collectItemProfits(offer: TradeOffer, bot: Bot): ProfitData {
 
             itemProfits.push({
                 name: itemName,
-                buy: buyPrice.toString(),
-                sell: sellPrice.toString(),
+                buy: buyPrice,
+                sell: sellPrice,
                 profitScrap,
                 // InventoryCostBasis stores timestamps in milliseconds. Older
                 // persisted entries may be in Unix seconds, so accept both.
