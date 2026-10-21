@@ -114,7 +114,11 @@ export default class UserCart extends Cart {
     }
 
     private get canUseKeys(): boolean {
-        if (this.getOurCount('5021;6') !== 0 || this.getTheirCount('5021;6') !== 0) {
+        if (
+            [...Object.keys(this.our), ...Object.keys(this.their)].some(
+                priceKey => this.getCartSku(priceKey) === '5021;6'
+            )
+        ) {
             // The trade contains keys, don't use keys for currencies
             return false;
         }
@@ -125,9 +129,14 @@ export default class UserCart extends Cart {
     private get isPureCurrencyTrade(): boolean {
         const currencySkus = new Set(['5021;6', '5002;6', '5001;6', '5000;6']);
         return (
-            Object.keys(this.our).every(sku => currencySkus.has(sku)) &&
-            Object.keys(this.their).every(sku => currencySkus.has(sku))
+            Object.keys(this.our).every(priceKey => currencySkus.has(this.getCartSku(priceKey))) &&
+            Object.keys(this.their).every(priceKey => currencySkus.has(this.getCartSku(priceKey)))
         );
+    }
+
+    private getCartSku(priceKey: string): string {
+        if (!Pricelist.isAssetId(priceKey)) return priceKey;
+        return this.bot.pricelist.getPriceBySkuOrAsset({ priceKey, onlyEnabled: true })?.sku ?? priceKey;
     }
 
     /**
