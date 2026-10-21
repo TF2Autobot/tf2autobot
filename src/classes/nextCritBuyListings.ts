@@ -1,7 +1,7 @@
 import SKU from '@tf2autobot/tf2-sku';
 import type Bot from './Bot';
 import NextCritDriver, { NextCritBuyInput, NextCritIgnoredField } from './NextCritDriver';
-import { createHatVersionZ, HatVersionZProps } from '../vendor/the-future/createHat';
+import skuToHat from '../lib/skuToHat';
 
 /** Build buy criteria from the schema, including items absent from our inventory. */
 export default function nextCritBuyListings(bot: Bot): NextCritBuyInput[] {
@@ -22,37 +22,6 @@ export function nextCritBuyListingEntries(bot: Bot): { sku: string; listing: Nex
         const item = SKU.fromString(entry.sku);
         // HAT Version Z cannot express a specific craft number.
         if (item.craftnumber) continue;
-        const nameItem = { ...item, craftnumber: null };
-        // Steam market names omit craftability, paint and the individual unusual effect.
-        const marketHashName = bot.schema.getName(nameItem, false, false, true)?.replace(/%23/g, '#');
-        const quality = bot.schema.getQualityById(item.quality);
-        if (!marketHashName || !quality) throw new Error(`Cannot build NextCrit buy criteria for ${entry.sku}`);
-        const lookup = (id: number, getName: (id: number) => string | null): string[] => {
-            if (id === null || id === undefined) return [];
-            const name = getName(id);
-            if (!name) throw new Error(`Cannot resolve NextCrit buy attribute for ${entry.sku}`);
-            return [name];
-        };
-        const props: HatVersionZProps = {
-            marketHashName,
-            tradable: item.tradable !== false,
-            marketable: false,
-            craftable: item.craftable,
-            festivized: item.festive,
-            loaner: false,
-            qualities: [quality],
-            unusualEffects: lookup(item.effect || null, id => bot.schema.getEffectById(id)),
-            killstreakers: [],
-            sheens: [],
-            warPaints: lookup(item.paintkit, id => {
-                const name = bot.schema.getSkinById(id);
-                return name ? `${name} War Paint` : null;
-            }),
-            paints: lookup(item.paint || null, id => bot.schema.getPaintNameByDecimal(id)),
-            strangeParts: [],
-            strangeFilters: [],
-            spells: []
-        };
         const ignored: NextCritIgnoredField[] = [
             'marketability',
             'killstreaker',
@@ -67,7 +36,7 @@ export function nextCritBuyListingEntries(bot: Bot): { sku: string; listing: Nex
         listings.push({
             sku: entry.sku,
             listing: {
-                hat: `Z^${createHatVersionZ(props)}`,
+                hat: skuToHat(entry.sku, bot.schema),
                 ignored_fields: ignored,
                 price: NextCritDriver.toPrice(entry.buy),
                 // Represent unlimited stock as a finite JSON quantity; leave finite widths to NextCrit.

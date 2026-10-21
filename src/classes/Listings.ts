@@ -7,6 +7,8 @@ import * as timersPromises from 'timers/promises';
 import Bot from './Bot';
 import NextCritDriver from './NextCritDriver';
 import NextCritCheckout from './NextCritCheckout';
+import NextCritItemUrls from './NextCritItemUrls';
+import skuToHat from '../lib/skuToHat';
 import nextCritSellAssets from './nextCritSellAssets';
 import nextCritBuyListings from './nextCritBuyListings';
 import Pricelist, { Entry, PricesObject } from './Pricelist';
@@ -33,6 +35,8 @@ interface RemoveAllListingsParams {
 }
 
 export default class Listings {
+    private readonly critItemUrls = new NextCritItemUrls();
+
     private nextCrit: NextCritDriver | undefined;
 
     private nextCritCheckout: NextCritCheckout | undefined;
@@ -1063,6 +1067,20 @@ export default class Listings {
             // Get friendly store URL using cached slug if available
             const pricedbStoreUrl = this.bot.getPricedbStoreUrl();
             const pricedbItemUrl = `https://pricedb.io/item/${encodeURIComponent(entry.sku)}`;
+            let critListingUrl = '';
+            if (details.includes('%crit_listing%')) {
+                void this.critItemUrls
+                    .refresh()
+                    .then(updated => {
+                        if (updated) this.checkByPriceKey({ priceKey: entry.id ?? entry.sku });
+                    })
+                    .catch(() => log.warn('Failed to update crit.tf item links in listing descriptions'));
+                try {
+                    critListingUrl = this.critItemUrls.getUrl(skuToHat(entry.sku, this.bot.schema));
+                } catch {
+                    // Some marketplace SKUs have no HAT equivalent; leave their link empty.
+                }
+            }
 
             return details
                 .replace(/%price%/g, isShowBoldOnPrice ? boldDetails(price, style) : price)
@@ -1072,7 +1090,8 @@ export default class Listings {
                 .replace(/%current_stock%/g, isShowBoldOnCurrentStock ? boldDetails(currentStock, style) : currentStock)
                 .replace(/%amount_trade%/g, isShowBoldOnAmount ? boldDetails(amountTrade, style) : amountTrade)
                 .replace(/%pricedb_store%/g, pricedbStoreUrl)
-                .replace(/%pricedb_item%/g, pricedbItemUrl);
+                .replace(/%pricedb_item%/g, pricedbItemUrl)
+                .replace(/%crit_listing%/g, critListingUrl);
         };
 
         const isCustomBuyNote = entry.note?.buy && intent === 0;
