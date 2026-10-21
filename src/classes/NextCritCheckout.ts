@@ -186,14 +186,15 @@ export default class NextCritCheckout {
         // Progress has its own ordered queue so listing syncs and API outages cannot delay the trade.
         let updates = Promise.resolve();
         let complete = false;
-        cart.onProgress = (stage, message, done) => {
+        cart.onProgress = (stage, message, done, tradeOfferId) => {
             if (complete) return;
             complete = done;
             const progress = {
                 steam64: requester,
                 stage,
                 message: [...message.replace(/\s+/g, ' ').trim()].slice(0, 140).join(''),
-                complete: done
+                complete: done,
+                trade_offer_id: stage === 3 && done ? tradeOfferId ?? null : null
             };
             updates = updates
                 .then(() => this.driver.postTradeProgress(progress))

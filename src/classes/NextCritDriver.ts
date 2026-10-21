@@ -14,6 +14,7 @@ export interface NextCritTradeProgress {
     stage: 0 | 1 | 2 | 3;
     message: string;
     complete: boolean;
+    trade_offer_id: string | null;
 }
 
 export interface NextCritPrice {

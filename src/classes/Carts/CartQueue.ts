@@ -273,7 +273,8 @@ export default class CartQueue {
                         cart.onProgress?.(
                             progressStage,
                             'Offer sent and confirmed. Please check your Steam trade offers.',
-                            true
+                            true,
+                            cart.getOffer?.id
                         );
                     } catch {
                         cart.onProgress?.(
@@ -284,7 +285,12 @@ export default class CartQueue {
                     }
                     return;
                 }
-                cart.onProgress?.(progressStage, 'Offer sent. Please check your Steam trade offers.', true);
+                cart.onProgress?.(
+                    progressStage,
+                    'Offer sent. Please check your Steam trade offers.',
+                    true,
+                    cart.getOffer?.id
+                );
             })
             .catch(err => {
                 cart.onProgress?.(
