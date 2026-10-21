@@ -44,7 +44,7 @@ class CritSession {
         for (const cookie of cookies) this.jar.setCookieSync(cookie, STEAM);
     }
 
-    async request(url: string, body?: URLSearchParams): Promise<{ url: string; html: string }> {
+    async request(url: string, body?: URLSearchParams | FormData): Promise<{ url: string; html: string }> {
         let method = body === undefined ? 'GET' : 'POST';
         for (let redirects = 0; redirects <= 10; redirects++) {
             const target = new URL(url);
@@ -54,12 +54,11 @@ class CritSession {
             const response: AxiosResponse<string> = await axios.request<string>({
                 url,
                 method,
-                data: body?.toString(),
+                data: body instanceof URLSearchParams ? body.toString() : body,
                 headers: {
                     Cookie: this.jar.getCookieStringSync(url),
-                    ...(method === 'POST'
-                        ? { 'Content-Type': 'application/x-www-form-urlencoded', Origin: target.origin }
-                        : {})
+                    ...(method === 'POST' ? { Origin: target.origin } : {}),
+                    ...(body instanceof URLSearchParams ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {})
                 },
                 timeout: 30000,
                 maxRedirects: 0,
@@ -96,7 +95,8 @@ class CritSession {
         if (form.length !== 1 || $('#loginForm').length) {
             throw new CritSetupError('Steam web session is not signed in; restart the bot to obtain a fresh session.');
         }
-        const fields = new URLSearchParams();
+        const fields =
+            form.attr('enctype')?.toLowerCase() === 'multipart/form-data' ? new FormData() : new URLSearchParams();
         form.find('input[name]').each((_, input) => {
             fields.set($(input).attr('name'), $(input).attr('value') ?? '');
         });

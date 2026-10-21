@@ -36,7 +36,11 @@ test('reuses a valid existing key without website login and saves it for restart
 function mockSignIn(): void {
     http.request
         .mockResolvedValueOnce(reply('', { location: 'https://steamcommunity.com/openid/login' }, 302))
-        .mockResolvedValueOnce(reply('<form id="openidForm"><input name="nonce" value="steam-nonce"></form>'))
+        .mockResolvedValueOnce(
+            reply(
+                '<form id="openidForm" method="post" enctype="multipart/form-data"><input name="action" value="steam_openid_login"><input name="openid.mode" value="checkid_setup"><input name="openidparams" value="safe-fixture"><input name="nonce" value="steam-nonce"></form>'
+            )
+        )
         .mockResolvedValueOnce(reply('', { location: 'https://crit.tf/auth/steam/return' }, 302))
         .mockResolvedValueOnce(
             reply('<form method="post" action="/users/register"></form>', {
@@ -58,7 +62,9 @@ test.each(['', `sk_${'b'.repeat(64)}`])(
         mockSignIn();
         await expect(setupCrit(existing, steam64, ['steamLoginSecure=steam-secret'], directory)).resolves.toBe(key);
         const calls = http.request.mock.calls.map(([config]) => config as AxiosRequestConfig);
-        expect(calls[2].data).toBe('nonce=steam-nonce');
+        expect(calls[2].data).toBeInstanceOf(FormData);
+        expect((calls[2].data as FormData).get('nonce')).toBe('steam-nonce');
+        expect(calls[2].headers['Content-Type']).toBeUndefined();
         expect(calls[4].url).toBe('https://crit.tf/users/register');
         expect(calls[5].data).toBe(`api-key-name=TF2Autobot+${steam64}`);
         for (const config of calls) {
