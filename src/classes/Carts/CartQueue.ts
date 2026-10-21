@@ -171,6 +171,7 @@ export default class CartQueue {
             return false;
         }
 
+        this.carts[position].onProgress?.(1, 'Checkout canceled', true);
         this.carts.splice(position, 1);
         log.debug('Removed cart from the queue');
 
@@ -213,7 +214,10 @@ export default class CartQueue {
         log.debug('Constructing offer');
 
         const custom = this.bot.options.commands.addToQueue;
-        Promise.resolve(cart.constructOffer())
+        let progressStage: 1 | 2 | 3 = 2;
+        cart.onProgress?.(progressStage, 'Preparing your trade offer', false);
+        Promise.resolve()
+            .then(() => cart.constructOffer())
             .then(alteredMessage => {
                 log.debug('Constructed offer');
                 if (alteredMessage) {
@@ -239,11 +243,14 @@ export default class CartQueue {
                 cart.sendNotification = sendNotification;
 
                 log.debug('Sending offer...');
+                cart.onProgress?.(progressStage, 'Checking and sending your trade offer', false);
                 return cart.sendOffer();
             })
             .then(async status => {
                 log.debug('Sent offer');
+                progressStage = 3;
                 if (status === 'pending') {
+                    cart.onProgress?.(progressStage, 'Offer sent; accepting mobile confirmation', false);
                     const sendNotification = isDonating
                         ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
                             ? custom.hasBeenMadeAcceptingMobileConfirmation.donation
@@ -261,13 +268,38 @@ export default class CartQueue {
                     log.debug('Accepting mobile confirmation...');
 
                     // Wait for confirmation to be accepted
-                    await this.bot.trades.acceptConfirmation(cart.getOffer).catch(() => {
-                        return;
-                    });
+                    try {
+                        await this.bot.trades.acceptConfirmation(cart.getOffer);
+                        cart.onProgress?.(
+                            progressStage,
+                            'Offer sent and confirmed. Please check your Steam trade offers.',
+                            true,
+                            cart.getOffer?.id
+                        );
+                    } catch {
+                        cart.onProgress?.(
+                            progressStage,
+                            'Offer sent, but confirmation failed. Please check Steam or try again later.',
+                            true
+                        );
+                    }
                     return;
                 }
+                cart.onProgress?.(
+                    progressStage,
+                    'Offer sent. Please check your Steam trade offers.',
+                    true,
+                    cart.getOffer?.id
+                );
             })
             .catch(err => {
+                cart.onProgress?.(
+                    progressStage,
+                    typeof err === 'string'
+                        ? `Unable to send offer: ${err}`
+                        : 'Unable to send offer. Please try again later.',
+                    true
+                );
                 if (!(err instanceof Error)) {
                     cart.sendNotification = `❌ I failed to make the offer! Reason: ${err as string}.`;
                 } else {
