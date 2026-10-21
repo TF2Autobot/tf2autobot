@@ -21,6 +21,8 @@ beforeEach(() => {
 });
 
 afterAll(() => {
+    cleanPath(Options.getFilesPath('abc123'));
+    cleanPath(Options.getFilesPath('test123'));
     process.env = OLD_ENV; // restore old env
 });
 
@@ -225,7 +227,7 @@ test('validates skipItemsInTrade cancelOfferAfterMinutes', () => {
 
 test('loads NextCrit options', () => {
     let result = Options.loadOptions({ steamAccountName: 'abc123' });
-    expect(result.nextCritEnable).toBeFalsy();
+    expect(result.nextCritEnable).toBeTruthy();
     expect(result.nextCritApiKey).toEqual('');
     expect(result.nextCritAllowSelfSigned).toBeFalsy();
     process.env.NEXT_CRIT_ENABLE = 'true';
@@ -269,4 +271,53 @@ test('loads a subset of options', () => {
     });
     expect(result.miscSettings.addFriends.enable).toBeFalsy();
     expect(result.miscSettings.sendGroupInvite.enable).toBeFalsy();
+});
+
+test('loads saved Crit TF credentials on a later start', () => {
+    Options.loadOptions({ steamAccountName: 'abc123' });
+    const apiKey = `sk_${'a'.repeat(64)}`;
+    writeFileSync(
+        path.join(Options.getFilesPath('abc123'), 'crit-credentials.json'),
+        JSON.stringify({ steam64: '76561198000000000', apiKey })
+    );
+    process.env.NEXT_CRIT_API_KEY = 'stale-key';
+    try {
+        const result = Options.loadOptions({ steamAccountName: 'abc123' });
+        expect(result.nextCritEnable).toBe(true);
+        expect(result.nextCritApiKey).toBe(apiKey);
+    } finally {
+        delete process.env.NEXT_CRIT_API_KEY;
+    }
+});
+
+test('allows explicit disable even when credentials are saved', () => {
+    Options.loadOptions({ steamAccountName: 'abc123' });
+    writeFileSync(
+        path.join(Options.getFilesPath('abc123'), 'crit-credentials.json'),
+        JSON.stringify({
+            steam64: '76561198000000000',
+            apiKey: `sk_${'a'.repeat(64)}`
+        })
+    );
+    process.env.NEXT_CRIT_ENABLE = 'false';
+    const result = Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(result.nextCritEnable).toBe(false);
+});
+
+test('allows explicit disable without saved credentials', () => {
+    process.env.NEXT_CRIT_ENABLE = 'false';
+    const result = Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(result.nextCritEnable).toBe(false);
+    expect(result.nextCritApiKey).toBe('');
+});
+
+test('allows disabling Crit TF through incoming options', () => {
+    const result = Options.loadOptions({ steamAccountName: 'abc123', nextCritEnable: false });
+    expect(result.nextCritEnable).toBe(false);
+});
+
+test('reports malformed credentials without including their contents', () => {
+    Options.loadOptions({ steamAccountName: 'abc123' });
+    writeFileSync(path.join(Options.getFilesPath('abc123'), 'crit-credentials.json'), '{"apiKey":"secret-value');
+    expect(() => Options.loadOptions({ steamAccountName: 'abc123' })).toThrow('Cannot read Crit TF credentials');
 });

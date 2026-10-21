@@ -1,4 +1,5 @@
 import { snakeCase } from 'change-case';
+import { loadCritCredentials } from '../lib/critCredentials';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import jsonlint from '@tf2autobot/jsonlint';
 import * as path from 'path';
@@ -2669,6 +2670,7 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
 export function loadOptions(options?: Options): Options {
     const incomingOptions = options ? deepMerge({}, options) : {};
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
+    const critCredentials = loadCritCredentials(getFilesPath(steamAccountName));
     lintAllTheThings(getFilesPath(steamAccountName)); // you shall not pass
 
     const jsonParseArray = (jsonString: string): string[] => JSON.parse(jsonString) as unknown as string[];
@@ -2695,8 +2697,10 @@ export function loadOptions(options?: Options): Options {
         steamSupplyApiKey: getOption('steamsupplyApiKey', '', String, incomingOptions),
         steamApisApiKey: getOption('steamapisApiKey', '', String, incomingOptions),
         expressLoadApiKey: getOption('expressloadApiKey', '', String, incomingOptions),
-        nextCritEnable: getOption('nextCritEnable', false, jsonParseBoolean, incomingOptions),
-        nextCritApiKey: getOption('nextCritApiKey', '', String, incomingOptions),
+        nextCritEnable:
+            (incomingOptions.nextCritEnable as boolean | undefined) ??
+            getOption('nextCritEnable', true, jsonParseBoolean),
+        nextCritApiKey: critCredentials?.apiKey || getOption('nextCritApiKey', '', String, incomingOptions),
         nextCritAllowSelfSigned: getOption('nextCritAllowSelfSigned', false, jsonParseBoolean, incomingOptions),
         journalTfEnable: getOption('journalTfEnable', false, jsonParseBoolean, incomingOptions),
         journalTfApiKey: getOption('journalTfApiKey', '', String, incomingOptions),
