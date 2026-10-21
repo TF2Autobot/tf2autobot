@@ -9,6 +9,13 @@ export interface NextCritSellAsset {
     currencies: Currencies;
 }
 
+export interface NextCritTradeProgress {
+    steam64: string;
+    stage: 0 | 1 | 2 | 3;
+    message: string;
+    complete: boolean;
+}
+
 export interface NextCritPrice {
     keys: number;
     half_scrap: number;
@@ -96,6 +103,15 @@ export default class NextCritDriver {
             headers: { Accept: 'text/event-stream' },
             signal
         });
+    }
+
+    async postTradeProgress(progress: NextCritTradeProgress): Promise<void> {
+        const response = await this.request<{ accepted: boolean }>({
+            method: 'POST',
+            url: '/api/v2/trade-progress',
+            data: progress
+        });
+        if (!response.accepted) throw new Error('NextCrit did not accept trade progress');
     }
 
     createOrUpdateListing(assetId: string, currencies: Currencies, steam64?: string): Promise<void> {

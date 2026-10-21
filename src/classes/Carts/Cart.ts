@@ -33,6 +33,8 @@ export default abstract class Cart {
 
     protected notify = false;
 
+    onProgress?: (stage: 1 | 2 | 3, message: string, complete: boolean) => void;
+
     protected donation = false;
 
     protected buyPremium = false;

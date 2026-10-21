@@ -183,6 +183,28 @@ export default class NextCritCheckout {
                       request.listing_id,
                       request.quantity
                   );
-        this.bot.handler.cartQueue.enqueue(cart, false, false);
+        // Progress has its own ordered queue so listing syncs and API outages cannot delay the trade.
+        let updates = Promise.resolve();
+        let complete = false;
+        cart.onProgress = (stage, message, done) => {
+            if (complete) return;
+            complete = done;
+            const progress = {
+                steam64: requester,
+                stage,
+                message: [...message.replace(/\s+/g, ' ').trim()].slice(0, 140).join(''),
+                complete: done
+            };
+            updates = updates
+                .then(() => this.driver.postTradeProgress(progress))
+                .catch(() => {
+                    // Do not expose authenticated request headers or URLs in the logger.
+                    log.warn('NextCrit checkout could not report trade progress');
+                });
+        };
+        cart.onProgress(1, 'Checkout acknowledged; waiting in the trade queue', false);
+        if (this.bot.handler.cartQueue.enqueue(cart, false, false) === -1) {
+            cart.onProgress(1, 'Unable to queue checkout: you already have a trade in the queue.', true);
+        }
     }
 }
