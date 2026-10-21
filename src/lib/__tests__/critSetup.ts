@@ -119,3 +119,10 @@ test.each([
     await expect(setupCrit(key, steam64, [], directory)).rejects.toThrow('invalid access token');
     expect(http.request.mock.calls).toHaveLength(0);
 });
+
+test('reports a persistence failure clearly without creating another key', async () => {
+    await expect(setupCrit(key, steam64, [], path.join(directory, 'missing'))).rejects.toThrow(
+        'Could not save Crit TF credentials'
+    );
+    expect(http.request.mock.calls).toHaveLength(0);
+});

@@ -136,8 +136,6 @@ export async function setupCrit(
             apiKey = await new CritSession(cookies).createKey(steam64);
             if (!(await validKey(apiKey, steam64))) throw new CritSetupError('The new Crit TF key was rejected.');
         }
-        await saveCritCredentials(directory, { steam64, apiKey });
-        return apiKey;
     } catch (error) {
         // Axios errors retain request headers/cookies and response bodies. Never
         // pass those objects to the startup error logger.
@@ -146,4 +144,6 @@ export async function setupCrit(
         if (error instanceof CritSetupError) throw error;
         throw new CritSetupError('Crit TF auto setup could not process the service response; try again later.');
     }
+    await saveCritCredentials(directory, { steam64, apiKey });
+    return apiKey;
 }
