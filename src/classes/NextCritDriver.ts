@@ -64,6 +64,10 @@ interface ListingsResponse {
     listings: NextCritSellListing[];
 }
 
+interface InventoryResponse {
+    inventory: Record<string, { hat: string }>;
+}
+
 export class NextCritRequestError extends Error {
     constructor(readonly status: number | undefined, code: string | undefined) {
         super(`NextCrit request failed (${status ?? code ?? 'network error'})`);
@@ -115,12 +119,13 @@ export default class NextCritDriver {
         if (!response.accepted) throw new Error('NextCrit did not accept trade progress');
     }
 
-    createOrUpdateListing(assetId: string, currencies: Currencies, steam64?: string): Promise<void> {
+    createOrUpdateListing(assetId: string, currencies: Currencies, steam64: string): Promise<void> {
         const price = NextCritDriver.toPrice(currencies);
         NextCritDriver.validateAssetId(assetId);
         return this.enqueue(async () => {
             const previous = this.published.get(assetId);
             if (previous?.keys === price.keys && previous.half_scrap === price.half_scrap) return;
+            await this.ensureSellInventory(steam64, [assetId]);
             const config: AxiosRequestConfig = {
                 method: 'POST',
                 url: '/api/v2/sell-listings',
@@ -130,8 +135,8 @@ export default class NextCritDriver {
             try {
                 response = await this.request<ListingsResponse>(config);
             } catch (err) {
-                if (!(err instanceof NextCritRequestError) || err.status !== 404 || !steam64) throw err;
-                await this.refreshInventoryNow(steam64);
+                if (!(err instanceof NextCritRequestError) || err.status !== 404) throw err;
+                await this.ensureSellInventory(steam64, [assetId], true);
                 response = await this.request<ListingsResponse>(config);
             }
             if (!response.success) throw new Error('NextCrit did not publish the sell listing');
@@ -170,13 +175,15 @@ export default class NextCritDriver {
                 );
             });
             if (changed.length === 0) return;
+            const assetIds = changed.map(listing => listing.asset_id);
+            await this.ensureSellInventory(steam64, assetIds);
             const config: AxiosRequestConfig = { method: 'POST', url: '/api/v2/sell-listings', data: changed };
             let result: ListingsResponse;
             try {
                 result = await this.request<ListingsResponse>(config);
             } catch (err) {
                 if (!(err instanceof NextCritRequestError) || err.status !== 404) throw err;
-                await this.refreshInventoryNow(steam64);
+                await this.ensureSellInventory(steam64, assetIds, true);
                 result = await this.request<ListingsResponse>(config);
             }
             if (!result.success) throw new Error('NextCrit did not publish sell listings');
@@ -321,6 +328,35 @@ export default class NextCritDriver {
             throw new Error('Invalid NextCrit sell-listing price');
         }
         return { keys: currencies.keys, half_scrap: halfScrap };
+    }
+
+    private async ensureSellInventory(steam64: string, assetIds: string[], forceRefresh = false): Promise<void> {
+        if (!/^7656119\d{10}$/.test(steam64)) throw new Error('Invalid NextCrit Steam ID');
+        const containsAssets = (response: InventoryResponse): boolean => {
+            if (!response?.inventory || typeof response.inventory !== 'object' || Array.isArray(response.inventory)) {
+                throw new Error('NextCrit did not return an inventory');
+            }
+            return assetIds.every(assetId => Object.prototype.hasOwnProperty.call(response.inventory, assetId));
+        };
+        if (!forceRefresh) {
+            try {
+                const cached = await this.request<InventoryResponse>({
+                    method: 'GET',
+                    url: `/api/v2/inventories/${steam64}/1h`
+                });
+                if (containsAssets(cached)) return;
+            } catch (err) {
+                if (!(err instanceof NextCritRequestError) || err.status !== 404) throw err;
+            }
+        }
+        // Missing assets must bypass both the server cache and the routine refresh cooldown.
+        const refreshed = await this.request<InventoryResponse>({
+            method: 'GET',
+            url: `/api/v2/inventories/${steam64}/0/refresh`
+        });
+        this.lastInventoryRefresh = Date.now();
+        if (!containsAssets(refreshed))
+            throw new Error('NextCrit inventory is still missing sell-listing assets after refresh');
     }
 
     private async refreshInventoryNow(steam64: string): Promise<void> {
