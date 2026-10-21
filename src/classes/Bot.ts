@@ -1228,19 +1228,7 @@ export default class Bot {
                         });
                     },
                     (callback: Callback): void => {
-                        if (!this.options.autoSetupCritf) {
-                            if (
-                                this.options.nextCritSteam64 &&
-                                this.options.nextCritSteam64 !== this.client.steamID.getSteamID64()
-                            ) {
-                                this.options.nextCritEnable = false;
-                                log.warn(
-                                    'Saved Crit TF credentials belong to a different Steam account; Crit TF is disabled.'
-                                );
-                            }
-                            this.listings.configureNextCrit();
-                            return callback(null);
-                        }
+                        if (!this.options.nextCritEnable) return callback(null);
                         log.info('Setting up Crit TF...');
                         void handleCallback(
                             setupCrit(

@@ -227,7 +227,7 @@ test('validates skipItemsInTrade cancelOfferAfterMinutes', () => {
 
 test('loads NextCrit options', () => {
     let result = Options.loadOptions({ steamAccountName: 'abc123' });
-    expect(result.nextCritEnable).toBeFalsy();
+    expect(result.nextCritEnable).toBeTruthy();
     expect(result.nextCritApiKey).toEqual('');
     expect(result.nextCritAllowSelfSigned).toBeFalsy();
     process.env.NEXT_CRIT_ENABLE = 'true';
@@ -273,19 +273,7 @@ test('loads a subset of options', () => {
     expect(result.miscSettings.sendGroupInvite.enable).toBeFalsy();
 });
 
-test.each(['--auto-setup-critf', '--auto-setup-crittf'])('accepts %s and enables Crit TF without a key', flag => {
-    process.argv.push(flag);
-    try {
-        const result = Options.loadOptions({ steamAccountName: 'abc123' });
-        expect(result.autoSetupCritf).toBe(true);
-        expect(result.nextCritEnable).toBe(true);
-        expect(result.nextCritApiKey).toBe('');
-    } finally {
-        process.argv.pop();
-    }
-});
-
-test('loads saved Crit TF credentials on a later start without the setup flag', () => {
+test('loads saved Crit TF credentials on a later start', () => {
     Options.loadOptions({ steamAccountName: 'abc123' });
     const apiKey = `sk_${'a'.repeat(64)}`;
     writeFileSync(
@@ -295,7 +283,6 @@ test('loads saved Crit TF credentials on a later start without the setup flag', 
     process.env.NEXT_CRIT_API_KEY = 'stale-key';
     try {
         const result = Options.loadOptions({ steamAccountName: 'abc123' });
-        expect(result.autoSetupCritf).toBe(false);
         expect(result.nextCritEnable).toBe(true);
         expect(result.nextCritApiKey).toBe(apiKey);
     } finally {
@@ -315,15 +302,18 @@ test('allows explicit disable even when credentials are saved', () => {
     process.env.NEXT_CRIT_ENABLE = 'false';
     const result = Options.loadOptions({ steamAccountName: 'abc123' });
     expect(result.nextCritEnable).toBe(false);
-    expect(result.nextCritSteam64).toBe('76561198000000000');
 });
 
-test('enables auto setup through the process environment', () => {
-    process.env.AUTO_SETUP_CRITF = 'true';
+test('allows explicit disable without saved credentials', () => {
     process.env.NEXT_CRIT_ENABLE = 'false';
     const result = Options.loadOptions({ steamAccountName: 'abc123' });
-    expect(result.autoSetupCritf).toBe(true);
-    expect(result.nextCritEnable).toBe(true);
+    expect(result.nextCritEnable).toBe(false);
+    expect(result.nextCritApiKey).toBe('');
+});
+
+test('allows disabling Crit TF through incoming options', () => {
+    const result = Options.loadOptions({ steamAccountName: 'abc123', nextCritEnable: false });
+    expect(result.nextCritEnable).toBe(false);
 });
 
 test('reports malformed credentials without including their contents', () => {

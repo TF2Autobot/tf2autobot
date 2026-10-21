@@ -2354,10 +2354,8 @@ export default interface Options extends JsonOptions {
     steamSupplyApiKey?: string;
     steamApisApiKey?: string;
     expressLoadApiKey?: string;
-    autoSetupCritf?: boolean;
     nextCritEnable?: boolean;
     nextCritApiKey?: string;
-    nextCritSteam64?: string;
     nextCritAllowSelfSigned?: boolean;
     journalTfEnable?: boolean;
     journalTfApiKey?: string;
@@ -2680,12 +2678,7 @@ export function loadOptions(options?: Options): Options {
     const jsonParseNumber = (jsonString: string): number => JSON.parse(jsonString) as unknown as number;
     const jsonParseAdminData = (jsonString: string): adminData[] => JSON.parse(jsonString) as unknown as adminData[];
 
-    const autoSetupCritf =
-        process.argv.includes('--auto-setup-critf') ||
-        process.argv.includes('--auto-setup-crittf') ||
-        process.env.AUTO_SETUP_CRITF === 'true';
     const envOptions = {
-        autoSetupCritf,
         steamAccountName: steamAccountName,
         steamPassword: getOption('steamPassword', '', String, incomingOptions),
         steamSharedSecret: getOption('steamSharedSecret', '', String, incomingOptions),
@@ -2705,10 +2698,8 @@ export function loadOptions(options?: Options): Options {
         steamApisApiKey: getOption('steamapisApiKey', '', String, incomingOptions),
         expressLoadApiKey: getOption('expressloadApiKey', '', String, incomingOptions),
         nextCritEnable:
-            autoSetupCritf ||
-            ((incomingOptions.nextCritEnable as boolean | undefined) ??
-                getOption('nextCritEnable', !!critCredentials, jsonParseBoolean)),
-        nextCritSteam64: critCredentials?.steam64,
+            (incomingOptions.nextCritEnable as boolean | undefined) ??
+            getOption('nextCritEnable', true, jsonParseBoolean),
         nextCritApiKey: critCredentials?.apiKey || getOption('nextCritApiKey', '', String, incomingOptions),
         nextCritAllowSelfSigned: getOption('nextCritAllowSelfSigned', false, jsonParseBoolean, incomingOptions),
         journalTfEnable: getOption('journalTfEnable', false, jsonParseBoolean, incomingOptions),
