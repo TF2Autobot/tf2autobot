@@ -122,7 +122,11 @@ export default function updateListings(
                 }
             } else if (diff[priceKey] < 0) {
                 // We gave away items (we sold them)
+                const previousLot = priceListEntry.purchaseHistory[0];
                 priceListEntry.removePurchaseRecord(quantityChanged);
+                if (priceListEntry.purchaseHistory[0] !== previousLot) {
+                    bot.pricelist.repriceAfterFifoSale(priceKey, amount);
+                }
                 log.debug(`PPU: Removed ${quantityChanged}x ${name} from purchase history (FIFO)`);
             }
         }

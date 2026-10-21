@@ -209,7 +209,7 @@ export class Entry implements EntryData {
 
     /**
      * Get FIFO (First In, First Out) purchase price - the price paid for the oldest items in stock
-     * This is used for PPU protection to ensure we never sell below the cost of the oldest purchased items
+     * Expired lots remain in the queue until sold; callers check their protection threshold separately.
      */
     getFIFOPurchasePrice(): Currencies | null {
         if (this.purchaseHistory.length === 0) {
@@ -230,31 +230,6 @@ export class Entry implements EntryData {
             return null;
         }
         return this.purchaseHistory[0].timestamp;
-    }
-
-    /**
-     * Remove expired purchases from history based on PPU threshold
-     * Returns true if any purchases were removed
-     */
-    removeExpiredPurchases(thresholdSeconds: number): boolean {
-        const currentTime = Math.floor(Date.now() / 1000);
-        let removed = false;
-
-        // Remove purchases from the front of the array (oldest first) that have exceeded threshold
-        while (this.purchaseHistory.length > 0) {
-            const oldest = this.purchaseHistory[0];
-            const age = currentTime - oldest.timestamp;
-
-            if (age >= thresholdSeconds) {
-                this.purchaseHistory.shift();
-                removed = true;
-            } else {
-                // Stop when we hit a purchase that's still within threshold
-                break;
-            }
-        }
-
-        return removed;
     }
 
     static fromData(data: EntryData, schema: SchemaManager.Schema): Entry {
@@ -327,6 +302,8 @@ export interface AssetidInPricelist {
 
 export default class Pricelist extends EventEmitter {
     private prices: PricesObject = {};
+
+    private marketPrices: Record<string, BuyAndSell> = {};
 
     get getLength(): number {
         return Object.keys(this.prices).length;
@@ -624,6 +601,7 @@ export default class Pricelist extends EventEmitter {
                 this.currentKeyPrices = newPrices;
             }
 
+            this.rememberMarketPrices(entry.sku, newPrices);
             entry.buy = newPrices.buy;
             entry.sell = newPrices.sell;
             entry.time = price.time;
@@ -681,6 +659,7 @@ export default class Pricelist extends EventEmitter {
                     this.currentKeyPrices = newPrices;
                 }
 
+                this.rememberMarketPrices(entry.sku, newPrices);
                 entry.buy = newPrices.buy;
                 entry.sell = newPrices.sell;
                 entry.time = item.time;
@@ -716,9 +695,83 @@ export default class Pricelist extends EventEmitter {
         }
     }
 
+    private rememberMarketPrices(sku: string, prices: BuyAndSell): void {
+        this.marketPrices[sku] = { buy: new Currencies(prices.buy), sell: new Currencies(prices.sell) };
+    }
+
+    repriceAfterFifoSale(priceKey: string, currentStock: number): void {
+        const entry = this.getPrice({ priceKey, onlyEnabled: false });
+        const ppu = this.options.pricelist.partialPriceUpdate;
+        if (
+            !entry?.enabled ||
+            !entry.autoprice ||
+            !ppu.enable ||
+            currentStock <= 0 ||
+            ['5021;6'].concat(ppu.excludeSKU).includes(entry.sku)
+        ) {
+            return;
+        }
+        const withinStockLimit = ppu.removeMaxRestriction
+            ? ppu.maxProtectedUnits === -1 || currentStock <= (ppu.maxProtectedUnits || 1)
+            : entry.max === 1;
+        const purchaseTime = entry.getOldestPurchaseTime();
+        const now = Math.floor(Date.now() / 1000);
+        if (!withinStockLimit || purchaseTime === null || now - purchaseTime >= ppu.thresholdInSeconds) {
+            return;
+        }
+
+        const keyPrice = this.getKeyPrice.metal;
+        const cost = entry.getFIFOPurchasePrice().toValue(keyPrice);
+        const market = this.marketPrices[entry.sku];
+        if (!market) {
+            void this.getItemPrices(entry.sku)
+                .then(price => {
+                    if (price?.buy && price.sell && this.getPrice({ priceKey, onlyEnabled: false }) === entry) {
+                        const stock = this.bot.inventoryManager.getInventory.getAmount({
+                            priceKey: entry.sku,
+                            includeNonNormalized: false,
+                            tradableOnly: true
+                        });
+                        this.repriceAfterFifoSale(priceKey, stock);
+                    }
+                })
+                .catch(() => log.warn(`Failed to refresh FIFO rollover pricing for ${priceKey}`));
+        }
+        const oldBuy = entry.buy.toValue(keyPrice);
+        const oldSell = entry.sell.toValue(keyPrice);
+        let buy = oldBuy;
+        if (market) {
+            const marketBuy = market.buy.toValue(keyPrice);
+            if (marketBuy < oldBuy) buy = marketBuy;
+            else if (marketBuy > oldBuy) buy = Math.min(marketBuy, cost);
+        }
+        // Without an observed market quote, a stale protected sell is not evidence that lowering is safe.
+        const sell = Math.max(market ? market.sell.toValue(keyPrice) : oldSell, cost + (ppu.minProfitScrap || 1));
+        if (buy === oldBuy && sell === oldSell && entry.isPartialPriced) {
+            return;
+        }
+        entry.buy = Currencies.toCurrencies(buy, keyPrice);
+        entry.sell = Currencies.toCurrencies(sell, keyPrice);
+        if (!entry.isPartialPriced) entry.partialPriceTime = now;
+        entry.isPartialPriced = true;
+        this.priceChanged(priceKey, entry);
+    }
+
     async getItemPrices(sku: string): Promise<ParsedPrice | null> {
         try {
-            return await this.priceSource.getPrice(sku).then(response => new ParsedPrice(response));
+            const entry = this.getPrice({ priceKey: sku, onlyEnabled: false });
+            const previousMarket = this.marketPrices[sku];
+            const price = new ParsedPrice(await this.priceSource.getPrice(sku));
+            if (
+                price.buy &&
+                price.sell &&
+                entry &&
+                this.getPrice({ priceKey: sku, onlyEnabled: false }) === entry &&
+                this.marketPrices[sku] === previousMarket
+            ) {
+                this.rememberMarketPrices(sku, { buy: price.buy, sell: price.sell });
+            }
+            return price;
         } catch (err) {
             const errStringify = JSON.stringify(err);
             const errMessage = errStringify === '' ? (err as Error)?.message : errStringify;
@@ -860,6 +913,7 @@ export default class Pricelist extends EventEmitter {
     }
 
     setNewPricelist(newEntry: PricesObject): void {
+        this.marketPrices = {};
         this.prices = newEntry;
         this.emit('pricelist', newEntry);
     }
@@ -867,6 +921,7 @@ export default class Pricelist extends EventEmitter {
     removeAll(): void {
         if (this.getLength !== 0) {
             this.prices = {};
+            this.marketPrices = {};
             this.emit('pricelist', []);
         }
     }
@@ -879,6 +934,7 @@ export default class Pricelist extends EventEmitter {
 
             const entry = this.prices[priceKey].clone();
             delete this.prices[priceKey];
+            delete this.marketPrices[priceKey];
 
             if (emitChange) {
                 this.priceChanged(priceKey, entry);
@@ -1228,6 +1284,7 @@ export default class Pricelist extends EventEmitter {
                     continue;
                 }
 
+                this.rememberMarketPrices(sku, newPrices);
                 const newBuyValue = newPrices.buy.toValue(keyPrice);
                 const newSellValue = newPrices.sell.toValue(keyPrice);
 
@@ -1255,13 +1312,9 @@ export default class Pricelist extends EventEmitter {
                     ? Math.floor(Date.now() / 1000) - currPrice.lastInStockTime < stockGracePeriod
                     : false;
 
-                //use partial price update conditions
-                // Clean up expired purchases from history first
-                const hadExpiredPurchases = currPrice.removeExpiredPurchases(ppu.thresholdInSeconds);
-
                 // Use oldest purchase time for threshold - we want to protect based on when items were purchased
                 const oldestPurchaseTime = currPrice.getOldestPurchaseTime();
-                const lastUpdateTime = oldestPurchaseTime || currPrice.partialPriceTime || currPrice.time;
+                const lastUpdateTime = oldestPurchaseTime ?? currPrice.partialPriceTime ?? currPrice.time;
                 const isNotExceedThreshold = Math.floor(Date.now() / 1000) - lastUpdateTime < ppu.thresholdInSeconds;
                 const isNotExcluded = !excludedSKU.includes(sku);
 
@@ -1500,6 +1553,7 @@ export default class Pricelist extends EventEmitter {
         }
 
         if (match !== null && match.autoprice) {
+            this.rememberMarketPrices(match.sku, newPrices);
             const oldPrice = {
                 buy: new Currencies(match.buy),
                 sell: new Currencies(match.sell)
@@ -1514,8 +1568,13 @@ export default class Pricelist extends EventEmitter {
             const buyChangesValue = Math.round(newBuyValue - oldBuyValue);
             const sellChangesValue = Math.round(newSellValue - oldSellValue);
 
-            if (buyChangesValue === 0 && sellChangesValue === 0) {
-                // Ignore
+            const ppu = opt.pricelist.partialPriceUpdate;
+            const oldestPurchaseTime = match.getOldestPurchaseTime();
+            const lastUpdateTime = oldestPurchaseTime ?? match.partialPriceTime ?? match.time;
+            const isNotExceedThreshold = Math.floor(Date.now() / 1000) - lastUpdateTime < ppu.thresholdInSeconds;
+
+            // Equal prices must still release a floor whose purchase protection has expired.
+            if (buyChangesValue === 0 && sellChangesValue === 0 && (!match.isPartialPriced || isNotExceedThreshold)) {
                 return;
             }
 
@@ -1526,7 +1585,6 @@ export default class Pricelist extends EventEmitter {
                 tradableOnly: true
             });
 
-            const ppu = opt.pricelist.partialPriceUpdate;
             const isInStock = currentStock > 0;
 
             // Update last in stock time
@@ -1540,13 +1598,6 @@ export default class Pricelist extends EventEmitter {
                 ? Math.floor(Date.now() / 1000) - match.lastInStockTime < stockGracePeriod
                 : false;
 
-            // Clean up expired purchases from history first
-            const hadExpiredPurchases = match.removeExpiredPurchases(ppu.thresholdInSeconds);
-
-            // Use oldest purchase time for threshold - we want to protect based on when items were purchased
-            const oldestPurchaseTime = match.getOldestPurchaseTime();
-            const lastUpdateTime = oldestPurchaseTime || match.partialPriceTime || match.time;
-            const isNotExceedThreshold = Math.floor(Date.now() / 1000) - lastUpdateTime < ppu.thresholdInSeconds;
             const isNotExcluded = !['5021;6'].concat(ppu.excludeSKU).includes(match.sku);
 
             // Remove max === 1 restriction if configured

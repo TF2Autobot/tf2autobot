@@ -68,11 +68,14 @@ export function dailyProfitSeries(
         );
     }
 
+    const dayStarts = [...buckets.keys()].reverse();
+    const tomorrowStart = todayStart.add(1, 'day').startOf('day').valueOf();
+
     for (const trade of trades) {
         if (!isCountableProfitTrade(trade, isAdmin)) continue;
         const tradeTime = trade.handleTimestamp || trade.tradeProfit.timestamp;
-        if (!tradeTime) continue;
-        const start = dayjs(tradeTime).tz(zone).startOf('day').valueOf();
+        if (!tradeTime || tradeTime >= tomorrowStart) continue;
+        const start = dayStarts.find(startMs => tradeTime >= startMs);
         const bucket = buckets.get(start);
         if (!bucket) continue;
         bucket.keys += trade.tradeProfit.rawProfit.keys;
