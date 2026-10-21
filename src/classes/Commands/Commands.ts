@@ -24,6 +24,7 @@ import log from '../../lib/logger';
 import { testPriceKey } from '../../lib/tools/export';
 import { apiRequest } from '../../lib/apiRequest';
 import { JournalTfBoughtItem } from '../JournalTfManager';
+import { normalizeHatCommand, resolveHatSku } from '../../lib/hatSku';
 
 type Instant = 'buy' | 'b' | 'sell' | 's';
 type CraftUncraft = 'craftweapon' | 'uncraftweapon';
@@ -143,6 +144,15 @@ export default class Commands {
                     `Steam admin command "${command}" blocked for ${steamID.toString()} (admin commands globally disabled)`
                 );
                 return;
+            }
+
+            try {
+                message = normalizeHatCommand(message, command, this.bot.schema);
+            } catch (err) {
+                return this.bot.sendMessage(
+                    steamID,
+                    `❌ ${err instanceof Error ? err.message : 'Invalid HAT identifier.'}`
+                );
             }
 
             if (command === 'help') {
@@ -420,6 +430,35 @@ export default class Commands {
         }
 
         const itemsOrSkus = itemNamesOrSkus.split('\n');
+
+        if (itemsOrSkus.some(item => item.trim().startsWith('Z^'))) {
+            try {
+                const results = itemsOrSkus.map(value => {
+                    const input = value.trim();
+                    const sku = input.startsWith('Z^')
+                        ? resolveHatSku(input, this.bot.schema)
+                        : testPriceKey(input)
+                        ? input
+                        : this.bot.schema.getSkuFromName(input);
+                    if (sku.includes('null') || sku.includes('undefined'))
+                        throw new Error(`Cannot resolve item: ${input}`);
+                    return { sku, name: this.bot.schema.getName(SKU.fromString(sku), false) };
+                });
+                if (results.length === 1 && steamID.redirectAnswerTo instanceof DiscordMessage && this.bot.discordBot) {
+                    void this.bot.discordBot.sendSkuAnswer(steamID.redirectAnswerTo, results[0].name, results[0].sku);
+                } else {
+                    this.bot.sendMessage(
+                        steamID,
+                        results
+                            .map(({ name, sku }) => `• ${name}\nSKU: ${sku}\nhttps://pricedb.io/item/${sku}`)
+                            .join('\n')
+                    );
+                }
+            } catch (err) {
+                this.bot.sendMessage(steamID, `❌ ${err instanceof Error ? err.message : 'Invalid HAT identifier.'}`);
+            }
+            return;
+        }
 
         if (itemsOrSkus.length === 1) {
             if (!testPriceKey(itemNamesOrSkus)) {
