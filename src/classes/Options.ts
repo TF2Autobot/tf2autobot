@@ -1,3 +1,4 @@
+import { loadCritCredentials } from '../lib/critCredentials';
 import { snakeCase } from 'change-case';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import jsonlint from '@tf2autobot/jsonlint';
@@ -2353,6 +2354,7 @@ export default interface Options extends JsonOptions {
     steamSupplyApiKey?: string;
     steamApisApiKey?: string;
     expressLoadApiKey?: string;
+    autoSetupCritf?: boolean;
     nextCritEnable?: boolean;
     nextCritApiKey?: string;
     nextCritAllowSelfSigned?: boolean;
@@ -2669,6 +2671,7 @@ function replaceOldProperties(options: DeprecatedJsonOptions): boolean {
 export function loadOptions(options?: Options): Options {
     const incomingOptions = options ? deepMerge({}, options) : {};
     const steamAccountName = getOption('steamAccountName', '', String, incomingOptions);
+    const critCredentials = loadCritCredentials(getFilesPath(steamAccountName));
     lintAllTheThings(getFilesPath(steamAccountName)); // you shall not pass
 
     const jsonParseArray = (jsonString: string): string[] => JSON.parse(jsonString) as unknown as string[];
@@ -2676,7 +2679,12 @@ export function loadOptions(options?: Options): Options {
     const jsonParseNumber = (jsonString: string): number => JSON.parse(jsonString) as unknown as number;
     const jsonParseAdminData = (jsonString: string): adminData[] => JSON.parse(jsonString) as unknown as adminData[];
 
+    const autoSetupCritf =
+        process.argv.includes('--auto-setup-critf') ||
+        process.argv.includes('--auto-setup-crittf') ||
+        process.env.AUTO_SETUP_CRITF === 'true';
     const envOptions = {
+        autoSetupCritf,
         steamAccountName: steamAccountName,
         steamPassword: getOption('steamPassword', '', String, incomingOptions),
         steamSharedSecret: getOption('steamSharedSecret', '', String, incomingOptions),
@@ -2695,8 +2703,11 @@ export function loadOptions(options?: Options): Options {
         steamSupplyApiKey: getOption('steamsupplyApiKey', '', String, incomingOptions),
         steamApisApiKey: getOption('steamapisApiKey', '', String, incomingOptions),
         expressLoadApiKey: getOption('expressloadApiKey', '', String, incomingOptions),
-        nextCritEnable: getOption('nextCritEnable', false, jsonParseBoolean, incomingOptions),
-        nextCritApiKey: getOption('nextCritApiKey', '', String, incomingOptions),
+        nextCritEnable:
+            autoSetupCritf ||
+            !!critCredentials ||
+            getOption('nextCritEnable', false, jsonParseBoolean, incomingOptions),
+        nextCritApiKey: critCredentials?.apiKey || getOption('nextCritApiKey', '', String, incomingOptions),
         nextCritAllowSelfSigned: getOption('nextCritAllowSelfSigned', false, jsonParseBoolean, incomingOptions),
         journalTfEnable: getOption('journalTfEnable', false, jsonParseBoolean, incomingOptions),
         journalTfApiKey: getOption('journalTfApiKey', '', String, incomingOptions),

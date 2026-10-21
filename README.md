@@ -140,6 +140,23 @@ Look at the example [options.json](.example/options.json) for where this should 
 If upgrading, rename your existing `polldata.json` to `polldata.old.json` otherwise historical data will skew !stats (optional)
 The new stats system uses new logic to track profit by recording keys and metal separately to prevent point in time issues. These are used to provide estimated profit/loss with the !stats command. This change is backwards compatible with Autobot.
 
+### Automatic Crit TF setup
+
+Start the bot with either spelling (both do the same thing):
+
+```sh
+node dist/app.js --auto-setup-crittf
+node dist/app.js --auto-setup-critf
+```
+
+For PM2, add `"args": "--auto-setup-crittf"` to the bot's app entry in your ecosystem file. For Docker or other process managers, set `AUTO_SETUP_CRITF=true` instead. Keep the flag enabled to check the key on each start and replace it if it has been revoked or expired.
+
+After its normal Steam login, the bot validates an existing Crit TF key. If none exists or it is rejected, the bot signs in to Crit TF using its Steam web session, registers the account if needed, and creates a key. Website login and copying tokens are automatic. Steam Guard and the bot's normal Steam login requirements still apply.
+
+The key is saved in `files/<STEAM_ACCOUNT_NAME>/crit-credentials.json`, which works on Windows and Linux, with or without PM2. Future starts automatically load the saved key and enable Crit TF, even without the setup flag. Saved credentials take precedence over `NEXT_CRIT_API_KEY`; remove that credentials file to switch back to a manually configured key. Keep the `files` directory in persistent storage when running Docker. Unix permissions are restricted to the file owner; Windows uses the directory's normal access permissions.
+
+A valid key for a different Steam account stops setup. Service outages and unexpected responses also stop setup without creating replacement keys. Setup does not print keys or persist Steam website cookies.
+
 ### crit.tf configuration
 
 If you want to use crit.tf follow the below

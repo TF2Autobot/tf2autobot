@@ -195,10 +195,10 @@ test('failed publish responses are not cached', async () => {
     expect(request).toHaveBeenCalledTimes(2);
 });
 
-test('uses the NextCrit URL supplied by dev', () => {
+test('uses the production Crit TF URL', () => {
     new NextCritDriver('key');
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockedAxios.create).toHaveBeenCalledWith(expect.objectContaining({ baseURL: 'https://next.crittf.tf' }));
+    expect(mockedAxios.create).toHaveBeenCalledWith(expect.objectContaining({ baseURL: 'https://crit.tf' }));
 });
 
 test('limits self-signed certificate support to the NextCrit HTTPS agent', () => {

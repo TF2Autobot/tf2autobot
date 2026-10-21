@@ -1,3 +1,5 @@
+import { setupCrit } from '../lib/critSetup';
+import { getFilesPath } from './Options';
 import SteamID from 'steamid';
 import SteamUser from 'steam-user';
 import { EResult, EPersonaState } from 'steam-user';
@@ -1225,6 +1227,24 @@ export default class Bot {
 
                             callback(null);
                         });
+                    },
+                    (callback: Callback): void => {
+                        if (!this.options.autoSetupCritf) return callback(null);
+                        log.info('Setting up Crit TF...');
+                        void handleCallback(
+                            setupCrit(
+                                this.options.nextCritApiKey,
+                                this.client.steamID.getSteamID64(),
+                                cookies,
+                                getFilesPath(this.options.steamAccountName)
+                            ).then(apiKey => {
+                                this.options.nextCritApiKey = apiKey;
+                                this.options.nextCritEnable = true;
+                                this.listings.configureNextCrit();
+                                log.info('Crit TF is connected; credentials saved for future starts.');
+                            }),
+                            callback
+                        );
                     },
                     (callback: Callback): void => {
                         if (this.options.bptfApiKey && this.options.bptfAccessToken) {

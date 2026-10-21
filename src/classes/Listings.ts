@@ -33,9 +33,9 @@ interface RemoveAllListingsParams {
 }
 
 export default class Listings {
-    private readonly nextCrit: NextCritDriver | undefined;
+    private nextCrit: NextCritDriver | undefined;
 
-    private readonly nextCritCheckout: NextCritCheckout | undefined;
+    private nextCritCheckout: NextCritCheckout | undefined;
 
     private nextCritSyncTimer: NodeJS.Timeout | undefined;
 
@@ -63,16 +63,19 @@ export default class Listings {
 
     private templates: { buy: string; sell: string };
 
+    configureNextCrit(): void {
+        if (!this.bot.options.nextCritEnable || this.nextCrit) return;
+        this.nextCrit = new NextCritDriver(
+            this.bot.options.nextCritApiKey,
+            undefined,
+            this.bot.options.nextCritAllowSelfSigned
+        );
+        this.nextCritCheckout = new NextCritCheckout(this.bot, this.nextCrit);
+    }
+
     constructor(private readonly bot: Bot) {
         this.bot = bot;
-        if (bot.options.nextCritEnable) {
-            this.nextCrit = new NextCritDriver(
-                bot.options.nextCritApiKey,
-                undefined,
-                bot.options.nextCritAllowSelfSigned
-            );
-            this.nextCritCheckout = new NextCritCheckout(bot, this.nextCrit);
-        }
+        if (!bot.options.autoSetupCritf) this.configureNextCrit();
         this.templates = {
             buy:
                 this.bot.options.details.buy ||

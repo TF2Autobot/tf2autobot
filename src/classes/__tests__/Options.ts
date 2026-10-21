@@ -270,3 +270,33 @@ test('loads a subset of options', () => {
     expect(result.miscSettings.addFriends.enable).toBeFalsy();
     expect(result.miscSettings.sendGroupInvite.enable).toBeFalsy();
 });
+
+test.each(['--auto-setup-critf', '--auto-setup-crittf'])('accepts %s and enables Crit TF without a key', flag => {
+    process.argv.push(flag);
+    try {
+        const result = Options.loadOptions({ steamAccountName: 'abc123' });
+        expect(result.autoSetupCritf).toBe(true);
+        expect(result.nextCritEnable).toBe(true);
+        expect(result.nextCritApiKey).toBe('');
+    } finally {
+        process.argv.pop();
+    }
+});
+
+test('loads saved Crit TF credentials on a later start without the setup flag', () => {
+    Options.loadOptions({ steamAccountName: 'abc123' });
+    const apiKey = `sk_${'a'.repeat(64)}`;
+    writeFileSync(
+        path.join(Options.getFilesPath('abc123'), 'crit-credentials.json'),
+        JSON.stringify({ steam64: '76561198000000000', apiKey })
+    );
+    process.env.NEXT_CRIT_API_KEY = 'stale-key';
+    try {
+        const result = Options.loadOptions({ steamAccountName: 'abc123' });
+        expect(result.autoSetupCritf).toBe(false);
+        expect(result.nextCritEnable).toBe(true);
+        expect(result.nextCritApiKey).toBe(apiKey);
+    } finally {
+        delete process.env.NEXT_CRIT_API_KEY;
+    }
+});
