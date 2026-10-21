@@ -1,6 +1,6 @@
 {
     "name": "tf2autobot-pricedb-io",
-    "version": "6.1.1",
+    "version": "6.2.0",
     "description": "Fully automated TF2 trading bot advertising on www.backpack.tf using prices from www.pricedb.io",
     "main": "dist/app.js",
     "scripts": {
@@ -27,7 +27,7 @@
         "url": "https://github.com/TF2-Price-DB/tf2autobot-pricedb/issues"
     },
     "updaterepo": true,
-    "updateMessage": "Update with !updaterepo to 6.1.1 report issues in the pricedb discord!",
+    "updateMessage": "Update with !updaterepo to 6.2.0 report issues in the pricedb discord!",
     "homepage": "https://github.com/TF2-Price-DB/tf2autobot-pricedb#readme",
     "dependencies": {
         "@napi-rs/canvas": "^1.0.3",
