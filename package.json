@@ -35,7 +35,7 @@
         "@tf2autobot/bptf-login": "^2.5.1",
         "@tf2autobot/filter-axios-error": "^1.5.6",
         "@tf2autobot/jsonlint": "^1.0.0",
-        "@tf2autobot/steamcommunity": "^3.50.6",
+        "@tf2autobot/steamcommunity": "^3.50.9",
         "@tf2autobot/tf2": "^1.4.0",
         "@tf2autobot/tf2-currencies": "^2.0.1",
         "@tf2autobot/tf2-schema": "github:TF2-Price-DB/pricedb-tf2-schema",
