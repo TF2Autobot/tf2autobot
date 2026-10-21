@@ -241,6 +241,22 @@ For issues or questions specific to this pricedb.io fork (or to my services), pl
 -   Original project: [TF2Autobot by IdiNium](https://github.com/idinium96/tf2autobot)
 -   Based on [tf2-automatic by Nicklason](https://github.com/Nicklason/tf2-automatic)
 
+### HAT item identifiers
+
+Commands accept HAT Version Z identifiers beginning with `Z^` alongside normal
+SKUs. For example, `!sku Z^Rocket_Launcher;TMC;Unique` returns `205;6`, and
+`!add sku=Z^Rocket_Launcher;TMC;Unique&autoprice=true` uses that normal SKU.
+The same conversion works in bulk pricelist commands, SKU parameter commands,
+and bare item arguments such as `!price`, `!buy`, `!sell`, and cart commands.
+The pricelist continues to store normal SKUs.
+
+The converter preserves craftability, tradability, quality, killstreak tier,
+festivization, unusual effect, paint, and supported skins/wear. Marketability is
+metadata and is not represented by normal SKUs. HATs containing spells, sheens,
+killstreakers, strange parts, strange filters, loaner status, conflicting fields,
+or unsupported multiple attributes are rejected rather than losing those details.
+Use an asset ID when you need to target an individual inventory item.
+
 ### NextCrit listings
 
 Set `NEXT_CRIT_ENABLE=true` and `NEXT_CRIT_API_KEY` to a long-lived API key for
@@ -257,8 +273,10 @@ Use a dedicated account for the bot if you also manage listings manually.
 The driver exchanges the API key for a short-lived Bearer token and renews it
 automatically. Prices use integer keys and half-scrap (18 half-scrap per refined).
 NextCrit resolves HAT Version Z from the asset in its inventory; sell requests
-send asset IDs rather than SKUs or locally generated HATs. If NextCrit cannot find
-an asset, the bot requests an inventory refresh and retries publishing. Failed
+send asset IDs rather than SKUs or locally generated HATs. Before publishing,
+the bot checks NextCrit's cached inventory with a one-hour maximum age. If the
+cache is unavailable or any asset is missing, it forces an uncached inventory
+refresh and verifies the assets are present before sending the listing request. Failed
 publishes are retried on subsequent listing checks.
 
 Buy listings are generated from enabled buy and bank entries, even when the bot

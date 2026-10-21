@@ -1442,9 +1442,6 @@ export default class Bot {
                                         !this.options.pricedbStoreApiKey ||
                                         !this.options.miscSettings.pricedbStore.enable
                                     ) {
-                                        log.debug(
-                                            'Skipping PriceDB Store Manager initialization (temporarily disabled, not configured, or disabled)'
-                                        );
                                         cb(null);
                                         return;
                                     }
