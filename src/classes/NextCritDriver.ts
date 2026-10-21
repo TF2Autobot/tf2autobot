@@ -78,7 +78,7 @@ export default class NextCritDriver {
 
     private readonly published = new Map<string, NextCritPrice>();
 
-    constructor(private readonly apiKey: string, baseUrl = 'https://next.crittf.tf', allowSelfSigned = false) {
+    constructor(private readonly apiKey: string, baseUrl = 'https://critf.tf', allowSelfSigned = false) {
         if (!apiKey) throw new Error('NextCrit requires an API key');
         this.http = axios.create({
             baseURL: baseUrl,
