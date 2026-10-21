@@ -21,6 +21,8 @@ beforeEach(() => {
 });
 
 afterAll(() => {
+    cleanPath(Options.getFilesPath('abc123'));
+    cleanPath(Options.getFilesPath('test123'));
     process.env = OLD_ENV; // restore old env
 });
 
@@ -299,4 +301,33 @@ test('loads saved Crit TF credentials on a later start without the setup flag', 
     } finally {
         delete process.env.NEXT_CRIT_API_KEY;
     }
+});
+
+test('allows explicit disable even when credentials are saved', () => {
+    Options.loadOptions({ steamAccountName: 'abc123' });
+    writeFileSync(
+        path.join(Options.getFilesPath('abc123'), 'crit-credentials.json'),
+        JSON.stringify({
+            steam64: '76561198000000000',
+            apiKey: `sk_${'a'.repeat(64)}`
+        })
+    );
+    process.env.NEXT_CRIT_ENABLE = 'false';
+    const result = Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(result.nextCritEnable).toBe(false);
+    expect(result.nextCritSteam64).toBe('76561198000000000');
+});
+
+test('enables auto setup through the process environment', () => {
+    process.env.AUTO_SETUP_CRITF = 'true';
+    process.env.NEXT_CRIT_ENABLE = 'false';
+    const result = Options.loadOptions({ steamAccountName: 'abc123' });
+    expect(result.autoSetupCritf).toBe(true);
+    expect(result.nextCritEnable).toBe(true);
+});
+
+test('reports malformed credentials without including their contents', () => {
+    Options.loadOptions({ steamAccountName: 'abc123' });
+    writeFileSync(path.join(Options.getFilesPath('abc123'), 'crit-credentials.json'), '{"apiKey":"secret-value');
+    expect(() => Options.loadOptions({ steamAccountName: 'abc123' })).toThrow('Cannot read Crit TF credentials');
 });

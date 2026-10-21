@@ -1,5 +1,3 @@
-import { setupCrit } from '../lib/critSetup';
-import { getFilesPath } from './Options';
 import SteamID from 'steamid';
 import SteamUser from 'steam-user';
 import { EResult, EPersonaState } from 'steam-user';
@@ -24,6 +22,7 @@ import fs from 'fs';
 import path from 'path';
 import * as files from '../lib/files';
 import { isUsableRefreshToken } from '../lib/refreshToken';
+import { setupCrit } from '../lib/critSetup';
 import { getSteamMaintenanceDelay } from '../lib/steamMaintenance';
 import handleCallback from '../lib/tools/handleCallback';
 
@@ -47,7 +46,7 @@ import log from '../lib/logger';
 import Bans, { IsBanned } from '../lib/bans';
 import { sendStats } from './DiscordWebhook/export';
 
-import Options from './Options';
+import Options, { getFilesPath } from './Options';
 import IPricer from './IPricer';
 import { EventEmitter } from 'events';
 import { Blocked } from './MyHandler/interfaces';
@@ -1229,7 +1228,19 @@ export default class Bot {
                         });
                     },
                     (callback: Callback): void => {
-                        if (!this.options.autoSetupCritf) return callback(null);
+                        if (!this.options.autoSetupCritf) {
+                            if (
+                                this.options.nextCritSteam64 &&
+                                this.options.nextCritSteam64 !== this.client.steamID.getSteamID64()
+                            ) {
+                                this.options.nextCritEnable = false;
+                                log.warn(
+                                    'Saved Crit TF credentials belong to a different Steam account; Crit TF is disabled.'
+                                );
+                            }
+                            this.listings.configureNextCrit();
+                            return callback(null);
+                        }
                         log.info('Setting up Crit TF...');
                         void handleCallback(
                             setupCrit(
@@ -1237,12 +1248,19 @@ export default class Bot {
                                 this.client.steamID.getSteamID64(),
                                 cookies,
                                 getFilesPath(this.options.steamAccountName)
-                            ).then(apiKey => {
-                                this.options.nextCritApiKey = apiKey;
-                                this.options.nextCritEnable = true;
-                                this.listings.configureNextCrit();
-                                log.info('Crit TF is connected; credentials saved for future starts.');
-                            }),
+                            )
+                                .then(apiKey => {
+                                    this.options.nextCritApiKey = apiKey;
+                                    this.options.nextCritEnable = true;
+                                    this.listings.configureNextCrit();
+                                    log.info('Crit TF is connected; credentials saved for future starts.');
+                                })
+                                .catch((error: Error) => {
+                                    this.options.nextCritEnable = false;
+                                    log.warn(
+                                        `Crit TF setup failed: ${error.message} Continuing without Crit TF; retry setup on the next start.`
+                                    );
+                                }),
                             callback
                         );
                     },

@@ -75,7 +75,6 @@ export default class Listings {
 
     constructor(private readonly bot: Bot) {
         this.bot = bot;
-        if (!bot.options.autoSetupCritf) this.configureNextCrit();
         this.templates = {
             buy:
                 this.bot.options.details.buy ||

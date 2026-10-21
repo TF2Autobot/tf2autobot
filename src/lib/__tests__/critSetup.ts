@@ -99,3 +99,23 @@ test('does not expose axios request headers in errors', async () => {
     http.post.mockRejectedValueOnce({ isAxiosError: true, config: { headers: { 'X-API-Key': key } } });
     await expect(setupCrit(key, steam64, [], directory)).rejects.toThrow('could not reach the service');
 });
+
+test('re-registers when the service explicitly reports a deleted account', async () => {
+    http.post.mockResolvedValueOnce({
+        status: 400,
+        data: {
+            type: 'https://crit.tf/static/api-errors.html#api-key-account-unavailable'
+        }
+    });
+    mockSignIn();
+    await expect(setupCrit(`sk_${'b'.repeat(64)}`, steam64, [], directory)).resolves.toBe(key);
+});
+
+test.each([
+    `Steam64=${steam64}&Audience=Wrong&ExpiresOn=9999999999`,
+    `Steam64=${steam64}&Audience=ShortLivedToken&ExpiresOn=1`
+])('does not mint another key for an unexpected authentication token', async accessToken => {
+    http.post.mockResolvedValueOnce({ status: 200, data: { token: accessToken } });
+    await expect(setupCrit(key, steam64, [], directory)).rejects.toThrow('invalid access token');
+    expect(http.request.mock.calls).toHaveLength(0);
+});

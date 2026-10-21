@@ -10,13 +10,18 @@ class CritSetupError extends Error {}
 
 /** Only explicit authentication failures justify replacing an existing key. */
 async function validKey(apiKey: string, steam64: string): Promise<boolean> {
-    const response = await axios.post<{ token?: string }>(`${ORIGIN}/api/v2/auth`, undefined, {
+    const response = await axios.post<{ token?: string; type?: string }>(`${ORIGIN}/api/v2/auth`, undefined, {
         headers: { 'X-API-Key': apiKey },
         timeout: 30000,
         maxRedirects: 0,
         validateStatus: () => true
     });
     if ([401, 403].includes(response.status)) return false;
+    if (
+        response.status === 400 &&
+        response.data.type === `${ORIGIN}/static/api-errors.html#api-key-account-unavailable`
+    )
+        return false;
     if (response.status !== 200 || typeof response.data.token !== 'string') {
         throw new CritSetupError('Crit TF key validation failed; try again later.');
     }
@@ -66,7 +71,8 @@ class CritSession {
                 responseType: 'text',
                 validateStatus: () => true
             });
-            for (const cookie of response.headers['set-cookie'] ?? []) this.jar.setCookieSync(cookie, url);
+            for (const cookie of response.headers['set-cookie'] ?? [])
+                this.jar.setCookieSync(cookie, url, { ignoreError: true });
             if ([301, 302, 303, 307, 308].includes(response.status)) {
                 const location = response.headers.location as string | undefined;
                 if (!location) throw new CritSetupError('Crit TF sign-in returned an incomplete redirect.');
@@ -138,6 +144,6 @@ export async function setupCrit(
         if (axios.isAxiosError(error))
             throw new CritSetupError('Crit TF auto setup could not reach the service; try again later.');
         if (error instanceof CritSetupError) throw error;
-        throw new CritSetupError('Crit TF auto setup failed; check the saved credentials and try again.');
+        throw new CritSetupError('Crit TF auto setup could not process the service response; try again later.');
     }
 }

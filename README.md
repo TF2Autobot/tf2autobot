@@ -153,9 +153,9 @@ For PM2, add `"args": "--auto-setup-crittf"` to the bot's app entry in your ecos
 
 After its normal Steam login, the bot validates an existing Crit TF key. If none exists or it is rejected, the bot signs in to Crit TF using its Steam web session, registers the account if needed, and creates a key. Website login and copying tokens are automatic. Steam Guard and the bot's normal Steam login requirements still apply.
 
-The key is saved in `files/<STEAM_ACCOUNT_NAME>/crit-credentials.json`, which works on Windows and Linux, with or without PM2. Future starts automatically load the saved key and enable Crit TF, even without the setup flag. Saved credentials take precedence over `NEXT_CRIT_API_KEY`; remove that credentials file to switch back to a manually configured key. Keep the `files` directory in persistent storage when running Docker. Unix permissions are restricted to the file owner; Windows uses the directory's normal access permissions.
+The key is saved in `files/<STEAM_ACCOUNT_NAME>/crit-credentials.json`, which works on Windows and Linux, with or without PM2. Future starts automatically load the saved key and enable Crit TF, even without the setup flag, unless `NEXT_CRIT_ENABLE=false` is explicitly set. To disable Crit TF, remove the setup flag (or set `AUTO_SETUP_CRITF=false`) and set `NEXT_CRIT_ENABLE=false`. Saved credentials take precedence over `NEXT_CRIT_API_KEY`; remove that credentials file to switch back to a manually configured key. Keep the `files` directory in persistent storage when running Docker. Unix permissions are restricted to the file owner; Windows uses the directory's normal access permissions.
 
-A valid key for a different Steam account stops setup. Service outages and unexpected responses also stop setup without creating replacement keys. Setup does not print keys or persist Steam website cookies.
+A valid key for a different Steam account stops setup. Service outages and unexpected responses also stop setup without creating replacement keys. If setup fails, the bot continues with Crit TF disabled for that run; retry on the next start. Setup does not print keys or persist Steam website cookies.
 
 ### crit.tf configuration
 
@@ -261,10 +261,8 @@ For issues or questions specific to this pricedb.io fork (or to my services), pl
 ### NextCrit listings
 
 Set `NEXT_CRIT_ENABLE=true` and `NEXT_CRIT_API_KEY` to a long-lived API key for
-this bot's account on [next.crittf.tf](https://next.crittf.tf). The integration is
-disabled by default. While NextCrit uses a self-signed certificate, also set
-`NEXT_CRIT_ALLOW_SELF_SIGNED=true`; this disables certificate verification only
-for the NextCrit client. It lists every eligible tradable inventory asset up to
+this bot's account on [crit.tf](https://crit.tf), or use automatic setup above. The integration is
+disabled by default unless automatic setup has saved credentials. Certificate verification stays enabled for production. It lists every eligible tradable inventory asset up to
 each sell entry's stock limit, including assets with individual prices. Assets
 reserved in active trades are skipped when skipItemsInTrade is enabled. It
 updates prices, removes withdrawn or sold assets, and deletes all of the

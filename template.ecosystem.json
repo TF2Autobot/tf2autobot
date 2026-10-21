@@ -24,6 +24,7 @@
                 "USERAGENT_HEADER_CUSTOM": "",
                 "USERAGENT_HEADER_SHOW_VERSION": false,
 
+                "AUTO_SETUP_CRITF": false,
                 "PRICEDB_STORE_API_KEY": "",
                 "MANNCO_STORE_API_KEY": "",
                 "MPTF_API_KEY": "",

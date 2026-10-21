@@ -1,5 +1,5 @@
-import { loadCritCredentials } from '../lib/critCredentials';
 import { snakeCase } from 'change-case';
+import { loadCritCredentials } from '../lib/critCredentials';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import jsonlint from '@tf2autobot/jsonlint';
 import * as path from 'path';
@@ -2357,6 +2357,7 @@ export default interface Options extends JsonOptions {
     autoSetupCritf?: boolean;
     nextCritEnable?: boolean;
     nextCritApiKey?: string;
+    nextCritSteam64?: string;
     nextCritAllowSelfSigned?: boolean;
     journalTfEnable?: boolean;
     journalTfApiKey?: string;
@@ -2705,8 +2706,9 @@ export function loadOptions(options?: Options): Options {
         expressLoadApiKey: getOption('expressloadApiKey', '', String, incomingOptions),
         nextCritEnable:
             autoSetupCritf ||
-            !!critCredentials ||
-            getOption('nextCritEnable', false, jsonParseBoolean, incomingOptions),
+            ((incomingOptions.nextCritEnable as boolean | undefined) ??
+                getOption('nextCritEnable', !!critCredentials, jsonParseBoolean)),
+        nextCritSteam64: critCredentials?.steam64,
         nextCritApiKey: critCredentials?.apiKey || getOption('nextCritApiKey', '', String, incomingOptions),
         nextCritAllowSelfSigned: getOption('nextCritAllowSelfSigned', false, jsonParseBoolean, incomingOptions),
         journalTfEnable: getOption('journalTfEnable', false, jsonParseBoolean, incomingOptions),
