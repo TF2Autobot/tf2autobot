@@ -97,6 +97,7 @@ For example `!buy Burning Team Captain` becomes `buy_burning_team_captain` which
 -   `%current_stock%` - displays the current count of the item in the bot's inventory.
 -   `%pricedb_store%` - displays the URL of the bot's PriceDB store.
 -   `%pricedb_item%` - displays the URL of the item.
+-   `%crit_listing%` - displays the item's crit.tf page, e.g. `https://crit.tf/item/4` for a Mann Co. Supply Crate Key. Works in buy/sell templates and custom item notes. Links are resolved from crit.tf's public HAT mapping, cached for one hour, and filled in automatically after loading. An unresolved item produces an empty value.
 
 This results in listings like the below
 
